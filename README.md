@@ -174,16 +174,17 @@ Biblioteca de ícones SVG limpos e personalizáveis.
 
 ## 🗺️ Roteamento
 
-### TanStack Router ^1.130.12
+### React Router DOM ^6.28.1
 
-Sistema de roteamento type-safe para React.
+Biblioteca padrão para roteamento declarativo em React.
 
-- **Documentação:** [https://tanstack.com/router](https://tanstack.com/router)
+- **Documentação:** [https://reactrouter.com/](https://reactrouter.com/)
 - **Recursos:**
-  - Code splitting automático
-  - DevTools incluídas
-  - Type safety completa
-  - Plugin Vite integrado
+  - Roteamento declarativo
+  - Navegação programática
+  - Lazy loading de componentes
+  - Nested routes
+  - History API integrada
 
 ## 🗃️ Gerenciamento de Estado
 
@@ -373,7 +374,7 @@ src/
 │   └── ui/          # Componentes shadcn/ui
 ├── hooks/           # Hooks customizados
 ├── lib/             # Utilitários e configurações
-├── routes/          # Páginas e rotas
+├── pages/           # Páginas e rotas
 └── tests/           # Configuração de testes
 ```
 
@@ -382,7 +383,7 @@ src/
 - **Path Mapping:** Configurado alias `@/*` para `./src/*`
 - **TailwindCSS:** Configurado com variáveis CSS e estilo New York
 - **TypeScript:** Configuração modular com referencias separadas
-- **Vite:** Plugins configurados para React (SWC), TanStack Router e TailwindCSS
+- **Vite:** Plugins configurados para React (SWC) e TailwindCSS
 
 ---
 

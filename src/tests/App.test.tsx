@@ -4,10 +4,10 @@ import { describe, it, expect } from 'vitest'
 import App from '@/App'
 
 describe('App', () => {
-  it('deve renderizar o botão', () => {
+  it('deve renderizar a sidebar', () => {
     render(<App />)
 
-    expect(screen.getByRole('button')).toHaveTextContent('Click me')
+    expect(screen.getByText('Início')).toBeInTheDocument()
 
     // Use o texto que seu App renderiza.
     // Exemplo, se você tiver um <h1>Olá Mundo</h1> no seu App.
