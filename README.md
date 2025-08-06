@@ -2,8 +2,98 @@
 
 Projeto desenvolvido em React + TypeScript + Vite com uma stack moderna e completa para desenvolvimento frontend.
 
+## 📝 Conventional Commits
+
+Este projeto segue a especificação **Conventional Commits** para padronizar as mensagens de commit e facilitar a geração automática de changelogs.
+
+### 🎯 Estrutura Básica
+
+```
+<tipo>[escopo opcional]: <descrição>
+
+[corpo opcional]
+
+[rodapé(s) opcional(is)]
+```
+
+### 📌 Tipos de Commit
+
+| Tipo         | Descrição                         | Exemplo                                         |
+| ------------ | --------------------------------- | ----------------------------------------------- |
+| **feat**     | Nova funcionalidade               | `feat: adiciona sistema de autenticação`        |
+| **fix**      | Correção de bug                   | `fix: corrige erro de validação no formulário`  |
+| **docs**     | Mudanças na documentação          | `docs: atualiza README com novas instruções`    |
+| **style**    | Mudanças de formatação/estilo     | `style: formata código com prettier`            |
+| **refactor** | Refatoração sem mudança funcional | `refactor: reorganiza estrutura de componentes` |
+| **perf**     | Melhoria de performance           | `perf: otimiza renderização da lista`           |
+| **test**     | Adição ou correção de testes      | `test: adiciona testes unitários para utils`    |
+| **build**    | Mudanças no sistema de build      | `build: atualiza configuração do vite`          |
+| **ci**       | Mudanças na CI/CD                 | `ci: adiciona workflow de deploy`               |
+| **chore**    | Tarefas de manutenção             | `chore: atualiza dependências`                  |
+| **revert**   | Reverte commit anterior           | `revert: desfaz mudanças do commit abc123`      |
+
+### 🏷️ Escopos Sugeridos
+
+- **ui**: Componentes de interface
+- **auth**: Autenticação e autorização
+- **api**: Integrações com APIs
+- **routes**: Roteamento
+- **forms**: Formulários
+- **utils**: Utilitários
+- **tests**: Testes
+- **docs**: Documentação
+
+### ✅ Exemplos Práticos
+
+```bash
+# Nova funcionalidade simples
+git commit -m "feat: adiciona botão de dark mode"
+
+# Funcionalidade com escopo
+git commit -m "feat(auth): implementa login com JWT"
+
+# Correção de bug
+git commit -m "fix(forms): corrige validação de email"
+
+# Breaking change
+git commit -m "feat!: remove suporte a React 17"
+
+# Com descrição detalhada
+git commit -m "feat(ui): adiciona componente Modal
+
+- Adiciona componente Modal reutilizável
+- Implementa overlay com blur
+- Adiciona animações de entrada/saída
+- Inclui testes unitários
+
+Closes #123"
+```
+
+### 🚨 Breaking Changes
+
+Para mudanças que quebram compatibilidade, use `!` após o tipo:
+
+```bash
+git commit -m "feat!: muda estrutura da API de autenticação"
+```
+
+### 💡 Dicas
+
+- **Imperative mood**: Use verbos no imperativo ("adiciona", não "adicionando")
+- **Linha única**: Mantenha a primeira linha com até 72 caracteres
+- **Seja específico**: Descreva claramente o que foi alterado
+- **Reference issues**: Use `Closes #123` para fechar issues automaticamente
+
+### 🔗 Links Úteis
+
+- **Especificação oficial:** [conventionalcommits.org](https://www.conventionalcommits.org/)
+- **Extensão VS Code:** [Conventional Commits Extension](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)
+
+---
+
 ## 📋 Índice
 
+- [Conventional Commits](#-conventional-commits)
 - [Tecnologias Principais](#-tecnologias-principais)
 - [Sistema de Componentes UI](#-sistema-de-componentes-ui)
 - [Roteamento](#-roteamento)
@@ -48,33 +138,33 @@ Sistema de componentes construído sobre Radix UI e TailwindCSS.
 
 ### Radix UI
 
-Primitivos de componentes unstyled e acessíveis                                                           |
-| --------------- | ------- | --------------------------------------------------------------------------- |
-| Accordion       | ^1.2.11 | [Docs](https://www.radix-ui.com/primitives/docs/components/accordion)       |
-| Alert Dialog    | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/alert-dialog)    |
-| Aspect Ratio    | ^1.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/aspect-ratio)    |
-| Avatar          | ^1.1.10 | [Docs](https://www.radix-ui.com/primitives/docs/components/avatar)          |
-| Checkbox        | ^1.3.2  | [Docs](https://www.radix-ui.com/primitives/docs/components/checkbox)        |
-| Collapsible     | ^1.1.11 | [Docs](https://www.radix-ui.com/primitives/docs/components/collapsible)     |
-| Context Menu    | ^2.2.15 | [Docs](https://www.radix-ui.com/primitives/docs/components/context-menu)    |
-| Dialog          | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/dialog)          |
-| Dropdown Menu   | ^2.1.15 | [Docs](https://www.radix-ui.com/primitives/docs/components/dropdown-menu)   |
-| Hover Card      | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/hover-card)      |
-| Label           | ^2.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/label)           |
-| Menubar         | ^1.1.15 | [Docs](https://www.radix-ui.com/primitives/docs/components/menubar)         |
-| Navigation Menu | ^1.2.13 | [Docs](https://www.radix-ui.com/primitives/docs/components/navigation-menu) |
-| Popover         | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/popover)         |
-| Progress        | ^1.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/progress)        |
-| Radio Group     | ^1.3.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/radio-group)     |
-| Scroll Area     | ^1.2.9  | [Docs](https://www.radix-ui.com/primitives/docs/components/scroll-area)     |
-| Select          | ^2.2.5  | [Docs](https://www.radix-ui.com/primitives/docs/components/select)          |
-| Separator       | ^1.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/separator)       |
-| Slider          | ^1.3.5  | [Docs](https://www.radix-ui.com/primitives/docs/components/slider)          |
-| Switch          | ^1.2.5  | [Docs](https://www.radix-ui.com/primitives/docs/components/switch)          |
-| Tabs            | ^1.1.12 | [Docs](https://www.radix-ui.com/primitives/docs/components/tabs)            |
-| Toggle          | ^1.1.9  | [Docs](https://www.radix-ui.com/primitives/docs/components/toggle)          |
-| Toggle Group    | ^1.1.10 | [Docs](https://www.radix-ui.com/primitives/docs/components/toggle-group)    |
-| Tooltip         | ^1.2.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/tooltip)         |
+| Primitivos de componentes unstyled e acessíveis |
+| ----------------------------------------------- | ------- | --------------------------------------------------------------------------- |
+| Accordion                                       | ^1.2.11 | [Docs](https://www.radix-ui.com/primitives/docs/components/accordion)       |
+| Alert Dialog                                    | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/alert-dialog)    |
+| Aspect Ratio                                    | ^1.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/aspect-ratio)    |
+| Avatar                                          | ^1.1.10 | [Docs](https://www.radix-ui.com/primitives/docs/components/avatar)          |
+| Checkbox                                        | ^1.3.2  | [Docs](https://www.radix-ui.com/primitives/docs/components/checkbox)        |
+| Collapsible                                     | ^1.1.11 | [Docs](https://www.radix-ui.com/primitives/docs/components/collapsible)     |
+| Context Menu                                    | ^2.2.15 | [Docs](https://www.radix-ui.com/primitives/docs/components/context-menu)    |
+| Dialog                                          | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/dialog)          |
+| Dropdown Menu                                   | ^2.1.15 | [Docs](https://www.radix-ui.com/primitives/docs/components/dropdown-menu)   |
+| Hover Card                                      | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/hover-card)      |
+| Label                                           | ^2.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/label)           |
+| Menubar                                         | ^1.1.15 | [Docs](https://www.radix-ui.com/primitives/docs/components/menubar)         |
+| Navigation Menu                                 | ^1.2.13 | [Docs](https://www.radix-ui.com/primitives/docs/components/navigation-menu) |
+| Popover                                         | ^1.1.14 | [Docs](https://www.radix-ui.com/primitives/docs/components/popover)         |
+| Progress                                        | ^1.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/progress)        |
+| Radio Group                                     | ^1.3.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/radio-group)     |
+| Scroll Area                                     | ^1.2.9  | [Docs](https://www.radix-ui.com/primitives/docs/components/scroll-area)     |
+| Select                                          | ^2.2.5  | [Docs](https://www.radix-ui.com/primitives/docs/components/select)          |
+| Separator                                       | ^1.1.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/separator)       |
+| Slider                                          | ^1.3.5  | [Docs](https://www.radix-ui.com/primitives/docs/components/slider)          |
+| Switch                                          | ^1.2.5  | [Docs](https://www.radix-ui.com/primitives/docs/components/switch)          |
+| Tabs                                            | ^1.1.12 | [Docs](https://www.radix-ui.com/primitives/docs/components/tabs)            |
+| Toggle                                          | ^1.1.9  | [Docs](https://www.radix-ui.com/primitives/docs/components/toggle)          |
+| Toggle Group                                    | ^1.1.10 | [Docs](https://www.radix-ui.com/primitives/docs/components/toggle-group)    |
+| Tooltip                                         | ^1.2.7  | [Docs](https://www.radix-ui.com/primitives/docs/components/tooltip)         |
 
 ### Lucide React ^0.536.0
 
