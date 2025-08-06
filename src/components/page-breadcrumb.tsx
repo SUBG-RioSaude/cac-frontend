@@ -3,8 +3,10 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
   BreadcrumbSeparator,
 } from './ui/breadcrumb'
+import { SidebarTrigger } from './ui/sidebar'
 import { useLocation, useParams, Link } from 'react-router-dom'
 
 export default function PageBreadcrumb() {
@@ -49,17 +51,32 @@ export default function PageBreadcrumb() {
   const crumbs = generateCrumbs()
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {crumbs.map((crumb, index) => (
-          <BreadcrumbItem key={crumb.href}>
-            <BreadcrumbLink asChild>
-              <Link to={crumb.href}>{crumb.label}</Link>
-            </BreadcrumbLink>
-            {index < crumbs.length - 1 && <BreadcrumbSeparator />}
-          </BreadcrumbItem>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
+    <div className="flex items-center gap-2">
+      <SidebarTrigger
+        className="cursor-pointer rounded-md border border-transparent p-2 transition-colors duration-200 hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm"
+        aria-label="Alternar sidebar"
+        title="Clique para expandir/colapsar a sidebar (Ctrl+B)"
+      />
+      <Breadcrumb>
+        <BreadcrumbList>
+          {crumbs.map((crumb, index) => {
+            const isLastItem = index === crumbs.length - 1
+
+            return (
+              <BreadcrumbItem key={crumb.href}>
+                {isLastItem ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={crumb.href}>{crumb.label}</Link>
+                  </BreadcrumbLink>
+                )}
+                {!isLastItem && <BreadcrumbSeparator />}
+              </BreadcrumbItem>
+            )
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </div>
   )
 }

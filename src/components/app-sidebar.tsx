@@ -13,35 +13,28 @@ import {
 import { NavMain } from '@/components/nav-main'
 
 import { NavUser } from '@/components/nav-user'
+import SidebarFooterCustom from '@/components/sidebar-footer'
 
 const data = {
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
+    name: 'João Silva',
+    email: 'joao.silva@prefeitura.gov.br',
+    avatar: '/logos-cac/4.png',
   },
   navMain: [
-
     {
       title: 'Início',
       url: '/',
       icon: Home,
-      isActive: true,
     },
-
     {
       title: 'Contratos',
       url: '/contratos',
       icon: PenBoxIcon,
-      isActive: false,
       items: [
         {
-          title: 'Cadastrar Contrato',
-          url: '/contratos',
-        },
-        {
           title: 'Lista de Contratos',
-          url: '/contratos/lista',
+          url: '/contratos',
         },
       ],
     },
@@ -52,30 +45,30 @@ const data = {
       items: [
         {
           title: 'Lista de Fornecedores',
-          url: '/fornecedores/lista',
+          url: '/fornecedores',
         },
       ],
     },
     {
       title: 'Unidades',
-      url: '#',
+      url: '/unidades',
       icon: Building2,
       items: [
         {
           title: 'Lista de Unidades',
-          url: '/unidades/lista',
+          url: '/unidades',
         },
       ],
     },
     {
       title: 'Configurações',
-      url: '#',
+      url: '/configuracoes',
       icon: Settings2,
       items: [
         {
-          title: 'General',
-          url: '#',
-        }
+          title: 'Geral',
+          url: '/configuracoes',
+        },
       ],
     },
   ],
@@ -83,23 +76,32 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar className="bg-neutral-500 text-white" variant="inset" {...props}>
+    <Sidebar variant="sidebar" collapsible="icon" className="h-svh" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <img
-                  src="/logo-prefeitura.png"
-                  alt="Logo Prefeitura"
-                  className="h-5 w-10"
-                />
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              className="group/logo hover:bg-sidebar-accent rounded-lg p-3 transition-all duration-300"
+            >
+              <a href="#" className="flex items-center gap-3">
+                <div className="logo-container from-sidebar-primary/20 to-sidebar-primary/5 border-sidebar-primary/20 relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border bg-gradient-to-br shadow-sm transition-all duration-300 group-hover/logo:scale-105 group-hover/logo:shadow-md">
+                  <img
+                    src="/logo certa.png"
+                    alt="Logo Prefeitura"
+                    className="h-8 w-8 object-contain transition-all duration-300 group-hover/logo:scale-110"
+                  />
+                  <div className="bg-sidebar-primary/5 absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover/logo:opacity-100" />
+                </div>
 
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">
+                <div className="grid flex-1 text-left text-sm leading-tight transition-transform duration-300 group-hover/logo:translate-x-0.5">
+                  <span className="text-sidebar-foreground group-hover/logo:text-sidebar-primary truncate font-semibold transition-colors duration-300">
                     Sistema de Contratos
                   </span>
-                  <span className="truncate text-xs">Cac</span>
+                  <span className="text-sidebar-foreground/70 truncate text-xs font-medium tracking-wider uppercase">
+                    CAC
+                  </span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -111,6 +113,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
+        <SidebarFooterCustom />
       </SidebarFooter>
     </Sidebar>
   )
