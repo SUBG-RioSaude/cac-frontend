@@ -16,6 +16,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 
 export function NavMain({
@@ -33,6 +34,7 @@ export function NavMain({
   }[]
 }) {
   const location = useLocation()
+  const { state } = useSidebar()
 
   const isItemActive = (
     itemUrl: string,
@@ -62,7 +64,9 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel className={state === 'collapsed' ? 'sr-only' : ''}>
+        Menu Inicial
+      </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isActive = isItemActive(item.url, item.items)
@@ -71,20 +75,26 @@ export function NavMain({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip={item.title}
+                  tooltip={state === 'collapsed' ? item.title : undefined}
                   isActive={isActive}
                   className={
                     isActive
-                      ? '[&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium [&[data-active=true]]:text-[#43B9EB]'
-                      : ''
+                      ? '[&[data-active=true]]:text-sidebar-primary [&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium'
+                      : state === 'collapsed'
+                        ? 'hover:text-sidebar-primary justify-center'
+                        : 'hover:text-sidebar-primary'
                   }
                 >
                   <Link to={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
+                    <item.icon
+                      className={state === 'collapsed' ? 'h-5 w-5' : ''}
+                    />
+                    <span className={state === 'collapsed' ? 'sr-only' : ''}>
+                      {item.title}
+                    </span>
                   </Link>
                 </SidebarMenuButton>
-                {item.items?.length ? (
+                {item.items?.length && state !== 'collapsed' ? (
                   <>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuAction className="data-[state=open]:rotate-90">
@@ -103,8 +113,8 @@ export function NavMain({
                                 isActive={isSubActive}
                                 className={
                                   isSubActive
-                                    ? '[&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium [&[data-active=true]]:text-[#43B9EB]'
-                                    : ''
+                                    ? '[&[data-active=true]]:text-sidebar-primary [&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium'
+                                    : 'hover:text-sidebar-primary'
                                 }
                               >
                                 <Link to={subItem.url}>

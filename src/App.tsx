@@ -2,11 +2,12 @@ import { Routes, Route } from 'react-router-dom'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import PageBreadcrumb from '@/components/page-breadcrumb'
-import ContratoDetailPage from './pages/contratos/ContratoDetailPage'
-import ContratosPage from './pages/contratos/ContratosPage'
+import ContratoDetailPage from './modules/contratos/pages/ContratoDetailPage'
+import ContratosPage from './modules/contratos/pages/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
+import CadastrarContrato from './modules/contratos/pages/cadastrar-contrato'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/contratos" element={<ContratosPage />} />
+              <Route path="/contratos/cadastrar" element={<CadastrarContrato />} />
               <Route
                 path="/contratos/:contratoId"
                 element={<ContratoDetailPage />}
