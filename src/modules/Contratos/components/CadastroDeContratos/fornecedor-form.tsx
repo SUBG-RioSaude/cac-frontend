@@ -8,9 +8,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Trash2, Plus, ArrowRight } from 'lucide-react'
+import { Trash2, Plus, ArrowRight, BarChart3, Zap, MapPin, Users } from 'lucide-react'
 import { useForm, useFieldArray, type Resolver } from 'react-hook-form'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { useFormAsyncOperation } from '@/hooks/use-async-operation'
+import { ButtonLoadingSpinner } from '@/components/ui/loading'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
@@ -95,6 +97,7 @@ export default function FornecedorForm({
   onAdvanceRequest,
   onDataChange,
 }: FornecedorFormProps) {
+  const { submitForm, isSubmitting, error } = useFormAsyncOperation()
   const form = useForm<DadosFornecedorSchema>({
     resolver: zodResolver(fornecedorSchema) as Resolver<DadosFornecedorSchema>,
     defaultValues: {
@@ -120,6 +123,7 @@ export default function FornecedorForm({
 
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
+  const previousDataRef = useRef<string>()
 
   useEffect(() => {
     if (onDataChange) {
@@ -141,7 +145,13 @@ export default function FornecedorForm({
         })),
         ativo: watchedValues.ativo || false,
       }
-      onDataChange(dados)
+      
+      // Só chama onDataChange se os dados realmente mudaram
+      const currentDataString = JSON.stringify(dados)
+      if (previousDataRef.current !== currentDataString) {
+        previousDataRef.current = currentDataString
+        onDataChange(dados)
+      }
     }
   }, [watchedValues, onDataChange])
 
@@ -156,22 +166,26 @@ export default function FornecedorForm({
   }
 
   const handleFormSubmit = (data: DadosFornecedorSchema) => {
-    console.log('📝 FornecedorForm handleFormSubmit chamado')
-    console.log('📝 onAdvanceRequest existe?', !!onAdvanceRequest)
-
     // Limpa o CNPJ antes de enviar (remove a formatação)
     const dadosLimpos = {
       ...data,
       cnpj: cnpjUtils.limpar(data.cnpj),
     } as DadosFornecedor
 
-    if (onAdvanceRequest) {
-      console.log('📝 Chamando onAdvanceRequest')
-      onAdvanceRequest(dadosLimpos)
-    } else {
-      console.log('📝 Chamando onSubmit')
-      onSubmit(dadosLimpos)
+    const submitOperation = async () => {
+      console.log('📝 FornecedorForm handleFormSubmit chamado')
+      console.log('📝 onAdvanceRequest existe?', !!onAdvanceRequest)
+
+      if (onAdvanceRequest) {
+        console.log('📝 Chamando onAdvanceRequest')
+        await onAdvanceRequest(dadosLimpos)
+      } else {
+        console.log('📝 Chamando onSubmit')
+        await onSubmit?.(dadosLimpos)
+      }
     }
+
+    submitForm(data, submitOperation)
   }
 
   const preencherDadosTeste = () => {
@@ -216,9 +230,7 @@ export default function FornecedorForm({
         <div className="space-y-5">
           <div className="border-sidebar-primary/20 flex items-center space-x-3 border-b pb-3">
             <div className="bg-sidebar-primary/10 flex h-7 w-7 items-center justify-center rounded-md">
-              <span className="text-sidebar-primary text-sm font-semibold">
-                📊
-              </span>
+              <BarChart3 className="h-4 w-4 text-sidebar-primary" aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-gray-900">
               Informações Básicas
@@ -241,6 +253,13 @@ export default function FornecedorForm({
                       <Input
                         {...field}
                         placeholder="00.000.000/0000-00"
+                        aria-required="true"
+                        aria-invalid={isValidCnpj === false ? 'true' : 'false'}
+                        aria-describedby={
+                          isValidCnpj !== null 
+                            ? `cnpj-feedback-${isValidCnpj ? 'success' : 'error'}` 
+                            : undefined
+                        }
                         onChange={(e) => {
                           const valorMascarado = cnpjUtils.aplicarMascara(
                             e.target.value,
@@ -257,14 +276,24 @@ export default function FornecedorForm({
                       />
                     </FormControl>
                     {isValidCnpj === true && (
-                      <p className="flex items-center gap-1 text-sm text-green-600">
-                        <span className="text-green-500">✓</span>
+                      <p 
+                        id="cnpj-feedback-success"
+                        className="flex items-center gap-1 text-sm text-green-600"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        <span className="text-green-500" aria-hidden="true">✓</span>
                         CNPJ válido
                       </p>
                     )}
                     {isValidCnpj === false && (
-                      <p className="flex items-center gap-1 text-sm text-red-600">
-                        <span className="text-red-500">✗</span>
+                      <p 
+                        id="cnpj-feedback-error"
+                        className="flex items-center gap-1 text-sm text-red-600"
+                        role="alert"
+                        aria-live="assertive"
+                      >
+                        <span className="text-red-500" aria-hidden="true">✗</span>
                         CNPJ inválido
                       </p>
                     )}
@@ -344,9 +373,7 @@ export default function FornecedorForm({
         <div className="space-y-5">
           <div className="border-sidebar-primary/20 flex items-center space-x-3 border-b pb-3">
             <div className="bg-sidebar-primary/15 flex h-7 w-7 items-center justify-center rounded-md">
-              <span className="text-sidebar-primary text-sm font-semibold">
-                📍
-              </span>
+              <MapPin className="h-4 w-4 text-sidebar-primary" aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-gray-900">Endereço</h3>
           </div>
@@ -465,9 +492,7 @@ export default function FornecedorForm({
           <div className="border-sidebar-primary/20 flex items-center justify-between border-b pb-3">
             <div className="flex items-center space-x-3">
               <div className="bg-sidebar-primary/20 flex h-7 w-7 items-center justify-center rounded-md">
-                <span className="text-sidebar-primary text-sm font-semibold">
-                  📞
-                </span>
+                <Users className="h-4 w-4 text-sidebar-primary" aria-hidden="true" />
               </div>
               <h3 className="text-base font-semibold text-gray-900">
                 Contatos
@@ -679,7 +704,8 @@ export default function FornecedorForm({
               onClick={preencherDadosTeste}
               className="border-violet-300 bg-gradient-to-r from-violet-100 to-purple-100 text-sm text-violet-700 shadow-sm hover:from-violet-200 hover:to-purple-200"
             >
-              ⚡ Preencher Dados de Teste
+              <Zap className="h-4 w-4 mr-2" />
+              Preencher Dados de Teste
             </Button>
           </div>
 
@@ -696,13 +722,25 @@ export default function FornecedorForm({
             )}
             <Button
               type="submit"
+              disabled={isSubmitting}
+              aria-label={isSubmitting ? 'Processando dados...' : 'Avançar para próximo passo'}
               className={cn(
                 'bg-sidebar-primary shadow-sidebar-primary/20 hover:bg-sidebar-primary/90 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
                 onCancel ? '' : 'ml-auto',
+                isSubmitting && 'opacity-50 cursor-not-allowed'
               )}
             >
-              Próximo
-              <ArrowRight className="h-4 w-4" />
+              {isSubmitting ? (
+                <>
+                  <ButtonLoadingSpinner />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  Próximo
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </div>

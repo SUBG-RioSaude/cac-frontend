@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { ArrowRight, ArrowLeft, ExternalLink, FileText } from 'lucide-react'
+import { ArrowRight, ArrowLeft, ExternalLink, FileText, Zap, Clock, DollarSign, FolderOpen } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -22,7 +22,10 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useFormAsyncOperation } from '@/hooks/use-async-operation'
+import { ButtonLoadingSpinner } from '@/components/ui/loading'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
@@ -100,6 +103,7 @@ export default function ContratoForm({
   onAdvanceRequest,
   onDataChange,
 }: ContratoFormProps) {
+  const { submitForm, isSubmitting, error } = useFormAsyncOperation()
   const [tipoTermo, setTipoTermo] = useState<
     'processo_rio' | 'google_drive' | 'texto_livre'
   >('processo_rio')
@@ -131,6 +135,7 @@ export default function ContratoForm({
 
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
+  const previousDataRef = useRef<string>()
 
   useEffect(() => {
     if (onDataChange) {
@@ -155,17 +160,28 @@ export default function ContratoForm({
         vinculacaoPCA: watchedValues.vinculacaoPCA || '',
         ativo: watchedValues.ativo || false,
       }
-      onDataChange(dados)
+      
+      // Só chama onDataChange se os dados realmente mudaram
+      const currentDataString = JSON.stringify(dados)
+      if (previousDataRef.current !== currentDataString) {
+        previousDataRef.current = currentDataString
+        onDataChange(dados)
+      }
     }
   }, [watchedValues, onDataChange])
 
   const handleFormSubmit = (dados: FormDataContrato) => {
     const dadosContrato = dados as DadosContrato
-    if (onAdvanceRequest) {
-      onAdvanceRequest(dadosContrato)
-    } else {
-      onSubmit(dadosContrato)
+    
+    const submitOperation = async () => {
+      if (onAdvanceRequest) {
+        await onAdvanceRequest(dadosContrato)
+      } else {
+        await onSubmit?.(dadosContrato)
+      }
     }
+
+    submitForm(dados, submitOperation)
   }
 
   const calcularVigenciaFinal = (
@@ -230,7 +246,11 @@ export default function ContratoForm({
               <FormItem>
                 <FormLabel>Número do Contrato *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: CONT-2024-001" {...field} />
+                  <Input 
+                    placeholder="Ex: CONT-2024-001" 
+                    aria-required="true"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -243,7 +263,11 @@ export default function ContratoForm({
               <FormItem>
                 <FormLabel>Processo SEI / Processo.rio *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: 12345678901234567890" {...field} />
+                  <Input 
+                    placeholder="Ex: 12345678901234567890" 
+                    aria-required="true"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -442,7 +466,10 @@ export default function ContratoForm({
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Prazos e Valores</h3>
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-sidebar-primary" aria-hidden="true" />
+            <h3 className="text-lg font-medium">Prazos e Valores</h3>
+          </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <FormField
@@ -581,9 +608,12 @@ export default function ContratoForm({
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">
-            Documentos e Informações Adicionais
-          </h3>
+          <div className="flex items-center gap-2">
+            <FolderOpen className="h-5 w-5 text-sidebar-primary" aria-hidden="true" />
+            <h3 className="text-lg font-medium">
+              Documentos e Informações Adicionais
+            </h3>
+          </div>
 
           {/* Tipo de Termo de Referência */}
           <FormField
@@ -741,7 +771,8 @@ export default function ContratoForm({
               onClick={preencherDadosTeste}
               className="border-violet-300 bg-gradient-to-r from-violet-100 to-purple-100 text-sm text-violet-700 shadow-sm hover:from-violet-200 hover:to-purple-200"
             >
-              ⚡ Preencher Dados de Teste
+              <Zap className="h-4 w-4 mr-2" />
+              Preencher Dados de Teste
             </Button>
           </div>
 
@@ -771,10 +802,24 @@ export default function ContratoForm({
             </div>
             <Button
               type="submit"
-              className="bg-sidebar-primary shadow-sidebar-primary/20 hover:bg-sidebar-primary/90 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200"
+              disabled={isSubmitting}
+              aria-label={isSubmitting ? 'Processando dados do contrato...' : 'Avançar para próximo passo'}
+              className={cn(
+                'bg-sidebar-primary shadow-sidebar-primary/20 hover:bg-sidebar-primary/90 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
+                isSubmitting && 'opacity-50 cursor-not-allowed'
+              )}
             >
-              Próximo
-              <ArrowRight className="h-4 w-4" />
+              {isSubmitting ? (
+                <>
+                  <ButtonLoadingSpinner />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  Próximo
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </div>

@@ -1,7 +1,10 @@
 import LayoutPagina from '@/components/layout-pagina'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Steps } from '@/components/ui/steps'
-import { useState } from 'react'
+import { useState, useCallback, Suspense } from 'react'
+import { ErrorBoundary, FormErrorBoundary } from '@/components/error-boundary'
+import { FormLoadingFallback } from '@/components/ui/loading'
+import { Building2, FileText, Store, Clipboard, FileCheck, Zap } from 'lucide-react'
 import FornecedorForm, {
   type DadosFornecedor,
 } from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
@@ -122,7 +125,7 @@ export default function CadastrarContrato() {
   }
 
   // Funções para atualização em tempo real
-  const handleDadosFornecedorChange = (dados: Partial<DadosFornecedor>) => {
+  const handleDadosFornecedorChange = useCallback((dados: Partial<DadosFornecedor>) => {
     setDadosTemporarios((prev) => ({
       ...prev,
       fornecedor: {
@@ -130,9 +133,9 @@ export default function CadastrarContrato() {
         ...dados,
       } as DadosFornecedor,
     }))
-  }
+  }, [])
 
-  const handleDadosContratoChange = (dados: Partial<DadosContrato>) => {
+  const handleDadosContratoChange = useCallback((dados: Partial<DadosContrato>) => {
     setDadosTemporarios((prev) => ({
       ...prev,
       contrato: {
@@ -140,7 +143,7 @@ export default function CadastrarContrato() {
         ...dados,
       } as DadosContrato,
     }))
-  }
+  }, [])
 
   const handleConfirmarAvanco = () => {
     if (isFinishing && dadosPendentes) {
@@ -227,26 +230,60 @@ export default function CadastrarContrato() {
     alert('Contrato cadastrado com sucesso!')
   }
 
+  // Função para obter informações do step atual
+  const getStepInfo = (currentStep: number) => {
+    switch (currentStep) {
+      case 1:
+        return {
+          titulo: 'Dados do Fornecedor',
+          descricao: 'Preencha as informações básicas da empresa fornecedora',
+          icone: <Building2 className="h-4 w-4" aria-hidden="true" />,
+        }
+      case 2:
+        return {
+          titulo: 'Dados do Contrato',
+          descricao: 'Configure os detalhes e especificações do contrato',
+          icone: <FileText className="h-4 w-4" aria-hidden="true" />,
+        }
+      case 3:
+        return {
+          titulo: 'Unidades Contempladas',
+          descricao: 'Defina as unidades que farão parte deste contrato',
+          icone: <Store className="h-4 w-4" aria-hidden="true" />,
+        }
+      default:
+        return { titulo: '', descricao: '', icone: null }
+    }
+  }
+
   const renderStepContent = (currentStep: number) => {
     switch (currentStep) {
       case 1:
         return (
-          <FornecedorForm
-            onSubmit={handleFornecedorSubmit}
-            onAdvanceRequest={handleFornecedorAdvanceRequest}
-            dadosIniciais={dadosCompletos.fornecedor}
-            onDataChange={handleDadosFornecedorChange}
-          />
+          <FormErrorBoundary>
+            <Suspense fallback={<FormLoadingFallback />}>
+              <FornecedorForm
+                onSubmit={handleFornecedorSubmit}
+                onAdvanceRequest={handleFornecedorAdvanceRequest}
+                dadosIniciais={dadosCompletos.fornecedor}
+                onDataChange={handleDadosFornecedorChange}
+              />
+            </Suspense>
+          </FormErrorBoundary>
         )
       case 2:
         return (
-          <ContratoForm
-            onSubmit={handleContratoSubmit}
-            onAdvanceRequest={handleContratoAdvanceRequest}
-            onPrevious={() => setPassoAtual(1)}
-            dadosIniciais={dadosCompletos.contrato}
-            onDataChange={handleDadosContratoChange}
-          />
+          <FormErrorBoundary>
+            <Suspense fallback={<FormLoadingFallback />}>
+              <ContratoForm
+                onSubmit={handleContratoSubmit}
+                onAdvanceRequest={handleContratoAdvanceRequest}
+                onPrevious={() => setPassoAtual(1)}
+                dadosIniciais={dadosCompletos.contrato}
+                onDataChange={handleDadosContratoChange}
+              />
+            </Suspense>
+          </FormErrorBoundary>
         )
       case 3:
         return (
@@ -266,46 +303,21 @@ export default function CadastrarContrato() {
   }
 
   const renderStepContentWithCard = (currentStep: number) => {
-    const getStepInfo = () => {
-      switch (currentStep) {
-        case 1:
-          return {
-            titulo: 'Dados do Fornecedor',
-            descricao: 'Preencha as informações básicas da empresa fornecedora',
-            icone: '🏢',
-          }
-        case 2:
-          return {
-            titulo: 'Dados do Contrato',
-            descricao: 'Configure os detalhes e especificações do contrato',
-            icone: '📋',
-          }
-        case 3:
-          return {
-            titulo: 'Unidades Contempladas',
-            descricao: 'Defina as unidades que farão parte deste contrato',
-            icone: '🏪',
-          }
-        default:
-          return { titulo: '', descricao: '', icone: '' }
-      }
-    }
-
-    const stepInfo = getStepInfo()
+    const currentStepInfo = getStepInfo(currentStep)
 
     return (
       <Card className="border-sidebar-primary/20 border bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl">
         <CardHeader className="border-sidebar-primary/10 from-sidebar-primary/5 border-b bg-gradient-to-r to-white px-6 py-4">
           <div className="flex items-center space-x-3">
             <div className="bg-sidebar-primary/10 flex h-10 w-10 items-center justify-center rounded-lg text-lg shadow-sm">
-              <span className="text-sidebar-primary">{stepInfo.icone}</span>
+              <span className="text-sidebar-primary">{currentStepInfo.icone}</span>
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-gray-900">
-                {stepInfo.titulo}
+                {currentStepInfo.titulo}
               </CardTitle>
               <p className="text-sidebar-primary/70 text-sm">
-                {stepInfo.descricao}
+                {currentStepInfo.descricao}
               </p>
             </div>
           </div>
@@ -316,6 +328,9 @@ export default function CadastrarContrato() {
       </Card>
     )
   }
+
+  // Obter informações do step atual
+  const stepInfo = getStepInfo(passoAtual)
 
   return (
     <LayoutPagina
@@ -329,11 +344,9 @@ export default function CadastrarContrato() {
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <div className="bg-sidebar-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-                <span className="text-lg">
-                  {passoAtual === 1 && '📋'}
-                  {passoAtual === 2 && '📄'}
-                  {passoAtual === 3 && '🏪'}
-                </span>
+                <div className="text-sidebar-primary">
+                  {stepInfo.icone}
+                </div>
               </div>
               <div>
                 <h2 className="text-base font-semibold text-gray-900">
