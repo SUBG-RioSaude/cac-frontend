@@ -1,22 +1,12 @@
 import LayoutPagina from '@/components/layout-pagina'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { ContratosPage as ContratosPageModerna } from '@/modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
 
 function ContratosPage() {
   return (
-    <LayoutPagina
-      titulo="Contratos"
-      descricao="Gerencie todos os contratos do sistema"
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Contratos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-600">
-            Aqui será exibida a lista de contratos do sistema.
-          </p>
-        </CardContent>
-      </Card>
+    <LayoutPagina>
+      <main className="flex-1 overflow-auto">
+        <ContratosPageModerna />
+      </main>
     </LayoutPagina>
   )
 }

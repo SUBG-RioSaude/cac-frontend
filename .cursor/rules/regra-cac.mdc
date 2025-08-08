@@ -94,6 +94,42 @@ Todo componente gerado **deve vir acompanhado de um teste unitário** utilizando
 
 Conforme mencionado na seção de Stack Tecnológica, o **Zustand** é a biblioteca designada para gerenciamento de estado global. Antes de criar ou modificar um `store` global com Zustand, é **mandatório** que o chat **pergunte e justifique** a necessidade de um estado global para a funcionalidade em questão. Isso evita o uso excessivo de estado global, que pode levar a complexidade desnecessária e dificuldades de manutenção. O estado global deve ser reservado para dados que são verdadeiramente globais ou que precisam ser acessados por muitas partes da aplicação de forma desacoplada.
 
+### 2.7. Validação e Formatação de CNPJ
+
+Para qualquer operação envolvendo CNPJ (validação, formatação, limpeza ou aplicação de máscara), **sempre utilize as funções globais disponíveis em `@/lib/utils`** através do objeto `cnpjUtils`. **Nunca crie novas funções** para manipular CNPJ, sempre reutilize as existentes.
+
+#### Funções Disponíveis:
+
+- **`cnpjUtils.limpar(cnpj)`:** Remove todos os caracteres não numéricos
+- **`cnpjUtils.formatar(cnpj)`:** Aplica formatação XX.XXX.XXX/XXXX-XX
+- **`cnpjUtils.validar(cnpj)`:** Valida se o CNPJ é válido (retorna boolean)
+- **`cnpjUtils.validarComMensagem(cnpj)`:** Valida e retorna mensagem de erro
+- **`cnpjUtils.aplicarMascara(valor)`:** Aplica máscara durante a digitação
+
+#### Exemplo de Uso:
+
+```typescript
+import { cnpjUtils } from '@/lib/utils'
+
+// Validação com Zod
+const esquema = z.object({
+  cnpj: z.string()
+    .min(1, 'CNPJ é obrigatório')
+    .refine(cnpjUtils.validar, 'CNPJ inválido')
+})
+
+// Formatação em componente
+const cnpjFormatado = cnpjUtils.formatar(dadosEmpresa.cnpj)
+
+// Aplicação de máscara em input
+const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const valorMascarado = cnpjUtils.aplicarMascara(e.target.value)
+  setCnpj(valorMascarado)
+}
+```
+
+**Importante:** Esta diretriz garante consistência, evita duplicação de código e mantém a validação de CNPJ centralizada e testada.
+
 ## 3. Estrutura do Projeto
 
 A estrutura de pastas e arquivos deve seguir o padrão estabelecido para facilitar a navegação e a organização do código:

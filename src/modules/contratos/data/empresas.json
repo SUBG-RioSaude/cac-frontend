@@ -1,0 +1,911 @@
+{
+  "pagina": 1,
+  "tamanhoPagina": 30,
+  "totalItens": 25,
+  "totalPaginas": 1,
+  "itens": [
+    {
+      "id": "10f8c264-a049-4bc8-a259-2ea5e26fed65",
+      "cnpj": "00000000001786",
+      "razaoSocial": "Blockchain Technology Ltda",
+      "nomeFantasia": "BlockTech",
+      "inscricaoEstadual": "ISENTO000016",
+      "inscricaoMunicipal": "IM000016",
+      "endereco": "Rua das Tecnologias, 116",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Maceió",
+      "estado": "AL",
+      "cep": "80016-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "bed916d7-6b7e-4055-baf0-0e0e0e90eab5",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98016-5016",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "dcf8752a-ae6b-41d7-be4f-3aefce16f872",
+          "nome": "Celular",
+          "valor": "(11) 99016-6016",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "92bd8af3-9ff6-4225-a595-61fab36b6981",
+          "nome": "Contato Principal",
+          "valor": "contato@blocktech.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "16bc52be-d291-4325-b883-652ca632e476",
+      "cnpj": "00000000001605",
+      "razaoSocial": "Machine Learning S.A.",
+      "nomeFantasia": "ML Solutions",
+      "inscricaoEstadual": "ISENTO000015",
+      "inscricaoMunicipal": "IM000015",
+      "endereco": "Rua das Tecnologias, 115",
+      "bairro": "Centro Tecnológico",
+      "cidade": "João Pessoa",
+      "estado": "PB",
+      "cep": "80015-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "d3317580-0d4d-4edc-a2f5-ba6854b82fbd",
+          "nome": "Contato Principal",
+          "valor": "contato@mlsolutions.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "04b85df5-c4bc-4ff9-9442-58af0d334ca7",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98015-5015",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "f9422d14-c9ce-4b92-9fcf-5c92b116df62",
+          "nome": "Celular",
+          "valor": "(11) 99015-6015",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "1ccf8556-92d0-4cfa-967f-edc0eefaf3ad",
+      "cnpj": "00000000000858",
+      "razaoSocial": "Soluções Integradas Ltda",
+      "nomeFantasia": "SolIntegra",
+      "inscricaoEstadual": "ISENTO000007",
+      "inscricaoMunicipal": "IM000007",
+      "endereco": "Rua das Tecnologias, 107",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Fortaleza",
+      "estado": "CE",
+      "cep": "80007-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "e1c7824c-6f59-4efe-a7da-0c8cdc4ae674",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98007-5007",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "6f28cd46-907e-4de1-a775-960be9404d3b",
+          "nome": "Celular",
+          "valor": "(11) 99007-6007",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "10f0f612-c168-4dc1-9227-d2b2b576c031",
+          "nome": "Contato Principal",
+          "valor": "contato@solintegra.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "291d53db-e074-4db7-a1bf-180e696fd9df",
+      "cnpj": "00000000001524",
+      "razaoSocial": "Big Data Analytics Ltda",
+      "nomeFantasia": "BigData",
+      "inscricaoEstadual": "ISENTO000014",
+      "inscricaoMunicipal": "IM000014",
+      "endereco": "Rua das Tecnologias, 114",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Natal",
+      "estado": "RN",
+      "cep": "80014-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "07eef41c-a60b-4040-8e65-e3f6d16be2bd",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98014-5014",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "dfe31b3b-93e0-4060-b69e-f1e136319058",
+          "nome": "Contato Principal",
+          "valor": "contato@bigdata.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "7a3e990a-091c-4e5d-b358-d01c0fd67fde",
+          "nome": "Celular",
+          "valor": "(11) 99014-6014",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "2b95ca12-d242-40da-be12-fd51d4f90280",
+      "cnpj": "00000000000696",
+      "razaoSocial": "Software House Ltda",
+      "nomeFantasia": "SoftHouse",
+      "inscricaoEstadual": "ISENTO000005",
+      "inscricaoMunicipal": "IM000005",
+      "endereco": "Rua das Tecnologias, 105",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Salvador",
+      "estado": "BA",
+      "cep": "80005-000",
+      "ativo": true,
+      "contatos": []
+    },
+    {
+      "id": "2f6a5ece-dc24-481a-97e4-09bb3ec85d62",
+      "cnpj": "00000000000353",
+      "razaoSocial": "Sistemas Avançados Ltda",
+      "nomeFantasia": "SysAvanc",
+      "inscricaoEstadual": "ISENTO000002",
+      "inscricaoMunicipal": "IM000002",
+      "endereco": "Rua das Tecnologias, 102",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Belo Horizonte",
+      "estado": "MG",
+      "cep": "80002-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "009303e7-41dc-4882-8ff1-707362bf860e",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98002-5002",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "9b57a44f-e0a2-44bb-86a8-07f2cda81034",
+          "nome": "Contato Principal",
+          "valor": "contato@sysavanc.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "227e7a4b-bd4d-4ad9-ada3-6e3565c9e340",
+          "nome": "Celular",
+          "valor": "(11) 99002-6002",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "35232162-e8dd-4a91-a12f-1d516feddbb8",
+      "cnpj": "00000000001100",
+      "razaoSocial": "Inteligência Artificial Ltda",
+      "nomeFantasia": "IA Solutions",
+      "inscricaoEstadual": "ISENTO000010",
+      "inscricaoMunicipal": "IM000010",
+      "endereco": "Rua das Tecnologias, 110",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Campinas",
+      "estado": "SP",
+      "cep": "80010-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "4e6d6bd7-4a11-4144-a7a6-d6589ab1efc7",
+          "nome": "Celular",
+          "valor": "(11) 99010-6010",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "7e85f48d-8b15-4288-896e-5245c7274790",
+          "nome": "Contato Principal",
+          "valor": "contato@iasolutions.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "13f08cee-355d-44f2-93d1-23028cbcf0be",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98010-5010",
+          "tipo": "Telefone",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "35b8e2fc-a911-4837-bad3-c49bc05913b3",
+      "cnpj": "00000000000272",
+      "razaoSocial": "Inovação Digital S.A.",
+      "nomeFantasia": "InovaDigital",
+      "inscricaoEstadual": "ISENTO000001",
+      "inscricaoMunicipal": "IM000001",
+      "endereco": "Rua das Tecnologias, 101",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Rio de Janeiro",
+      "estado": "RJ",
+      "cep": "80001-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "b460d424-29ec-40d2-ab2e-a95912689d83",
+          "nome": "Contato Principal",
+          "valor": "contato@inovadigital.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "5b2a031b-443a-4e2e-afb9-c45141ac157e",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98001-5001",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "ff2713cb-8829-4b9b-814a-731e9c763dec",
+          "nome": "Celular",
+          "valor": "(11) 99001-6001",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "48c5ebe5-3bde-4b66-83fe-95e439d48b9d",
+      "cnpj": "00000000001281",
+      "razaoSocial": "Segurança Digital S.A.",
+      "nomeFantasia": "SecDigital",
+      "inscricaoEstadual": "ISENTO000011",
+      "inscricaoMunicipal": "IM000011",
+      "endereco": "Rua das Tecnologias, 111",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Vitória",
+      "estado": "ES",
+      "cep": "80011-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "ac23b5d9-dce1-4754-9c7c-4bbb59a24eb2",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98011-5011",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "38c06ba6-faee-42c3-aa3b-cc31e3432c84",
+          "nome": "Contato Principal",
+          "valor": "contato@secdigital.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "d7bcc6a1-e32e-4027-97e9-0c77f0d97fab",
+          "nome": "Celular",
+          "valor": "(11) 99011-6011",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "511ffae2-9a7c-4cff-86b8-a2213e91ab45",
+      "cnpj": "00000000002361",
+      "razaoSocial": "Nanotecnologia Ltda",
+      "nomeFantasia": "NanoTech",
+      "inscricaoEstadual": "ISENTO000022",
+      "inscricaoMunicipal": "IM000022",
+      "endereco": "Rua das Tecnologias, 122",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Campo Grande",
+      "estado": "MS",
+      "cep": "80022-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "1fa3cfb3-df7e-4c8d-8f10-ea2ef9671b4b",
+          "nome": "Celular",
+          "valor": "(11) 99022-6022",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "68a93b29-939d-41e8-b68e-1a0c4b4d02ca",
+          "nome": "Contato Principal",
+          "valor": "contato@nanotech.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "e1a72ed6-ac53-4934-8d85-7a70d598ef5a",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98022-5022",
+          "tipo": "Telefone",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "5d7a6da0-694f-4836-ae86-c6ef2985a87a",
+      "cnpj": "00000000001948",
+      "razaoSocial": "Realidade Virtual Ltda",
+      "nomeFantasia": "VR Tech",
+      "inscricaoEstadual": "ISENTO000018",
+      "inscricaoMunicipal": "IM000018",
+      "endereco": "Rua das Tecnologias, 118",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Teresina",
+      "estado": "PI",
+      "cep": "80018-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "6d997d02-5dfe-4087-a1d3-9ba28e0eb946",
+          "nome": "Contato Principal",
+          "valor": "contato@vrtech.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "af223236-1482-4270-8ec1-a1837868ec0f",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98018-5018",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "5bfee232-0d74-4622-8332-89ae327895eb",
+          "nome": "Celular",
+          "valor": "(11) 99018-6018",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "6b916b07-9bbb-4527-8287-9af6904bab05",
+      "cnpj": "00000000000191",
+      "razaoSocial": "Tech Solutions Ltda",
+      "nomeFantasia": "TechSol",
+      "inscricaoEstadual": "ISENTO000000",
+      "inscricaoMunicipal": "IM000000",
+      "endereco": "Rua das Tecnologias, 100",
+      "bairro": "Centro Tecnológico",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "cep": "80000-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "61c71780-e5c7-4038-bdda-d3b2a17acf03",
+          "nome": "Contato Principal",
+          "valor": "contato@techsol.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "21e54bb9-5ed2-450b-a32e-dd71038ba5a2",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98000-5000",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "3699501f-bd77-4bc3-b9c0-e34401182005",
+          "nome": "Celular",
+          "valor": "(11) 99000-6000",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "7083e634-5f7c-4653-af80-46980ca581b0",
+      "cnpj": "00000000000434",
+      "razaoSocial": "Desenvolvimento Web Ltda",
+      "nomeFantasia": "DevWeb",
+      "inscricaoEstadual": "ISENTO000003",
+      "inscricaoMunicipal": "IM000003",
+      "endereco": "Rua das Tecnologias, 103",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Curitiba",
+      "estado": "PR",
+      "cep": "80003-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "94c552eb-5ece-469e-90ee-7b5b0d29ee66",
+          "nome": "Celular",
+          "valor": "(11) 99003-6003",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "2f456177-6212-492e-b9dd-c415fe2356d2",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98003-5003",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "0fdb862a-b154-4bd4-8845-6033db5ee45b",
+          "nome": "Contato Principal",
+          "valor": "contato@devweb.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "7765cf37-cc59-4139-b6d8-42862fafc037",
+      "cnpj": "00000000000515",
+      "razaoSocial": "Consultoria TI S.A.",
+      "nomeFantasia": "ConsulTI",
+      "inscricaoEstadual": "ISENTO000004",
+      "inscricaoMunicipal": "IM000004",
+      "endereco": "Rua das Tecnologias, 104",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Porto Alegre",
+      "estado": "RS",
+      "cep": "80004-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "2fea850d-1e1b-43e6-bc06-c495b6d3a43c",
+          "nome": "Contato Principal",
+          "valor": "contato@consulti.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "1e2b7e61-0db7-4b2a-b0bf-e99319f7cf59",
+          "nome": "Celular",
+          "valor": "(11) 99004-6004",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "f652e5a4-259e-44ca-96d9-b7a43fc33b20",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98004-5004",
+          "tipo": "Telefone",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "89586c1d-d3d7-4aba-b652-982c77b73d71",
+      "cnpj": "00000000002029",
+      "razaoSocial": "Cibersegurança S.A.",
+      "nomeFantasia": "CyberSec",
+      "inscricaoEstadual": "ISENTO000019",
+      "inscricaoMunicipal": "IM000019",
+      "endereco": "Rua das Tecnologias, 119",
+      "bairro": "Centro Tecnológico",
+      "cidade": "São Luís",
+      "estado": "MA",
+      "cep": "80019-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "1093fd23-cc16-485e-bd72-644e95bc2ac2",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98019-5019",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "e10f9c55-1873-4949-8ac1-aefa3c921372",
+          "nome": "Contato Principal",
+          "valor": "contato@cybersec.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "4937c594-a51a-48ef-a2d4-4631a5467b14",
+          "nome": "Celular",
+          "valor": "(11) 99019-6019",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "910cc7e4-488b-4787-8c7b-457e064e38f8",
+      "cnpj": "00000000001867",
+      "razaoSocial": "Internet das Coisas S.A.",
+      "nomeFantasia": "IoT Solutions",
+      "inscricaoEstadual": "ISENTO000017",
+      "inscricaoMunicipal": "IM000017",
+      "endereco": "Rua das Tecnologias, 117",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Aracaju",
+      "estado": "SE",
+      "cep": "80017-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "8fe68b9d-16f8-4b1e-994f-6f75bf9b3021",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98017-5017",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "a380fd2c-a69e-4cc0-8019-1e26f21cc4b2",
+          "nome": "Contato Principal",
+          "valor": "contato@iotsolutions.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "174b120d-12a3-4ea1-8950-8d382e0b8745",
+          "nome": "Celular",
+          "valor": "(11) 99017-6017",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "a3951e2b-55f6-4c3a-b37a-1c4fcd689a7e",
+      "cnpj": "00000000001362",
+      "razaoSocial": "Automação Industrial Ltda",
+      "nomeFantasia": "AutoInd",
+      "inscricaoEstadual": "ISENTO000012",
+      "inscricaoMunicipal": "IM000012",
+      "endereco": "Rua das Tecnologias, 112",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Manaus",
+      "estado": "AM",
+      "cep": "80012-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "0bf8b1a0-a188-4951-8d2a-e3e12b400374",
+          "nome": "Celular",
+          "valor": "(11) 99012-6012",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "077e12fc-c051-4374-ae40-7cee38ce199b",
+          "nome": "Contato Principal",
+          "valor": "contato@autoind.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "52f4b4a8-dbf4-48d2-9757-e0724bd1fe6a",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98012-5012",
+          "tipo": "Telefone",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "a3bf7c49-7a1a-4c90-98c3-90123d72d6aa",
+      "cnpj": "00000000002109",
+      "razaoSocial": "Computação Quântica Ltda",
+      "nomeFantasia": "QuantumComp",
+      "inscricaoEstadual": "ISENTO000020",
+      "inscricaoMunicipal": "IM000020",
+      "endereco": "Rua das Tecnologias, 120",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Belém",
+      "estado": "PA",
+      "cep": "80020-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "a179e948-f097-4ad4-9141-2a43db23d1b8",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98020-5020",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "5125af0f-ef9a-418c-a80f-f7683d51f981",
+          "nome": "Contato Principal",
+          "valor": "contato@quantumcomp.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "31173c86-8e36-46e7-b66e-26766f845c9e",
+          "nome": "Celular",
+          "valor": "(11) 99020-6020",
+          "tipo": "Celular",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "ab86f1eb-117d-4793-a232-1010effea017",
+      "cnpj": "00000000001443",
+      "razaoSocial": "E-commerce Solutions S.A.",
+      "nomeFantasia": "EcomSol",
+      "inscricaoEstadual": "ISENTO000013",
+      "inscricaoMunicipal": "IM000013",
+      "endereco": "Rua das Tecnologias, 113",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "cep": "80013-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "7583a1e9-c37f-4fe9-9d84-effd8a970075",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98013-5013",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "4ddaeb68-a28d-49e6-a0b1-df13faf37781",
+          "nome": "Celular",
+          "valor": "(11) 99013-6013",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "61c141e9-e0ba-4cc5-94ed-bc74d1fcab74",
+          "nome": "Contato Principal",
+          "valor": "contato@ecomsol.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "cfda91f5-6a88-4597-a0a2-ddf82a18c8ef",
+      "cnpj": "00000000000939",
+      "razaoSocial": "Desenvolvimento Mobile Ltda",
+      "nomeFantasia": "DevMobile",
+      "inscricaoEstadual": "ISENTO000008",
+      "inscricaoMunicipal": "IM000008",
+      "endereco": "Rua das Tecnologias, 108",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Brasília",
+      "estado": "DF",
+      "cep": "80008-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "713b1928-ee53-435d-8843-87de1140f53d",
+          "nome": "Celular",
+          "valor": "(11) 99008-6008",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "c0581c50-20f4-45e8-9a78-fb2ac37f1503",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98008-5008",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "2a9ebb82-8419-4e4c-880b-cc84a2230fea",
+          "nome": "Contato Principal",
+          "valor": "contato@devmobile.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "e45741fd-d070-4a5e-a2cd-39882e6587db",
+      "cnpj": "00000000002280",
+      "razaoSocial": "Robótica Avançada S.A.",
+      "nomeFantasia": "RoboAvanc",
+      "inscricaoEstadual": "ISENTO000021",
+      "inscricaoMunicipal": "IM000021",
+      "endereco": "Rua das Tecnologias, 121",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Cuiabá",
+      "estado": "MT",
+      "cep": "80021-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "1c982b24-a9ad-49c0-93b0-e013b99d4b9d",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98021-5021",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "6cb84f49-de0e-4ea0-8d89-f37a737de23a",
+          "nome": "Celular",
+          "valor": "(11) 99021-6021",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "c64150cb-6db3-4429-a842-ddf14683b743",
+          "nome": "Contato Principal",
+          "valor": "contato@roboavanc.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "f1b5ad8b-59d3-45f6-825a-55488fdc5ebd",
+      "cnpj": "00000000002523",
+      "razaoSocial": "Energia Renovável Tech Ltda",
+      "nomeFantasia": "RenewTech",
+      "inscricaoEstadual": "ISENTO000024",
+      "inscricaoMunicipal": "IM000024",
+      "endereco": "Rua das Tecnologias, 124",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Boa Vista",
+      "estado": "RR",
+      "cep": "80024-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "49ca1680-6711-41cf-9f45-974803a4d05b",
+          "nome": "Celular",
+          "valor": "(11) 99024-6024",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "9f155f5d-c838-4544-ae3e-7a97ddc5f88e",
+          "nome": "Contato Principal",
+          "valor": "contato@renewtech.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "790222e7-565b-43d6-842c-1090360bda22",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98024-5024",
+          "tipo": "Telefone",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "f76f511f-e8eb-4ef3-ac3a-0331e2a6491d",
+      "cnpj": "00000000001010",
+      "razaoSocial": "Cloud Computing S.A.",
+      "nomeFantasia": "CloudComp",
+      "inscricaoEstadual": "ISENTO000009",
+      "inscricaoMunicipal": "IM000009",
+      "endereco": "Rua das Tecnologias, 109",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Goiânia",
+      "estado": "GO",
+      "cep": "80009-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "d47456fb-f48c-46e8-acb7-eca2062a753d",
+          "nome": "Celular",
+          "valor": "(11) 99009-6009",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "2d02be8c-fb23-4497-a912-5c3284a1095c",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98009-5009",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "f8c00d19-a9f5-4152-962c-f8de064a91f2",
+          "nome": "Contato Principal",
+          "valor": "contato@cloudcomp.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "f7e89477-8299-4740-becb-15e0ddc6f180",
+      "cnpj": "00000000000777",
+      "razaoSocial": "Tecnologia Futura S.A.",
+      "nomeFantasia": "TecFutura",
+      "inscricaoEstadual": "ISENTO000006",
+      "inscricaoMunicipal": "IM000006",
+      "endereco": "Rua das Tecnologias, 106",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Recife",
+      "estado": "PE",
+      "cep": "80006-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "a7d3bb6f-26db-41dc-a5d7-a911afc6ae84",
+          "nome": "Celular",
+          "valor": "(11) 99006-6006",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "84926a8b-14dc-4ae4-afde-c8ea52777272",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98006-5006",
+          "tipo": "Telefone",
+          "ativo": false
+        },
+        {
+          "id": "76889149-7af4-4f78-9268-183b493e50b5",
+          "nome": "Contato Principal",
+          "valor": "contato@tecfutura.com.br",
+          "tipo": "Email",
+          "ativo": false
+        }
+      ]
+    },
+    {
+      "id": "ffbf8bcb-2d21-4f22-824c-0f09e525af96",
+      "cnpj": "00000000002442",
+      "razaoSocial": "Biotecnologia Digital S.A.",
+      "nomeFantasia": "BioDigital",
+      "inscricaoEstadual": "ISENTO000023",
+      "inscricaoMunicipal": "IM000023",
+      "endereco": "Rua das Tecnologias, 123",
+      "bairro": "Centro Tecnológico",
+      "cidade": "Palmas",
+      "estado": "TO",
+      "cep": "80023-000",
+      "ativo": true,
+      "contatos": [
+        {
+          "id": "801caea4-f3a2-4c49-a923-8bac5f03ea75",
+          "nome": "Contato Principal",
+          "valor": "contato@biodigital.com.br",
+          "tipo": "Email",
+          "ativo": false
+        },
+        {
+          "id": "f0d15b53-ef2e-4a02-b862-b7756aec4222",
+          "nome": "Celular",
+          "valor": "(11) 99023-6023",
+          "tipo": "Celular",
+          "ativo": false
+        },
+        {
+          "id": "6409bc1f-03f9-49c1-87a9-41ec0b85c1d6",
+          "nome": "Telefone Comercial",
+          "valor": "(11) 98023-5023",
+          "tipo": "Telefone",
+          "ativo": false
+        }
+      ]
+    }
+  ]
+}
