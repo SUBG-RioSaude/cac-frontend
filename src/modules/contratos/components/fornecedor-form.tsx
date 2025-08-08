@@ -118,32 +118,34 @@ export default function FornecedorForm({
     name: 'contatos',
   })
 
-  // Watch para mudanças em tempo real
-  const watchedValues = form.watch()
-
+  // Emite mudanças apenas quando valores do formulário mudam (evita loop de render)
   useEffect(() => {
-    if (onDataChange) {
+    if (!onDataChange) return
+
+    const subscription = form.watch((values) => {
       const dados = {
-        cnpj: watchedValues.cnpj ? cnpjUtils.limpar(watchedValues.cnpj) : '',
-        razaoSocial: watchedValues.razaoSocial || '',
-        nomeFantasia: watchedValues.nomeFantasia || '',
-        endereco: watchedValues.endereco || '',
-        bairro: watchedValues.bairro || '',
-        cidade: watchedValues.cidade || '',
-        estado: watchedValues.estado || '',
-        cep: watchedValues.cep || '',
-        inscricaoEstadual: watchedValues.inscricaoEstadual || '',
-        inscricaoMunicipal: watchedValues.inscricaoMunicipal || '',
-        contatos: (watchedValues.contatos || []).map((contato) => ({
+        cnpj: values.cnpj ? cnpjUtils.limpar(values.cnpj) : '',
+        razaoSocial: values.razaoSocial || '',
+        nomeFantasia: values.nomeFantasia || '',
+        endereco: values.endereco || '',
+        bairro: values.bairro || '',
+        cidade: values.cidade || '',
+        estado: values.estado || '',
+        cep: values.cep || '',
+        inscricaoEstadual: values.inscricaoEstadual || '',
+        inscricaoMunicipal: values.inscricaoMunicipal || '',
+        contatos: (values.contatos || []).map((contato) => ({
           ...contato,
           nome: contato.nome || '',
           valor: contato.valor || '',
         })),
-        ativo: watchedValues.ativo || false,
+        ativo: values.ativo || false,
       }
       onDataChange(dados)
-    }
-  }, [watchedValues, onDataChange])
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, onDataChange])
 
   const adicionarContato = () => {
     append({
