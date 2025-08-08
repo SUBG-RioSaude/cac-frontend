@@ -14,7 +14,7 @@ import { RegistroAlteracoes } from '@/modules/Contratos/components/VisualizacaoC
 import { IndicadoresRelatorios } from '@/modules/Contratos/components/VisualizacaoContratos/indicadores-relatorios'
 
 // Dados mock
-import { contratoDetalhadoMock } from '../data/contrato-detalhado-mock'
+import { contratoDetalhadoMock } from '../../data/contrato-detalhado-mock'
 import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato-detalhado'
 
 export function VisualizarContrato() {

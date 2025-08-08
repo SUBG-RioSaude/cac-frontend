@@ -1,5 +1,5 @@
 import LayoutPagina from '@/components/layout-pagina'
-import { ContratosPage as ContratosPageModerna } from '@/modules/Contratos/pages/ContratosListPage'
+import { ContratosPage as ContratosPageModerna } from '@/modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
 
 function ContratosPage() {
   return (

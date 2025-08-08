@@ -7,7 +7,8 @@ import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
-import { VisualizarContrato } from './modules/Contratos/pages/VisualizarContrato'
+import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
+import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/contratos" element={<ContratosPage />} />
+              <Route path="/contratos/cadastrar" element={<CadastrarContrato />} />
               <Route
                 path="/contratos/:contratoId"
                 element={<ContratoDetailPage />}

@@ -6,7 +6,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
@@ -14,6 +13,7 @@ import { NavMain } from '@/components/nav-main'
 
 import { NavUser } from '@/components/nav-user'
 import SidebarFooterCustom from '@/components/sidebar-footer'
+import { Separator } from './ui/separator'
 
 const data = {
   user: {
@@ -33,9 +33,13 @@ const data = {
       icon: PenBoxIcon,
       items: [
         {
-          title: 'Lista de Contratos',
-          url: '/contratos',
+          title: 'Cadastrar Contrato',
+          url: '/contratos/cadastrar',
         },
+          {
+            title: 'Lista de Contratos',
+            url: '/contratos',
+          },
       ],
     },
     {
@@ -80,33 +84,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              asChild
-              className="group/logo hover:bg-sidebar-accent rounded-lg p-3 transition-all duration-300"
-            >
-              <a href="#" className="flex items-center gap-3">
-                <div className="logo-container from-sidebar-primary/20 to-sidebar-primary/5 border-sidebar-primary/20 relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border bg-gradient-to-br shadow-sm transition-all duration-300 group-hover/logo:scale-105 group-hover/logo:shadow-md">
+            <div className="group/logo cursor-pointer">
+              {/* Container principal da logo */}
+              <div className="flex flex-col items-center space-y-3 group-data-[state=collapsed]:space-y-2">
+                {/* Logo principal limpa - sem quadrado */}
+                <div className="logo-container relative transition-all duration-500 group-hover/logo:scale-110 group-data-[state=collapsed]:scale-75">
                   <img
                     src="/logo certa.png"
                     alt="Logo Prefeitura"
-                    className="h-8 w-8 object-contain transition-all duration-300 group-hover/logo:scale-110"
+                    className="h-24 w-52 object-contain drop-shadow-lg transition-all duration-500 group-data-[state=collapsed]:h-24 group-data-[state=collapsed]:w-24"
                   />
-                  <div className="bg-sidebar-primary/5 absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover/logo:opacity-100" />
                 </div>
 
-                <div className="grid flex-1 text-left text-sm leading-tight transition-transform duration-300 group-hover/logo:translate-x-0.5">
-                  <span className="text-sidebar-foreground group-hover/logo:text-sidebar-primary truncate font-semibold transition-colors duration-300">
-                    Sistema de Contratos
-                  </span>
-                  <span className="text-sidebar-foreground/70 truncate text-xs font-medium tracking-wider uppercase">
-                    CAC
-                  </span>
+                {/* Badge CAC melhorada */}
+                <div className="group-data-[state=collapsed]:hidden">
+                  <div className="inline-flex items-center gap-3 rounded-xl  px-4 py-2.5 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
+                    <img
+                      src="/logos-cac/3.png"
+                      alt="Logo CAC"
+                      className="h-20 w-20 animate-spin object-contain opacity-95 drop-shadow-sm"
+                      style={{ animationDuration: '6s' }}
+                    />
+                    <span className="text-sidebar-foreground text-sm font-bold tracking-wider uppercase drop-shadow-sm">
+                      CAC
+                    </span>
+                  </div>
                 </div>
-              </a>
-            </SidebarMenuButton>
+              </div>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {/* Separador entre header e menu */}
+        <div className="px-4 py-2">
+          <Separator className="bg-sidebar-border/50" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
