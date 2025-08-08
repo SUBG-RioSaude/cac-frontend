@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ChevronDown, Filter, X } from 'lucide-react'
-import type { FiltrosContrato } from '@/modules/types/contrato'
+import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 import { unidadesMock } from '@/modules/Contratos/data/contratos-mock'
 
 interface FiltrosContratosProps {

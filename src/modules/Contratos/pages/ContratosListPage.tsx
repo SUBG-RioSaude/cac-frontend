@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Plus, FileDown } from 'lucide-react'
-import { SearchAndFilters } from '../components/pesquisa-e-filtros'
-import { TabelaContratos } from '../components/tabela-contratos'
-import { ModalConfirmacaoExportacao } from '../components/modal-confirmacao-exportacao'
-import { useContratosStore } from '../store/contratos-store'
+import { SearchAndFilters } from '@/modules/Contratos/components/ListaContratos/pesquisa-e-filtros'
+import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
+import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
+import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
 
 export function ContratosPage() {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
@@ -71,10 +71,8 @@ export function ContratosPage() {
 
   const handleClickExportar = () => {
     if (contratosSelecionados.length > 0) {
-      // Se há contratos selecionados, exporta diretamente
       handleExportarSelecionados()
     } else {
-      // Se não há seleção, abre modal de confirmação para exportar todos
       setModalExportacaoAberto(true)
     }
   }
@@ -88,25 +86,25 @@ export function ContratosPage() {
     : 'Exportar Todos'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="space-y-8 p-8">
-        {/* Cabeçalho */}
+    <div className="min-h-screen">
+      <div className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-8">
+        {/* Cabeçalho Responsivo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center justify-between"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
               Contratos
             </h1>
-            <p className="text-muted-foreground mt-2 text-lg">
+            <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg">
               Gerencie todos os contratos do sistema de forma eficiente
             </p>
           </div>
           <motion.div 
-            className="flex items-center gap-3"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -114,12 +112,17 @@ export function ContratosPage() {
             <Button 
               variant="outline" 
               onClick={handleClickExportar} 
-              className="shadow-sm"
+              className="cursor-pointer shadow-sm h-10 sm:h-auto"
             >
               <FileDown className="h-4 w-4 mr-2" />
-              {textoExportar}
+              <span className="sm:hidden">
+                {contratosSelecionados.length > 0 ? `Exportar (${contratosSelecionados.length})` : 'Exportar'}
+              </span>
+              <span className="hidden sm:inline">
+                {textoExportar}
+              </span>
             </Button>
-            <Button onClick={handleNovoContrato} className="shadow-sm">
+            <Button onClick={handleNovoContrato} className="cursor-pointer shadow-sm h-10 sm:h-auto">
               <Plus className="h-4 w-4 mr-2" />
               Novo Contrato
             </Button>

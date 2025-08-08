@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Contrato, FiltrosContrato, PaginacaoParams } from '@/modules/types/contrato'
+import type { Contrato, FiltrosContrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
 import { contratosMock } from '@/modules/Contratos/data/contratos-mock'
 
 interface ContratosState {

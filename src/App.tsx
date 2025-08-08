@@ -7,6 +7,7 @@ import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
+import { VisualizarContrato } from './modules/Contratos/pages/VisualizarContrato'
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
 
         {/* Conteúdo principal com scroll */}
         <main className="flex-1 overflow-auto bg-gray-50">
-          <div className="mx-auto max-w-7xl px-6 py-8">
+          <div className="mx-auto px-6 py-8">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/contratos" element={<ContratosPage />} />
@@ -35,6 +36,7 @@ function App() {
                 path="/fornecedores/:fornecedorId"
                 element={<FornecedorDetailPage />}
               />
+              <Route path="/contratos/:id/editar" element={<VisualizarContrato />} />
             </Routes>
           </div>
         </main>

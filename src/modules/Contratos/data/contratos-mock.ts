@@ -1,4 +1,4 @@
-import type { Contrato } from '@/modules/types/contrato'
+import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 export const contratosMock: Contrato[] = [
   {
