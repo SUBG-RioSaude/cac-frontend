@@ -37,13 +37,13 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group relative overflow-hidden border border-sidebar-border/30 bg-sidebar/80 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:border-sidebar-border/50 hover:bg-sidebar-accent hover:shadow-lg active:scale-[0.96] active:bg-sidebar-accent/80 data-[state=open]:scale-[1.01] data-[state=open]:border-sidebar-primary/50 data-[state=open]:bg-sidebar-primary/10 data-[state=open]:shadow-xl data-[state=open]:shadow-sidebar-primary/20"
+              className="group relative overflow-hidden border border-sidebar-border/30 bg-gray-600 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:border-sidebar-border/50 hover:bg-sidebar-accent hover:shadow-lg active:scale-[0.96] active:bg-sidebar-accent/80 data-[state=open]:scale-[1.01] py-8"
             >
               {/* Efeito de brilho animado */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full group-data-[state=open]:translate-x-full"></div>
               
               {/* Efeito de luz ambiente suave */}
-              <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/5 to-sidebar-primary/10 opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div>
+              {/* <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/5 to-sidebar-primary/10 opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div> */}
               
               {/* Efeito de pulsação no estado ativo */}
               <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/10 via-sidebar-primary/15 to-sidebar-primary/10 opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse group-data-[state=open]:opacity-100"></div>

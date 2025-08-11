@@ -321,7 +321,7 @@ export default function CadastrarContrato() {
     <LayoutPagina
       titulo="Cadastrar Contrato"
       descricao="Cadastre um novo contrato seguindo as etapas abaixo"
-      className="px-6"
+      className="px-6 py-8"
     >
       {/* Painel de Validação e Status */}
       <div className="border-sidebar-primary/20 to-sidebar-primary/5 rounded-lg border bg-gradient-to-r from-white p-5 shadow-sm">

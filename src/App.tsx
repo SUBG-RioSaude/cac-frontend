@@ -24,7 +24,7 @@ function App() {
 
         {/* Conteúdo principal com scroll */}
         <main className="flex-1 overflow-auto bg-gray-50">
-          <div className="mx-auto px-6 py-8">
+          <div className="mx-auto px-6">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/contratos" element={<ContratosPage />} />

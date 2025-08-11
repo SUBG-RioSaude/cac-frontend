@@ -84,11 +84,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="group/logo cursor-pointer">
+            <div className="cursor-pointer">
               {/* Container principal da logo */}
               <div className="flex flex-col items-center space-y-3 group-data-[state=collapsed]:space-y-2">
                 {/* Logo principal limpa - sem quadrado */}
-                <div className="logo-container relative transition-all duration-500 group-hover/logo:scale-110 group-data-[state=collapsed]:scale-75">
+                <div className="logo-container relative transition-all duration-500 hover:scale-110 group-data-[state=collapsed]:scale-75">
                   <img
                     src="/logo certa.png"
                     alt="Logo Prefeitura"
@@ -98,14 +98,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
                 {/* Badge CAC melhorada */}
                 <div className="group-data-[state=collapsed]:hidden">
-                  <div className="inline-flex items-center gap-3 rounded-xl  px-4 py-2.5 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
+                  <div className="bg-gray-600 inline-flex items-center gap-1 rounded-full px-4 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
                     <img
                       src="/logos-cac/3.png"
                       alt="Logo CAC"
-                      className="h-20 w-20 animate-spin object-contain opacity-95 drop-shadow-sm"
+                      className="h-15 w-15 object-contain opacity-95 drop-shadow-sm"
                       style={{ animationDuration: '6s' }}
                     />
-                    <span className="text-sidebar-foreground text-sm font-bold tracking-wider uppercase drop-shadow-sm">
+                    <span className="text-sidebar-foreground text-lg font-bold tracking-wider uppercase drop-shadow-sm">
                       CAC
                     </span>
                   </div>
