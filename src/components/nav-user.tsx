@@ -37,7 +37,7 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group relative overflow-hidden border border-sidebar-border/30 bg-gray-600 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:border-sidebar-border/50 hover:bg-sidebar-accent hover:shadow-lg active:scale-[0.96] active:bg-sidebar-accent/80 data-[state=open]:scale-[1.01] py-8"
+              className="group relative overflow-hidden bg-gray-600 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg  data-[state=open]:scale-[1.01] py-8"
             >
               {/* Efeito de brilho animado */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full group-data-[state=open]:translate-x-full"></div>
@@ -46,11 +46,11 @@ export function NavUser({
               {/* <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/5 to-sidebar-primary/10 opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div> */}
               
               {/* Efeito de pulsação no estado ativo */}
-              <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/10 via-sidebar-primary/15 to-sidebar-primary/10 opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse group-data-[state=open]:opacity-100"></div>
+              <div className="absolute inset-0 bg-gradient-to-br opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse"></div>
               
               <div className="relative z-10 flex items-center gap-3">
                 <div className="relative">
-                  <Avatar className="h-11 w-11 rounded-xl border-2 border-sidebar-border/40 bg-sidebar-foreground/5 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover:border-sidebar-border/60 group-hover:shadow-xl group-data-[state=open]:scale-105 group-data-[state=open]:border-sidebar-primary/60 group-data-[state=open]:shadow-sidebar-primary/30">
+                  <Avatar className="h-11 w-11 rounded-xl border-2 border-sidebar-border/40 bg-sidebar-foreground/5 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover:border-sidebar-border/60 group-hover:shadow-xl group-data-[state=open]:scale-105">
                     <AvatarImage
                       src="/logos-cac/4.png"
                       alt={user.name}
@@ -82,15 +82,15 @@ export function NavUser({
                 </div>
                 
                 <div className="grid flex-1 transform text-left text-sm leading-tight transition-all duration-500 group-hover:translate-x-1 group-data-[state=open]:translate-x-2">
-                  <span className="truncate font-semibold text-sidebar-foreground drop-shadow-sm transition-colors duration-300 group-data-[state=open]:font-bold group-data-[state=open]:text-sidebar-accent-foreground">
+                  <span className="truncate font-semibold text-sidebar-foreground drop-shadow-sm transition-colors duration-300 group-data-[state=open]:font-bold">
                     {user.name}
                   </span>
-                  <span className="truncate text-xs font-medium text-sidebar-foreground/70 transition-all duration-300 group-data-[state=open]:font-semibold group-data-[state=open]:text-sidebar-accent-foreground/90">
+                  <span className="truncate text-xs font-medium text-sidebar-foreground/70 transition-all duration-300 group-data-[state=open]:font-semibold">
                     {user.email}
                   </span>
                 </div>
                 
-                <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/60 transition-all duration-500 group-hover:scale-125 group-hover:rotate-180 group-hover:text-sidebar-foreground group-data-[state=open]:scale-125 group-data-[state=open]:rotate-180 group-data-[state=open]:text-sidebar-accent-foreground group-data-[state=open]:drop-shadow-sm" />
+                <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/60 transition-all duration-500 group-hover:scale-125 group-hover:rotate-180 group-hover:text-sidebar-foreground group-data-[state=open]:scale-125 group-data-[state=open]:rotate-180 " />
               </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
