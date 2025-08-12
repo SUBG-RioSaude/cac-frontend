@@ -22,13 +22,9 @@ export default function ConfirmarAvancoModal({
   textoConfirmar = 'Confirmar',
   textoCancelar = 'Cancelar',
 }: ConfirmarAvancoModalProps) {
-  console.log('🚀 ConfirmarAvancoModal renderizado - aberto:', aberto)
 
   useEffect(() => {
-    console.log(
-      '🚀 ConfirmarAvancoModal useEffect - aberto mudou para:',
-      aberto,
-    )
+    
   }, [aberto])
 
   if (!aberto) return null
@@ -52,7 +48,7 @@ export default function ConfirmarAvancoModal({
                 'flex h-10 w-10 items-center justify-center rounded-lg',
                 isFinalizacao
                   ? 'bg-green-100 text-green-600'
-                  : 'bg-sidebar-primary/10 text-sidebar-primary',
+                  : 'bg-slate-100 text-slate-600',
               )}
             >
               <CheckCircle className="h-5 w-5" />
@@ -101,7 +97,7 @@ export default function ConfirmarAvancoModal({
               'px-4 py-2 text-sm font-medium',
               isFinalizacao
                 ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-sidebar-primary hover:bg-sidebar-primary/90',
+                : 'bg-slate-700 hover:bg-slate-600',
             )}
           >
             {textoConfirmar}

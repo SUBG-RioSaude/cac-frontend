@@ -71,8 +71,8 @@ export function Steps({
     <div className={cn('space-y-8', className)} {...props}>
       {/* Indicador visual dos steps */}
       <div className="relative">
-        {/* Background decorativo com cores da sidebar */}
-        <div className="from-sidebar-primary/5 via-sidebar-primary/10 to-sidebar-primary/5 absolute inset-0 -mx-2 rounded-xl bg-gradient-to-r py-4" />
+        {/* Background decorativo neutro */}
+        <div className="from-gray-50 via-gray-100/50 to-gray-50 absolute inset-0 -mx-2 rounded-xl bg-gradient-to-r py-4" />
 
         <div className="relative flex items-center justify-center gap-3 px-3 py-5 sm:gap-6 lg:gap-10">
           {steps.map((step, index) => {
@@ -84,9 +84,9 @@ export function Steps({
                     className={cn(
                       'relative flex h-10 w-10 items-center justify-center rounded-full shadow-md transition-all duration-300 sm:h-12 sm:w-12',
                       status === 'completed'
-                        ? 'bg-sidebar-primary shadow-sidebar-primary/20 text-white'
+                        ? 'bg-emerald-600 shadow-emerald-600/20 text-white'
                         : status === 'current'
-                          ? 'text-sidebar-primary shadow-sidebar-primary/10 ring-sidebar-primary/60 bg-white ring-2'
+                          ? 'text-blue-700 shadow-blue-700/10 ring-blue-600/60 bg-white ring-2'
                           : 'bg-gray-100 text-gray-500 ring-1 shadow-gray-200 ring-gray-300',
                     )}
                   >
@@ -107,9 +107,9 @@ export function Steps({
                       className={cn(
                         'text-xs font-medium transition-colors duration-300',
                         status === 'current'
-                          ? 'text-sidebar-primary'
+                          ? 'text-blue-700 font-semibold'
                           : status === 'completed'
-                            ? 'text-sidebar-primary/80'
+                            ? 'text-emerald-600 font-medium'
                             : 'text-gray-500',
                       )}
                     >
@@ -127,8 +127,8 @@ export function Steps({
                         className={cn(
                           'absolute top-0 left-0 h-px transition-all duration-500',
                           status === 'completed'
-                            ? 'bg-sidebar-primary w-full'
-                            : 'bg-sidebar-primary w-0',
+                            ? 'bg-emerald-500 w-full'
+                            : 'bg-emerald-500 w-0',
                         )}
                       />
                     </div>
