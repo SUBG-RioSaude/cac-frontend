@@ -10,12 +10,14 @@ describe('cn', () => {
     expect(cn('text-red-500', 'text-blue-500')).toBe('text-blue-500')
   })
 
+  const condicional = false
+
   it('deve lidar com condicionais', () => {
-    expect(cn('text-red-500', false && 'bg-blue-500')).toBe('text-red-500')
+    expect(cn('text-red-500', condicional ? 'bg-blue-500' : 'bg-red-500')).toBe('bg-red-500')
   })
 })
 
-describe('cnpjUtils', () => {
+describe('cnpjUtils', () => { 
   const cnpjValido = '11.222.333/0001-81'
   const cnpjValidoSemMascara = '11222333000181'
   const cnpjInvalido = '11.222.333/0001-82'
