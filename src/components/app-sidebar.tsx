@@ -98,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
                 {/* Badge CAC melhorada */}
                 <div className="group-data-[state=collapsed]:hidden">
-                  <div className="bg-gray-600 inline-flex items-center gap-1 rounded-full px-4 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
+                  <div className="bg-gray-600 inline-flex items-center gap-1 rounded-full px-4 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95 relative overflow-hidden group/cac">
                     <img
                       src="/logos-cac/3.png"
                       alt="Logo CAC"
@@ -108,6 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <span className="text-sidebar-foreground text-lg font-bold tracking-wider uppercase drop-shadow-sm">
                       CAC
                     </span>
+                    {/* Efeito de brilho animado */}
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent transition-transform duration-1000 ease-out group-hover/cac:translate-x-full"></div>
                   </div>
                 </div>
               </div>

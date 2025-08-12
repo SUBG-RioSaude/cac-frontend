@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { DetalhesContrato } from '../detalhes-contrato'
-import { contratoDetalhadoMock } from '@/modules/Contratos/data/contrato-detalhado-mock'
+import { contratoDetalhadoMock } from '@/modules/Contratos/data/contratos-mock'
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
