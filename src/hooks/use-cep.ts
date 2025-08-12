@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export interface EnderecoViaCEP {
   cep: string
@@ -19,6 +20,7 @@ interface UseCEPOptions {
   onError?: (error: string) => void
   debounceMs?: number
   minLoadingTime?: number
+  errorMessage?: string
 }
 
 interface UseCEPReturn {
@@ -34,11 +36,15 @@ interface UseCEPReturn {
  * Implementa debounce, cache e tratamento de erros
  */
 export function useCEP(options: UseCEPOptions = {}): UseCEPReturn {
-  const { onSuccess, onError, debounceMs = 800, minLoadingTime = 1000 } = options
+  const { onSuccess, onError, debounceMs = 800, minLoadingTime = 1000, errorMessage } = options
   
   const [endereco, setEndereco] = useState<EnderecoViaCEP | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+
+  
+  const navigate = useNavigate()
   
   // Cache simples para evitar requisições desnecessárias
   const cacheRef = useRef<Map<string, EnderecoViaCEP>>(new Map())
@@ -96,9 +102,29 @@ export function useCEP(options: UseCEPOptions = {}): UseCEPReturn {
       })
 
       if (!response.ok) {
-        throw new Error('Erro ao buscar CEP')
+        throw new Error(`Erro ao buscar CEP = ${errorMessage}`)
       }
 
+      if(response.status === 500) {
+        navigate('/500')
+      }
+
+      if(response.status === 401) {
+        navigate('/401')
+      }
+
+      if(response.status === 400) {
+        navigate('/400')
+      }
+
+      if(response.status === 503) {
+        navigate('/503')
+      }
+
+      if(response.status === 403) {
+        navigate('/403')
+      }
+      
       const data: EnderecoViaCEP = await response.json()
 
       if (data.erro) {
@@ -134,7 +160,7 @@ export function useCEP(options: UseCEPOptions = {}): UseCEPReturn {
       setIsLoading(false)
       abortControllerRef.current = null
     }
-  }, [onSuccess, onError, minLoadingTime])
+  }, [onSuccess, onError, minLoadingTime, errorMessage, navigate])
 
   const buscarCEP = useCallback((cep: string) => {
     return new Promise<void>((resolve) => {
