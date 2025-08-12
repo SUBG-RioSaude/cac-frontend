@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { ArrowRight, ArrowLeft, ExternalLink, FileText, Zap, Clock, DollarSign, FolderOpen } from 'lucide-react'
+import { ArrowRight, ArrowLeft, ExternalLink, FileText, Zap, Clock,  FolderOpen } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect, useRef } from 'react'
 import { useFormAsyncOperation } from '@/hooks/use-async-operation'
 import { ButtonLoadingSpinner } from '@/components/ui/loading'
-import { cn } from '@/lib/utils'
+import { cn, currencyUtils } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
@@ -76,7 +76,7 @@ const schemaContrato = z.object({
     .number()
     .min(1, 'Prazo deve ser pelo menos 1 mês')
     .max(60, 'Prazo máximo de 60 meses'),
-  valorGlobal: z.string().min(1, 'Valor global é obrigatório'),
+  valorGlobal: z.string().min(1, 'Valor global é obrigatório').refine(currencyUtils.validar, 'Valor deve ser maior que zero'),
   formaPagamento: z.string().min(1, 'Forma de pagamento é obrigatória'),
   tipoTermoReferencia: z.enum(['processo_rio', 'google_drive', 'texto_livre']),
   termoReferencia: z.string().min(1, 'Termo de referência é obrigatório'),
@@ -133,9 +133,11 @@ export default function ContratoForm({
     },
   })
 
+ 
+
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
-  const previousDataRef = useRef<string>()
+  const previousDataRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (onDataChange) {
@@ -222,7 +224,7 @@ export default function ContratoForm({
       vigenciaInicial: '2024-01-15',
       vigenciaFinal: '2024-12-31',
       prazoInicialMeses: 12,
-      valorGlobal: '1500000.00',
+      valorGlobal: currencyUtils.formatar(1500000),
       formaPagamento:
         'Mensal, mediante apresentação de nota fiscal e relatório de atividades',
       tipoTermoReferencia: 'processo_rio',
@@ -230,6 +232,10 @@ export default function ContratoForm({
       vinculacaoPCA: '2024',
       ativo: true,
     })
+
+    if(!error) {
+      return <div>Erro ao carregar dados do contrato</div>
+    }
   }
 
   return (
@@ -444,7 +450,7 @@ export default function ContratoForm({
                     <RadioGroupItem
                       value="Centralizada"
                       id="centralizada"
-                      className="border-sidebar-primary"
+                      className="border-slate-300"
                     />
                     <Label htmlFor="centralizada">Centralizada</Label>
                   </div>
@@ -452,7 +458,7 @@ export default function ContratoForm({
                     <RadioGroupItem
                       value="Descentralizada"
                       id="descentralizada"
-                      className="border-sidebar-primary"
+                      className="border-slate-300"
                     />
                     <Label htmlFor="descentralizada">Descentralizada</Label>
                   </div>
@@ -467,7 +473,7 @@ export default function ContratoForm({
 
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-sidebar-primary" aria-hidden="true" />
+            <Clock className="h-5 w-5 text-slate-600" aria-hidden="true" />
             <h3 className="text-lg font-medium">Prazos e Valores</h3>
           </div>
 
@@ -541,25 +547,19 @@ export default function ContratoForm({
               name="valorGlobal"
               render={({ field }) => {
                 const valorValue = field.value || ''
-                let isValidValor = null
-                if (valorValue.toString().length > 0) {
-                  const numericValue = valorValue
-                    .toString()
-                    .replace(/[^\d.,]/g, '')
-                    .replace(',', '.')
-                  const num = parseFloat(numericValue)
-                  isValidValor = !isNaN(num) && num > 0
-                }
+                const isValidValor = valorValue.length > 0 ? currencyUtils.validar(valorValue) : null
 
                 return (
                   <FormItem>
-                    <FormLabel>Valor Global (R$) *</FormLabel>
+                    <FormLabel>Valor Global *</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0,00"
+                        placeholder="R$ 0,00"
                         {...field}
+                        onChange={(e) => {
+                          const valorMascarado = currencyUtils.aplicarMascara(e.target.value)
+                          field.onChange(valorMascarado)
+                        }}
                         className={
                           isValidValor === true
                             ? 'border-green-500 bg-green-50 focus:border-green-500 focus:ring-green-500'
@@ -598,6 +598,10 @@ export default function ContratoForm({
                       {...field}
                     />
                   </FormControl>
+                  
+                  {/* Espaço reservado para manter alinhamento com campo de valor */}
+                  <div className="h-6 mt-1"></div>
+                  
                   <FormMessage />
                 </FormItem>
               )}
@@ -609,7 +613,7 @@ export default function ContratoForm({
 
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <FolderOpen className="h-5 w-5 text-sidebar-primary" aria-hidden="true" />
+            <FolderOpen className="h-5 w-5 text-slate-600" aria-hidden="true" />
             <h3 className="text-lg font-medium">
               Documentos e Informações Adicionais
             </h3>
@@ -637,13 +641,13 @@ export default function ContratoForm({
                     defaultValue={field.value}
                     className="flex flex-col space-y-3"
                   >
-                    <div className="hover:border-sidebar-primary/50 flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors">
+                    <div className="hover:border-slate-300 flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors">
                       <RadioGroupItem
                         value="processo_rio"
                         id="processo_rio"
-                        className="border-sidebar-primary"
+                        className="border-slate-300"
                       />
-                      <ExternalLink className="text-sidebar-primary h-5 w-5" />
+                      <ExternalLink className="text-slate-600 h-5 w-5" />
                       <div>
                         <Label htmlFor="processo_rio" className="font-medium">
                           Processo.Rio
@@ -653,11 +657,11 @@ export default function ContratoForm({
                         </p>
                       </div>
                     </div>
-                    <div className="hover:border-sidebar-primary/50 flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors">
+                    <div className="hover:border-slate-300 flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors">
                       <RadioGroupItem
                         value="google_drive"
                         id="google_drive"
-                        className="border-sidebar-primary"
+                        className="border-slate-300"
                       />
                       <ExternalLink className="h-5 w-5 text-green-600" />
                       <div>
@@ -669,11 +673,11 @@ export default function ContratoForm({
                         </p>
                       </div>
                     </div>
-                    <div className="hover:border-sidebar-primary/50 flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors">
+                    <div className="hover:border-slate-300 flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors">
                       <RadioGroupItem
                         value="texto_livre"
                         id="texto_livre"
-                        className="border-sidebar-primary"
+                        className="border-slate-300"
                       />
                       <FileText className="h-5 w-5 text-amber-600" />
                       <div>
@@ -805,7 +809,7 @@ export default function ContratoForm({
               disabled={isSubmitting}
               aria-label={isSubmitting ? 'Processando dados do contrato...' : 'Avançar para próximo passo'}
               className={cn(
-                'bg-sidebar-primary shadow-sidebar-primary/20 hover:bg-sidebar-primary/90 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
+                'bg-slate-700 shadow-slate-700/20 hover:bg-slate-600 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
                 isSubmitting && 'opacity-50 cursor-not-allowed'
               )}
             >

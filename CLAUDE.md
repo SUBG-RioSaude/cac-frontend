@@ -126,6 +126,10 @@ export function Component({ className, children, ...props }: ComponentProps) {
 - **React Hook Form** com resolvers Zod para validação
 - Componentes de formulário do shadcn/ui
 - Validação client-side com feedback visual
+- **Formatação monetária**: Sempre usar `currencyUtils` do `@/lib/utils` para campos de valor
+  - `currencyUtils.aplicarMascara()` para inputs com máscara R$ durante digitação
+  - `currencyUtils.validar()` para validação de valores monetários
+  - `currencyUtils.formatar()` para exibição de valores formatados
 
 ## Configurações Importantes
 

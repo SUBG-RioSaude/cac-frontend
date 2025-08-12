@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Trash2, Plus, ArrowRight, BarChart3, Zap, MapPin, Users } from 'lucide-react'
+import { Trash2, Plus, ArrowRight, BarChart3, Zap, MapPin, Users, Check, X, Settings } from 'lucide-react'
 import { useForm, useFieldArray, type Resolver } from 'react-hook-form'
 import { useEffect, useRef } from 'react'
 import { useFormAsyncOperation } from '@/hooks/use-async-operation'
@@ -23,7 +23,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { cnpjUtils, cn } from '@/lib/utils'
+import { cnpjUtils, ieUtils, imUtils, cn } from '@/lib/utils'
+import { useCEP } from '@/hooks/use-cep'
 
 interface Contato {
   id: string
@@ -37,9 +38,12 @@ export interface DadosFornecedor {
   cnpj: string
   razaoSocial: string
   nomeFantasia: string
+  estadoIE?: string
   inscricaoEstadual: string
   inscricaoMunicipal: string
   endereco: string
+  numero: string
+  complemento: string
   bairro: string
   cidade: string
   estado: string
@@ -65,9 +69,12 @@ const fornecedorSchema = z.object({
     .refine(cnpjUtils.validar, 'CNPJ inválido'),
   razaoSocial: z.string().min(1, 'Razão Social é obrigatória'),
   nomeFantasia: z.string().optional().or(z.literal('')),
+  estadoIE: z.string().optional().or(z.literal('')),
   inscricaoEstadual: z.string().optional().or(z.literal('')),
   inscricaoMunicipal: z.string().optional().or(z.literal('')),
   endereco: z.string().min(1, 'Endereço é obrigatório'),
+  numero: z.string().min(1, 'Número é obrigatório'),
+  complemento: z.string().optional().or(z.literal('')),
   bairro: z.string().min(1, 'Bairro é obrigatório'),
   cidade: z.string().min(1, 'Cidade é obrigatória'),
   estado: z
@@ -97,16 +104,36 @@ export default function FornecedorForm({
   onAdvanceRequest,
   onDataChange,
 }: FornecedorFormProps) {
-  const { submitForm, isSubmitting, error } = useFormAsyncOperation()
+  const { submitForm, isSubmitting } = useFormAsyncOperation()
+  
+  // Hook para busca de CEP
+  const { buscarCEP, isLoading: isLoadingCEP, error: errorCEP, clearError } = useCEP({
+    onSuccess: (enderecoData) => {
+      // Preenche os campos automaticamente quando encontrar o endereço
+      form.setValue('endereco', enderecoData.logradouro || '')
+      form.setValue('bairro', enderecoData.bairro || '')
+      form.setValue('cidade', enderecoData.localidade || '')
+      form.setValue('estado', enderecoData.uf || '')
+      
+      // Foca no campo número após preencher
+      setTimeout(() => {
+        const numeroField = document.querySelector('input[name="numero"]') as HTMLInputElement
+        numeroField?.focus()
+      }, 100)
+    },
+  })
   const form = useForm<DadosFornecedorSchema>({
     resolver: zodResolver(fornecedorSchema) as Resolver<DadosFornecedorSchema>,
     defaultValues: {
       cnpj: dadosIniciais?.cnpj ? cnpjUtils.formatar(dadosIniciais.cnpj) : '',
       razaoSocial: dadosIniciais?.razaoSocial || '',
       nomeFantasia: dadosIniciais?.nomeFantasia || '',
+      estadoIE: dadosIniciais?.estadoIE || '',
       inscricaoEstadual: dadosIniciais?.inscricaoEstadual || '',
       inscricaoMunicipal: dadosIniciais?.inscricaoMunicipal || '',
       endereco: dadosIniciais?.endereco || '',
+      numero: dadosIniciais?.numero || '',
+      complemento: dadosIniciais?.complemento || '',
       bairro: dadosIniciais?.bairro || '',
       cidade: dadosIniciais?.cidade || '',
       estado: dadosIniciais?.estado || '',
@@ -124,6 +151,11 @@ export default function FornecedorForm({
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
   const previousDataRef = useRef<string>()
+  
+  // Estado para controlar se campos de endereço estão habilitados
+  const cepValue = form.watch('cep') || ''
+  const isCepValid = /^\d{5}-\d{3}$/.test(cepValue)
+  const shouldEnableAddressFields = isCepValid && !isLoadingCEP
 
   useEffect(() => {
     if (onDataChange) {
@@ -132,6 +164,8 @@ export default function FornecedorForm({
         razaoSocial: watchedValues.razaoSocial || '',
         nomeFantasia: watchedValues.nomeFantasia || '',
         endereco: watchedValues.endereco || '',
+        numero: watchedValues.numero || '',
+        complemento: watchedValues.complemento || '',
         bairro: watchedValues.bairro || '',
         cidade: watchedValues.cidade || '',
         estado: watchedValues.estado || '',
@@ -193,9 +227,12 @@ export default function FornecedorForm({
       cnpj: cnpjUtils.formatar('11222333000181'),
       razaoSocial: 'Empresa Teste LTDA',
       nomeFantasia: 'Teste Corp',
-      inscricaoEstadual: '123456789',
-      inscricaoMunicipal: '987654321',
+      estadoIE: 'RJ',
+      inscricaoEstadual: '20040040',
+      inscricaoMunicipal: '12345678',
       endereco: 'Rua das Flores, 123',
+      numero: '123',
+      complemento: 'Sala 456',
       bairro: 'Centro',
       cidade: 'São Paulo',
       estado: 'SP',
@@ -228,9 +265,9 @@ export default function FornecedorForm({
       >
         {/* Dados Básicos */}
         <div className="space-y-5">
-          <div className="border-sidebar-primary/20 flex items-center space-x-3 border-b pb-3">
-            <div className="bg-sidebar-primary/10 flex h-7 w-7 items-center justify-center rounded-md">
-              <BarChart3 className="h-4 w-4 text-sidebar-primary" aria-hidden="true" />
+          <div className="border-slate-200 flex items-center space-x-3 border-b pb-3">
+            <div className="bg-slate-100 flex h-7 w-7 items-center justify-center rounded-md">
+              <BarChart3 className="h-4 w-4 text-slate-600" aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-gray-900">
               Informações Básicas
@@ -250,53 +287,43 @@ export default function FornecedorForm({
                   <FormItem>
                     <FormLabel>CNPJ *</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="00.000.000/0000-00"
-                        aria-required="true"
-                        aria-invalid={isValidCnpj === false ? 'true' : 'false'}
-                        aria-describedby={
-                          isValidCnpj !== null 
-                            ? `cnpj-feedback-${isValidCnpj ? 'success' : 'error'}` 
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          const valorMascarado = cnpjUtils.aplicarMascara(
-                            e.target.value,
-                          )
-                          field.onChange(valorMascarado)
-                        }}
-                        className={
-                          isValidCnpj === true
-                            ? 'border-green-500 bg-green-50 focus:border-green-500 focus:ring-green-500'
-                            : isValidCnpj === false
-                              ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500'
-                              : ''
-                        }
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          placeholder="00.000.000/0000-00"
+                          aria-required="true"
+                          aria-invalid={isValidCnpj === false ? 'true' : 'false'}
+                          onChange={(e) => {
+                            const valorMascarado = cnpjUtils.aplicarMascara(
+                              e.target.value,
+                            )
+                            field.onChange(valorMascarado)
+                          }}
+                          className={cn(
+                            isValidCnpj === true
+                              ? 'border-green-500 bg-green-50 focus-visible:border-green-500 focus-visible:ring-green-500/20 pr-10'
+                              : isValidCnpj === false
+                                ? 'border-red-500 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/20 pr-10'
+                                : ''
+                          )}
+                        />
+                        {isValidCnpj !== null && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {isValidCnpj ? (
+                              <Check 
+                                className="h-4 w-4 text-green-500" 
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <X 
+                                className="h-4 w-4 text-red-500" 
+                                aria-hidden="true"
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    {isValidCnpj === true && (
-                      <p 
-                        id="cnpj-feedback-success"
-                        className="flex items-center gap-1 text-sm text-green-600"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        <span className="text-green-500" aria-hidden="true">✓</span>
-                        CNPJ válido
-                      </p>
-                    )}
-                    {isValidCnpj === false && (
-                      <p 
-                        id="cnpj-feedback-error"
-                        className="flex items-center gap-1 text-sm text-red-600"
-                        role="alert"
-                        aria-live="assertive"
-                      >
-                        <span className="text-red-500" aria-hidden="true">✗</span>
-                        CNPJ inválido
-                      </p>
-                    )}
                     <FormMessage />
                   </FormItem>
                 )
@@ -312,6 +339,10 @@ export default function FornecedorForm({
                   <FormControl>
                     <Input {...field} placeholder="Digite a razão social" />
                   </FormControl>
+                  
+                  {/* Espaço reservado para manter alinhamento */}
+                  <div className="h-6 mt-1"></div>
+                  
                   <FormMessage />
                 </FormItem>
               )}
@@ -328,68 +359,321 @@ export default function FornecedorForm({
                   <FormControl>
                     <Input {...field} placeholder="Digite o nome fantasia" />
                   </FormControl>
+                  
+                  {/* Espaço reservado para manter alinhamento com IE */}
+                  <div className="h-6 mt-1"></div>
+                  
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="inscricaoEstadual"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Inscrição Estadual</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Digite a inscrição estadual"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <FormLabel>Inscrição Estadual</FormLabel>
+              <div className="flex gap-2">
+                {/* Dropdown de Estados */}
+                <FormField
+                  control={form.control}
+                  name="estadoIE"
+                  render={({ field }) => (
+                    <FormItem className="w-20 flex flex-col justify-end">
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="UF" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent side="top" align="start">
+                          <SelectItem value="AC">AC</SelectItem>
+                          <SelectItem value="AL">AL</SelectItem>
+                          <SelectItem value="AP">AP</SelectItem>
+                          <SelectItem value="AM">AM</SelectItem>
+                          <SelectItem value="BA">BA</SelectItem>
+                          <SelectItem value="CE">CE</SelectItem>
+                          <SelectItem value="DF">DF</SelectItem>
+                          <SelectItem value="ES">ES</SelectItem>
+                          <SelectItem value="GO">GO</SelectItem>
+                          <SelectItem value="MA">MA</SelectItem>
+                          <SelectItem value="MT">MT</SelectItem>
+                          <SelectItem value="MS">MS</SelectItem>
+                          <SelectItem value="MG">MG</SelectItem>
+                          <SelectItem value="PA">PA</SelectItem>
+                          <SelectItem value="PB">PB</SelectItem>
+                          <SelectItem value="PR">PR</SelectItem>
+                          <SelectItem value="PE">PE</SelectItem>
+                          <SelectItem value="PI">PI</SelectItem>
+                          <SelectItem value="RJ">RJ</SelectItem>
+                          <SelectItem value="RN">RN</SelectItem>
+                          <SelectItem value="RS">RS</SelectItem>
+                          <SelectItem value="RO">RO</SelectItem>
+                          <SelectItem value="RR">RR</SelectItem>
+                          <SelectItem value="SC">SC</SelectItem>
+                          <SelectItem value="SP">SP</SelectItem>
+                          <SelectItem value="SE">SE</SelectItem>
+                          <SelectItem value="TO">TO</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Campo IE */}
+                <FormField
+                  control={form.control}
+                  name="inscricaoEstadual"
+                  render={({ field }) => {
+                    const ieValue = field.value || ''
+                    const estadoSelecionado = form.watch('estadoIE') || ''
+                    const estadoConfig = estadoSelecionado ? ieUtils.estados[estadoSelecionado] : null
+                    const isValidIe = ieValue.length > 0 && estadoSelecionado ? ieUtils.validar(ieValue, estadoSelecionado) : null
+
+                    return (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              {...field}
+                              placeholder={estadoConfig ? `Ex: ${estadoConfig.mask.replace(/#/g, '1')}` : "Selecione o estado primeiro"}
+                              disabled={!estadoSelecionado}
+                              onChange={(e) => {
+                                if (estadoSelecionado) {
+                                  const valorMascarado = ieUtils.aplicarMascara(e.target.value, estadoSelecionado)
+                                  field.onChange(valorMascarado)
+                                } else {
+                                  field.onChange(e.target.value)
+                                }
+                              }}
+                              className={cn(
+                                !estadoSelecionado && "opacity-50 cursor-not-allowed",
+                                isValidIe === true && "border-green-500 bg-green-50 pr-10",
+                                isValidIe === false && "border-red-500 bg-red-50 pr-10"
+                              )}
+                            />
+                            {isValidIe !== null && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                {isValidIe ? (
+                                  <Check className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <X className="h-4 w-4 text-red-500" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
+                />
+              </div>
+
+              {/* Informações do estado selecionado */}
+              <div className="h-6 flex items-start">
+                {form.watch('estadoIE') && ieUtils.estados[form.watch('estadoIE')] && (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-700/10">
+                      {form.watch('estadoIE')}
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      Formato: {ieUtils.estados[form.watch('estadoIE')].mask}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      • {ieUtils.estados[form.watch('estadoIE')].len} dígitos
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <FormField
             control={form.control}
             name="inscricaoMunicipal"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Inscrição Municipal</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Digite a inscrição municipal"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const imValue = field.value || ''
+              const estadoSelecionado = form.watch('estadoIE') || ''
+              const isValidIm = imValue.length > 0 && estadoSelecionado ? imUtils.validar(imValue, estadoSelecionado) : null
+
+              // Obter informações específicas do estado
+              const getEstadoInfo = (estado: string) => {
+                switch (estado.toUpperCase()) {
+                  case 'RJ':
+                    return { nome: 'Rio de Janeiro', formato: '##.###.##-#', digitos: 8, validacao: 'específica' }
+                  default:
+                    return { nome: 'Genérico', formato: '5-15 dígitos', digitos: '5-15', validacao: 'genérica' }
+                }
+              }
+
+              const estadoInfo = estadoSelecionado ? getEstadoInfo(estadoSelecionado) : null
+
+              return (
+                <FormItem>
+                  <FormLabel>Inscrição Municipal</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        placeholder={estadoInfo?.validacao === 'específica' ? `Ex: ${estadoInfo.formato.replace(/#/g, '1')}` : estadoSelecionado ? "Ex: 12345-67" : "Selecione o estado primeiro"}
+                        disabled={!estadoSelecionado}
+                        onChange={(e) => {
+                          if (estadoSelecionado) {
+                            const valorMascarado = imUtils.aplicarMascara(e.target.value, estadoSelecionado)
+                            field.onChange(valorMascarado)
+                          } else {
+                            field.onChange(e.target.value)
+                          }
+                        }}
+                        className={cn(
+                          !estadoSelecionado && "opacity-50 cursor-not-allowed",
+                          isValidIm === true && "border-green-500 bg-green-50 pr-10",
+                          isValidIm === false && "border-red-500 bg-red-50 pr-10"
+                        )}
+                      />
+                      {isValidIm !== null && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {isValidIm ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+
+                  {/* Informações do estado/validação */}
+                  <div className="h-6 flex items-start mt-1">
+                    {estadoInfo && (
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+                          estadoInfo.validacao === 'específica' 
+                            ? "bg-purple-50 text-purple-700 ring-purple-700/10"
+                            : "bg-gray-50 text-gray-700 ring-gray-700/10"
+                        )}>
+                          {estadoSelecionado}
+                        </span>
+                        <span className="text-xs text-gray-600">
+                          {estadoInfo.validacao === 'específica' ? `Validação ${estadoInfo.nome}` : 'Validação genérica'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          • {estadoInfo.digitos} dígitos
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
           />
         </div>
 
         {/* Endereço */}
         <div className="space-y-5">
-          <div className="border-sidebar-primary/20 flex items-center space-x-3 border-b pb-3">
-            <div className="bg-sidebar-primary/15 flex h-7 w-7 items-center justify-center rounded-md">
-              <MapPin className="h-4 w-4 text-sidebar-primary" aria-hidden="true" />
+          <div className="border-slate-200 flex items-center space-x-3 border-b pb-3">
+            <div className="bg-slate-100 flex h-7 w-7 items-center justify-center rounded-md">
+              <MapPin className="h-4 w-4 text-slate-600" aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-gray-900">Endereço</h3>
           </div>
 
+          {/* CEP com busca automática */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <FormField
+              control={form.control}
+              name="cep"
+              render={({ field }) => {
+                const cepValue = field.value || ''
+                const cepRegex = /^\d{5}-?\d{3}$/
+                const isValidCep = cepValue.length > 0 ? cepRegex.test(cepValue) : null
+
+                return (
+                  <FormItem>
+                    <FormLabel>CEP *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          placeholder="00000-000"
+                          aria-required="true"
+                          onChange={(e) => {
+                            const valor = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2')
+                            field.onChange(valor)
+                            
+                            // Busca endereço quando CEP está completo
+                            if (valor.length === 9) {
+                              buscarCEP(valor)
+                              clearError()
+                            }
+                          }}
+                          className={cn(
+                            isValidCep === true && !isLoadingCEP
+                              ? 'border-green-500 bg-green-50 focus-visible:border-green-500 focus-visible:ring-green-500/20 pr-10'
+                              : isValidCep === false && !isLoadingCEP
+                                ? 'border-red-500 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/20 pr-10'
+                                : isLoadingCEP
+                                  ? 'border-slate-400 bg-slate-50 pr-10'
+                                  : ''
+                          )}
+                        />
+                        {isLoadingCEP && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent"></div>
+                          </div>
+                        )}
+                        {!isLoadingCEP && isValidCep !== null && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {isValidCep ? (
+                              <Check 
+                                className="h-4 w-4 text-green-500" 
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <X 
+                                className="h-4 w-4 text-red-500" 
+                                aria-hidden="true"
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    {errorCEP && (
+                      <p className="text-sm text-red-600">{errorCEP}</p>
+                    )}
+                    {isLoadingCEP && (
+                      <p className="text-sm text-slate-600">Buscando endereço...</p>
+                    )}
+                    {!isCepValid && !isLoadingCEP && (
+                      <p className="text-sm text-gray-500">Digite um CEP válido para habilitar os campos de endereço</p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
+          </div>
+
+          {/* Endereço completo */}
+          <div className={cn(
+            "grid grid-cols-1 gap-4 md:grid-cols-4 transition-all duration-300",
+            !shouldEnableAddressFields && "opacity-60"
+          )}>
             <div className="md:col-span-2">
               <FormField
                 control={form.control}
                 name="endereco"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Endereço *</FormLabel>
+                    <FormLabel>Logradouro *</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Digite o endereço completo"
+                        placeholder={shouldEnableAddressFields ? "Digite o endereço completo" : "Primeiro preencha o CEP"}
+                        disabled={!shouldEnableAddressFields}
                       />
                     </FormControl>
                     <FormMessage />
@@ -400,49 +684,45 @@ export default function FornecedorForm({
 
             <FormField
               control={form.control}
-              name="cep"
-              render={({ field }) => {
-                const cepValue = field.value || ''
-                const cepRegex = /^\d{5}-?\d{3}$/
-                const isValidCep =
-                  cepValue.length > 0 ? cepRegex.test(cepValue) : null
+              name="numero"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={shouldEnableAddressFields ? "123" : "Primeiro preencha o CEP"}
+                      disabled={!shouldEnableAddressFields}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                return (
-                  <FormItem>
-                    <FormLabel>CEP *</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="00000-000"
-                        className={
-                          isValidCep === true
-                            ? 'border-green-500 bg-green-50 focus:border-green-500 focus:ring-green-500'
-                            : isValidCep === false
-                              ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500'
-                              : ''
-                        }
-                      />
-                    </FormControl>
-                    {isValidCep === true && (
-                      <p className="flex items-center gap-1 text-sm text-green-600">
-                        <span className="text-green-500">✓</span>
-                        CEP válido
-                      </p>
-                    )}
-                    {isValidCep === false && (
-                      <p className="flex items-center gap-1 text-sm text-red-600">
-                        <span className="text-red-500">✗</span>
-                        CEP inválido (formato: 00000-000)
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )
-              }}
+            <FormField
+              control={form.control}
+              name="complemento"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Complemento</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={shouldEnableAddressFields ? "Apto, Sala, etc." : "Primeiro preencha o CEP"}
+                      disabled={!shouldEnableAddressFields}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className={cn(
+            "grid grid-cols-1 gap-4 md:grid-cols-3 transition-all duration-300",
+            !shouldEnableAddressFields && "opacity-60"
+          )}>
             <FormField
               control={form.control}
               name="bairro"
@@ -450,7 +730,11 @@ export default function FornecedorForm({
                 <FormItem>
                   <FormLabel>Bairro *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Digite o bairro" />
+                    <Input 
+                      {...field} 
+                      placeholder={shouldEnableAddressFields ? "Digite o bairro" : "Primeiro preencha o CEP"}
+                      disabled={!shouldEnableAddressFields}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -464,7 +748,11 @@ export default function FornecedorForm({
                 <FormItem>
                   <FormLabel>Cidade *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Digite a cidade" />
+                    <Input 
+                      {...field} 
+                      placeholder={shouldEnableAddressFields ? "Digite a cidade" : "Primeiro preencha o CEP"}
+                      disabled={!shouldEnableAddressFields}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -478,7 +766,13 @@ export default function FornecedorForm({
                 <FormItem>
                   <FormLabel>Estado *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="UF" maxLength={2} />
+                    <Input 
+                      {...field} 
+                      placeholder={shouldEnableAddressFields ? "UF" : "Primeiro preencha o CEP"}
+                      maxLength={2} 
+                      disabled={!shouldEnableAddressFields}
+                      style={{ textTransform: 'uppercase' }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -489,10 +783,10 @@ export default function FornecedorForm({
 
         {/* Contatos */}
         <div className="space-y-5">
-          <div className="border-sidebar-primary/20 flex items-center justify-between border-b pb-3">
+          <div className="border-slate-200 flex items-center justify-between border-b pb-3">
             <div className="flex items-center space-x-3">
-              <div className="bg-sidebar-primary/20 flex h-7 w-7 items-center justify-center rounded-md">
-                <Users className="h-4 w-4 text-sidebar-primary" aria-hidden="true" />
+              <div className="bg-slate-100 flex h-7 w-7 items-center justify-center rounded-md">
+                <Users className="h-4 w-4 text-slate-600" aria-hidden="true" />
               </div>
               <h3 className="text-base font-semibold text-gray-900">
                 Contatos
@@ -516,7 +810,7 @@ export default function FornecedorForm({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="bg-sidebar-primary/15 text-sidebar-primary flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium">
+                  <div className="bg-slate-100 text-slate-600 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium">
                     {index + 1}
                   </div>
                   <h4 className="font-medium text-gray-800">
@@ -547,6 +841,10 @@ export default function FornecedorForm({
                           placeholder="Ex: Telefone Comercial"
                         />
                       </FormControl>
+                      
+                      {/* Espaço reservado para manter alinhamento com campo de valor */}
+                      <div className="h-6 mt-1"></div>
+                      
                       <FormMessage />
                     </FormItem>
                   )}
@@ -573,6 +871,10 @@ export default function FornecedorForm({
                           <SelectItem value="Email">Email</SelectItem>
                         </SelectContent>
                       </Select>
+                      
+                      {/* Espaço reservado para manter alinhamento com campo de valor */}
+                      <div className="h-6 mt-1"></div>
+                      
                       <FormMessage />
                     </FormItem>
                   )}
@@ -661,11 +963,9 @@ export default function FornecedorForm({
 
         {/* Status do Fornecedor */}
         <div className="space-y-4">
-          <div className="border-sidebar-primary/20 flex items-center space-x-3 border-b pb-3">
-            <div className="bg-sidebar-primary/25 flex h-7 w-7 items-center justify-center rounded-md">
-              <span className="text-sidebar-primary text-sm font-semibold">
-                ⚙️
-              </span>
+          <div className="border-slate-200 flex items-center space-x-3 border-b pb-3">
+            <div className="bg-slate-100 flex h-7 w-7 items-center justify-center rounded-md">
+              <Settings className="h-4 w-4 text-slate-600" aria-hidden="true" />
             </div>
             <h3 className="text-base font-semibold text-gray-900">Status</h3>
           </div>
@@ -674,7 +974,7 @@ export default function FornecedorForm({
             control={form.control}
             name="ativo"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-green-200 bg-green-50/50 p-4">
+              <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -682,10 +982,10 @@ export default function FornecedorForm({
                   />
                 </FormControl>
                 <div className="space-y-1">
-                  <FormLabel className="font-medium text-green-800">
+                  <FormLabel className="font-medium text-slate-700">
                     Fornecedor ativo
                   </FormLabel>
-                  <p className="text-xs text-green-600">
+                  <p className="text-xs text-slate-600">
                     Marque esta opção para manter o fornecedor ativo no sistema
                   </p>
                 </div>
@@ -725,7 +1025,7 @@ export default function FornecedorForm({
               disabled={isSubmitting}
               aria-label={isSubmitting ? 'Processando dados...' : 'Avançar para próximo passo'}
               className={cn(
-                'bg-sidebar-primary shadow-sidebar-primary/20 hover:bg-sidebar-primary/90 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
+                'bg-slate-700 shadow-slate-700/20 hover:bg-slate-600 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
                 onCancel ? '' : 'ml-auto',
                 isSubmitting && 'opacity-50 cursor-not-allowed'
               )}

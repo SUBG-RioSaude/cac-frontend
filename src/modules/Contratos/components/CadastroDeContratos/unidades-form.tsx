@@ -1,17 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Trash2, Plus, Building2 } from 'lucide-react'
 import { useState } from 'react'
+import { currencyUtils } from '@/lib/utils'
 
 interface Unidade {
   id: string
@@ -72,7 +66,7 @@ export default function UnidadesForm({
       telefone: '',
       email: '',
       ativa: true,
-      valorAlocado: '0',
+      valorAlocado: currencyUtils.formatar(0),
       percentualContrato: 0,
     }
     setDadosUnidades((prev) => ({
@@ -101,7 +95,7 @@ export default function UnidadesForm({
 
           // Calcular percentual quando valor é alterado
           if (campo === 'valorAlocado' && valorTotalContrato > 0) {
-            const valorNum = parseFloat(valor as string) || 0
+            const valorNum = currencyUtils.paraNumero(valor as string)
             unidadeAtualizada.percentualContrato =
               (valorNum / valorTotalContrato) * 100
           }
@@ -109,10 +103,8 @@ export default function UnidadesForm({
           // Calcular valor quando percentual é alterado
           if (campo === 'percentualContrato' && valorTotalContrato > 0) {
             const percentualNum = parseFloat(valor as string) || 0
-            unidadeAtualizada.valorAlocado = (
-              (percentualNum / 100) *
-              valorTotalContrato
-            ).toFixed(2)
+            const novoValor = (percentualNum / 100) * valorTotalContrato
+            unidadeAtualizada.valorAlocado = currencyUtils.formatar(novoValor)
           }
 
           return unidadeAtualizada
@@ -135,7 +127,7 @@ export default function UnidadesForm({
       ...prev,
       unidades: prev.unidades.map((unidade) => ({
         ...unidade,
-        valorAlocado: unidade.ativa ? valorPorUnidade.toFixed(2) : '0',
+        valorAlocado: unidade.ativa ? currencyUtils.formatar(valorPorUnidade) : currencyUtils.formatar(0),
         percentualContrato: unidade.ativa ? percentualPorUnidade : 0,
       })),
     }))
@@ -143,7 +135,7 @@ export default function UnidadesForm({
 
   const calcularTotalAlocado = () => {
     return dadosUnidades.unidades.reduce((total, unidade) => {
-      return total + (parseFloat(unidade.valorAlocado) || 0)
+      return total + currencyUtils.paraNumero(unidade.valorAlocado)
     }, 0)
   }
 
@@ -207,10 +199,7 @@ export default function UnidadesForm({
             <div>
               <span className="font-medium">Total Alocado:</span>
               <p className="text-blue-700">
-                R${' '}
-                {calcularTotalAlocado().toLocaleString('pt-BR', {
-                  minimumFractionDigits: 2,
-                })}
+                {currencyUtils.formatar(calcularTotalAlocado())}
               </p>
             </div>
             <div>
@@ -359,19 +348,18 @@ export default function UnidadesForm({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Valor Alocado (R$)</Label>
+                  <Label>Valor Alocado</Label>
                   <Input
-                    type="number"
-                    step="0.01"
                     value={unidade.valorAlocado}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const valorMascarado = currencyUtils.aplicarMascara(e.target.value)
                       atualizarUnidade(
                         unidade.id,
                         'valorAlocado',
-                        e.target.value,
+                        valorMascarado,
                       )
-                    }
-                    placeholder="0,00"
+                    }}
+                    placeholder="R$ 0,00"
                   />
                 </div>
                 <div className="space-y-2">
