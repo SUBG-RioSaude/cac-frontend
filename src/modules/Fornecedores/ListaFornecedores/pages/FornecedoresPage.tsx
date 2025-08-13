@@ -7,6 +7,7 @@ import { TabelaFornecedores } from "@/modules/Fornecedores/ListaFornecedores/com
 import { ModalConfirmacaoExportacao } from "@/modules/Fornecedores/ListaFornecedores/components/modal-confirmacao-exportacao"
 import { useFornecedoresStore } from "@/modules/Fornecedores/ListaFornecedores/store/fornecedores-store"
 import type { Fornecedor } from "@/modules/Fornecedores/ListaFornecedores/types/fornecedor"
+import { ModalNovoFornecedor } from "@/modules/Fornecedores/ListaFornecedores/components/modal-novo-fornecedor"
 
 export default function FornecedoresListPage() {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
@@ -15,13 +16,8 @@ export default function FornecedoresListPage() {
     fornecedoresFiltrados,
     fornecedoresSelecionados,
     paginacao,
-    setPaginacao,
-    limparFiltros
+    setPaginacao
   } = useFornecedoresStore()
-
-  const handleLimparFiltros = () => {
-    limparFiltros()
-  }
 
   const handleVisualizarFornecedor = (fornecedor: Fornecedor) => {
     console.log("Visualizar fornecedor:", fornecedor)
@@ -98,8 +94,8 @@ export default function FornecedoresListPage() {
     }
   }
 
-  const handleNovoFornecedor = () => {
-    console.log("Novo fornecedor")
+  const handleNovoFornecedor = (dados: unknown) => {
+    console.log("Novo fornecedor:", dados)
   }
 
   const textoExportar = fornecedoresSelecionados.length > 0 
@@ -107,25 +103,25 @@ export default function FornecedoresListPage() {
     : 'Exportar Todos'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="space-y-4 sm:space-y-6 lg:space-y-8 p-3 sm:p-4 lg:p-6 xl:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
+      <div className="space-y-6 sm:space-y-8 lg:space-y-10">
         {/* Cabeçalho Responsivo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col sm:flex-row sm:items-start justify-between gap-4"
+          className="flex flex-col sm:flex-row sm:items-start justify-between gap-6"
         >
-          <div className="space-y-2">
+          <div className="text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              Fornecedores
+            Fornecedores
             </h1>
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
-              Gerencie todos os fornecedores do sistema de forma eficiente
+            <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg">
+            Gerencie todos os fornecedores do sistema de forma eficiente
             </p>
           </div>
           <motion.div
-            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -143,15 +139,13 @@ export default function FornecedoresListPage() {
                 {textoExportar}
               </span>
             </Button>
-            <Button onClick={handleNovoFornecedor} className="cursor-pointer shadow-sm h-10 sm:h-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              <span className="sm:hidden">
-                Novo
-              </span>
-              <span className="hidden sm:inline">
-                Novo Fornecedor
-              </span>
-            </Button>
+            <ModalNovoFornecedor onSalvar={handleNovoFornecedor}>
+              <Button className="cursor-pointer shadow-sm h-10 sm:h-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">Novo</span>
+                <span className="hidden sm:inline">Novo Fornecedor</span>
+              </Button>
+            </ModalNovoFornecedor>
           </motion.div>
         </motion.div>
 

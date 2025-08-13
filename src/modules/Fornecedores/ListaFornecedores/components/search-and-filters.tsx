@@ -90,7 +90,7 @@ export function SearchAndFiltersFornecedores() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-11 px-4 border-2 hover:border-primary transition-all duration-200 shadow-sm relative bg-transparent"
+              className="cursor-pointer h-11 px-4 border-2 hover:border-primary transition-all duration-200 shadow-sm relative bg-transparent"
             >
               <Filter className="h-4 w-4 mr-2" />
               Filtros
@@ -126,11 +126,11 @@ export function SearchAndFiltersFornecedores() {
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between p-0 h-auto hover:bg-transparent"
+                    className="cursor-pointer w-full justify-between p-0 h-auto hover:bg-transparent"
                   >
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-muted-foreground" />
-                      <Label className="text-sm font-medium">Status do Fornecedor</Label>
+                      <Label className="cursor-pointer text-sm font-medium">Status do Fornecedor</Label>
                     </div>
                     {statusExpanded ? (
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -167,11 +167,11 @@ export function SearchAndFiltersFornecedores() {
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between p-0 h-auto hover:bg-transparent"
+                    className="cursor-pointer w-full justify-between p-0 h-auto hover:bg-transparent"
                   >
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <Label className="text-sm font-medium">Valor Total dos Contratos</Label>
+                      <Label className="cursor-pointer text-sm font-medium">Valor Total dos Contratos</Label>
                     </div>
                     {valorExpanded ? (
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -229,11 +229,11 @@ export function SearchAndFiltersFornecedores() {
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between p-0 h-auto hover:bg-transparent"
+                    className="cursor-pointer w-full justify-between p-0 h-auto hover:bg-transparent"
                   >
                     <div className="flex items-center gap-2">
                       <Hash className="h-4 w-4 text-muted-foreground" />
-                      <Label className="text-sm font-medium">Quantidade de Contratos Ativos</Label>
+                      <Label className="cursor-pointer text-sm font-medium">Quantidade de Contratos Ativos</Label>
                     </div>
                     {contratosExpanded ? (
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
