@@ -1,0 +1,405 @@
+{
+  "contratos": [
+    {
+      "id": "1",
+      "numeroContrato": "CONT-2023/0042",
+      "numeroCCon": "CCON-2023/001",
+      "contratada": {
+        "razaoSocial": "Construtora ABC Ltda",
+        "cnpj": "12.345.678/0001-90"
+      },
+      "valor": 1250000.00,
+      "dataInicial": "2023-05-12",
+      "dataFinal": "2024-05-11",
+      "status": "vencendo",
+      "unidade": "Secretaria de Obras",
+      "objeto": "Manutenção predial"
+    },
+    {
+      "id": "2",
+      "numeroContrato": "CONT-2023/0041",
+      "numeroCCon": "CCON-2023/002",
+      "contratada": {
+        "razaoSocial": "Tech Solutions S.A.",
+        "cnpj": "98.765.432/0001-10"
+      },
+      "valor": 850000.00,
+      "dataInicial": "2023-04-01",
+      "dataFinal": "2024-03-31",
+      "status": "ativo",
+      "unidade": "Secretaria de TI",
+      "objeto": "Serviços de TI"
+    },
+    {
+      "id": "3",
+      "numeroContrato": "CONT-2023/0040",
+      "numeroCCon": "CCON-2023/003",
+      "contratada": {
+        "razaoSocial": "Distribuidora XYZ Ltda",
+        "cnpj": "45.678.901/0001-23"
+      },
+      "valor": 320000.00,
+      "dataInicial": "2023-03-15",
+      "dataFinal": "2024-03-14",
+      "status": "ativo",
+      "unidade": "Secretaria de Saúde",
+      "objeto": "Fornecimento de materiais"
+    },
+    {
+      "id": "4",
+      "numeroContrato": "CONT-2023/0039",
+      "numeroCCon": "CCON-2023/004",
+      "contratada": {
+        "razaoSocial": "Escritório Jurídico Associados",
+        "cnpj": "56.789.012/0001-34"
+      },
+      "valor": 480000.00,
+      "dataInicial": "2023-02-01",
+      "dataFinal": "2024-01-31",
+      "status": "ativo",
+      "unidade": "Procuradoria Geral",
+      "objeto": "Consultoria jurídica"
+    },
+    {
+      "id": "5",
+      "numeroContrato": "CONT-2023/0038",
+      "numeroCCon": "CCON-2023/005",
+      "contratada": {
+        "razaoSocial": "Clean Services Ltda",
+        "cnpj": "67.890.123/0001-45"
+      },
+      "valor": 720000.00,
+      "dataInicial": "2023-01-10",
+      "dataFinal": "2024-01-09",
+      "status": "vencendo",
+      "unidade": "Secretaria de Administração",
+      "objeto": "Serviços de limpeza"
+    },
+    {
+      "id": "6",
+      "numeroContrato": "CONT-2022/0156",
+      "numeroCCon": "CCON-2022/045",
+      "contratada": {
+        "razaoSocial": "Empresa de Segurança Total",
+        "cnpj": "11.222.333/0001-44"
+      },
+      "valor": 960000.00,
+      "dataInicial": "2022-12-01",
+      "dataFinal": "2023-11-30",
+      "status": "vencido",
+      "unidade": "Secretaria de Segurança",
+      "objeto": "Serviços de segurança"
+    },
+    {
+      "id": "7",
+      "numeroContrato": "CONT-2024/0001",
+      "numeroCCon": "CCON-2024/001",
+      "contratada": {
+        "razaoSocial": "Transportadora Rápida Ltda",
+        "cnpj": "22.333.444/0001-55"
+      },
+      "valor": 540000.00,
+      "dataInicial": "2024-01-15",
+      "dataFinal": "2024-12-31",
+      "status": "ativo",
+      "unidade": "Secretaria de Transporte",
+      "objeto": "Serviços de transporte"
+    },
+    {
+      "id": "8",
+      "numeroContrato": "CONT-2024/0002",
+      "numeroCCon": "CCON-2024/002",
+      "contratada": {
+        "razaoSocial": "Fornecedora de Equipamentos SA",
+        "cnpj": "33.444.555/0001-66"
+      },
+      "valor": 1800000.00,
+      "dataInicial": "2024-02-01",
+      "dataFinal": "2025-01-31",
+      "status": "ativo",
+      "unidade": "Secretaria de Educação",
+      "objeto": "Fornecimento de equipamentos"
+    }
+  ],
+  "contratoDetalhado": {
+    "id": "1",
+    "numeroContrato": "CONT-2023/0042",
+    "processoSEI": "23280.000123/2023-45",
+    "objeto": "Contratação de empresa especializada para prestação de serviços de manutenção predial preventiva e corretiva dos prédios públicos municipais",
+    "tipoContratacao": "centralizado",
+    "dataInicio": "2023-05-12",
+    "dataTermino": "2024-05-11",
+    "prazoInicialMeses": 12,
+    "status": "ativo",
+    "valorTotal": 1250000.00,
+    "ccon": {
+      "numero": "CCON-2023/001",
+      "dataInicio": "2023-05-12",
+      "dataTermino": "2024-05-11"
+    },
+    "responsaveis": {
+      "fiscaisAdministrativos": [
+        {
+          "id": "1",
+          "nome": "Maria Silva Santos",
+          "email": "maria.santos@prefeitura.gov.br",
+          "telefone": "(11) 98765-4321",
+          "cargo": "Engenheira Civil",
+          "dataDesignacao": "2023-05-10"
+        },
+        {
+          "id": "2",
+          "nome": "João Carlos Oliveira",
+          "email": "joao.oliveira@prefeitura.gov.br",
+          "telefone": "(11) 97654-3210",
+          "cargo": "Arquiteto",
+          "dataDesignacao": "2023-05-10"
+        }
+      ],
+      "gestores": [
+        {
+          "id": "3",
+          "nome": "Ana Paula Costa",
+          "email": "ana.costa@prefeitura.gov.br",
+          "telefone": "(11) 96543-2109",
+          "cargo": "Coordenadora de Contratos",
+          "dataDesignacao": "2023-05-08"
+        }
+      ]
+    },
+    "fornecedor": {
+      "razaoSocial": "Construtora ABC Ltda",
+      "nomeFantasia": "ABC Construções",
+      "cnpj": "12.345.678/0001-90",
+      "contatos": [
+        {
+          "tipo": "email",
+          "valor": "contato@abcconstrucoes.com.br",
+          "principal": true
+        },
+        {
+          "tipo": "telefone",
+          "valor": "(11) 3456-7890"
+        },
+        {
+          "tipo": "celular",
+          "valor": "(11) 99876-5432"
+        }
+      ],
+      "inscricaoEstadual": "123.456.789.012",
+      "inscricaoMunicipal": "987654321",
+      "endereco": {
+        "cep": "01234-567",
+        "logradouro": "Rua das Construções",
+        "numero": "123",
+        "complemento": "Sala 45",
+        "bairro": "Centro",
+        "cidade": "São Paulo",
+        "uf": "SP"
+      }
+    },
+    "unidades": {
+      "demandante": "Secretaria de Obras",
+      "gestora": "Secretaria de Administração",
+      "vinculadas": [
+        {
+          "nome": "Secretaria de Obras",
+          "percentualValor": 60,
+          "valorTotalMensal": 62500.00
+        },
+        {
+          "nome": "Secretaria de Educação",
+          "percentualValor": 25,
+          "valorTotalMensal": 26041.67
+        },
+        {
+          "nome": "Secretaria de Saúde",
+          "percentualValor": 15,
+          "valorTotalMensal": 15625.00
+        }
+      ]
+    },
+    "alteracoes": [
+      {
+        "id": "1",
+        "tipo": "criacao",
+        "descricao": "Contrato criado no sistema",
+        "dataHora": "2023-05-08T09:00:00",
+        "responsavel": "Sistema Automático"
+      },
+      {
+        "id": "2",
+        "tipo": "designacao_fiscais",
+        "descricao": "Fiscais administrativos designados: Maria Silva Santos e João Carlos Oliveira",
+        "dataHora": "2023-05-10T14:30:00",
+        "responsavel": "Ana Paula Costa"
+      },
+      {
+        "id": "3",
+        "tipo": "primeiro_pagamento",
+        "descricao": "Primeiro pagamento realizado no valor de R$ 104.166,67",
+        "dataHora": "2023-06-15T10:15:00",
+        "responsavel": "Sistema Financeiro"
+      },
+      {
+        "id": "4",
+        "tipo": "atualizacao_documentos",
+        "descricao": "Documentos de regularidade fiscal atualizados",
+        "dataHora": "2023-08-22T16:45:00",
+        "responsavel": "Maria Silva Santos"
+      }
+    ],
+    "indicadores": {
+      "saldoAtual": 687500.00,
+      "percentualExecutado": 45,
+      "cronogramaVigencia": [
+        {
+          "inicio": "2023-05-12",
+          "fim": "2023-08-11",
+          "descricao": "1º Trimestre",
+          "status": "concluido"
+        },
+        {
+          "inicio": "2023-08-12",
+          "fim": "2023-11-11",
+          "descricao": "2º Trimestre",
+          "status": "concluido"
+        },
+        {
+          "inicio": "2023-11-12",
+          "fim": "2024-02-11",
+          "descricao": "3º Trimestre",
+          "status": "em_andamento"
+        },
+        {
+          "inicio": "2024-02-12",
+          "fim": "2024-05-11",
+          "descricao": "4º Trimestre",
+          "status": "pendente"
+        }
+      ]
+    }
+  },
+  "unidades": [
+    "Secretaria de Obras",
+    "Secretaria de TI",
+    "Secretaria de Saúde",
+    "Procuradoria Geral",
+    "Secretaria de Administração",
+    "Secretaria de Segurança",
+    "Secretaria de Transporte",
+    "Secretaria de Educação"
+  ],
+  "empresas": {
+    "pagina": 1,
+    "tamanhoPagina": 30,
+    "totalItens": 25,
+    "totalPaginas": 1,
+    "itens": [
+      {
+        "id": "10f8c264-a049-4bc8-a259-2ea5e26fed65",
+        "cnpj": "00000000001786",
+        "razaoSocial": "Blockchain Technology Ltda",
+        "nomeFantasia": "BlockTech",
+        "inscricaoEstadual": "ISENTO000016",
+        "inscricaoMunicipal": "IM000016",
+        "endereco": "Rua das Tecnologias, 116",
+        "bairro": "Centro Tecnológico",
+        "cidade": "Maceió",
+        "estado": "AL",
+        "cep": "80016-000",
+        "ativo": true,
+        "contatos": [
+          {
+            "id": "bed916d7-6b7e-4055-baf0-0e0e0e90eab5",
+            "nome": "Telefone Comercial",
+            "valor": "(11) 98016-5016",
+            "tipo": "Telefone",
+            "ativo": false
+          },
+          {
+            "id": "dcf8752a-ae6b-41d7-be4f-3aefce16f872",
+            "nome": "Celular",
+            "valor": "(11) 99016-6016",
+            "tipo": "Celular",
+            "ativo": false
+          },
+          {
+            "id": "92bd8af3-9ff6-4225-a595-61fab36b6981",
+            "nome": "Contato Principal",
+            "valor": "contato@blocktech.com.br",
+            "tipo": "Email",
+            "ativo": false
+          }
+        ]
+      },
+      {
+        "id": "16bc52be-d291-4325-b883-652ca632e476",
+        "cnpj": "00000000001605",
+        "razaoSocial": "Machine Learning S.A.",
+        "nomeFantasia": "ML Solutions",
+        "inscricaoEstadual": "ISENTO000015",
+        "inscricaoMunicipal": "IM000015",
+        "endereco": "Rua das Tecnologias, 115",
+        "bairro": "Centro Tecnológico",
+        "cidade": "João Pessoa",
+        "estado": "PB",
+        "cep": "80015-000",
+        "ativo": true,
+        "contatos": [
+          {
+            "id": "d3317580-0d4d-4edc-a2f5-ba6854b82fbd",
+            "nome": "Contato Principal",
+            "valor": "contato@mlsolutions.com.br",
+            "tipo": "Email",
+            "ativo": false
+          },
+          {
+            "id": "04b85df5-c4bc-4ff9-9442-58af0d334ca7",
+            "nome": "Telefone Comercial",
+            "valor": "(11) 98015-5015",
+            "tipo": "Telefone",
+            "ativo": false
+          },
+          {
+            "id": "f9422d14-c9ce-4b92-9fcf-5c92b116df62",
+            "nome": "Celular",
+            "valor": "(11) 99015-6015",
+            "tipo": "Celular",
+            "ativo": false
+          }
+        ]
+      },
+      {
+        "id": "1ccf8556-92d0-4cfa-967f-edc0eefaf3ad",
+        "cnpj": "00000000000858",
+        "razaoSocial": "Soluções Integradas Ltda",
+        "nomeFantasia": "SolIntegra",
+        "inscricaoEstadual": "ISENTO000007",
+        "inscricaoMunicipal": "IM000007",
+        "endereco": "Rua das Tecnologias, 107",
+        "bairro": "Centro Tecnológico",
+        "cidade": "Fortaleza",
+        "estado": "CE",
+        "cep": "80007-000",
+        "ativo": true,
+        "contatos": [
+          {
+            "id": "e1c7824c-6f59-4efe-a7da-0c8cdc4ae674",
+            "nome": "Telefone Comercial",
+            "valor": "(11) 98007-5007",
+            "tipo": "Telefone",
+            "ativo": false
+          },
+          {
+            "id": "f1d893d5-7f6a-5f0f-b8eb-1d9ded5bf785",
+            "nome": "Contato Principal",
+            "valor": "contato@solintegra.com.br",
+            "tipo": "Email",
+            "ativo": false
+          }
+        ]
+      }
+    ]
+  }
+}
