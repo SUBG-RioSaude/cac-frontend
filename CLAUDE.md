@@ -46,12 +46,13 @@ src/
 │   ├── nav-user.tsx     # Menu dropdown do usuário
 │   └── page-breadcrumb.tsx # Breadcrumb dinâmico
 ├── modules/             # Módulos funcionais específicos
-│   └── contratos/       # Módulo de contratos
-│       ├── components/  # Componentes específicos do módulo
-│       ├── pages/       # Páginas do módulo
-│       ├── store/       # Estado específico (Zustand)
-│       ├── types/       # Tipos TypeScript
-│       └── data/        # Dados mock e configurações
+│   ├── contratos/       # Módulo de contratos
+│   │   ├── components/  # Componentes específicos do módulo
+│   │   ├── pages/       # Páginas do módulo
+│   │   ├── store/       # Estado específico (Zustand)
+│   │   ├── types/       # Tipos TypeScript
+│   │   └── data/        # Dados mock e configurações
+│   └── http-codes/      # Páginas de erro HTTP (400, 401, 403, 404, 500, 503)
 ├── pages/               # Páginas principais da aplicação
 ├── hooks/               # Hooks customizados
 ├── lib/                 # Utilitários e configurações
@@ -158,6 +159,22 @@ O módulo principal implementado possui:
 - **Estado reativo** com Zustand store
 - **Validação robusta** com Zod schemas
 - **Componentes reutilizáveis** específicos do domínio
+
+## Sistema de Tratamento de Erros
+
+### Páginas de Erro HTTP
+- **Páginas implementadas**: 400, 401, 403, 404, 500, 503
+- **Localização**: `src/modules/http-codes/`
+- **Recursos**: Campo para erro técnico, botões de retry/contato admin, navegação contextual
+- **Design**: Cards responsivos com shadcn/ui, ícones temáticos, cores específicas por tipo
+
+### Hook useErrorHandler
+- **Localização**: `src/hooks/use-error-handler.ts`
+- **Funcionalidades**: 
+  - `handleError()` - redireciona para página de erro com contexto
+  - `handleApiError()` - processa erros de API automaticamente  
+  - `handleHttpError()` - processa responses HTTP
+- **Integração**: Páginas de erro recebem informações via `location.state`
 
 ## Convenções de Commit
 O projeto segue **Conventional Commits** em português:

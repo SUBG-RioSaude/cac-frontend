@@ -7,8 +7,15 @@ import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
-import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
-import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
+import CadastrarContrato from './modules/contratos/pages/CadastroContratos/cadastrar-contrato'
+import { VisualizarContrato } from './modules/contratos/pages/VisualizacaoContratos/VisualizarContrato'
+import { ErrorBoundary } from './components/error-boundary'
+import NotFound from './modules/http-codes/404'
+import ServerError from './modules/http-codes/500'
+import Unauthorized from './modules/http-codes/401'
+import BadRequest from './modules/http-codes/400'
+import Forbidden from './modules/http-codes/403'
+import ServiceUnavailable from './modules/http-codes/503'
 
 function App() {
   return (
@@ -24,23 +31,43 @@ function App() {
 
         {/* Conteúdo principal com scroll */}
         <main className="flex-1 overflow-auto bg-gray-50">
-          <div className="mx-auto px-6">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/contratos" element={<ContratosPage />} />
-              <Route path="/contratos/cadastrar" element={<CadastrarContrato />} />
-              <Route
-                path="/contratos/:contratoId"
-                element={<ContratoDetailPage />}
-              />
-              <Route path="/fornecedores" element={<FornecedoresPage />} />
-              <Route
-                path="/fornecedores/:fornecedorId"
-                element={<FornecedorDetailPage />}
-              />
-              <Route path="/contratos/:id/editar" element={<VisualizarContrato />} />
-            </Routes>
-          </div>
+          <ErrorBoundary>
+            <div className="mx-auto px-6">
+              
+              <Routes>
+                {/* Rotas de erro */}
+                <Route path="*" element={<NotFound />} />
+                <Route path="/500" element={<ServerError />} />
+                <Route path="/401" element={<Unauthorized />} />
+                <Route path="/403" element={<Forbidden />} />
+                <Route path="/400" element={<BadRequest />} />
+                <Route path="/503" element={<ServiceUnavailable />} />
+
+
+                {/* Rotas */}
+                <Route path="/" element={<HomePage />} />
+
+                <Route path="/contratos" element={<ContratosPage />} />
+                <Route
+                  path="/contratos/cadastrar"
+                  element={<CadastrarContrato />}
+                />
+                <Route
+                  path="/contratos/:contratoId"
+                  element={<ContratoDetailPage />}
+                />
+                <Route path="/fornecedores" element={<FornecedoresPage />} />
+                <Route
+                  path="/fornecedores/:fornecedorId"
+                  element={<FornecedorDetailPage />}
+                />
+                <Route
+                  path="/contratos/:id/editar"
+                  element={<VisualizarContrato />}
+                />
+              </Routes>
+            </div>
+          </ErrorBoundary >
         </main>
       </SidebarInset>
     </SidebarProvider>
