@@ -7,14 +7,14 @@ import { FormLoadingFallback } from '@/components/ui/loading'
 import { Building2, FileText, Store } from 'lucide-react'
 import FornecedorForm, {
   type DadosFornecedor,
-} from '@/modules/contratos/components/CadastroDeContratos/fornecedor-form'
+} from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
 import ContratoForm, {
   type DadosContrato,
-} from '@/modules/contratos/components/CadastroDeContratos/contrato-form'
+} from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
 import UnidadesForm, {
   type DadosUnidades,
-} from '@/modules/contratos/components/CadastroDeContratos/unidades-form'
-import ConfirmarAvancoModal from '@/modules/contratos/components/CadastroDeContratos/confirmar-avanco'
+} from '@/modules/Contratos/components/CadastroDeContratos/unidades-form'
+import ConfirmarAvancoModal from '@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco'
 
 
 interface DadosCompletos {
