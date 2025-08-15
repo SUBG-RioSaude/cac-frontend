@@ -7,8 +7,8 @@ import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
-import CadastrarContrato from './modules/contratos/pages/CadastroContratos/cadastrar-contrato'
-import { VisualizarContrato } from './modules/contratos/pages/VisualizacaoContratos/VisualizarContrato'
+import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
+import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import { ErrorBoundary } from './components/error-boundary'
 import NotFound from './modules/http-codes/404'
 import ServerError from './modules/http-codes/500'
@@ -16,6 +16,8 @@ import Unauthorized from './modules/http-codes/401'
 import BadRequest from './modules/http-codes/400'
 import Forbidden from './modules/http-codes/403'
 import ServiceUnavailable from './modules/http-codes/503'
+import UnidadesPage from './pages/unidades/UnidadesPage'
+import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 
 function App() {
   return (
@@ -42,7 +44,7 @@ function App() {
                 <Route path="/403" element={<Forbidden />} />
                 <Route path="/400" element={<BadRequest />} />
                 <Route path="/503" element={<ServiceUnavailable />} />
-
+                {/* Rotas de erro */}
 
                 {/* Rotas */}
                 <Route path="/" element={<HomePage />} />
@@ -65,6 +67,10 @@ function App() {
                   path="/contratos/:id/editar"
                   element={<VisualizarContrato />}
                 />
+
+                <Route path="/unidades" element={<UnidadesPage />} />
+                <Route path="/unidades/:unidadeId" element={<UnidadeDetailPage />} />
+
               </Routes>
             </div>
           </ErrorBoundary >

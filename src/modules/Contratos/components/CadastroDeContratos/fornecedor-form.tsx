@@ -123,6 +123,7 @@ export default function FornecedorForm({
   const { submitForm, isSubmitting } = useFormAsyncOperation()
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
+  const [cepPreenchido, setCepPreenchido] = useState(false)
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {
@@ -130,6 +131,7 @@ export default function FornecedorForm({
 
     setIsLoadingCEP(true)
     setCepError(null)
+    setCepPreenchido(true) // Habilita os campos de endereço
 
     try {
       const cepLimpo = cep.replace(/\D/g, '')
@@ -331,72 +333,72 @@ export default function FornecedorForm({
             <h3 className="text-base font-semibold text-gray-900">Informações Básicas</h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="cnpj"
-              render={({ field }) => {
-                const cnpjValue = field.value || ''
-                const isValidCnpj = cnpjValue.length > 0 ? cnpjUtils.validar(cnpjValue) : null
+                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+             <FormField
+               control={form.control}
+               name="cnpj"
+               render={({ field }) => {
+                 const cnpjValue = field.value || ''
+                 const isValidCnpj = cnpjValue.length > 0 ? cnpjUtils.validar(cnpjValue) : null
 
-                return (
-                  <FormItem>
-                    <FormLabel>CNPJ *</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          placeholder="00.000.000/0000-00"
-                          onChange={(e) => {
-                            const valorMascarado = cnpjUtils.aplicarMascara(e.target.value)
-                            field.onChange(valorMascarado)
-                            
-                            // Validação com toast
-                            if (valorMascarado.length >= 18) {
-                              const isValid = cnpjUtils.validar(valorMascarado)
-                              if (isValid) {
-                                toast.success('CNPJ válido!')
-                              } else {
-                                toast.error('CNPJ inválido. Verifique os números.')
-                              }
-                            }
-                          }}
-                          className={cn(
-                            isValidCnpj === true && "border-green-500 bg-green-50 pr-10",
-                            isValidCnpj === false && "border-red-500 bg-red-50 pr-10"
-                          )}
-                        />
-                        {isValidCnpj !== null && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            {isValidCnpj ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )
-              }}
-            />
+                 return (
+                   <FormItem className="min-h-[80px]">
+                     <FormLabel>CNPJ *</FormLabel>
+                     <FormControl>
+                       <div className="relative">
+                         <Input
+                           {...field}
+                           placeholder="00.000.000/0000-00"
+                           onChange={(e) => {
+                             const valorMascarado = cnpjUtils.aplicarMascara(e.target.value)
+                             field.onChange(valorMascarado)
+                             
+                             // Validação com toast
+                             if (valorMascarado.length >= 18) {
+                               const isValid = cnpjUtils.validar(valorMascarado)
+                               if (isValid) {
+                                 toast.success('CNPJ válido!')
+                               } else {
+                                 toast.error('CNPJ inválido. Verifique os números.')
+                               }
+                             }
+                           }}
+                           className={cn(
+                             isValidCnpj === true && "border-green-500 bg-green-50 pr-10",
+                             isValidCnpj === false && "border-red-500 bg-red-50 pr-10"
+                           )}
+                         />
+                         {isValidCnpj !== null && (
+                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                             {isValidCnpj ? (
+                               <Check className="h-4 w-4 text-green-500" />
+                             ) : (
+                               <X className="h-4 w-4 text-red-500" />
+                             )}
+                           </div>
+                         )}
+                       </div>
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
+                 )
+               }}
+             />
 
-            <FormField
-              control={form.control}
-              name="razaoSocial"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Razão Social *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Digite a razão social" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+             <FormField
+               control={form.control}
+               name="razaoSocial"
+               render={({ field }) => (
+                 <FormItem className="min-h-[80px]">
+                   <FormLabel>Razão Social *</FormLabel>
+                   <FormControl>
+                     <Input placeholder="Digite a razão social" {...field} />
+                   </FormControl>
+                   <FormMessage />
+                 </FormItem>
+               )}
+             />
+           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -407,9 +409,9 @@ export default function FornecedorForm({
                 const ieValue = field.value || ''
                 const isValidIe = ieValue.length > 0 && estadoSelecionado ? ieUtils.validar(ieValue, estadoSelecionado) : null
 
-                return (
-                  <FormItem>
-                    <FormLabel>Inscrição Estadual</FormLabel>
+                                 return (
+                   <FormItem className="min-h-[80px]">
+                     <FormLabel>Inscrição Estadual</FormLabel>
                     <div className="flex gap-2">
                       {/* Dropdown de Estados */}
                       <FormField
@@ -498,9 +500,9 @@ export default function FornecedorForm({
                 const imValue = field.value || ''
                 const isValidIm = imValue.length > 0 && estadoSelecionado ? imUtils.validar(imValue, estadoSelecionado) : null
 
-                return (
-                  <FormItem>
-                    <FormLabel>Inscrição Municipal</FormLabel>
+                                 return (
+                   <FormItem className="min-h-[80px]">
+                     <FormLabel>Inscrição Municipal</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -566,19 +568,21 @@ export default function FornecedorForm({
               control={form.control}
               name="cep"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CEP *</FormLabel>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>CEP *</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input 
                         placeholder="00000-000" 
                         {...field}
-                        onChange={(e) => {
-                          field.onChange(e)
-                          if (e.target.value.length >= 8) {
-                            buscarCEP(e.target.value)
-                          }
-                        }}
+                                                 onChange={(e) => {
+                           field.onChange(e)
+                           if (e.target.value.length >= 8) {
+                             buscarCEP(e.target.value)
+                           } else if (e.target.value.length > 0) {
+                             setCepPreenchido(true) // Habilita campos mesmo se CEP for inválido
+                           }
+                         }}
                         className={cn(
                           cepError && "border-red-500 bg-red-50"
                         )}
@@ -602,17 +606,17 @@ export default function FornecedorForm({
               control={form.control}
               name="endereco"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Logradouro *</FormLabel>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>Logradouro *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder={isLoadingCEP ? "Carregando..." : "Rua, Avenida, Travessa..."} 
-                      {...field}
-                      disabled={isLoadingCEP}
-                      className={cn(
-                        isLoadingCEP && "opacity-50 cursor-not-allowed bg-slate-100"
-                      )}
-                    />
+                                         <Input 
+                       placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Rua, Avenida, Travessa..."} 
+                       {...field}
+                       disabled={!cepPreenchido}
+                       className={cn(
+                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
+                       )}
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -623,17 +627,17 @@ export default function FornecedorForm({
               control={form.control}
               name="cidade"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade *</FormLabel>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>Cidade *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder={isLoadingCEP ? "Carregando..." : "Digite a cidade"} 
-                      {...field}
-                      disabled={isLoadingCEP}
-                      className={cn(
-                        isLoadingCEP && "opacity-50 cursor-not-allowed bg-slate-100"
-                      )}
-                    />
+                                         <Input 
+                       placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Digite a cidade"} 
+                       {...field}
+                       disabled={!cepPreenchido}
+                       className={cn(
+                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
+                       )}
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -644,17 +648,17 @@ export default function FornecedorForm({
               control={form.control}
               name="bairro"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bairro *</FormLabel>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>Bairro *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder={isLoadingCEP ? "Carregando..." : "Digite o bairro"} 
-                      {...field}
-                      disabled={isLoadingCEP}
-                      className={cn(
-                        isLoadingCEP && "opacity-50 cursor-not-allowed bg-slate-100"
-                      )}
-                    />
+                                         <Input 
+                       placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Digite o bairro"} 
+                       {...field}
+                       disabled={!cepPreenchido}
+                       className={cn(
+                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
+                       )}
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -666,21 +670,21 @@ export default function FornecedorForm({
               control={form.control}
               name="estado"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>UF *</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value}
-                    disabled={isLoadingCEP}
-                  >
-                    <FormControl>
-                      <SelectTrigger className={cn(
-                        'h-9 w-full',
-                        isLoadingCEP && "opacity-50 cursor-not-allowed bg-slate-100"
-                      )}>
-                        <SelectValue placeholder={isLoadingCEP ? "Carregando..." : "Estado"} />
-                      </SelectTrigger>
-                    </FormControl>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>UF *</FormLabel>
+                                     <Select 
+                     onValueChange={field.onChange} 
+                     value={field.value}
+                     disabled={!cepPreenchido}
+                   >
+                     <FormControl>
+                       <SelectTrigger className={cn(
+                         'h-9 w-full',
+                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
+                       )}>
+                         <SelectValue placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Estado"} />
+                       </SelectTrigger>
+                     </FormControl>
                     <SelectContent>
                       {estadosBrasileiros.map((estado) => (
                         <SelectItem key={estado} value={estado}>
@@ -698,17 +702,17 @@ export default function FornecedorForm({
               control={form.control}
               name="numero"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número *</FormLabel>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>Número *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="123" 
-                      {...field}
-                      disabled={isLoadingCEP}
-                      className={cn(
-                        isLoadingCEP && "opacity-50 cursor-not-allowed bg-slate-100"
-                      )}
-                    />
+                                         <Input 
+                       placeholder="123" 
+                       {...field}
+                       disabled={!cepPreenchido}
+                       className={cn(
+                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
+                       )}
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -720,17 +724,17 @@ export default function FornecedorForm({
               control={form.control}
               name="complemento"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Complemento</FormLabel>
+                                 <FormItem className="min-h-[80px]">
+                   <FormLabel>Complemento</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Apt, Sala, Bloco... (opcional)" 
-                      {...field}
-                      disabled={isLoadingCEP}
-                      className={cn(
-                        isLoadingCEP && "opacity-50 cursor-not-allowed bg-slate-100"
-                      )}
-                    />
+                                         <Input 
+                       placeholder="Apt, Sala, Bloco... (opcional)" 
+                       {...field}
+                       disabled={!cepPreenchido}
+                       className={cn(
+                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
+                       )}
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -795,8 +799,8 @@ export default function FornecedorForm({
                       control={form.control}
                       name={`contatos.${index}.nome`}
                       render={({ field: nomeField }) => (
-                        <FormItem>
-                          <FormLabel>Nome do Contato</FormLabel>
+                                                 <FormItem className="min-h-[80px]">
+                           <FormLabel>Nome do Contato</FormLabel>
                           <FormControl>
                             <Input placeholder="Digite o nome" {...nomeField} />
                           </FormControl>
@@ -809,8 +813,8 @@ export default function FornecedorForm({
                       control={form.control}
                       name={`contatos.${index}.tipo`}
                       render={({ field: tipoField }) => (
-                        <FormItem>
-                          <FormLabel>Tipo do Contato</FormLabel>
+                                                 <FormItem className="min-h-[80px]">
+                           <FormLabel>Tipo do Contato</FormLabel>
                           <Select onValueChange={tipoField.onChange} value={tipoField.value}>
                             <FormControl>
                               <SelectTrigger className="w-full">
@@ -834,8 +838,8 @@ export default function FornecedorForm({
                       render={({ field: valorField }) => {
                         const tipoContato = form.watch(`contatos.${index}.tipo`)
                         return (
-                          <FormItem>
-                            <FormLabel>
+                                                     <FormItem className="min-h-[80px]">
+                             <FormLabel>
                               {tipoContato === 'Email' ? 'E-mail' : 
                                tipoContato === 'Fixo' ? 'Telefone Fixo' : 
                                tipoContato === 'Celular' ? 'Celular' : 'Valor'}
