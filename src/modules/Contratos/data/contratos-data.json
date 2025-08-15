@@ -280,16 +280,34 @@
       ]
     }
   },
-  "unidades": [
-    "Secretaria de Obras",
-    "Secretaria de TI",
-    "Secretaria de Saúde",
-    "Procuradoria Geral",
-    "Secretaria de Administração",
-    "Secretaria de Segurança",
-    "Secretaria de Transporte",
-    "Secretaria de Educação"
-  ],
+  "unidades": {
+    "demandantes": [
+      "Secretaria de Obras",
+      "Secretaria de TI", 
+      "Secretaria de Saúde",
+      "Procuradoria Geral",
+      "Secretaria de Administração",
+      "Secretaria de Segurança",
+      "Secretaria de Transporte",
+      "Secretaria de Educação",
+      "Secretaria de Cultura",
+      "Secretaria de Esporte",
+      "Secretaria de Meio Ambiente",
+      "Secretaria de Desenvolvimento Social"
+    ],
+    "gestoras": [
+      "Departamento de Compras",
+      "Departamento de Contratos",
+      "Departamento de Administração e Finanças",
+      "Departamento de Planejamento",
+      "Departamento de Recursos Humanos",
+      "Departamento de Tecnologia da Informação",
+      "Departamento de Engenharia",
+      "Departamento de Manutenção",
+      "Departamento de Logística",
+      "Departamento de Patrimônio"
+    ]
+  },
   "empresas": {
     "pagina": 1,
     "tamanhoPagina": 30,
