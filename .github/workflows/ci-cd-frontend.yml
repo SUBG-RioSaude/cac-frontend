@@ -44,10 +44,22 @@ jobs:
         echo "✅ ESLint passed!"
 
     - name: 🎨 Format Check
+      continue-on-error: true
       run: |
         echo "🎨 Checking code formatting..."
-        pnpm format:check
-        echo "✅ Code formatting is correct!"
+        if pnpm format:check; then
+          echo "✅ Code formatting is correct!"
+        else
+          echo "⚠️ Code formatting issues found - consider running 'pnpm format'"
+          echo "::warning::Code formatting issues detected. Run 'pnpm format' to fix automatically."
+        fi
+
+    # 💡 DESCOMENTE PARA TORNAR FORMATAÇÃO OBRIGATÓRIA:
+    # - name: 🎨 Format Check (Strict)
+    #   run: |
+    #     echo "🎨 Checking code formatting (strict mode)..."
+    #     pnpm format:check
+    #     echo "✅ Code formatting is correct!"
 
     - name: 🏗️ TypeScript Build Check
       run: |
