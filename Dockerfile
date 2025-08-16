@@ -43,11 +43,9 @@ ENV NODE_ENV=production
 ARG BUILD_TIME
 ENV VITE_BUILD_TIME=${BUILD_TIME}
 
-# Executar build de produção (modo bypass de erros)
-RUN echo "⚠️ Building with error bypass..." && \
-    npx vite build --mode production --force || echo "Build com erros - continuando..." && \
-    ls -la dist/ || echo "Dist não criado, criando diretório..." && \
-    mkdir -p dist && echo "<h1>CAC Frontend - Em Desenvolvimento</h1>" > dist/index.html
+# Executar build de produção
+RUN echo "🏗️ Building production..." && \
+    pnpm build
 
 # Verificar se o build foi gerado corretamente
 RUN ls -la dist/ && test -f dist/index.html
