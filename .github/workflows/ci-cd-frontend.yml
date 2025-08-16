@@ -23,16 +23,16 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
 
+    - name: 📦 Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
     - name: 🔧 Setup Node.js 20
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'pnpm'
-
-    - name: 📦 Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
 
     - name: 📦 Install Dependencies
       run: pnpm install --frozen-lockfile
@@ -58,7 +58,7 @@ jobs:
     - name: 🧪 Run Tests
       run: |
         echo "🧪 Running Vitest tests..."
-        pnpm test --reporter=verbose --coverage=false
+        pnpm test --run --reporter=verbose --coverage=false
         echo "✅ All tests passed!"
 
   # 🐳 BUILD E PUSH VERSIONADO
@@ -173,16 +173,16 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
 
+    - name: 📦 Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
     - name: 🔧 Setup Node.js 20
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'pnpm'
-
-    - name: 📦 Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10
 
     - name: 📦 Install Dependencies
       run: pnpm install --frozen-lockfile
