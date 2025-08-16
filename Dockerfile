@@ -27,7 +27,6 @@ WORKDIR /app
 
 # Copiar dependências do estágio anterior
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/.pnpm-store ./.pnpm-store
 
 # Copiar arquivos de configuração
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
