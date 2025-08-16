@@ -45,7 +45,7 @@ ENV VITE_BUILD_TIME=${BUILD_TIME}
 
 # Executar build de produção (ignorar erros como desenvolvimento)
 RUN echo "⚠️ Building original code with error bypass..." && \
-    npx vite build --mode production --force || \
+    (npx vite build --mode production --force || \
     (echo "⚠️ Build failed, trying with relaxed config..." && \
     cat > vite.config.prod.ts << 'EOF'
 import { defineConfig } from 'vite'
@@ -75,7 +75,7 @@ export default defineConfig({
   }
 })
 EOF
-    npx vite build --config vite.config.prod.ts --mode production) || \
+    && npx vite build --config vite.config.prod.ts --mode production)) || \
     echo "⚠️ Build completed with warnings - continuing..."
 
 # Verificar se o build foi gerado corretamente
