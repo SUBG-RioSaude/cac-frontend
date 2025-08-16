@@ -62,40 +62,16 @@ jobs:
     #     echo "✅ Code formatting is correct!"
 
     - name: 🏗️ TypeScript Build Check
-      continue-on-error: true
       run: |
         echo "🏗️ Checking TypeScript compilation..."
-        if pnpm build; then
-          echo "✅ TypeScript build successful!"
-        else
-          echo "⚠️ TypeScript compilation issues found"
-          echo "::warning::TypeScript errors detected. Please fix type issues before deploying to production."
-        fi
-
-    # 💡 DESCOMENTE PARA TORNAR TYPESCRIPT OBRIGATÓRIO:
-    # - name: 🏗️ TypeScript Build Check (Strict)
-    #   run: |
-    #     echo "🏗️ Checking TypeScript compilation (strict mode)..."
-    #     pnpm build
-    #     echo "✅ TypeScript build successful!"
+        pnpm build
+        echo "✅ TypeScript build successful!"
 
     - name: 🧪 Run Tests
-      continue-on-error: true
       run: |
         echo "🧪 Running Vitest tests..."
-        if pnpm test --run --reporter=verbose --coverage=false; then
-          echo "✅ All tests passed!"
-        else
-          echo "⚠️ Some tests failed"
-          echo "::warning::Test failures detected. Please review and fix failing tests."
-        fi
-
-    # 💡 DESCOMENTE PARA TORNAR TESTES OBRIGATÓRIOS:
-    # - name: 🧪 Run Tests (Strict)
-    #   run: |
-    #     echo "🧪 Running Vitest tests (strict mode)..."
-    #     pnpm test --run --reporter=verbose --coverage=false
-    #     echo "✅ All tests passed!"
+        pnpm test --run --reporter=verbose --coverage=false
+        echo "✅ All tests passed!"
 
   # 🐳 BUILD E PUSH VERSIONADO
   build-and-push:
