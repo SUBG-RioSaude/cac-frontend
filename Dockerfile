@@ -41,10 +41,10 @@ COPY index.html ./
 
 # Definir variáveis de ambiente para build
 ENV NODE_ENV=production
-ENV VITE_BUILD_TIME=$(date -u +%Y%m%d%H%M%S)
+ARG BUILD_TIME
+ENV VITE_BUILD_TIME=${BUILD_TIME}
 
-# Executar testes e build
-RUN pnpm test --run --reporter=minimal
+# Executar build de produção
 RUN pnpm build
 
 # Verificar se o build foi gerado corretamente

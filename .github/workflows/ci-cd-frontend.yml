@@ -165,6 +165,7 @@ jobs:
         cache-to: type=gha,mode=max
         build-args: |
           NODE_ENV=production
+          BUILD_TIME=${{ steps.meta.outputs.timestamp }}
         labels: |
           org.opencontainers.image.title=CAC Frontend
           org.opencontainers.image.description=Interface React/TypeScript para o sistema CAC
