@@ -1,0 +1,23 @@
+# Dockerfile para desenvolvimento - ignora erros de TypeScript
+FROM node:20-alpine
+
+# Instalar pnpm
+RUN corepack enable
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package.json pnpm-lock.yaml* ./
+
+# Instalar dependências
+RUN pnpm install --frozen-lockfile
+
+# Copiar código fonte
+COPY . .
+
+# Expor porta para desenvolvimento
+EXPOSE 80
+
+# Comando para desenvolvimento (Vite dev server)
+CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "80"]
