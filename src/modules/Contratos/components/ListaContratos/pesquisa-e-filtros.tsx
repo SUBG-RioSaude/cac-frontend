@@ -382,7 +382,7 @@ export function SearchAndFilters() {
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 ml-6 space-y-2">
           <div className="max-h-32 space-y-2 overflow-y-auto">
-            {unidadesMock.map((unidade) => (
+            {unidadesMock.demandantes.map((unidade) => (
               <div key={unidade} className="flex items-center space-x-2">
                 <Checkbox
                   id={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}

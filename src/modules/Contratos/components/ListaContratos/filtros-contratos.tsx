@@ -247,7 +247,7 @@ export function FiltrosContratos({
             <div className="space-y-3">
               <Label className="text-sm font-medium">Unidades</Label>
               <div className="grid max-h-40 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {unidadesMock.map((unidade) => (
+                {unidadesMock.demandantes.map((unidade) => (
                   <div key={unidade} className="flex items-center space-x-2">
                     <Checkbox
                       id={`unidade-${unidade}`}
