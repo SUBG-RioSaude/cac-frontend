@@ -12,6 +12,13 @@ vi.mock('framer-motion', () => ({
       children: React.ReactNode
       [key: string]: unknown
     }) => <div {...props}>{children}</div>,
+    span: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+      <span {...props}>{children}</span>
+    ),
+    path: ({ ...props }: { [key: string]: unknown }) => <path {...props} />,
+    svg: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+      <svg {...props}>{children}</svg>
+    ),
   },
 }))
 
@@ -289,7 +296,7 @@ describe('IndicadoresRelatorios', () => {
 
     // Verifica se as classes de responsividade estão sendo aplicadas
     const gridContainer = screen.getByText('Valor Total').closest('.grid')
-    expect(gridContainer).toHaveClass('grid', 'grid-cols-2', 'gap-4')
+    expect(gridContainer).toHaveClass('grid', 'grid-cols-1', 'gap-3', 'sm:grid-cols-2', 'sm:gap-4')
   })
 
   it('deve exibir ícones corretos para cada seção', () => {

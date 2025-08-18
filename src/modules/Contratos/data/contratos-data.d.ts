@@ -51,7 +51,6 @@ declare module '*.json' {
       }
       fornecedor: {
         razaoSocial: string
-        nomeFantasia?: string
         cnpj: string
         contatos: Array<{
           tipo: 'email' | 'celular' | 'telefone'
@@ -114,7 +113,6 @@ declare module '*.json' {
         id: string
         cnpj: string
         razaoSocial: string
-        nomeFantasia: string
         inscricaoEstadual: string
         inscricaoMunicipal: string
         endereco: string

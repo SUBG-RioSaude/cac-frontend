@@ -1,7 +1,6 @@
 export interface Fornecedor {
   id: string
   razaoSocial: string
-  nomeFantasia: string
   cnpj: string
   contratosAtivos: number
   status: 'ativo' | 'inativo' | 'suspenso'

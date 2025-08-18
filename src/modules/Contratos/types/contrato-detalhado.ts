@@ -26,7 +26,6 @@ export interface ContratoDetalhado {
   // Fornecedor
   fornecedor: {
     razaoSocial: string
-    nomeFantasia?: string
     cnpj: string
     contatos: Contato[]
     inscricaoEstadual?: string

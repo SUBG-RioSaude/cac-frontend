@@ -4,7 +4,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '1',
     razaoSocial: 'Tech Solutions Ltda',
-    nomeFantasia: 'TechSol',
     cnpj: '12345678000195',
     contratosAtivos: 5,
     status: 'ativo',
@@ -27,7 +26,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '2',
     razaoSocial: 'Construções e Reformas ABC S.A.',
-    nomeFantasia: 'ABC Construções',
     cnpj: '98765432000123',
     contratosAtivos: 3,
     status: 'ativo',
@@ -50,7 +48,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '3',
     razaoSocial: 'Serviços de Limpeza Clean Master Ltda',
-    nomeFantasia: 'Clean Master',
     cnpj: '11223344000156',
     contratosAtivos: 8,
     status: 'ativo',
@@ -73,7 +70,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '4',
     razaoSocial: 'Equipamentos Industriais Mega Corp',
-    nomeFantasia: 'Mega Equipamentos',
     cnpj: '55667788000134',
     contratosAtivos: 2,
     status: 'suspenso',
@@ -96,7 +92,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '5',
     razaoSocial: 'Consultoria Empresarial Excellence',
-    nomeFantasia: 'Excellence Consultoria',
     cnpj: '99887766000112',
     contratosAtivos: 1,
     status: 'ativo',
@@ -119,7 +114,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '6',
     razaoSocial: 'Transportes Rápidos Ltda',
-    nomeFantasia: 'Rápidos Transportes',
     cnpj: '33445566000178',
     contratosAtivos: 0,
     status: 'inativo',
@@ -142,7 +136,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '7',
     razaoSocial: 'Segurança Total Patrimonial S.A.',
-    nomeFantasia: 'Segurança Total',
     cnpj: '77889900000145',
     contratosAtivos: 4,
     status: 'ativo',
@@ -165,7 +158,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '8',
     razaoSocial: 'Alimentação Corporativa Sabor & Cia',
-    nomeFantasia: 'Sabor & Cia',
     cnpj: '22334455000167',
     contratosAtivos: 6,
     status: 'ativo',
@@ -188,7 +180,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '9',
     razaoSocial: 'Manutenção Predial Pro Service',
-    nomeFantasia: 'Pro Service',
     cnpj: '66778899000189',
     contratosAtivos: 7,
     status: 'ativo',
@@ -211,7 +202,6 @@ export const fornecedoresMock: Fornecedor[] = [
   {
     id: '10',
     razaoSocial: 'Tecnologia da Informação Digital Plus',
-    nomeFantasia: 'Digital Plus TI',
     cnpj: '44556677000123',
     contratosAtivos: 3,
     status: 'suspenso',

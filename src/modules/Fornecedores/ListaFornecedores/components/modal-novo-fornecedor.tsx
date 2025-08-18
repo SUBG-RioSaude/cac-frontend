@@ -34,7 +34,6 @@ interface NovoFornecedorData {
   // Documentação
   cnpj: string
   razaoSocial: string
-  nomeFantasia: string
   estado: string
   inscricaoEstadual: string
   inscricaoMunicipal: string
@@ -100,7 +99,6 @@ export function ModalNovoFornecedor({
   const [dados, setDados] = useState<NovoFornecedorData>({
     cnpj: '',
     razaoSocial: '',
-    nomeFantasia: '',
     estado: '',
     inscricaoEstadual: '',
     inscricaoMunicipal: '',
@@ -153,7 +151,6 @@ export function ModalNovoFornecedor({
     setDados({
       cnpj: '',
       razaoSocial: '',
-      nomeFantasia: '',
       estado: '',
       inscricaoEstadual: '',
       inscricaoMunicipal: '',
@@ -235,21 +232,6 @@ export function ModalNovoFornecedor({
                     setDados((prev) => ({
                       ...prev,
                       razaoSocial: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-4">
-                <Label htmlFor="nomeFantasia">Nome Fantasia</Label>
-                <Input
-                  id="nomeFantasia"
-                  placeholder="Digite o nome fantasia"
-                  value={dados.nomeFantasia}
-                  onChange={(e) =>
-                    setDados((prev) => ({
-                      ...prev,
-                      nomeFantasia: e.target.value,
                     }))
                   }
                 />

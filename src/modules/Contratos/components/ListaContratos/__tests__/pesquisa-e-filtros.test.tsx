@@ -26,13 +26,19 @@ vi.mock('@/modules/Contratos/store/contratos-store', () => ({
 
 // Mock das unidades
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
-  unidadesMock: [
-    'Secretaria de Obras',
-    'Secretaria de Educação',
-    'Secretaria de Saúde',
-    'Secretaria de Administração',
-    'Secretaria de Transportes',
-  ],
+  unidadesMock: {
+    demandantes: [
+      'Secretaria de Obras',
+      'Secretaria de Educação',
+      'Secretaria de Saúde',
+      'Secretaria de Administração',
+      'Secretaria de Transportes',
+    ],
+    gestoras: [
+      'Departamento de Compras',
+      'Departamento de Contratos',
+    ]
+  },
 }))
 
 describe('SearchAndFilters', () => {

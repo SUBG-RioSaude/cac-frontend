@@ -5,13 +5,19 @@ import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 
 // Mock das unidades
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
-  unidadesMock: [
-    'Secretaria de Obras',
-    'Secretaria de Educação',
-    'Secretaria de Saúde',
-    'Secretaria de Administração',
-    'Secretaria de Transportes',
-  ],
+  unidadesMock: {
+    demandantes: [
+      'Secretaria de Obras',
+      'Secretaria de Educação',
+      'Secretaria de Saúde',
+      'Secretaria de Administração',
+      'Secretaria de Transportes',
+    ],
+    gestoras: [
+      'Departamento de Compras',
+      'Departamento de Contratos',
+    ]
+  },
 }))
 
 const filtrosIniciais: FiltrosContrato = {

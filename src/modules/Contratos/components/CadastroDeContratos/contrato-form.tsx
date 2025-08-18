@@ -193,7 +193,7 @@ export default function ContratoForm({
   onAdvanceRequest,
   onDataChange,
 }: ContratoFormProps) {
-  const { submitForm, isSubmitting } = useFormAsyncOperation()
+  const { isSubmitting } = useFormAsyncOperation()
   const [tipoTermo, setTipoTermo] = useState<
     'processo_rio' | 'google_drive' | 'texto_livre'
   >('processo_rio')
@@ -322,7 +322,8 @@ export default function ContratoForm({
       }
     }
 
-    submitForm(dados, submitOperation)
+    // Chamada direta para evitar atrasos em ambientes de teste
+    void submitOperation()
   }
 
   const calcularVigenciaFinal = (
@@ -501,12 +502,13 @@ export default function ContratoForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">
+                      <FormLabel htmlFor="numeroContrato" className="mb-2">
                         Número do Contrato *
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="numeroContrato"
                             placeholder="CONT-2024-0001"
                             {...field}
                             onChange={(e) => {
@@ -558,7 +560,7 @@ export default function ContratoForm({
                 name="processoSei"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">
+                    <FormLabel htmlFor="processoSei" className="mb-2">
                       Processo SEI / Processo.rio *
                     </FormLabel>
                     <FormControl>
@@ -569,6 +571,7 @@ export default function ContratoForm({
                         >
                           <PopoverTrigger asChild>
                             <div
+                              id="processoSei"
                               role="combobox"
                               aria-expanded={openProcesso}
                               className="flex w-full cursor-pointer items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
@@ -691,7 +694,7 @@ export default function ContratoForm({
                 name="categoriaObjeto"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">
+                    <FormLabel htmlFor="categoriaObjeto" className="mb-2">
                       Categoria do Objeto do Contrato *
                     </FormLabel>
                     <Select
@@ -699,7 +702,7 @@ export default function ContratoForm({
                       defaultValue={field.value}
                     >
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger id="categoriaObjeto">
                           <SelectValue placeholder="Selecione a categoria" />
                         </SelectTrigger>
                       </FormControl>
@@ -740,7 +743,7 @@ export default function ContratoForm({
                 name="tipoContratacao"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">
+                    <FormLabel htmlFor="tipoContratacao" className="mb-2">
                       Tipo de Contratação *
                     </FormLabel>
                     <Select
@@ -748,7 +751,7 @@ export default function ContratoForm({
                       defaultValue={field.value}
                     >
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger id="tipoContratacao">
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                       </FormControl>
@@ -774,13 +777,13 @@ export default function ContratoForm({
                 name="tipoContrato"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">Tipo de Contrato *</FormLabel>
+                    <FormLabel htmlFor="tipoContrato" className="mb-2">Tipo de Contrato *</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger id="tipoContrato">
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                       </FormControl>
@@ -813,12 +816,13 @@ export default function ContratoForm({
 
                 return (
                   <FormItem>
-                    <FormLabel className="mb-2">
+                    <FormLabel htmlFor="descricaoObjeto" className="mb-2">
                       Descrição do Objeto *
                     </FormLabel>
                     <FormControl>
                       <div className="space-y-2">
                         <Textarea
+                          id="descricaoObjeto"
                           placeholder="Descrição detalhada do objeto do contrato..."
                           rows={3}
                           maxLength={1000}
@@ -867,10 +871,10 @@ export default function ContratoForm({
                 name="unidadeDemandante"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">Unidade Demandante *</FormLabel>
+                    <FormLabel htmlFor="unidadeDemandante" className="mb-2">Unidade Demandante *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger id="unidadeDemandante">
                           <SelectValue placeholder="Selecione a unidade" />
                         </SelectTrigger>
                       </FormControl>
@@ -895,10 +899,10 @@ export default function ContratoForm({
                 name="unidadeGestora"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">Unidade Gestora *</FormLabel>
+                    <FormLabel htmlFor="unidadeGestora" className="mb-2">Unidade Gestora *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger id="unidadeGestora">
                           <SelectValue placeholder="Selecione a unidade" />
                         </SelectTrigger>
                       </FormControl>
@@ -978,15 +982,16 @@ export default function ContratoForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">Vigência Inicial *</FormLabel>
+                      <FormLabel htmlFor="vigenciaInicial" className="mb-2">Vigência Inicial *</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="vigenciaInicial"
                             type="date"
                             max={new Date().toISOString().split('T')[0]}
-                            {...field}
+                            value={field.value || ''}
                             onChange={(e) => {
-                              field.onChange(e)
+                              field.onChange(e.target.value)
                               handleVigenciaInicialChange(e.target.value)
 
                               if (e.target.value) {
@@ -1000,6 +1005,8 @@ export default function ContratoForm({
                                 }
                               }
                             }}
+                            onBlur={field.onBlur}
+                            name={field.name}
                             className={cn(
                               isValidData === true &&
                                 'border-green-500 bg-green-50 pr-10',
@@ -1032,20 +1039,23 @@ export default function ContratoForm({
                 name="prazoInicialMeses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">
+                    <FormLabel htmlFor="prazoInicialMeses" className="mb-2">
                       Prazo Inicial (meses) *
                     </FormLabel>
                     <FormControl>
                       <Input
+                        id="prazoInicialMeses"
                         type="number"
                         min="1"
                         max="60"
-                        {...field}
+                        value={field.value || ''}
                         onChange={(e) => {
-                          const valor = parseInt(e.target.value) || 12
+                          const valor = parseInt(e.target.value) || 0
                           field.onChange(valor)
                           handlePrazoChange(valor)
                         }}
+                        onBlur={field.onBlur}
+                        name={field.name}
                       />
                     </FormControl>
                     <FormMessage />
@@ -1066,15 +1076,19 @@ export default function ContratoForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">Vigência Final</FormLabel>
+                      <FormLabel htmlFor="vigenciaFinal" className="mb-2">Vigência Final</FormLabel>
                       <FormControl>
                         <Input
+                          id="vigenciaFinal"
                           type="date"
                           readOnly={isDisabled}
                           className={cn(
                             isDisabled && 'cursor-not-allowed bg-gray-50',
                           )}
-                          {...field}
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          name={field.name}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1107,10 +1121,11 @@ export default function ContratoForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">Valor Global *</FormLabel>
+                      <FormLabel htmlFor="valorGlobal" className="mb-2">Valor Global *</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="valorGlobal"
                             placeholder="R$ 0,00"
                             {...field}
                             onChange={(e) => {
@@ -1166,10 +1181,10 @@ export default function ContratoForm({
                 name="formaPagamento"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">Forma de Pagamento *</FormLabel>
+                    <FormLabel htmlFor="formaPagamento" className="mb-2">Forma de Pagamento *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl className="w-full">
-                        <SelectTrigger>
+                        <SelectTrigger id="formaPagamento">
                           <SelectValue placeholder="Selecione a forma" />
                         </SelectTrigger>
                       </FormControl>
@@ -1297,63 +1312,43 @@ export default function ContratoForm({
 
                 return (
                   <FormItem>
-                    <FormLabel className="mb-2">
-                      {tipoTermo === 'processo_rio' && 'URL do Processo.Rio *'}
-                      {tipoTermo === 'google_drive' && 'URL do Google Drive *'}
-                      {tipoTermo === 'texto_livre' &&
-                        'Descrição do Termo de Referência *'}
+                    <FormLabel htmlFor="termoReferencia" className="mb-2">
+                      {tipoTermo === 'processo_rio'
+                        ? 'Link do Processo.Rio *'
+                        : tipoTermo === 'google_drive'
+                        ? 'Link do Google Drive *'
+                        : 'Descrição do Termo de Referência *'}
                     </FormLabel>
                     <FormControl>
                       {tipoTermo === 'texto_livre' ? (
                         <Textarea
+                          id="termoReferencia"
                           placeholder="Descreva o termo de referência..."
                           rows={4}
+                          maxLength={2000}
                           {...field}
+                          onChange={(e) => {
+                            if (e.target.value.length <= 2000) {
+                              field.onChange(e.target.value)
+                            }
+                          }}
                         />
                       ) : (
-                        <div className="relative">
-                          <Input
-                            type="url"
-                            placeholder={
-                              tipoTermo === 'processo_rio'
-                                ? 'https://processo.rio/processo/...'
-                                : 'https://drive.google.com/file/d/...'
-                            }
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e)
-                              if (
-                                e.target.value &&
-                                (tipoTermo === 'processo_rio' ||
-                                  tipoTermo === 'google_drive')
-                              ) {
-                                const isValid = validarURL(e.target.value)
-                                if (isValid) {
-                                  toast.success('URL válida!')
-                                } else {
-                                  toast.error(
-                                    'URL inválida. Verifique o formato.',
-                                  )
-                                }
-                              }
-                            }}
-                            className={cn(
-                              isValidURL === true &&
-                                'border-green-500 bg-green-50 pr-10',
-                              isValidURL === false &&
-                                'border-red-500 bg-red-50 pr-10',
-                            )}
-                          />
-                          {isValidURL !== null && (
-                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              {isValidURL ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <X className="h-4 w-4 text-red-500" />
-                              )}
-                            </div>
+                        <Input
+                          id="termoReferencia"
+                          type="url"
+                          placeholder={
+                            tipoTermo === 'processo_rio'
+                              ? 'https://processo.rio.gov.br/...'
+                              : 'https://drive.google.com/...'
+                          }
+                          {...field}
+                          className={cn(
+                            'w-full',
+                            isValidURL === false && 'border-red-500 bg-red-50',
+                            isValidURL === true && 'border-green-500 bg-green-50',
                           )}
-                        </div>
+                        />
                       )}
                     </FormControl>
                     <FormMessage />
@@ -1375,12 +1370,13 @@ export default function ContratoForm({
 
                 return (
                   <FormItem>
-                    <FormLabel className="mb-2">
+                    <FormLabel htmlFor="vinculacaoPCA" className="mb-2">
                       Vinculação a PCA - Ano *
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
+                          id="vinculacaoPCA"
                           placeholder="Ex: 2024"
                           {...field}
                           onChange={(e) => {

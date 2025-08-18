@@ -165,14 +165,6 @@ export function TabelaFornecedores({
                               )
                             }
                           />
-                          <div>
-                            <div className="text-sm font-medium">
-                              {fornecedor.razaoSocial}
-                            </div>
-                            <div className="text-muted-foreground text-xs">
-                              {fornecedor.nomeFantasia}
-                            </div>
-                          </div>
                         </div>
                         {getStatusBadge(fornecedor.status)}
                       </div>
@@ -309,11 +301,6 @@ export function TabelaFornecedores({
                         <TableCell>
                           <div className="line-clamp-2 text-sm font-medium">
                             {fornecedor.razaoSocial}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="line-clamp-1 text-sm">
-                            {fornecedor.nomeFantasia}
                           </div>
                         </TableCell>
                         <TableCell>

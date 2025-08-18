@@ -10,7 +10,7 @@ import type { Unidade, OrdenacaoParams, ColunaOrdenacao } from "@/modules/Unidad
 import unidadesData from "../data/unidades.json"
 
 // Usar dados diretamente do JSON (já contém todos os campos necessários)
-const unidades: Unidade[] = unidadesData
+const unidades: Unidade[] = unidadesData as Unidade[]
 
 const UnidadesListPage = () => {
   const navigate = useNavigate()
@@ -54,15 +54,15 @@ const UnidadesListPage = () => {
   // Função para ordenar unidades
   const ordenarUnidades = (unidades: Unidade[], ordenacao: OrdenacaoParams): Unidade[] => {
     return [...unidades].sort((a, b) => {
-      let valorA: any = a[ordenacao.coluna]
-      let valorB: any = b[ordenacao.coluna]
+      let valorA: string | number | undefined = a[ordenacao.coluna]
+      let valorB: string | number | undefined = b[ordenacao.coluna]
 
       // Tratar valores undefined/null
       if (valorA == null) valorA = ''
       if (valorB == null) valorB = ''
 
       // Converter para string para comparação textual
-      if (typeof valorA === 'string') {
+      if (typeof valorA === 'string' && typeof valorB === 'string') {
         valorA = valorA.toLowerCase()
         valorB = valorB.toLowerCase()
       }

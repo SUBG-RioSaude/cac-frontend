@@ -169,7 +169,6 @@
     },
     "fornecedor": {
       "razaoSocial": "Construtora ABC Ltda",
-      "nomeFantasia": "ABC Construções",
       "cnpj": "12.345.678/0001-90",
       "contatos": [
         {
@@ -318,7 +317,6 @@
         "id": "10f8c264-a049-4bc8-a259-2ea5e26fed65",
         "cnpj": "00000000001786",
         "razaoSocial": "Blockchain Technology Ltda",
-        "nomeFantasia": "BlockTech",
         "inscricaoEstadual": "ISENTO000016",
         "inscricaoMunicipal": "IM000016",
         "endereco": "Rua das Tecnologias, 116",
@@ -355,7 +353,6 @@
         "id": "16bc52be-d291-4325-b883-652ca632e476",
         "cnpj": "00000000001605",
         "razaoSocial": "Machine Learning S.A.",
-        "nomeFantasia": "ML Solutions",
         "inscricaoEstadual": "ISENTO000015",
         "inscricaoMunicipal": "IM000015",
         "endereco": "Rua das Tecnologias, 115",
@@ -392,7 +389,6 @@
         "id": "1ccf8556-92d0-4cfa-967f-edc0eefaf3ad",
         "cnpj": "00000000000858",
         "razaoSocial": "Soluções Integradas Ltda",
-        "nomeFantasia": "SolIntegra",
         "inscricaoEstadual": "ISENTO000007",
         "inscricaoMunicipal": "IM000007",
         "endereco": "Rua das Tecnologias, 107",

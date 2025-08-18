@@ -10,12 +10,10 @@ describe('cn', () => {
     expect(cn('text-red-500', 'text-blue-500')).toBe('text-blue-500')
   })
 
-  const condicional = false
-
   it('deve lidar com condicionais', () => {
-    expect(cn('text-red-500', condicional ? 'bg-blue-500' : 'bg-red-500')).toBe(
-      'bg-red-500',
-    )
+    const condicional = false
+    const resultado = cn('text-red-500', condicional ? 'bg-blue-500' : 'bg-red-500')
+    expect(resultado).toBe('text-red-500 bg-red-500')
   })
 })
 

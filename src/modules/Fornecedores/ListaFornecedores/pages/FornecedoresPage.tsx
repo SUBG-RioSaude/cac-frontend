@@ -41,7 +41,6 @@ export default function FornecedoresListPage() {
       ],
       ...fornecedores.map((f) => [
         f.razaoSocial,
-        f.nomeFantasia,
         f.cnpj,
         f.contratosAtivos.toString(),
         f.status,
@@ -74,7 +73,6 @@ export default function FornecedoresListPage() {
       ],
       ...fornecedoresFiltrados.map((f) => [
         f.razaoSocial,
-        f.nomeFantasia,
         f.cnpj,
         f.contratosAtivos.toString(),
         f.status,

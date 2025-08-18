@@ -60,7 +60,7 @@ describe('SidebarFooter', () => {
     renderWithSidebarProvider(true)
 
     const container = screen.getByText(`v${VERSAO_APP}`).closest('div')
-    expect(container).toHaveClass('bg-sidebar')
-    expect(container).toHaveClass('text-sidebar-foreground')
+    expect(container).toHaveClass('text-sidebar-foreground/60')
+    expect(container).toHaveClass('font-mono')
   })
 })

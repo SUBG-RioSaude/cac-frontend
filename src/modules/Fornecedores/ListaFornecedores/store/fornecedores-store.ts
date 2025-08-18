@@ -93,7 +93,6 @@ export const useFornecedoresStore = create<FornecedoresState>((set, get) => ({
       resultado = resultado.filter(
         (fornecedor) =>
           fornecedor.razaoSocial.toLowerCase().includes(termo) ||
-          fornecedor.nomeFantasia.toLowerCase().includes(termo) ||
           fornecedor.cnpj.includes(termo.replace(/\D/g, '')),
       )
     }

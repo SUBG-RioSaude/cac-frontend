@@ -12,7 +12,7 @@ interface ListaContratosProps {
   unidadeNome: string
 }
 
-export function ListaContratos({ contratos, unidadeNome }: ListaContratosProps) {
+export function ListaContratos({ contratos }: ListaContratosProps) {
   const navigate = useNavigate()
 
   const getStatusBadge = (status: string) => {

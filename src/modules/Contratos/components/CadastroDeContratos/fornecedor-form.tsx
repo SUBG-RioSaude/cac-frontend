@@ -317,7 +317,10 @@ export default function FornecedorForm({
   }, [watchedValues, onDataChange])
 
   const handleFormSubmit = (dados: z.infer<typeof fornecedorSchema>) => {
-    const dadosFornecedor = dados as DadosFornecedor
+    const dadosFornecedor = {
+      ...dados,
+      cnpj: cnpjUtils.limpar(dados.cnpj), // Limpa o CNPJ antes de enviar
+    } as DadosFornecedor
 
     // Validações adicionais com toast
     if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
@@ -449,44 +452,6 @@ export default function FornecedorForm({
     }
   }
 
-  // Função para validar formato do telefone fixo
-  const validarFormatoTelefoneFixo = (telefone: string) => {
-    const telefoneLimpo = telefone.replace(/\D/g, '')
-    return telefoneLimpo.length === 10
-  }
-
-  // Função para validar formato do celular
-  const validarFormatoCelular = (celular: string) => {
-    const celularLimpo = celular.replace(/\D/g, '')
-    return celularLimpo.length === 11
-  }
-
-  // Função para validar e-mail
-  const validarEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) return false
-
-    // Validações adicionais
-    const [localPart, domain] = email.split('@')
-
-    // Verifica se a parte local não está vazia e tem pelo menos 2 caracteres
-    if (!localPart || localPart.length < 2) return false
-
-    // Verifica se o domínio tem pelo menos 4 caracteres (ex: .com)
-    if (!domain || domain.length < 4) return false
-
-    // Verifica se o domínio tem pelo menos um ponto
-    if (!domain.includes('.')) return false
-
-    // Verifica se não há pontos consecutivos
-    if (domain.includes('..')) return false
-
-    // Verifica se não termina com ponto
-    if (domain.endsWith('.')) return false
-
-    return true
-  }
-
   return (
     <Form {...form}>
       <form
@@ -520,10 +485,11 @@ export default function FornecedorForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">CNPJ *</FormLabel>
+                      <FormLabel htmlFor="cnpj" className="mb-2">CNPJ *</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="cnpj"
                             {...field}
                             placeholder="00.000.000/0000-00"
                             onChange={(e) => {
@@ -576,9 +542,9 @@ export default function FornecedorForm({
                 name="razaoSocial"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="mb-2">Razão Social *</FormLabel>
+                    <FormLabel htmlFor="razaoSocial" className="mb-2">Razão Social *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Digite a razão social" {...field} />
+                      <Input id="razaoSocial" placeholder="Digite a razão social" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -603,7 +569,7 @@ export default function FornecedorForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">Inscrição Estadual</FormLabel>
+                      <FormLabel htmlFor="inscricaoEstadual" className="mb-2">Inscrição Estadual</FormLabel>
                       <div className="flex gap-2">
                         {/* Dropdown de Estados */}
                         <FormField
@@ -621,7 +587,7 @@ export default function FornecedorForm({
                                 value={estadoField.value}
                               >
                                 <FormControl>
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger id="estadoIE" className="w-full">
                                     <SelectValue placeholder="UF" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -640,6 +606,7 @@ export default function FornecedorForm({
                         {/* Campo da IE */}
                         <div className="relative flex-1">
                           <Input
+                            id="inscricaoEstadual"
                             {...field}
                             placeholder={
                               estadoSelecionado
@@ -715,12 +682,13 @@ export default function FornecedorForm({
 
                   return (
                     <FormItem>
-                      <FormLabel className="mb-2">
+                      <FormLabel htmlFor="inscricaoMunicipal" className="mb-2">
                         Inscrição Municipal
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="inscricaoMunicipal"
                             {...field}
                             placeholder={
                               estadoSelecionado

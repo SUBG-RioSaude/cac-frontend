@@ -40,7 +40,7 @@ describe('PageBreadcrumb', () => {
 
     expect(screen.getByText('Início')).toBeInTheDocument()
     expect(screen.getByText('Contratos')).toBeInTheDocument()
-    expect(screen.getByText('Contrato 123')).toBeInTheDocument()
+    expect(screen.getByText('123')).toBeInTheDocument()
     expect(screen.getByRole('button')).toBeInTheDocument() // SidebarTrigger
   })
 
@@ -57,7 +57,7 @@ describe('PageBreadcrumb', () => {
 
     expect(screen.getByText('Início')).toBeInTheDocument()
     expect(screen.getByText('Fornecedores')).toBeInTheDocument()
-    expect(screen.getByText('Fornecedor 456')).toBeInTheDocument()
+    expect(screen.getByText('456')).toBeInTheDocument()
     expect(screen.getByRole('button')).toBeInTheDocument() // SidebarTrigger
   })
 

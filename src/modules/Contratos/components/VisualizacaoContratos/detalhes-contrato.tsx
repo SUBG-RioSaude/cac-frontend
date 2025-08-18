@@ -17,7 +17,7 @@ import {
   User,
   Edit,
 } from 'lucide-react'
-import type { ContratoDetalhado } from '../../types/contrato-detalhado'
+import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato-detalhado'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -422,17 +422,6 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         {contrato.fornecedor.razaoSocial}
                       </p>
                     </div>
-
-                    {contrato.fornecedor.nomeFantasia && (
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Nome Fantasia
-                        </p>
-                        <p className="font-medium">
-                          {contrato.fornecedor.nomeFantasia}
-                        </p>
-                      </div>
-                    )}
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
