@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import FornecedorForm, {
   type DadosFornecedor,
-} from '../CadastroDeContratos/fornecedor-form'
+} from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
 
 // Mock dos componentes de ícone
 vi.mock('lucide-react', () => ({
