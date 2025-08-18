@@ -81,7 +81,13 @@ declare module '*.json' {
       }
       alteracoes: Array<{
         id: string
-        tipo: 'criacao' | 'designacao_fiscais' | 'primeiro_pagamento' | 'atualizacao_documentos' | 'alteracao_valor' | 'prorrogacao'
+        tipo:
+          | 'criacao'
+          | 'designacao_fiscais'
+          | 'primeiro_pagamento'
+          | 'atualizacao_documentos'
+          | 'alteracao_valor'
+          | 'prorrogacao'
         descricao: string
         dataHora: string
         responsavel: string

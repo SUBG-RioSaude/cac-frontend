@@ -72,7 +72,7 @@ export function Steps({
       {/* Indicador visual dos steps */}
       <div className="relative">
         {/* Background decorativo neutro */}
-        <div className="from-gray-50 via-gray-100/50 to-gray-50 absolute inset-0 -mx-2 rounded-xl bg-gradient-to-r py-4" />
+        <div className="absolute inset-0 -mx-2 rounded-xl bg-gradient-to-r from-gray-50 via-gray-100/50 to-gray-50 py-4" />
 
         <div className="relative flex items-center justify-center gap-3 px-3 py-5 sm:gap-6 lg:gap-10">
           {steps.map((step, index) => {
@@ -84,9 +84,9 @@ export function Steps({
                     className={cn(
                       'relative flex h-10 w-10 items-center justify-center rounded-full shadow-md transition-all duration-300 sm:h-12 sm:w-12',
                       status === 'completed'
-                        ? 'bg-emerald-600 shadow-emerald-600/20 text-white'
+                        ? 'bg-emerald-600 text-white shadow-emerald-600/20'
                         : status === 'current'
-                          ? 'text-blue-700 shadow-blue-700/10 ring-blue-600/60 bg-white ring-2'
+                          ? 'bg-white text-blue-700 ring-2 shadow-blue-700/10 ring-blue-600/60'
                           : 'bg-gray-100 text-gray-500 ring-1 shadow-gray-200 ring-gray-300',
                     )}
                   >
@@ -107,9 +107,9 @@ export function Steps({
                       className={cn(
                         'text-xs font-medium transition-colors duration-300',
                         status === 'current'
-                          ? 'text-blue-700 font-semibold'
+                          ? 'font-semibold text-blue-700'
                           : status === 'completed'
-                            ? 'text-emerald-600 font-medium'
+                            ? 'font-medium text-emerald-600'
                             : 'text-gray-500',
                       )}
                     >
@@ -127,8 +127,8 @@ export function Steps({
                         className={cn(
                           'absolute top-0 left-0 h-px transition-all duration-500',
                           status === 'completed'
-                            ? 'bg-emerald-500 w-full'
-                            : 'bg-emerald-500 w-0',
+                            ? 'w-full bg-emerald-500'
+                            : 'w-0 bg-emerald-500',
                         )}
                       />
                     </div>

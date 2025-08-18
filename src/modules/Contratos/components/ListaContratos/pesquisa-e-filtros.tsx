@@ -1,6 +1,16 @@
-import{ useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Filter, X, Calendar, DollarSign, Building2, FileText, ChevronDown, ChevronRight } from 'lucide-react'
+import {
+  Search,
+  Filter,
+  X,
+  Calendar,
+  DollarSign,
+  Building2,
+  FileText,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,8 +22,18 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
 import { unidadesMock } from '@/modules/Contratos/data/contratos-mock'
 import { cn } from '@/lib/utils'
@@ -25,29 +45,41 @@ export function SearchAndFilters() {
   const [periodoExpanded, setPeriodoExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [unidadeExpanded, setUnidadeExpanded] = useState(false)
-  
-  const { 
-    termoPesquisa, 
-    filtros, 
-    setTermoPesquisa, 
-    setFiltros, 
-    limparFiltros 
+
+  const {
+    termoPesquisa,
+    filtros,
+    setTermoPesquisa,
+    setFiltros,
+    limparFiltros,
   } = useContratosStore()
 
   const statusOptions = [
     { value: 'ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
-    { value: 'vencendo', label: 'Vencendo em Breve', color: 'bg-yellow-100 text-yellow-800' },
+    {
+      value: 'vencendo',
+      label: 'Vencendo em Breve',
+      color: 'bg-yellow-100 text-yellow-800',
+    },
     { value: 'vencido', label: 'Vencido', color: 'bg-red-100 text-red-800' },
-    { value: 'suspenso', label: 'Suspenso', color: 'bg-gray-100 text-gray-800' },
-    { value: 'encerrado', label: 'Encerrado', color: 'bg-blue-100 text-blue-800' }
+    {
+      value: 'suspenso',
+      label: 'Suspenso',
+      color: 'bg-gray-100 text-gray-800',
+    },
+    {
+      value: 'encerrado',
+      label: 'Encerrado',
+      color: 'bg-blue-100 text-blue-800',
+    },
   ]
 
   const handleStatusChange = (status: string, checked: boolean) => {
     const currentStatus = filtros.status || []
     const newStatus = checked
       ? [...currentStatus, status]
-      : currentStatus.filter(s => s !== status)
-    
+      : currentStatus.filter((s) => s !== status)
+
     setFiltros({ ...filtros, status: newStatus })
   }
 
@@ -55,8 +87,8 @@ export function SearchAndFilters() {
     const currentUnidades = filtros.unidade || []
     const newUnidades = checked
       ? [...currentUnidades, unidade]
-      : currentUnidades.filter(u => u !== unidade)
-    
+      : currentUnidades.filter((u) => u !== unidade)
+
     setFiltros({ ...filtros, unidade: newUnidades })
   }
 
@@ -74,7 +106,7 @@ export function SearchAndFilters() {
 
   // Componente de filtros reutilizável
   const FilterContent = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <div className={cn("space-y-4", isMobile ? "p-6" : "p-6")}>
+    <div className={cn('space-y-4', isMobile ? 'p-6' : 'p-6')}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -86,9 +118,9 @@ export function SearchAndFilters() {
             variant="ghost"
             size="sm"
             onClick={limparFiltros}
-            className="text-xs h-7"
+            className="h-7 text-xs"
           >
-            <X className="h-3 w-3 mr-1" />
+            <X className="mr-1 h-3 w-3" />
             Limpar
           </Button>
         )}
@@ -101,10 +133,10 @@ export function SearchAndFilters() {
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-muted/50"
+            className="hover:bg-muted/50 h-auto w-full justify-between p-2"
           >
             <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="text-muted-foreground h-4 w-4" />
               <span className="text-sm font-medium">Status do Contrato</span>
               {filtros.status && filtros.status.length > 0 && (
                 <Badge variant="secondary" className="h-5 text-xs">
@@ -119,21 +151,23 @@ export function SearchAndFilters() {
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-2 mt-2 ml-6">
+        <CollapsibleContent className="mt-2 ml-6 space-y-2">
           {statusOptions.map((option) => (
             <div key={option.value} className="flex items-center space-x-2">
               <Checkbox
                 id={`status-${option.value}-${isMobile ? 'mobile' : 'desktop'}`}
                 checked={filtros.status?.includes(option.value) || false}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   handleStatusChange(option.value, checked as boolean)
                 }
               />
-              <Label 
+              <Label
                 htmlFor={`status-${option.value}-${isMobile ? 'mobile' : 'desktop'}`}
-                className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                className="flex cursor-pointer items-center gap-2 text-sm font-normal"
               >
-                <span className={`px-2 py-1 rounded-full text-xs ${option.color}`}>
+                <span
+                  className={`rounded-full px-2 py-1 text-xs ${option.color}`}
+                >
                   {option.label}
                 </span>
               </Label>
@@ -149,12 +183,15 @@ export function SearchAndFilters() {
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-muted/50"
+            className="hover:bg-muted/50 h-auto w-full justify-between p-2"
           >
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="text-muted-foreground h-4 w-4" />
               <span className="text-sm font-medium">Período de Vigência</span>
-              {(filtros.dataInicialDe || filtros.dataInicialAte || filtros.dataFinalDe || filtros.dataFinalAte) && (
+              {(filtros.dataInicialDe ||
+                filtros.dataInicialAte ||
+                filtros.dataFinalDe ||
+                filtros.dataFinalAte) && (
                 <Badge variant="secondary" className="h-5 text-xs">
                   Ativo
                 </Badge>
@@ -167,53 +204,73 @@ export function SearchAndFilters() {
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 mt-2 ml-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <CollapsibleContent className="mt-2 ml-6 space-y-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor={`data-inicial-de-${isMobile ? 'mobile' : 'desktop'}`} className="text-xs text-muted-foreground">
+              <Label
+                htmlFor={`data-inicial-de-${isMobile ? 'mobile' : 'desktop'}`}
+                className="text-muted-foreground text-xs"
+              >
                 Data Inicial - De
               </Label>
               <Input
                 id={`data-inicial-de-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
                 value={filtros.dataInicialDe || ''}
-                onChange={(e) => setFiltros({ ...filtros, dataInicialDe: e.target.value })}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, dataInicialDe: e.target.value })
+                }
                 className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`data-inicial-ate-${isMobile ? 'mobile' : 'desktop'}`} className="text-xs text-muted-foreground">
+              <Label
+                htmlFor={`data-inicial-ate-${isMobile ? 'mobile' : 'desktop'}`}
+                className="text-muted-foreground text-xs"
+              >
                 Data Inicial - Até
               </Label>
               <Input
                 id={`data-inicial-ate-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
                 value={filtros.dataInicialAte || ''}
-                onChange={(e) => setFiltros({ ...filtros, dataInicialAte: e.target.value })}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, dataInicialAte: e.target.value })
+                }
                 className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`data-final-de-${isMobile ? 'mobile' : 'desktop'}`} className="text-xs text-muted-foreground">
+              <Label
+                htmlFor={`data-final-de-${isMobile ? 'mobile' : 'desktop'}`}
+                className="text-muted-foreground text-xs"
+              >
                 Data Final - De
               </Label>
               <Input
                 id={`data-final-de-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
                 value={filtros.dataFinalDe || ''}
-                onChange={(e) => setFiltros({ ...filtros, dataFinalDe: e.target.value })}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, dataFinalDe: e.target.value })
+                }
                 className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`data-final-ate-${isMobile ? 'mobile' : 'desktop'}`} className="text-xs text-muted-foreground">
+              <Label
+                htmlFor={`data-final-ate-${isMobile ? 'mobile' : 'desktop'}`}
+                className="text-muted-foreground text-xs"
+              >
                 Data Final - Até
               </Label>
               <Input
                 id={`data-final-ate-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
                 value={filtros.dataFinalAte || ''}
-                onChange={(e) => setFiltros({ ...filtros, dataFinalAte: e.target.value })}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, dataFinalAte: e.target.value })
+                }
                 className="h-9"
               />
             </div>
@@ -228,10 +285,10 @@ export function SearchAndFilters() {
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-muted/50"
+            className="hover:bg-muted/50 h-auto w-full justify-between p-2"
           >
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="text-muted-foreground h-4 w-4" />
               <span className="text-sm font-medium">Valor do Contrato</span>
               {(filtros.valorMinimo || filtros.valorMaximo) && (
                 <Badge variant="secondary" className="h-5 text-xs">
@@ -246,10 +303,13 @@ export function SearchAndFilters() {
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 mt-2 ml-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <CollapsibleContent className="mt-2 ml-6 space-y-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor={`valor-minimo-${isMobile ? 'mobile' : 'desktop'}`} className="text-xs text-muted-foreground">
+              <Label
+                htmlFor={`valor-minimo-${isMobile ? 'mobile' : 'desktop'}`}
+                className="text-muted-foreground text-xs"
+              >
                 Valor Mínimo (R$)
               </Label>
               <Input
@@ -257,15 +317,22 @@ export function SearchAndFilters() {
                 type="number"
                 placeholder="0,00"
                 value={filtros.valorMinimo || ''}
-                onChange={(e) => setFiltros({ 
-                  ...filtros, 
-                  valorMinimo: e.target.value ? Number(e.target.value) : undefined 
-                })}
+                onChange={(e) =>
+                  setFiltros({
+                    ...filtros,
+                    valorMinimo: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  })
+                }
                 className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`valor-maximo-${isMobile ? 'mobile' : 'desktop'}`} className="text-xs text-muted-foreground">
+              <Label
+                htmlFor={`valor-maximo-${isMobile ? 'mobile' : 'desktop'}`}
+                className="text-muted-foreground text-xs"
+              >
                 Valor Máximo (R$)
               </Label>
               <Input
@@ -273,10 +340,14 @@ export function SearchAndFilters() {
                 type="number"
                 placeholder="0,00"
                 value={filtros.valorMaximo || ''}
-                onChange={(e) => setFiltros({ 
-                  ...filtros, 
-                  valorMaximo: e.target.value ? Number(e.target.value) : undefined 
-                })}
+                onChange={(e) =>
+                  setFiltros({
+                    ...filtros,
+                    valorMaximo: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  })
+                }
                 className="h-9"
               />
             </div>
@@ -291,10 +362,10 @@ export function SearchAndFilters() {
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-2 h-auto hover:bg-muted/50"
+            className="hover:bg-muted/50 h-auto w-full justify-between p-2"
           >
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="text-muted-foreground h-4 w-4" />
               <span className="text-sm font-medium">Unidades</span>
               {filtros.unidade && filtros.unidade.length > 0 && (
                 <Badge variant="secondary" className="h-5 text-xs">
@@ -309,20 +380,20 @@ export function SearchAndFilters() {
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-2 mt-2 ml-6">
-          <div className="max-h-32 overflow-y-auto space-y-2">
+        <CollapsibleContent className="mt-2 ml-6 space-y-2">
+          <div className="max-h-32 space-y-2 overflow-y-auto">
             {unidadesMock.map((unidade) => (
               <div key={unidade} className="flex items-center space-x-2">
                 <Checkbox
                   id={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}
                   checked={filtros.unidade?.includes(unidade) || false}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     handleUnidadeChange(unidade, checked as boolean)
                   }
                 />
-                <Label 
+                <Label
                   htmlFor={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}
-                  className="text-sm font-normal cursor-pointer"
+                  className="cursor-pointer text-sm font-normal"
                 >
                   {unidade}
                 </Label>
@@ -335,28 +406,28 @@ export function SearchAndFilters() {
   )
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+    <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
       {/* Search Bar */}
-      <motion.div 
-        className="relative flex-1 w-full sm:max-w-md"
+      <motion.div
+        className="relative w-full flex-1 sm:max-w-md"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
             placeholder="Pesquisar contratos, fornecedores..."
             value={termoPesquisa}
             onChange={(e) => setTermoPesquisa(e.target.value)}
-            className="pl-10 pr-4 h-10 sm:h-11 bg-background border-2 focus:border-primary transition-all duration-200 shadow-sm"
+            className="bg-background focus:border-primary h-10 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 sm:h-11"
           />
           {termoPesquisa && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTermoPesquisa('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+              className="hover:bg-muted absolute top-1/2 right-2 h-6 w-6 -translate-y-1/2 transform p-0"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -373,11 +444,11 @@ export function SearchAndFilters() {
       >
         <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="h-10 sm:h-11 px-4 border-2 hover:border-primary transition-all duration-200 shadow-sm relative whitespace-nowrap"
+            <Button
+              variant="outline"
+              className="hover:border-primary relative h-10 border-2 px-4 whitespace-nowrap shadow-sm transition-all duration-200 sm:h-11"
             >
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="mr-2 h-4 w-4" />
               Filtros
               {filtrosAtivos > 0 && (
                 <Badge className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
@@ -386,9 +457,9 @@ export function SearchAndFilters() {
               )}
             </Button>
           </DropdownMenuTrigger>
-          
-          <DropdownMenuContent 
-            className="w-80 sm:w-96 p-0" 
+
+          <DropdownMenuContent
+            className="w-80 p-0 sm:w-96"
             align="end"
             sideOffset={8}
           >
@@ -407,11 +478,11 @@ export function SearchAndFilters() {
       <div className="sm:hidden">
         <Sheet open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
           <SheetTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="h-10 px-4 border-2 hover:border-primary transition-all duration-200 shadow-sm relative w-full"
+            <Button
+              variant="outline"
+              className="hover:border-primary relative h-10 w-full border-2 px-4 shadow-sm transition-all duration-200"
             >
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="mr-2 h-4 w-4" />
               Filtros
               {filtrosAtivos > 0 && (
                 <Badge className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
@@ -424,7 +495,7 @@ export function SearchAndFilters() {
             <SheetHeader>
               <SheetTitle>Filtros Avançados</SheetTitle>
             </SheetHeader>
-            <div className="overflow-y-auto h-full">
+            <div className="h-full overflow-y-auto">
               <FilterContent isMobile />
             </div>
           </SheetContent>
@@ -440,8 +511,9 @@ export function SearchAndFilters() {
             exit={{ opacity: 0, scale: 0.8 }}
             className="flex items-center gap-2 sm:hidden"
           >
-            <span className="text-sm text-muted-foreground">
-              {filtrosAtivos} filtro{filtrosAtivos > 1 ? 's' : ''} ativo{filtrosAtivos > 1 ? 's' : ''}
+            <span className="text-muted-foreground text-sm">
+              {filtrosAtivos} filtro{filtrosAtivos > 1 ? 's' : ''} ativo
+              {filtrosAtivos > 1 ? 's' : ''}
             </span>
           </motion.div>
         )}

@@ -7,9 +7,17 @@ import type { Contrato } from '@/modules/Contratos/types/contrato'
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
+    div: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode
+      [key: string]: unknown
+    }) => <div {...props}>{children}</div>,
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }))
 
 // Mock do useContratosStore
@@ -35,14 +43,15 @@ const contratosMock: Contrato[] = [
     numeroCCon: 'CCON-2023/001',
     contratada: {
       razaoSocial: 'Construtora ABC Ltda',
-      cnpj: '12345678000190'
+      cnpj: '12345678000190',
     },
-    valor: 1250000.00,
+    valor: 1250000.0,
     dataInicial: '2023-05-12',
     dataFinal: '2024-05-11',
     status: 'ativo',
     unidade: 'Secretaria de Obras',
-    objeto: 'Contratação de empresa especializada para prestação de serviços de manutenção predial'
+    objeto:
+      'Contratação de empresa especializada para prestação de serviços de manutenção predial',
   },
   {
     id: '2',
@@ -50,14 +59,14 @@ const contratosMock: Contrato[] = [
     numeroCCon: 'CCON-2023/002',
     contratada: {
       razaoSocial: 'Empresa XYZ Ltda',
-      cnpj: '98765432000110'
+      cnpj: '98765432000110',
     },
-    valor: 850000.00,
+    valor: 850000.0,
     dataInicial: '2023-06-01',
     dataFinal: '2024-06-01',
     status: 'vencendo',
     unidade: 'Secretaria de Educação',
-    objeto: 'Fornecimento de material escolar'
+    objeto: 'Fornecimento de material escolar',
   },
   {
     id: '3',
@@ -65,41 +74,37 @@ const contratosMock: Contrato[] = [
     numeroCCon: 'CCON-2023/003',
     contratada: {
       razaoSocial: 'Serviços DEF Ltda',
-      cnpj: '45678912000134'
+      cnpj: '45678912000134',
     },
-    valor: 320000.00,
+    valor: 320000.0,
     dataInicial: '2023-04-15',
     dataFinal: '2024-04-15',
     status: 'vencido',
     unidade: 'Secretaria de Saúde',
-    objeto: 'Manutenção de equipamentos médicos'
-  }
+    objeto: 'Manutenção de equipamentos médicos',
+  },
 ]
 
 const renderizarComRouter = (componente: React.ReactElement) => {
-  return render(
-    <BrowserRouter>
-      {componente}
-    </BrowserRouter>
-  )
+  return render(<BrowserRouter>{componente}</BrowserRouter>)
 }
 
 describe('TabelaContratos', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     mockUseContratosStore.mockReturnValue({
       contratosFiltrados: contratosMock,
       paginacao: {
         pagina: 1,
         itensPorPagina: 10,
-        total: 3
+        total: 3,
       },
       contratosSelecionados: [],
       setPaginacao: vi.fn(),
       selecionarContrato: vi.fn(),
       selecionarTodosContratos: vi.fn(),
-      limparSelecao: vi.fn()
+      limparSelecao: vi.fn(),
     })
   })
 
@@ -115,17 +120,17 @@ describe('TabelaContratos', () => {
       paginacao: {
         pagina: 1,
         itensPorPagina: 10,
-        total: 0
+        total: 0,
       },
       contratosSelecionados: [],
       setPaginacao: vi.fn(),
       selecionarContrato: vi.fn(),
       selecionarTodosContratos: vi.fn(),
-      limparSelecao: vi.fn()
+      limparSelecao: vi.fn(),
     })
-    
+
     renderizarComRouter(<TabelaContratos />)
-    
+
     expect(screen.getByText('0 contratos encontrados')).toBeInTheDocument()
   })
 })

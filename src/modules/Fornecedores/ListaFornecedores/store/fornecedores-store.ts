@@ -1,5 +1,9 @@
 import { create } from 'zustand'
-import type { Fornecedor, FiltrosFornecedor, PaginacaoParamsFornecedor } from '../types/fornecedor'
+import type {
+  Fornecedor,
+  FiltrosFornecedor,
+  PaginacaoParamsFornecedor,
+} from '../types/fornecedor'
 import { fornecedoresMock } from '../data/fornecedores-mock'
 
 interface FornecedoresState {
@@ -9,7 +13,7 @@ interface FornecedoresState {
   filtros: FiltrosFornecedor
   paginacao: PaginacaoParamsFornecedor
   fornecedoresSelecionados: string[]
-  
+
   // Actions
   setTermoPesquisa: (termo: string) => void
   setFiltros: (filtros: FiltrosFornecedor) => void
@@ -28,7 +32,7 @@ export const useFornecedoresStore = create<FornecedoresState>((set, get) => ({
   paginacao: {
     pagina: 1,
     itensPorPagina: 10,
-    total: fornecedoresMock.length
+    total: fornecedoresMock.length,
   },
   fornecedoresSelecionados: [],
 
@@ -43,10 +47,10 @@ export const useFornecedoresStore = create<FornecedoresState>((set, get) => ({
   },
 
   limparFiltros: () => {
-    set({ 
-      filtros: {}, 
+    set({
+      filtros: {},
       termoPesquisa: '',
-      paginacao: { ...get().paginacao, pagina: 1 }
+      paginacao: { ...get().paginacao, pagina: 1 },
     })
     get().filtrarFornecedores()
   },
@@ -58,10 +62,14 @@ export const useFornecedoresStore = create<FornecedoresState>((set, get) => ({
   selecionarFornecedor: (fornecedorId, selecionado) => {
     const { fornecedoresSelecionados } = get()
     if (selecionado) {
-      set({ fornecedoresSelecionados: [...fornecedoresSelecionados, fornecedorId] })
+      set({
+        fornecedoresSelecionados: [...fornecedoresSelecionados, fornecedorId],
+      })
     } else {
-      set({ 
-        fornecedoresSelecionados: fornecedoresSelecionados.filter(id => id !== fornecedorId) 
+      set({
+        fornecedoresSelecionados: fornecedoresSelecionados.filter(
+          (id) => id !== fornecedorId,
+        ),
       })
     }
   },
@@ -69,7 +77,7 @@ export const useFornecedoresStore = create<FornecedoresState>((set, get) => ({
   selecionarTodosFornecedores: (selecionado) => {
     const { fornecedoresFiltrados } = get()
     if (selecionado) {
-      set({ fornecedoresSelecionados: fornecedoresFiltrados.map(f => f.id) })
+      set({ fornecedoresSelecionados: fornecedoresFiltrados.map((f) => f.id) })
     } else {
       set({ fornecedoresSelecionados: [] })
     }
@@ -82,47 +90,50 @@ export const useFornecedoresStore = create<FornecedoresState>((set, get) => ({
     // Filtro por termo de pesquisa
     if (termoPesquisa) {
       const termo = termoPesquisa.toLowerCase()
-      resultado = resultado.filter(fornecedor =>
-        fornecedor.razaoSocial.toLowerCase().includes(termo) ||
-        fornecedor.nomeFantasia.toLowerCase().includes(termo) ||
-        fornecedor.cnpj.includes(termo.replace(/\D/g, ""))
+      resultado = resultado.filter(
+        (fornecedor) =>
+          fornecedor.razaoSocial.toLowerCase().includes(termo) ||
+          fornecedor.nomeFantasia.toLowerCase().includes(termo) ||
+          fornecedor.cnpj.includes(termo.replace(/\D/g, '')),
       )
     }
 
     // Filtros avançados
     if (filtros.status && filtros.status.length > 0) {
-      resultado = resultado.filter(fornecedor => 
-        filtros.status!.includes(fornecedor.status)
+      resultado = resultado.filter((fornecedor) =>
+        filtros.status!.includes(fornecedor.status),
       )
     }
 
     if (filtros.valorMinimo) {
-      resultado = resultado.filter(fornecedor => 
-        fornecedor.valorTotalContratos >= filtros.valorMinimo!
+      resultado = resultado.filter(
+        (fornecedor) => fornecedor.valorTotalContratos >= filtros.valorMinimo!,
       )
     }
 
     if (filtros.valorMaximo) {
-      resultado = resultado.filter(fornecedor => 
-        fornecedor.valorTotalContratos <= filtros.valorMaximo!
+      resultado = resultado.filter(
+        (fornecedor) => fornecedor.valorTotalContratos <= filtros.valorMaximo!,
       )
     }
 
     if (filtros.contratosAtivosMinimo) {
-      resultado = resultado.filter(fornecedor => 
-        fornecedor.contratosAtivos >= filtros.contratosAtivosMinimo!
+      resultado = resultado.filter(
+        (fornecedor) =>
+          fornecedor.contratosAtivos >= filtros.contratosAtivosMinimo!,
       )
     }
 
     if (filtros.contratosAtivosMaximo) {
-      resultado = resultado.filter(fornecedor => 
-        fornecedor.contratosAtivos <= filtros.contratosAtivosMaximo!
+      resultado = resultado.filter(
+        (fornecedor) =>
+          fornecedor.contratosAtivos <= filtros.contratosAtivosMaximo!,
       )
     }
 
-    set({ 
+    set({
       fornecedoresFiltrados: resultado,
-      paginacao: { ...get().paginacao, total: resultado.length, pagina: 1 }
+      paginacao: { ...get().paginacao, total: resultado.length, pagina: 1 },
     })
   },
 }))

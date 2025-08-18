@@ -36,10 +36,10 @@ const data = {
           title: 'Cadastrar Contrato',
           url: '/contratos/cadastrar',
         },
-          {
-            title: 'Lista de Contratos',
-            url: '/contratos',
-          },
+        {
+          title: 'Lista de Contratos',
+          url: '/contratos',
+        },
       ],
     },
     {
@@ -88,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {/* Container principal da logo */}
               <div className="flex flex-col items-center space-y-3 group-data-[state=collapsed]:space-y-2">
                 {/* Logo principal limpa - sem quadrado */}
-                <div className="logo-container relative transition-all duration-500 hover:scale-110 group-data-[state=collapsed]:scale-75">
+                <div className="logo-container relative transition-all duration-500 group-data-[state=collapsed]:scale-75 hover:scale-110">
                   <img
                     src="/logo certa.png"
                     alt="Logo Prefeitura"
@@ -98,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
                 {/* Badge CAC melhorada */}
                 <div className="group-data-[state=collapsed]:hidden">
-                  <div className="bg-gray-600 inline-flex items-center gap-1 rounded-full px-4 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95 relative overflow-hidden group/cac">
+                  <div className="group/cac relative inline-flex items-center gap-1 overflow-hidden rounded-full bg-gray-600 px-4 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
                     <img
                       src="/logos-cac/3.png"
                       alt="Logo CAC"
@@ -109,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       CAC
                     </span>
                     {/* Efeito de brilho animado */}
-                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent transition-transform duration-1000 ease-out group-hover/cac:translate-x-full"></div>
+                    <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/cac:translate-x-full"></div>
                   </div>
                 </div>
               </div>

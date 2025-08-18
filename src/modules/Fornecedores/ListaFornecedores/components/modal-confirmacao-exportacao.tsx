@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -6,8 +6,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { AlertTriangle, FileDown } from "lucide-react"
+} from '@/components/ui/dialog'
+import { AlertTriangle, FileDown } from 'lucide-react'
 
 interface ModalConfirmacaoExportacaoProps {
   isOpen: boolean
@@ -38,21 +38,26 @@ export function ModalConfirmacaoExportacao({
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="py-4">
-          <div className="rounded-lg bg-muted/50 p-4 space-y-2">
+          <div className="bg-muted/50 space-y-2 rounded-lg p-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Total de fornecedores:</span>
-              <span className="font-semibold">{totalFornecedores.toLocaleString('pt-BR')}</span>
+              <span className="text-muted-foreground">
+                Total de fornecedores:
+              </span>
+              <span className="font-semibold">
+                {totalFornecedores.toLocaleString('pt-BR')}
+              </span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Formato:</span>
               <span className="font-semibold">CSV</span>
             </div>
           </div>
-          
-          <p className="text-sm text-muted-foreground mt-4">
-            Esta ação pode levar alguns segundos dependendo da quantidade de dados.
+
+          <p className="text-muted-foreground mt-4 text-sm">
+            Esta ação pode levar alguns segundos dependendo da quantidade de
+            dados.
           </p>
         </div>
 

@@ -1,7 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import FornecedorForm, { type DadosFornecedor } from '../CadastroDeContratos/fornecedor-form'
+import FornecedorForm, {
+  type DadosFornecedor,
+} from '../CadastroDeContratos/fornecedor-form'
 
 // Mock dos componentes de ícone
 vi.mock('lucide-react', () => ({

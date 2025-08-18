@@ -127,7 +127,9 @@ export default function UnidadesForm({
       ...prev,
       unidades: prev.unidades.map((unidade) => ({
         ...unidade,
-        valorAlocado: unidade.ativa ? currencyUtils.formatar(valorPorUnidade) : currencyUtils.formatar(0),
+        valorAlocado: unidade.ativa
+          ? currencyUtils.formatar(valorPorUnidade)
+          : currencyUtils.formatar(0),
         percentualContrato: unidade.ativa ? percentualPorUnidade : 0,
       })),
     }))
@@ -352,7 +354,9 @@ export default function UnidadesForm({
                   <Input
                     value={unidade.valorAlocado}
                     onChange={(e) => {
-                      const valorMascarado = currencyUtils.aplicarMascara(e.target.value)
+                      const valorMascarado = currencyUtils.aplicarMascara(
+                        e.target.value,
+                      )
                       atualizarUnidade(
                         unidade.id,
                         'valorAlocado',

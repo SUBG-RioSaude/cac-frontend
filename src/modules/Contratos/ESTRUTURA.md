@@ -70,14 +70,14 @@ src/modules/Contratos/
 
 ## 🎯 Responsabilidades por Pasta
 
-| Pasta | Responsabilidade | Arquivos Principais |
-|-------|------------------|---------------------|
-| `components/` | 🔧 Componentes reutilizáveis | Formulários, tabelas, modais |
-| `data/` | 💾 Dados mock e configurações | JSON consolidado, interfaces |
-| `pages/` | 🌐 Páginas principais | Cadastro, listagem, visualização |
-| `store/` | 🗃️ Estado global | Store Zustand |
-| `types/` | 🏷️ Definições TypeScript | Interfaces e tipos |
-| `contratos/` | 🚧 Páginas legadas | Arquivos para migração |
+| Pasta         | Responsabilidade              | Arquivos Principais              |
+| ------------- | ----------------------------- | -------------------------------- |
+| `components/` | 🔧 Componentes reutilizáveis  | Formulários, tabelas, modais     |
+| `data/`       | 💾 Dados mock e configurações | JSON consolidado, interfaces     |
+| `pages/`      | 🌐 Páginas principais         | Cadastro, listagem, visualização |
+| `store/`      | 🗃️ Estado global              | Store Zustand                    |
+| `types/`      | 🏷️ Definições TypeScript      | Interfaces e tipos               |
+| `contratos/`  | 🚧 Páginas legadas            | Arquivos para migração           |
 
 ## 📁 Organização dos Componentes
 
@@ -104,21 +104,25 @@ components/
 ## 🚀 Benefícios da Estrutura
 
 ### ✅ **Organização Clara**
+
 - Separação lógica por funcionalidade
 - Fácil navegação e manutenção
 - Componentes agrupados por contexto
 
 ### ✅ **Manutenibilidade**
+
 - Dados centralizados em JSON
 - Tipos TypeScript bem definidos
 - Componentes modulares e reutilizáveis
 
 ### ✅ **Escalabilidade**
+
 - Estrutura preparada para crescimento
 - Fácil adição de novos componentes
 - Padrões consistentes
 
 ### ✅ **Migração para API**
+
 - Formato JSON facilita integração
 - Separação clara entre dados e UI
 - Interfaces bem definidas
@@ -126,20 +130,23 @@ components/
 ## 🔍 Como Navegar
 
 ### Para **Desenvolvedores**:
+
 1. **Novo componente**: `components/[Funcionalidade]/`
 2. **Dados**: `data/contratos-data.json`
 3. **Tipos**: `types/[nome].ts`
 4. **Páginas**: `pages/[Funcionalidade]/`
 
 ### Para **Manutenção**:
+
 1. **Dados mock**: Editar `data/contratos-data.json`
 2. **Tipos**: Atualizar `types/[nome].ts`
 3. **Componentes**: Modificar em `components/[Funcionalidade]/`
 
 ### Para **Testes**:
+
 1. **Testes**: `components/[Funcionalidade]/__tests__/`
 2. **Executar**: `pnpm test src/modules/Contratos`
 
 ---
 
-*📚 Esta documentação deve ser atualizada sempre que houver mudanças na estrutura do módulo.*
+_📚 Esta documentação deve ser atualizada sempre que houver mudanças na estrutura do módulo._

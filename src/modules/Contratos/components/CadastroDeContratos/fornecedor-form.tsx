@@ -23,17 +23,17 @@ import { useFormAsyncOperation } from '@/hooks/use-async-operation'
 import { ButtonLoadingSpinner } from '@/components/ui/loading'
 import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
 import { toast } from 'sonner'
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Building2, 
-  MapPin, 
-  Phone, 
-  Plus, 
-  Trash2, 
-  Check, 
+import {
+  ArrowRight,
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Phone,
+  Plus,
+  Trash2,
+  Check,
   X,
-  Zap 
+  Zap,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -63,6 +63,42 @@ export interface DadosFornecedor {
   contatos: Contato[]
 }
 
+// Funções de validação para contatos
+const validarEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) return false
+
+  // Validações adicionais
+  const [localPart, domain] = email.split('@')
+
+  // Verifica se a parte local não está vazia e tem pelo menos 2 caracteres
+  if (!localPart || localPart.length < 2) return false
+
+  // Verifica se o domínio tem pelo menos 4 caracteres (ex: .com)
+  if (!domain || domain.length < 4) return false
+
+  // Verifica se o domínio tem pelo menos um ponto
+  if (!domain.includes('.')) return false
+
+  // Verifica se não há pontos consecutivos
+  if (domain.includes('..')) return false
+
+  // Verifica se não termina com ponto
+  if (domain.endsWith('.')) return false
+
+  return true
+}
+
+const validarFormatoTelefoneFixo = (telefone: string) => {
+  const telefoneLimpo = telefone.replace(/\D/g, '')
+  return telefoneLimpo.length === 10
+}
+
+const validarFormatoCelular = (celular: string) => {
+  const celularLimpo = celular.replace(/\D/g, '')
+  return celularLimpo.length === 11
+}
+
 const fornecedorSchema = z.object({
   cnpj: z
     .string()
@@ -81,17 +117,34 @@ const fornecedorSchema = z.object({
     .string()
     .min(1, 'Estado é obrigatório')
     .max(2, 'Use apenas 2 caracteres'),
-  cep: z.string().min(1, 'CEP é obrigatório'),
+  cep: z
+    .string()
+    .min(1, 'CEP é obrigatório')
+    .refine((cep) => {
+      const cepLimpo = cep.replace(/\D/g, '')
+      return cepLimpo.length === 8
+    }, 'CEP deve ter 8 dígitos no formato 12345-678'),
   ativo: z.boolean(),
   contatos: z
     .array(
-      z.object({
-        id: z.string(),
-        nome: z.string(),
-        valor: z.string(),
-        tipo: z.enum(['Email', 'Fixo', 'Celular']),
-        ativo: z.boolean(),
-      }),
+      z
+        .object({
+          id: z.string(),
+          nome: z.string().min(1, 'Nome do contato é obrigatório'),
+          valor: z.string().min(1, 'Valor do contato é obrigatório'),
+          tipo: z.enum(['Email', 'Fixo', 'Celular']),
+          ativo: z.boolean(),
+        })
+        .refine((contato: { tipo: string; valor: string }) => {
+          if (contato.tipo === 'Email') {
+            return validarEmail(contato.valor)
+          } else if (contato.tipo === 'Fixo') {
+            return validarFormatoTelefoneFixo(contato.valor)
+          } else if (contato.tipo === 'Celular') {
+            return validarFormatoCelular(contato.valor)
+          }
+          return true
+        }, 'Valor inválido para o tipo de contato selecionado'),
     )
     .max(3, 'Máximo de 3 contatos permitidos')
     .default([]),
@@ -107,9 +160,33 @@ interface FornecedorFormProps {
 }
 
 const estadosBrasileiros = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ]
 
 export default function FornecedorForm({
@@ -127,11 +204,10 @@ export default function FornecedorForm({
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {
-    if (!cep || cep.length < 8) return
+    if (!cep || !validarFormatoCEP(cep)) return
 
     setIsLoadingCEP(true)
     setCepError(null)
-    setCepPreenchido(true) // Habilita os campos de endereço
 
     try {
       const cepLimpo = cep.replace(/\D/g, '')
@@ -141,6 +217,8 @@ export default function FornecedorForm({
       if (data.erro) {
         setCepError('CEP não encontrado')
         toast.error('CEP não encontrado. Verifique e tente novamente.')
+        // Habilita campos mesmo com CEP inválido para permitir edição manual
+        setCepPreenchido(true)
         return
       }
 
@@ -150,18 +228,25 @@ export default function FornecedorForm({
         form.setValue('bairro', data.bairro || '')
         form.setValue('cidade', data.localidade || '')
         form.setValue('estado', data.uf || '')
-        
+
         toast.success('Endereço preenchido automaticamente!')
-        
+
+        // Habilita campos após sucesso
+        setCepPreenchido(true)
+
         // Foca no campo número após preencher
         setTimeout(() => {
-          const numeroField = document.querySelector('input[name="numero"]') as HTMLInputElement
+          const numeroField = document.querySelector(
+            'input[name="numero"]',
+          ) as HTMLInputElement
           numeroField?.focus()
         }, 100)
       }
     } catch {
       setCepError('Erro ao buscar CEP')
       toast.error('Erro ao buscar CEP. Tente novamente.')
+      // Habilita campos mesmo com erro para permitir edição manual
+      setCepPreenchido(true)
     } finally {
       setIsLoadingCEP(false)
     }
@@ -212,7 +297,7 @@ export default function FornecedorForm({
         estado: watchedValues.estado || '',
         cep: watchedValues.cep || '',
         ativo: watchedValues.ativo || false,
-        contatos: (watchedValues.contatos || []).map(contato => ({
+        contatos: (watchedValues.contatos || []).map((contato) => ({
           id: contato.id,
           nome: contato.nome || '',
           valor: contato.valor || '',
@@ -220,7 +305,7 @@ export default function FornecedorForm({
           ativo: contato.ativo,
         })),
       }
-      
+
       // Só chama onDataChange se os dados realmente mudaram
       const currentDataString = JSON.stringify(dados)
       if (previousDataRef.current !== currentDataString) {
@@ -232,22 +317,22 @@ export default function FornecedorForm({
 
   const handleFormSubmit = (dados: z.infer<typeof fornecedorSchema>) => {
     const dadosFornecedor = dados as DadosFornecedor
-    
+
     // Validações adicionais com toast
     if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
       toast.error('Adicione pelo menos um contato para o fornecedor.')
       return
     }
 
-    const contatosValidos = dadosFornecedor.contatos.filter(contato => 
-      contato.nome && contato.valor && contato.tipo
+    const contatosValidos = dadosFornecedor.contatos.filter(
+      (contato) => contato.nome && contato.valor && contato.tipo,
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
       toast.error('Preencha todos os dados dos contatos adicionados.')
       return
     }
-    
+
     const submitOperation = async () => {
       if (onAdvanceRequest) {
         await onAdvanceRequest(dadosFornecedor)
@@ -297,7 +382,7 @@ export default function FornecedorForm({
         {
           id: '2',
           nome: 'Maria Santos',
-          valor: '(21) 99999-8888',
+          valor: '(21) 9 9999-8888',
           tipo: 'Celular' as const,
           ativo: true,
         },
@@ -312,10 +397,93 @@ export default function FornecedorForm({
       case 'Fixo':
         return '(11) 3333-4444'
       case 'Celular':
-        return '(11) 99999-8888'
+        return '(11) 9 9999-8888'
       default:
         return ''
     }
+  }
+
+  // Função para aplicar máscara no CEP
+  const aplicarMascaraCEP = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 5) {
+      return apenasNumeros
+    }
+    return `${apenasNumeros.slice(0, 5)}-${apenasNumeros.slice(5, 8)}`
+  }
+
+  // Função para validar formato do CEP
+  const validarFormatoCEP = (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, '')
+    return cepLimpo.length === 8
+  }
+
+  // Função para aplicar máscara no telefone fixo
+  const aplicarMascaraTelefoneFixo = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 2) {
+      return `(${apenasNumeros}`
+    } else if (apenasNumeros.length <= 6) {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2)}`
+    } else if (apenasNumeros.length <= 10) {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 6)}-${apenasNumeros.slice(6)}`
+    } else {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 6)}-${apenasNumeros.slice(6, 10)}`
+    }
+  }
+
+  // Função para aplicar máscara no celular
+  const aplicarMascaraCelular = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 2) {
+      return `(${apenasNumeros}`
+    } else if (apenasNumeros.length <= 3) {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2)}`
+    } else if (apenasNumeros.length <= 7) {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 3)} ${apenasNumeros.slice(3)}`
+    } else if (apenasNumeros.length <= 11) {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 3)} ${apenasNumeros.slice(3, 7)}-${apenasNumeros.slice(7)}`
+    } else {
+      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 3)} ${apenasNumeros.slice(3, 7)}-${apenasNumeros.slice(7, 11)}`
+    }
+  }
+
+  // Função para validar formato do telefone fixo
+  const validarFormatoTelefoneFixo = (telefone: string) => {
+    const telefoneLimpo = telefone.replace(/\D/g, '')
+    return telefoneLimpo.length === 10
+  }
+
+  // Função para validar formato do celular
+  const validarFormatoCelular = (celular: string) => {
+    const celularLimpo = celular.replace(/\D/g, '')
+    return celularLimpo.length === 11
+  }
+
+  // Função para validar e-mail
+  const validarEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) return false
+
+    // Validações adicionais
+    const [localPart, domain] = email.split('@')
+
+    // Verifica se a parte local não está vazia e tem pelo menos 2 caracteres
+    if (!localPart || localPart.length < 2) return false
+
+    // Verifica se o domínio tem pelo menos 4 caracteres (ex: .com)
+    if (!domain || domain.length < 4) return false
+
+    // Verifica se o domínio tem pelo menos um ponto
+    if (!domain.includes('.')) return false
+
+    // Verifica se não há pontos consecutivos
+    if (domain.includes('..')) return false
+
+    // Verifica se não termina com ponto
+    if (domain.endsWith('.')) return false
+
+    return true
   }
 
   return (
@@ -328,227 +496,289 @@ export default function FornecedorForm({
         <div className="space-y-6">
           <div className="flex items-center space-x-3 border-b border-slate-200 pb-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
-              <Building2 className="h-4 w-4 text-slate-600" aria-hidden="true" />
+              <Building2
+                className="h-4 w-4 text-slate-600"
+                aria-hidden="true"
+              />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">Informações Básicas</h3>
+            <h3 className="text-base font-semibold text-gray-900">
+              Informações Básicas
+            </h3>
           </div>
 
-                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-             <FormField
-               control={form.control}
-               name="cnpj"
-               render={({ field }) => {
-                 const cnpjValue = field.value || ''
-                 const isValidCnpj = cnpjValue.length > 0 ? cnpjUtils.validar(cnpjValue) : null
-
-                 return (
-                   <FormItem className="min-h-[80px]">
-                     <FormLabel>CNPJ *</FormLabel>
-                     <FormControl>
-                       <div className="relative">
-                         <Input
-                           {...field}
-                           placeholder="00.000.000/0000-00"
-                           onChange={(e) => {
-                             const valorMascarado = cnpjUtils.aplicarMascara(e.target.value)
-                             field.onChange(valorMascarado)
-                             
-                             // Validação com toast
-                             if (valorMascarado.length >= 18) {
-                               const isValid = cnpjUtils.validar(valorMascarado)
-                               if (isValid) {
-                                 toast.success('CNPJ válido!')
-                               } else {
-                                 toast.error('CNPJ inválido. Verifique os números.')
-                               }
-                             }
-                           }}
-                           className={cn(
-                             isValidCnpj === true && "border-green-500 bg-green-50 pr-10",
-                             isValidCnpj === false && "border-red-500 bg-red-50 pr-10"
-                           )}
-                         />
-                         {isValidCnpj !== null && (
-                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                             {isValidCnpj ? (
-                               <Check className="h-4 w-4 text-green-500" />
-                             ) : (
-                               <X className="h-4 w-4 text-red-500" />
-                             )}
-                           </div>
-                         )}
-                       </div>
-                     </FormControl>
-                     <FormMessage />
-                   </FormItem>
-                 )
-               }}
-             />
-
-             <FormField
-               control={form.control}
-               name="razaoSocial"
-               render={({ field }) => (
-                 <FormItem className="min-h-[80px]">
-                   <FormLabel>Razão Social *</FormLabel>
-                   <FormControl>
-                     <Input placeholder="Digite a razão social" {...field} />
-                   </FormControl>
-                   <FormMessage />
-                 </FormItem>
-               )}
-             />
-           </div>
-
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="inscricaoEstadual"
-              render={({ field }) => {
-                const estadoSelecionado = form.watch('estadoIE')
-                const ieValue = field.value || ''
-                const isValidIe = ieValue.length > 0 && estadoSelecionado ? ieUtils.validar(ieValue, estadoSelecionado) : null
+            {/* Container para CNPJ e Razão Social */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="cnpj"
+                render={({ field }) => {
+                  const cnpjValue = field.value || ''
+                  const isValidCnpj =
+                    cnpjValue.length > 0 ? cnpjUtils.validar(cnpjValue) : null
 
-                                 return (
-                   <FormItem className="min-h-[80px]">
-                     <FormLabel>Inscrição Estadual</FormLabel>
-                    <div className="flex gap-2">
-                      {/* Dropdown de Estados */}
-                      <FormField
-                        control={form.control}
-                        name="estadoIE"
-                        render={({ field: estadoField }) => (
-                          <FormItem className="w-20 flex flex-col justify-end">
-                            <Select 
-                              onValueChange={(value) => {
-                                estadoField.onChange(value)
-                                // Limpa os campos de inscrição quando UF muda
-                                form.setValue('inscricaoEstadual', '')
-                                form.setValue('inscricaoMunicipal', '')
-                              }} 
-                              value={estadoField.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="UF" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent side="top" align="start">
-                                {estadosBrasileiros.map((estado) => (
-                                  <SelectItem key={estado} value={estado}>
-                                    {estado}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Campo da IE */}
-                      <div className="flex-1 relative">
-                        <Input
-                          {...field}
-                          placeholder={estadoSelecionado ? "Ex: 12.345.67-8" : "Selecione UF primeiro"}
-                          disabled={!estadoSelecionado}
-                          onChange={(e) => {
-                            if (estadoSelecionado) {
-                              const valorMascarado = ieUtils.aplicarMascara(e.target.value, estadoSelecionado)
+                  return (
+                    <FormItem>
+                      <FormLabel className="mb-2">CNPJ *</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            placeholder="00.000.000/0000-00"
+                            onChange={(e) => {
+                              const valorMascarado = cnpjUtils.aplicarMascara(
+                                e.target.value,
+                              )
                               field.onChange(valorMascarado)
-                              
+
                               // Validação com toast
-                              if (e.target.value.length > 0) {
-                                const isValid = ieUtils.validar(e.target.value, estadoSelecionado)
+                              if (valorMascarado.length >= 18) {
+                                const isValid =
+                                  cnpjUtils.validar(valorMascarado)
                                 if (isValid) {
-                                  toast.success('Inscrição Estadual válida!')
+                                  toast.success('CNPJ válido!')
                                 } else {
-                                  toast.error('Inscrição Estadual inválida para o estado selecionado.')
+                                  toast.error(
+                                    'CNPJ inválido. Verifique os números.',
+                                  )
                                 }
                               }
-                            } else {
-                              field.onChange(e.target.value)
-                            }
-                          }}
-                          className={cn(
-                            !estadoSelecionado && "opacity-50 cursor-not-allowed",
-                            isValidIe === true && "border-green-500 bg-green-50 pr-10",
-                            isValidIe === false && "border-red-500 bg-red-50 pr-10"
-                          )}
-                        />
-                        {isValidIe !== null && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            {isValidIe ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
+                            }}
+                            className={cn(
+                              isValidCnpj === true &&
+                                'border-green-500 bg-green-50 pr-10',
+                              isValidCnpj === false &&
+                                'border-red-500 bg-red-50 pr-10',
                             )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )
-              }}
-            />
+                          />
+                          {isValidCnpj !== null && (
+                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                              {isValidCnpj ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <X className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="inscricaoMunicipal"
-              render={({ field }) => {
-                const estadoSelecionado = form.watch('estadoIE')
-                const imValue = field.value || ''
-                const isValidIm = imValue.length > 0 && estadoSelecionado ? imUtils.validar(imValue, estadoSelecionado) : null
-
-                                 return (
-                   <FormItem className="min-h-[80px]">
-                     <FormLabel>Inscrição Municipal</FormLabel>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="razaoSocial"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-2">Razão Social *</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          placeholder={estadoSelecionado ? "Ex: 12345-67" : "Selecione UF da IE primeiro"}
-                          disabled={!estadoSelecionado}
-                          onChange={(e) => {
-                            if (estadoSelecionado) {
-                              const valorMascarado = imUtils.aplicarMascara(e.target.value, estadoSelecionado)
-                              field.onChange(valorMascarado)
-                              
-                              // Validação com toast
-                              if (e.target.value.length > 0) {
-                                const isValid = imUtils.validar(e.target.value, estadoSelecionado)
-                                if (isValid) {
-                                  toast.success('Inscrição Municipal válida!')
-                                } else {
-                                  toast.error('Inscrição Municipal inválida para o estado selecionado.')
-                                }
-                              }
-                            } else {
-                              field.onChange(e.target.value)
-                            }
-                          }}
-                          className={cn(
-                            !estadoSelecionado && "opacity-50 cursor-not-allowed",
-                            isValidIm === true && "border-green-500 bg-green-50 pr-10",
-                            isValidIm === false && "border-red-500 bg-red-50 pr-10"
-                          )}
-                        />
-                        {isValidIm !== null && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            {isValidIm ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <Input placeholder="Digite a razão social" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )
-              }}
-            />
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* Container para Inscrição Estadual */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="inscricaoEstadual"
+                render={({ field }) => {
+                  const estadoSelecionado = form.watch('estadoIE')
+                  const ieValue = field.value || ''
+                  const isValidIe =
+                    ieValue.length > 0 && estadoSelecionado
+                      ? ieUtils.validar(ieValue, estadoSelecionado)
+                      : null
+
+                  return (
+                    <FormItem>
+                      <FormLabel className="mb-2">Inscrição Estadual</FormLabel>
+                      <div className="flex gap-2">
+                        {/* Dropdown de Estados */}
+                        <FormField
+                          control={form.control}
+                          name="estadoIE"
+                          render={({ field: estadoField }) => (
+                            <FormItem className="flex w-20 flex-col justify-end">
+                              <Select
+                                onValueChange={(value) => {
+                                  estadoField.onChange(value)
+                                  // Limpa os campos de inscrição quando UF muda
+                                  form.setValue('inscricaoEstadual', '')
+                                  form.setValue('inscricaoMunicipal', '')
+                                }}
+                                value={estadoField.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="UF" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent side="top" align="start">
+                                  {estadosBrasileiros.map((estado) => (
+                                    <SelectItem key={estado} value={estado}>
+                                      {estado}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Campo da IE */}
+                        <div className="relative flex-1">
+                          <Input
+                            {...field}
+                            placeholder={
+                              estadoSelecionado
+                                ? 'Ex: 12.345.67-8'
+                                : 'Selecione UF primeiro'
+                            }
+                            disabled={!estadoSelecionado}
+                            onChange={(e) => {
+                              if (estadoSelecionado) {
+                                const valorMascarado = ieUtils.aplicarMascara(
+                                  e.target.value,
+                                  estadoSelecionado,
+                                )
+                                field.onChange(valorMascarado)
+
+                                // Validação com toast
+                                if (e.target.value.length > 0) {
+                                  const isValid = ieUtils.validar(
+                                    e.target.value,
+                                    estadoSelecionado,
+                                  )
+                                  if (isValid) {
+                                    toast.success('Inscrição Estadual válida!')
+                                  } else {
+                                    toast.error(
+                                      'Inscrição Estadual inválida para o estado selecionado.',
+                                    )
+                                  }
+                                }
+                              } else {
+                                field.onChange(e.target.value)
+                              }
+                            }}
+                            className={cn(
+                              !estadoSelecionado &&
+                                'cursor-not-allowed opacity-50',
+                              isValidIe === true &&
+                                'border-green-500 bg-green-50 pr-10',
+                              isValidIe === false &&
+                                'border-red-500 bg-red-50 pr-10',
+                            )}
+                          />
+                          {isValidIe !== null && (
+                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                              {isValidIe ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <X className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            </div>
+
+            {/* Container para Inscrição Municipal */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="inscricaoMunicipal"
+                render={({ field }) => {
+                  const estadoSelecionado = form.watch('estadoIE')
+                  const imValue = field.value || ''
+                  const isValidIm =
+                    imValue.length > 0 && estadoSelecionado
+                      ? imUtils.validar(imValue, estadoSelecionado)
+                      : null
+
+                  return (
+                    <FormItem>
+                      <FormLabel className="mb-2">
+                        Inscrição Municipal
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            placeholder={
+                              estadoSelecionado
+                                ? 'Ex: 12345-67'
+                                : 'Selecione UF da IE primeiro'
+                            }
+                            disabled={!estadoSelecionado}
+                            onChange={(e) => {
+                              if (estadoSelecionado) {
+                                const valorMascarado = imUtils.aplicarMascara(
+                                  e.target.value,
+                                  estadoSelecionado,
+                                )
+                                field.onChange(valorMascarado)
+
+                                // Validação com toast
+                                if (e.target.value.length > 0) {
+                                  const isValid = imUtils.validar(
+                                    e.target.value,
+                                    estadoSelecionado,
+                                  )
+                                  if (isValid) {
+                                    toast.success('Inscrição Municipal válida!')
+                                  } else {
+                                    toast.error(
+                                      'Inscrição Municipal inválida para o estado selecionado.',
+                                    )
+                                  }
+                                }
+                              } else {
+                                field.onChange(e.target.value)
+                              }
+                            }}
+                            className={cn(
+                              !estadoSelecionado &&
+                                'cursor-not-allowed opacity-50',
+                              isValidIm === true &&
+                                'border-green-500 bg-green-50 pr-10',
+                              isValidIm === false &&
+                                'border-red-500 bg-red-50 pr-10',
+                            )}
+                          />
+                          {isValidIm !== null && (
+                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                              {isValidIm ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <X className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -564,183 +794,213 @@ export default function FornecedorForm({
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="cep"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>CEP *</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input 
-                        placeholder="00000-000" 
+            {/* Container para CEP */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="cep"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-2">CEP *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          placeholder="12345-678"
+                          {...field}
+                          onChange={(e) => {
+                            const valorMascarado = aplicarMascaraCEP(
+                              e.target.value,
+                            )
+                            field.onChange(valorMascarado)
+
+                            // Só busca CEP quando o formato estiver completo
+                            if (valorMascarado) {
+                              buscarCEP(valorMascarado)
+                            }
+                          }}
+                          className={cn(cepError && 'border-red-500 bg-red-50')}
+                        />
+                        {isLoadingCEP && (
+                          <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    {cepError && (
+                      <p className="text-sm text-red-600">{cepError}</p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Container para Logradouro */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="endereco"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-2">Logradouro *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Rua, Avenida, Travessa..."
                         {...field}
-                                                 onChange={(e) => {
-                           field.onChange(e)
-                           if (e.target.value.length >= 8) {
-                             buscarCEP(e.target.value)
-                           } else if (e.target.value.length > 0) {
-                             setCepPreenchido(true) // Habilita campos mesmo se CEP for inválido
-                           }
-                         }}
+                        disabled={!cepPreenchido}
                         className={cn(
-                          cepError && "border-red-500 bg-red-50"
+                          !cepPreenchido &&
+                            'cursor-not-allowed bg-slate-100 opacity-50',
                         )}
                       />
-                      {isLoadingCEP && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
-                  {cepError && (
-                    <p className="text-sm text-red-600">{cepError}</p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="endereco"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>Logradouro *</FormLabel>
-                  <FormControl>
-                                         <Input 
-                       placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Rua, Avenida, Travessa..."} 
-                       {...field}
-                       disabled={!cepPreenchido}
-                       className={cn(
-                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
-                       )}
-                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cidade"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>Cidade *</FormLabel>
-                  <FormControl>
-                                         <Input 
-                       placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Digite a cidade"} 
-                       {...field}
-                       disabled={!cepPreenchido}
-                       className={cn(
-                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
-                       )}
-                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="bairro"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>Bairro *</FormLabel>
-                  <FormControl>
-                                         <Input 
-                       placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Digite o bairro"} 
-                       {...field}
-                       disabled={!cepPreenchido}
-                       className={cn(
-                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
-                       )}
-                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-          <FormField
-              control={form.control}
-              name="estado"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>UF *</FormLabel>
-                                     <Select 
-                     onValueChange={field.onChange} 
-                     value={field.value}
-                     disabled={!cepPreenchido}
-                   >
-                     <FormControl>
-                       <SelectTrigger className={cn(
-                         'h-9 w-full',
-                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
-                       )}>
-                         <SelectValue placeholder={!cepPreenchido ? "Preencha o CEP primeiro" : "Estado"} />
-                       </SelectTrigger>
-                     </FormControl>
-                    <SelectContent>
-                      {estadosBrasileiros.map((estado) => (
-                        <SelectItem key={estado} value={estado}>
-                          {estado}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="numero"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>Número *</FormLabel>
-                  <FormControl>
-                                         <Input 
-                       placeholder="123" 
-                       {...field}
-                       disabled={!cepPreenchido}
-                       className={cn(
-                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
-                       )}
-                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-            <FormField
-              control={form.control}
-              name="complemento"
-              render={({ field }) => (
-                                 <FormItem className="min-h-[80px]">
-                   <FormLabel>Complemento</FormLabel>
-                  <FormControl>
-                                         <Input 
-                       placeholder="Apt, Sala, Bloco... (opcional)" 
-                       {...field}
-                       disabled={!cepPreenchido}
-                       className={cn(
-                         !cepPreenchido && "opacity-50 cursor-not-allowed bg-slate-100"
-                       )}
-                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
+
+            {/* Container para Cidade */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="cidade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-2">Cidade *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Rio de Janeiro"
+                        {...field}
+                        disabled={!cepPreenchido}
+                        className={cn(
+                          !cepPreenchido &&
+                            'cursor-not-allowed bg-slate-100 opacity-50',
+                        )}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Container para Bairro */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="bairro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-2">Bairro *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ramos"
+                        {...field}
+                        disabled={!cepPreenchido}
+                        className={cn(
+                          !cepPreenchido &&
+                            'cursor-not-allowed bg-slate-100 opacity-50',
+                        )}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* Container para UF */}
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="estado"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="mb-2">UF *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!cepPreenchido}
+                      >
+                        <FormControl>
+                          <SelectTrigger
+                            className={cn(
+                              'h-9 w-full',
+                              !cepPreenchido &&
+                                'cursor-not-allowed bg-slate-100 opacity-50',
+                            )}
+                          >
+                            <SelectValue placeholder="Estado" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {estadosBrasileiros.map((estado) => (
+                            <SelectItem key={estado} value={estado}>
+                              {estado}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Container para Número */}
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="numero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="mb-2">Número *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="123"
+                          {...field}
+                          disabled={!cepPreenchido}
+                          className={cn(
+                            !cepPreenchido &&
+                              'cursor-not-allowed bg-slate-100 opacity-50',
+                          )}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Container para Complemento */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="complemento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-2">Complemento</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Apt, Sala, Bloco... (opcional)"
+                        {...field}
+                        disabled={!cepPreenchido}
+                        className={cn(
+                          !cepPreenchido &&
+                            'cursor-not-allowed bg-slate-100 opacity-50',
+                        )}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
         </div>
 
         <Separator />
@@ -748,11 +1008,13 @@ export default function FornecedorForm({
         {/* Contatos */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 border-b border-slate-200 pb-3 flex-1">
+            <div className="flex flex-1 items-center space-x-3 border-b border-slate-200 pb-3">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
                 <Phone className="h-4 w-4 text-slate-600" aria-hidden="true" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900">Contatos</h3>
+              <h3 className="text-base font-semibold text-gray-900">
+                Contatos
+              </h3>
             </div>
             <Button
               type="button"
@@ -795,67 +1057,188 @@ export default function FornecedorForm({
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <FormField
-                      control={form.control}
-                      name={`contatos.${index}.nome`}
-                      render={({ field: nomeField }) => (
-                                                 <FormItem className="min-h-[80px]">
-                           <FormLabel>Nome do Contato</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Digite o nome" {...nomeField} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`contatos.${index}.tipo`}
-                      render={({ field: tipoField }) => (
-                                                 <FormItem className="min-h-[80px]">
-                           <FormLabel>Tipo do Contato</FormLabel>
-                          <Select onValueChange={tipoField.onChange} value={tipoField.value}>
-                            <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Selecione o tipo" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Email">E-mail</SelectItem>
-                              <SelectItem value="Fixo">Telefone Fixo</SelectItem>
-                              <SelectItem value="Celular">Celular</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`contatos.${index}.valor`}
-                      render={({ field: valorField }) => {
-                        const tipoContato = form.watch(`contatos.${index}.tipo`)
-                        return (
-                                                     <FormItem className="min-h-[80px]">
-                             <FormLabel>
-                              {tipoContato === 'Email' ? 'E-mail' : 
-                               tipoContato === 'Fixo' ? 'Telefone Fixo' : 
-                               tipoContato === 'Celular' ? 'Celular' : 'Valor'}
+                    {/* Container para Nome do Contato */}
+                    <div className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name={`contatos.${index}.nome`}
+                        render={({ field: nomeField }) => (
+                          <FormItem>
+                            <FormLabel className="mb-2">
+                              Nome do Contato
                             </FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder={getPlaceholderPorTipo(tipoContato)}
-                                type={tipoContato === 'Email' ? 'email' : 'tel'}
-                                {...valorField} 
+                              <Input
+                                placeholder="Digite o nome"
+                                {...nomeField}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
-                        )
-                      }}
-                    />
+                        )}
+                      />
+                    </div>
+
+                    {/* Container para Tipo do Contato */}
+                    <div className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name={`contatos.${index}.tipo`}
+                        render={({ field: tipoField }) => (
+                          <FormItem>
+                            <FormLabel className="mb-2">
+                              Tipo do Contato
+                            </FormLabel>
+                            <Select
+                              onValueChange={tipoField.onChange}
+                              value={tipoField.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Email">E-mail</SelectItem>
+                                <SelectItem value="Fixo">
+                                  Telefone Fixo
+                                </SelectItem>
+                                <SelectItem value="Celular">Celular</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Container para Valor do Contato */}
+                    <div className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name={`contatos.${index}.valor`}
+                        render={({ field: valorField }) => {
+                          const tipoContato = form.watch(
+                            `contatos.${index}.tipo`,
+                          )
+                          const valor = valorField.value || ''
+
+                          // Validação em tempo real
+                          let isValid = null
+
+                          if (valor.length > 0) {
+                            if (tipoContato === 'Email') {
+                              isValid = validarEmail(valor)
+                            } else if (tipoContato === 'Fixo') {
+                              isValid = validarFormatoTelefoneFixo(valor)
+                            } else if (tipoContato === 'Celular') {
+                              isValid = validarFormatoCelular(valor)
+                            }
+                          }
+
+                          return (
+                            <FormItem>
+                              <FormLabel className="mb-2">
+                                {tipoContato === 'Email'
+                                  ? 'E-mail'
+                                  : tipoContato === 'Fixo'
+                                    ? 'Telefone Fixo'
+                                    : tipoContato === 'Celular'
+                                      ? 'Celular'
+                                      : 'Valor'}
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    placeholder={getPlaceholderPorTipo(
+                                      tipoContato,
+                                    )}
+                                    type={
+                                      tipoContato === 'Email' ? 'email' : 'tel'
+                                    }
+                                    value={valor}
+                                    onChange={(e) => {
+                                      let valorProcessado = e.target.value
+
+                                      // Aplica máscara baseada no tipo
+                                      if (tipoContato === 'Fixo') {
+                                        valorProcessado =
+                                          aplicarMascaraTelefoneFixo(
+                                            e.target.value,
+                                          )
+                                      } else if (tipoContato === 'Celular') {
+                                        valorProcessado = aplicarMascaraCelular(
+                                          e.target.value,
+                                        )
+                                      }
+
+                                      valorField.onChange(valorProcessado)
+
+                                      // Validação com toast
+                                      if (valorProcessado.length > 0) {
+                                        if (tipoContato === 'Email') {
+                                          const emailValido =
+                                            validarEmail(valorProcessado)
+                                          if (emailValido) {
+                                            toast.success('E-mail válido!')
+                                          } else {
+                                            toast.error(
+                                              'E-mail inválido. Verifique o formato.',
+                                            )
+                                          }
+                                        } else if (tipoContato === 'Fixo') {
+                                          const telefoneValido =
+                                            validarFormatoTelefoneFixo(
+                                              valorProcessado,
+                                            )
+                                          if (telefoneValido) {
+                                            toast.success(
+                                              'Telefone fixo válido!',
+                                            )
+                                          } else {
+                                            toast.error(
+                                              'Telefone fixo inválido. Use o formato (11) 3333-4444',
+                                            )
+                                          }
+                                        } else if (tipoContato === 'Celular') {
+                                          const celularValido =
+                                            validarFormatoCelular(
+                                              valorProcessado,
+                                            )
+                                          if (celularValido) {
+                                            toast.success('Celular válido!')
+                                          } else {
+                                            toast.error(
+                                              'Celular inválido. Use o formato (11) 9 9999-8888',
+                                            )
+                                          }
+                                        }
+                                      }
+                                    }}
+                                    className={cn(
+                                      isValid === true &&
+                                        'border-green-500 bg-green-50 pr-10',
+                                      isValid === false &&
+                                        'border-red-500 bg-red-50 pr-10',
+                                    )}
+                                  />
+                                  {isValid !== null && (
+                                    <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                                      {isValid ? (
+                                        <Check className="h-4 w-4 text-green-500" />
+                                      ) : (
+                                        <X className="h-4 w-4 text-red-500" />
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -863,34 +1246,34 @@ export default function FornecedorForm({
           )}
 
           {fields.length >= 3 && (
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-center text-sm text-gray-500">
               Limite máximo de 3 contatos atingido.
             </p>
           )}
         </div>
 
         <FormField
-            control={form.control}
-            name="ativo"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1">
-                  <FormLabel className="font-medium text-slate-700">
-                    Fornecedor ativo
-                  </FormLabel>
-                  <p className="text-xs text-slate-600">
-                    Marque esta opção para manter o fornecedor ativo no sistema
-                  </p>
-                </div>
-              </FormItem>
-            )}
-          />
+          control={form.control}
+          name="ativo"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1">
+                <FormLabel className="font-medium text-slate-700">
+                  Fornecedor ativo
+                </FormLabel>
+                <p className="text-xs text-slate-600">
+                  Marque esta opção para manter o fornecedor ativo no sistema
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
 
         {/* Botões */}
         <div className="space-y-6 border-t border-gray-200 pt-8">
@@ -902,7 +1285,7 @@ export default function FornecedorForm({
               onClick={preencherDadosTeste}
               className="border-violet-300 bg-gradient-to-r from-violet-100 to-purple-100 text-sm text-violet-700 shadow-sm hover:from-violet-200 hover:to-purple-200"
             >
-              <Zap className="h-4 w-4 mr-2" />
+              <Zap className="mr-2 h-4 w-4" />
               Preencher Dados de Teste
             </Button>
           </div>
@@ -934,10 +1317,14 @@ export default function FornecedorForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              aria-label={isSubmitting ? 'Processando dados do fornecedor...' : 'Avançar para próximo passo'}
+              aria-label={
+                isSubmitting
+                  ? 'Processando dados do fornecedor...'
+                  : 'Avançar para próximo passo'
+              }
               className={cn(
-                'bg-slate-700 shadow-slate-700/20 hover:bg-slate-600 flex items-center gap-2 px-8 py-2.5 shadow-lg transition-all duration-200',
-                isSubmitting && 'opacity-50 cursor-not-allowed'
+                'flex items-center gap-2 bg-slate-700 px-8 py-2.5 shadow-lg shadow-slate-700/20 transition-all duration-200 hover:bg-slate-600',
+                isSubmitting && 'cursor-not-allowed opacity-50',
               )}
             >
               {isSubmitting ? (

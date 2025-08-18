@@ -65,10 +65,10 @@ export function NavMain({
     return location.pathname === subItemUrl
   }
 
-  const handleItemClick = (item: typeof items[0]) => {
+  const handleItemClick = (item: (typeof items)[0]) => {
     if (item.items?.length) {
       // Se tem subitens, alterna o estado de abertura
-      setOpenItems(prev => {
+      setOpenItems((prev) => {
         const newSet = new Set(prev)
         if (newSet.has(item.title)) {
           newSet.delete(item.title)
@@ -95,18 +95,18 @@ export function NavMain({
           return (
             <Collapsible key={item.title} asChild open={isOpen}>
               <SidebarMenuItem>
-                                 <SidebarMenuButton
-                   tooltip={state === 'collapsed' ? item.title : undefined}
-                   isActive={isActive}
-                   className={
-                     isActive
-                       ? '[&[data-active=true]]:text-sidebar-primary [&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium cursor-pointer'
-                       : state === 'collapsed'
-                         ? 'hover:text-sidebar-primary justify-center cursor-pointer'
-                         : 'hover:text-sidebar-primary cursor-pointer'
-                   }
-                   onClick={() => handleItemClick(item)}
-                 >
+                <SidebarMenuButton
+                  tooltip={state === 'collapsed' ? item.title : undefined}
+                  isActive={isActive}
+                  className={
+                    isActive
+                      ? '[&[data-active=true]]:text-sidebar-primary cursor-pointer [&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium'
+                      : state === 'collapsed'
+                        ? 'hover:text-sidebar-primary cursor-pointer justify-center'
+                        : 'hover:text-sidebar-primary cursor-pointer'
+                  }
+                  onClick={() => handleItemClick(item)}
+                >
                   <item.icon
                     className={state === 'collapsed' ? 'h-5 w-5' : ''}
                   />
@@ -116,11 +116,11 @@ export function NavMain({
                 </SidebarMenuButton>
                 {item.items?.length && state !== 'collapsed' ? (
                   <>
-                                         <CollapsibleTrigger asChild>
-                       <SidebarMenuAction 
-                         className="data-[state=open]:rotate-90 cursor-pointer"
-                         onClick={() => handleItemClick(item)}
-                       >
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuAction
+                        className="cursor-pointer data-[state=open]:rotate-90"
+                        onClick={() => handleItemClick(item)}
+                      >
                         <ChevronRight />
                         <span className="sr-only">Toggle</span>
                       </SidebarMenuAction>

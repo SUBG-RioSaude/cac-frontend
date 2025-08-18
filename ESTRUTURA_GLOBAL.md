@@ -33,15 +33,18 @@ cac-frontend/
 ## 🔧 Configurações do Projeto
 
 ### **TypeScript**
+
 - **`tsconfig.json`** - Configuração base com referências modulares
 - **`tsconfig.app.json`** - Configuração específica da aplicação
 - **`tsconfig.node.json`** - Configuração para ferramentas Node.js
 
 ### **Build e Desenvolvimento**
+
 - **`vite.config.ts`** - Configuração do Vite com plugins React e TailwindCSS
 - **`components.json`** - Configuração do shadcn/ui para componentes
 
 ### **Qualidade de Código**
+
 - **`eslint.config.js`** - Regras de linting e formatação
 - **`.prettierrc`** - Configuração de formatação automática
 - **`.prettierignore`** - Arquivos ignorados na formatação
@@ -83,6 +86,7 @@ src/
 ## 🎨 Sistema de Componentes (`src/components/`)
 
 ### **Componentes Globais**
+
 - **`app-sidebar.tsx`** - Sidebar principal com navegação
 - **`layout-pagina.tsx`** - Layout base para todas as páginas
 - **`nav-main.tsx`** - Menu de navegação principal
@@ -91,9 +95,11 @@ src/
 - **`sidebar-footer.tsx`** - Rodapé da sidebar
 
 ### **Componentes UI (`src/components/ui/`)**
+
 Sistema completo de componentes baseado no shadcn/ui:
 
 #### **Formulários e Entrada**
+
 - `accordion.tsx` - Acordeão expansível
 - `button.tsx` - Botões com variantes
 - `checkbox.tsx` - Checkbox customizado
@@ -108,6 +114,7 @@ Sistema completo de componentes baseado no shadcn/ui:
 - `toggle-group.tsx` - Grupo de toggles
 
 #### **Layout e Navegação**
+
 - `breadcrumb.tsx` - Navegação breadcrumb
 - `card.tsx` - Cartões de conteúdo
 - `collapsible.tsx` - Conteúdo colapsável
@@ -128,6 +135,7 @@ Sistema completo de componentes baseado no shadcn/ui:
 - `tabs.tsx` - Abas de conteúdo
 
 #### **Exibição de Dados**
+
 - `alert.tsx` - Alertas e notificações
 - `alert-dialog.tsx` - Diálogos de alerta
 - `aspect-ratio.tsx` - Controle de proporção
@@ -148,6 +156,7 @@ Sistema completo de componentes baseado no shadcn/ui:
 ## 🏗️ Módulos da Aplicação (`src/modules/`)
 
 ### **Módulo Contratos (`src/modules/Contratos/`)**
+
 Sistema completo de gerenciamento de contratos:
 
 ```
@@ -166,41 +175,49 @@ Contratos/
 ```
 
 ### **Módulo Fornecedores (`src/modules/Fornecedores/`)**
+
 Sistema de gerenciamento de fornecedores (em desenvolvimento)
 
 ## 🌐 Páginas Principais (`src/pages/`)
 
 ### **Páginas de Contratos**
+
 - **`ContratosPage.tsx`** - Lista principal de contratos
 - **`ContratoDetailPage.tsx`** - Detalhes de um contrato específico
 
 ### **Páginas de Fornecedores**
+
 - **`FornecedoresPage.tsx`** - Lista de fornecedores
 - **`FornecedorDetailPage.tsx`** - Detalhes de um fornecedor
 
 ### **Páginas Iniciais**
+
 - **`HomePage.tsx`** - Página inicial do sistema
 
 ## 🛠️ Utilitários e Configurações (`src/lib/`)
 
 ### **Funções Utilitárias (`utils.ts`)**
+
 - Funções de formatação e validação
 - Utilitários para CNPJ
 - Helpers de manipulação de dados
 - Funções de formatação de moeda e datas
 
 ### **Informações de Versão (`versao.ts`)**
+
 - Controle de versão da aplicação
 - Informações de build e release
 
 ## 🧪 Sistema de Testes (`src/tests/`)
 
 ### **Configuração de Testes**
+
 - **`setup-tests.ts`** - Configuração global dos testes
 - **`App.test.tsx`** - Testes do componente principal
 - **Testes específicos** para cada componente
 
 ### **Frameworks de Teste**
+
 - **Vitest** - Framework de testes unitários
 - **React Testing Library** - Biblioteca para testes de componentes
 - **JSDOM** - Ambiente DOM para testes
@@ -208,11 +225,13 @@ Sistema de gerenciamento de fornecedores (em desenvolvimento)
 ## 📁 Recursos Públicos (`public/`)
 
 ### **Logos e Imagens**
+
 - **`logo certa.png`** - Logo principal da CAC
 - **`logos-cac/`** - Conjunto de logos da CAC
   - `1.png` a `5.png` - Diferentes versões do logo
 
 ### **Ícones e SVGs**
+
 - **`vite.svg`** - Logo do Vite
 
 ## 🔄 Fluxo da Aplicação
@@ -236,6 +255,7 @@ Sistema de gerenciamento de fornecedores (em desenvolvimento)
 ## 🚀 Scripts Disponíveis
 
 ### **Desenvolvimento**
+
 ```bash
 pnpm dev              # Servidor de desenvolvimento
 pnpm build            # Build de produção
@@ -243,6 +263,7 @@ pnpm preview          # Preview do build
 ```
 
 ### **Qualidade de Código**
+
 ```bash
 pnpm lint             # Executar ESLint
 pnpm format           # Formatar com Prettier
@@ -250,6 +271,7 @@ pnpm format:check     # Verificar formatação
 ```
 
 ### **Testes**
+
 ```bash
 pnpm test             # Executar testes
 pnpm test:ui          # Interface visual de testes
@@ -259,11 +281,13 @@ pnpm test:coverage    # Relatório de cobertura
 ## 🎨 Sistema de Design
 
 ### **Frameworks CSS**
+
 - **TailwindCSS 4.1.11** - Framework utility-first
 - **shadcn/ui** - Sistema de componentes baseado em Radix UI
 - **Radix UI** - Primitivos de componentes acessíveis
 
 ### **Tema e Cores**
+
 - Sistema de cores consistente
 - Suporte a temas claro/escuro
 - Variáveis CSS customizadas
@@ -272,11 +296,13 @@ pnpm test:coverage    # Relatório de cobertura
 ## 📱 Responsividade
 
 ### **Breakpoints**
+
 - **sm** - 640px (mobile)
 - **md** - 768px (tablet)
 - **lg** - 1024px (desktop)
 
 ### **Componentes Adaptativos**
+
 - Layout responsivo para todos os dispositivos
 - Navegação adaptativa
 - Tabelas com scroll horizontal em mobile
@@ -285,6 +311,7 @@ pnpm test:coverage    # Relatório de cobertura
 ## 🔒 Acessibilidade (A11y)
 
 ### **Padrões Implementados**
+
 - Atributos ARIA apropriados
 - Navegação por teclado
 - Suporte a leitores de tela
@@ -294,11 +321,13 @@ pnpm test:coverage    # Relatório de cobertura
 ## 📊 Arquitetura do Estado
 
 ### **Gerenciamento de Estado**
+
 - **Zustand** - Store global para estado compartilhado
 - **React Hooks** - Estado local dos componentes
 - **Context API** - Para temas e configurações
 
 ### **Padrões de Estado**
+
 - Estado local para componentes isolados
 - Estado global apenas quando necessário
 - Separação clara entre UI e lógica de negócio
@@ -306,6 +335,7 @@ pnpm test:coverage    # Relatório de cobertura
 ## 🔌 Integração e APIs
 
 ### **Preparação para APIs**
+
 - Dados mock em formato JSON
 - Estrutura preparada para endpoints REST
 - Tipos TypeScript para contratos de API
@@ -314,12 +344,14 @@ pnpm test:coverage    # Relatório de cobertura
 ## 📈 Monitoramento e Performance
 
 ### **Ferramentas de Build**
+
 - **Vite** - Build tool ultra-rápido
 - **SWC** - Compilador Rust para React
 - **Tree shaking** automático
 - **Code splitting** inteligente
 
 ### **Otimizações**
+
 - Lazy loading de componentes
 - Bundle splitting por rota
 - Compressão de assets
@@ -328,12 +360,14 @@ pnpm test:coverage    # Relatório de cobertura
 ## 🚧 Desenvolvimento e Manutenção
 
 ### **Padrões de Código**
+
 - **TypeScript** para tipagem estática
 - **ESLint** para qualidade de código
 - **Prettier** para formatação consistente
 - **Conventional Commits** para mensagens Git
 
 ### **Estrutura de Branches**
+
 - **main** - Código de produção
 - **develop** - Desenvolvimento ativo
 - **feature/** - Novas funcionalidades
@@ -341,4 +375,4 @@ pnpm test:coverage    # Relatório de cobertura
 
 ---
 
-*📚 Esta documentação deve ser atualizada sempre que houver mudanças significativas na estrutura do projeto.*
+_📚 Esta documentação deve ser atualizada sempre que houver mudanças significativas na estrutura do projeto._
