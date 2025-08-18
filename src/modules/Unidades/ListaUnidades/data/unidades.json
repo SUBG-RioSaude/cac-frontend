@@ -7,8 +7,40 @@
     "UG": "001.001.001",
     "endereco": "Rua das Palmeiras, 1250 - Centro, Sao Paulo - SP, 01234-567",
     "status": "ativo",
-    "contratosAtivos": 15,
-    "valorTotalContratado": 2500000
+    "contratosAtivos": 3,
+    "valorTotalContratado": 2500000,
+    "contratos": [
+      {
+        "id": 101,
+        "numero": "CT-2024-001",
+        "objeto": "Prestacao de servicos de limpeza e conservacao",
+        "fornecedor": "Empresa de Limpeza ABC Ltda",
+        "valor": 850000,
+        "vigenciaInicio": "2024-01-15",
+        "vigenciaFim": "2024-12-31",
+        "status": "ativo"
+      },
+      {
+        "id": 102,
+        "numero": "CT-2024-015",
+        "objeto": "Fornecimento de medicamentos basicos",
+        "fornecedor": "Farmacia Central S.A.",
+        "valor": 1200000,
+        "vigenciaInicio": "2024-02-01",
+        "vigenciaFim": "2025-01-31",
+        "status": "ativo"
+      },
+      {
+        "id": 103,
+        "numero": "CT-2024-028",
+        "objeto": "Manutencao de equipamentos medicos",
+        "fornecedor": "TechMed Equipamentos",
+        "valor": 450000,
+        "vigenciaInicio": "2024-03-10",
+        "vigenciaFim": "2025-03-09",
+        "status": "ativo"
+      }
+    ]
   },
   {
     "id": 2,
@@ -18,8 +50,30 @@
     "UG": "001.001.002",
     "endereco": "Av. Paulista, 890 - Bela Vista, Sao Paulo - SP, 01310-200",
     "status": "ativo",
-    "contratosAtivos": 8,
-    "valorTotalContratado": 1200000
+    "contratosAtivos": 2,
+    "valorTotalContratado": 1200000,
+    "contratos": [
+      {
+        "id": 201,
+        "numero": "CT-2024-045",
+        "objeto": "Servicos de psicologia especializada",
+        "fornecedor": "Instituto de Psicologia Aplicada",
+        "valor": 750000,
+        "vigenciaInicio": "2024-01-01",
+        "vigenciaFim": "2024-12-31",
+        "status": "ativo"
+      },
+      {
+        "id": 202,
+        "numero": "CT-2024-052",
+        "objeto": "Fornecimento de materiais terapeuticos",
+        "fornecedor": "Terapia & Cia",
+        "valor": 450000,
+        "vigenciaInicio": "2024-02-15",
+        "vigenciaFim": "2025-02-14",
+        "status": "ativo"
+      }
+    ]
   },
   {
     "id": 3,
@@ -29,8 +83,30 @@
     "UG": "001.001.003",
     "endereco": "Rua Vergueiro, 3456 - Vila Mariana, Sao Paulo - SP, 04101-001",
     "status": "ativo",
-    "contratosAtivos": 12,
-    "valorTotalContratado": 850000
+    "contratosAtivos": 2,
+    "valorTotalContratado": 850000,
+    "contratos": [
+      {
+        "id": 301,
+        "numero": "CT-2024-067",
+        "objeto": "Servicos de enfermagem 24h",
+        "fornecedor": "Cooperativa de Enfermeiros Unidos",
+        "valor": 600000,
+        "vigenciaInicio": "2024-01-01",
+        "vigenciaFim": "2024-12-31",
+        "status": "ativo"
+      },
+      {
+        "id": 302,
+        "numero": "CT-2024-078",
+        "objeto": "Fornecimento de vacinas e soros",
+        "fornecedor": "BioVacinas Nacional",
+        "valor": 250000,
+        "vigenciaInicio": "2024-03-01",
+        "vigenciaFim": "2025-02-28",
+        "status": "ativo"
+      }
+    ]
   },
   {
     "id": 4,
@@ -40,8 +116,50 @@
     "UG": "001.001.004",
     "endereco": "Rua Augusta, 567 - Consolacao, Sao Paulo - SP, 01305-001",
     "status": "ativo",
-    "contratosAtivos": 22,
-    "valorTotalContratado": 4200000
+    "contratosAtivos": 4,
+    "valorTotalContratado": 4200000,
+    "contratos": [
+      {
+        "id": 401,
+        "numero": "CT-2024-089",
+        "objeto": "Servicos medicos especializados - plantao",
+        "fornecedor": "Coopermed Emergencia",
+        "valor": 1800000,
+        "vigenciaInicio": "2024-01-01",
+        "vigenciaFim": "2024-12-31",
+        "status": "ativo"
+      },
+      {
+        "id": 402,
+        "numero": "CT-2024-095",
+        "objeto": "Fornecimento de equipamentos de UTI",
+        "fornecedor": "MedEquip Hospitalar",
+        "valor": 1200000,
+        "vigenciaInicio": "2024-02-01",
+        "vigenciaFim": "2026-01-31",
+        "status": "ativo"
+      },
+      {
+        "id": 403,
+        "numero": "CT-2024-102",
+        "objeto": "Servicos de laboratorio clinico",
+        "fornecedor": "LabCenter Diagnosticos",
+        "valor": 950000,
+        "vigenciaInicio": "2024-03-15",
+        "vigenciaFim": "2025-03-14",
+        "status": "ativo"
+      },
+      {
+        "id": 404,
+        "numero": "CT-2023-156",
+        "objeto": "Manutencao predial e eletrica",
+        "fornecedor": "Construtora Predial Plus",
+        "valor": 250000,
+        "vigenciaInicio": "2023-12-01",
+        "vigenciaFim": "2024-11-30",
+        "status": "vencido"
+      }
+    ]
   },
   {
     "id": 5,
@@ -49,174 +167,33 @@
     "sigla": "CEM-S",
     "UO": "01.005",
     "UG": "001.001.005",
-    "endereco": "Av. Santo Amaro, 2134 - Santo Amaro, Sao Paulo - SP, 04506-001",
-    "status": "inativo",
-    "contratosAtivos": 0,
-    "valorTotalContratado": 0
+    "endereco": "Av. Ibirapuera, 2345 - Ibirapuera, Sao Paulo - SP, 04029-200",
+    "status": "ativo",
+    "contratosAtivos": 1,
+    "valorTotalContratado": 780000,
+    "contratos": [
+      {
+        "id": 501,
+        "numero": "CT-2024-115",
+        "objeto": "Servicos de radiologia e diagnostico por imagem",
+        "fornecedor": "RadioImagem Avancada",
+        "valor": 780000,
+        "vigenciaInicio": "2024-04-01",
+        "vigenciaFim": "2025-03-31",
+        "status": "ativo"
+      }
+    ]
   },
   {
     "id": 6,
-    "nome": "Hospital Infantil Maria da Gloria",
-    "sigla": "HIMG",
+    "nome": "Ambulatorio de Cardiologia Zona Leste",
+    "sigla": "ACL-ZL",
     "UO": "01.006",
     "UG": "001.001.006",
-    "endereco": "Rua dos Pinheiros, 789 - Pinheiros, Sao Paulo - SP, 05422-001",
-    "status": "ativo",
-    "contratosAtivos": 18,
-    "valorTotalContratado": 3100000
-  },
-  {
-    "id": 7,
-    "nome": "Unidade de Pronto Atendimento Leste",
-    "sigla": "UPA-L",
-    "UO": "01.007",
-    "UG": "001.001.007",
-    "endereco": "Av. Aricanduva, 3021 - Vila Formosa, Sao Paulo - SP, 03512-000",
-    "status": "ativo",
-    "contratosAtivos": 9,
-    "valorTotalContratado": 1800000
-  },
-  {
-    "id": 8,
-    "nome": "Centro de Saude da Mulher",
-    "sigla": "CSM",
-    "UO": "01.008",
-    "UG": "001.001.008",
-    "endereco": "Rua Liberdade, 445 - Liberdade, Sao Paulo - SP, 01503-001",
-    "status": "ativo",
-    "contratosAtivos": 7,
-    "valorTotalContratado": 950000
-  },
-  {
-    "id": 9,
-    "nome": "Ambulatorio de Especialidades Oeste",
-    "sigla": "AEO",
-    "UO": "01.009",
-    "UG": "001.001.009",
-    "endereco": "Rua Cardeal Arcoverde, 1678 - Pinheiros, Sao Paulo - SP, 05407-003",
-    "status": "ativo",
-    "contratosAtivos": 14,
-    "valorTotalContratado": 2200000
-  },
-  {
-    "id": 10,
-    "nome": "Hospital Geral do Norte",
-    "sigla": "HGN",
-    "UO": "01.010",
-    "UG": "001.001.010",
-    "endereco": "Av. Casa Verde, 4567 - Casa Verde, Sao Paulo - SP, 02519-200",
-    "status": "ativo",
-    "contratosAtivos": 25,
-    "valorTotalContratado": 5200000
-  },
-  {
-    "id": 11,
-    "nome": "Centro de Referencia em AIDS",
-    "sigla": "CRA",
-    "UO": "01.011",
-    "UG": "001.001.011",
-    "endereco": "Rua Frei Caneca, 890 - Consolacao, Sao Paulo - SP, 01307-002",
-    "status": "ativo",
-    "contratosAtivos": 6,
-    "valorTotalContratado": 750000
-  },
-  {
-    "id": 12,
-    "nome": "Unidade Basica de Saude Jardins",
-    "sigla": "UBS-J",
-    "UO": "01.012",
-    "UG": "001.001.012",
-    "endereco": "Alameda Santos, 2345 - Jardim Paulista, Sao Paulo - SP, 01419-002",
-    "status": "ativo",
-    "contratosAtivos": 11,
-    "valorTotalContratado": 1300000
-  },
-  {
-    "id": 13,
-    "nome": "Centro de Reabilitacao Fisica",
-    "sigla": "CRF",
-    "UO": "01.013",
-    "UG": "001.001.013",
-    "endereco": "Rua Oscar Freire, 1123 - Cerqueira Cesar, Sao Paulo - SP, 01426-001",
+    "endereco": "Rua Taquari, 1890 - Mooca, Sao Paulo - SP, 03166-001",
     "status": "inativo",
-    "contratosAtivos": 2,
-    "valorTotalContratado": 150000
-  },
-  {
-    "id": 14,
-    "nome": "Hospital de Emergencias Trauma",
-    "sigla": "HET",
-    "UO": "01.014",
-    "UG": "001.001.014",
-    "endereco": "Av. 23 de Maio, 5678 - Paraiso, Sao Paulo - SP, 04037-003",
-    "status": "ativo",
-    "contratosAtivos": 20,
-    "valorTotalContratado": 6800000
-  },
-  {
-    "id": 15,
-    "nome": "Centro de Saude Mental Comunitario",
-    "sigla": "CSMC",
-    "UO": "01.015",
-    "UG": "001.001.015",
-    "endereco": "Rua da Mooca, 2890 - Mooca, Sao Paulo - SP, 03103-001",
-    "status": "ativo",
-    "contratosAtivos": 5,
-    "valorTotalContratado": 680000
-  },
-  {
-    "id": 16,
-    "nome": "Laboratorio Central de Analises",
-    "sigla": "LCA",
-    "UO": "01.016",
-    "UG": "001.001.016",
-    "endereco": "Av. Reboucas, 1567 - Pinheiros, Sao Paulo - SP, 05401-200",
-    "status": "ativo",
-    "contratosAtivos": 13,
-    "valorTotalContratado": 2800000
-  },
-  {
-    "id": 17,
-    "nome": "Centro de Controle de Zoonoses",
-    "sigla": "CCZ",
-    "UO": "01.017",
-    "UG": "001.001.017",
-    "endereco": "Rua Santa Ifigenia, 234 - Santa Ifigenia, Sao Paulo - SP, 01207-001",
-    "status": "ativo",
-    "contratosAtivos": 4,
-    "valorTotalContratado": 420000
-  },
-  {
-    "id": 18,
-    "nome": "Unidade de Saude da Familia Itaim",
-    "sigla": "USF-I",
-    "UO": "01.018",
-    "UG": "001.001.018",
-    "endereco": "Av. Faria Lima, 3456 - Itaim Bibi, Sao Paulo - SP, 04538-132",
-    "status": "ativo",
-    "contratosAtivos": 8,
-    "valorTotalContratado": 1100000
-  },
-  {
-    "id": 19,
-    "nome": "Hospital Materno Infantil",
-    "sigla": "HMI",
-    "UO": "01.019",
-    "UG": "001.001.019",
-    "endereco": "Rua Teodoro Sampaio, 987 - Cerqueira Cesar, Sao Paulo - SP, 05405-000",
-    "status": "ativo",
-    "contratosAtivos": 16,
-    "valorTotalContratado": 3900000
-  },
-  {
-    "id": 20,
-    "nome": "Centro de Diagnostico por Imagem",
-    "sigla": "CDI",
-    "UO": "01.020",
-    "UG": "001.001.020",
-    "endereco": "Av. Ibirapuera, 2123 - Ibirapuera, Sao Paulo - SP, 04029-200",
-    "status": "inativo",
-    "contratosAtivos": 1,
-    "valorTotalContratado": 80000
+    "contratosAtivos": 0,
+    "valorTotalContratado": 0,
+    "contratos": []
   }
 ]

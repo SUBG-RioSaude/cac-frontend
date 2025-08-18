@@ -1,3 +1,14 @@
+export interface ContratoVinculado {
+  id: number
+  numero: string
+  objeto: string
+  fornecedor: string
+  valor: number
+  vigenciaInicio: string
+  vigenciaFim: string
+  status: 'ativo' | 'vencido' | 'suspenso'
+}
+
 export interface Unidade {
   id: number
   nome: string
@@ -8,6 +19,7 @@ export interface Unidade {
   status?: 'ativo' | 'inativo'
   contratosAtivos?: number
   valorTotalContratado?: number
+  contratos?: ContratoVinculado[]
 }
 
 export interface PaginacaoParamsUnidade {

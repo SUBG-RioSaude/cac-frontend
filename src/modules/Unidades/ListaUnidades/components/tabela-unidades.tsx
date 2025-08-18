@@ -1,13 +1,32 @@
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, Edit, ChevronLeft, ChevronRight, MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import type { Unidade, PaginacaoParamsUnidade, OrdenacaoParams, ColunaOrdenacao } from "@/modules/Unidades/ListaUnidades/types/unidade"
-import { useNavigate } from "react-router-dom"
+import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ExternalLink,
+  ArrowRight,
+} from 'lucide-react'
+import type {
+  Unidade,
+  PaginacaoParamsUnidade,
+  OrdenacaoParams,
+  ColunaOrdenacao,
+} from '@/modules/Unidades/ListaUnidades/types/unidade'
+import { currencyUtils } from '@/lib/utils'
 
 interface TabelaUnidadesProps {
   unidades: Unidade[]
@@ -16,7 +35,6 @@ interface TabelaUnidadesProps {
   paginacao: PaginacaoParamsUnidade
   onPaginacaoChange: (paginacao: PaginacaoParamsUnidade) => void
   onVisualizarUnidade: (unidade: Unidade) => void
-  onEditarUnidade: (unidade: Unidade) => void
   ordenacao: OrdenacaoParams
   onOrdenacao: (coluna: ColunaOrdenacao) => void
 }
@@ -28,47 +46,36 @@ export function TabelaUnidades({
   paginacao,
   onPaginacaoChange,
   onVisualizarUnidade,
-  onEditarUnidade,
   ordenacao,
   onOrdenacao,
 }: TabelaUnidadesProps) {
-  const navigate = useNavigate()
-
-  const handleVisualizarUnidade = (unidade: Unidade) => {
-    navigate(`/unidades/${unidade.id}`)
-  }
-
-  const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(valor)
-  }
-
   const getIconeOrdenacao = (coluna: ColunaOrdenacao) => {
     if (ordenacao.coluna !== coluna) {
       return <ArrowUpDown className="h-4 w-4" />
     }
-    return ordenacao.direcao === 'asc' 
-      ? <ArrowUp className="h-4 w-4" /> 
-      : <ArrowDown className="h-4 w-4" />
+    return ordenacao.direcao === 'asc' ? (
+      <ArrowUp className="h-4 w-4" />
+    ) : (
+      <ArrowDown className="h-4 w-4" />
+    )
   }
-  
+
   const getStatusBadge = (status: string = 'ativo') => {
     const statusConfig = {
       ativo: {
-        variant: "default" as const,
-        label: "Ativo",
-        className: "bg-green-100 text-green-800 hover:bg-green-200",
+        variant: 'default' as const,
+        label: 'Ativo',
+        className: 'bg-green-100 text-green-800 hover:bg-green-200',
       },
       inativo: {
-        variant: "secondary" as const,
-        label: "Inativo",
-        className: "bg-red-100 text-red-800 hover:bg-red-200",
+        variant: 'secondary' as const,
+        label: 'Inativo',
+        className: 'bg-red-100 text-red-800 hover:bg-red-200',
       },
     }
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
 
     return (
       <Badge variant={config.variant} className={config.className}>
@@ -81,7 +88,9 @@ export function TabelaUnidades({
     if (selecionado) {
       onUnidadesSelecionadasChange([...unidadesSelecionadas, id])
     } else {
-      onUnidadesSelecionadasChange(unidadesSelecionadas.filter(unidadeId => unidadeId !== id))
+      onUnidadesSelecionadasChange(
+        unidadesSelecionadas.filter((unidadeId) => unidadeId !== id),
+      )
     }
   }
 
@@ -89,9 +98,9 @@ export function TabelaUnidades({
     if (selecionadas) {
       const unidadesPaginadas = unidades.slice(
         (paginacao.pagina - 1) * paginacao.itensPorPagina,
-        paginacao.pagina * paginacao.itensPorPagina
+        paginacao.pagina * paginacao.itensPorPagina,
       )
-      onUnidadesSelecionadasChange(unidadesPaginadas.map(u => u.id))
+      onUnidadesSelecionadasChange(unidadesPaginadas.map((u) => u.id))
     } else {
       onUnidadesSelecionadasChange([])
     }
@@ -100,19 +109,20 @@ export function TabelaUnidades({
   // Paginação
   const unidadesPaginadas = unidades.slice(
     (paginacao.pagina - 1) * paginacao.itensPorPagina,
-    paginacao.pagina * paginacao.itensPorPagina
+    paginacao.pagina * paginacao.itensPorPagina,
   )
 
   const totalPaginas = Math.ceil(unidades.length / paginacao.itensPorPagina)
-  
-  const todasUnidadesSelecionadas = unidadesPaginadas.length > 0 && 
-    unidadesPaginadas.every(u => unidadesSelecionadas.includes(u.id))
+
+  const todasUnidadesSelecionadas =
+    unidadesPaginadas.length > 0 &&
+    unidadesPaginadas.every((u) => unidadesSelecionadas.includes(u.id))
 
   const proximaPagina = () => {
     if (paginacao.pagina < totalPaginas) {
       onPaginacaoChange({
         ...paginacao,
-        pagina: paginacao.pagina + 1
+        pagina: paginacao.pagina + 1,
       })
     }
   }
@@ -121,7 +131,7 @@ export function TabelaUnidades({
     if (paginacao.pagina > 1) {
       onPaginacaoChange({
         ...paginacao,
-        pagina: paginacao.pagina - 1
+        pagina: paginacao.pagina - 1,
       })
     }
   }
@@ -132,12 +142,14 @@ export function TabelaUnidades({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card className="shadow-sm border-0 bg-card/50 backdrop-blur">
-        <CardHeader className="pb-4 px-3 sm:px-6">
+      <Card className="bg-card/50 border-0 shadow-sm backdrop-blur">
+        <CardHeader className="px-3 pb-4 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle className="text-lg sm:text-xl font-semibold">Lista de Unidades</CardTitle>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <CardTitle className="text-lg font-semibold sm:text-xl">
+                Lista de Unidades
+              </CardTitle>
+              <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
                 {unidades.length} unidades encontradas
               </p>
             </div>
@@ -145,9 +157,9 @@ export function TabelaUnidades({
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="mx-3 sm:mx-6 mb-3 sm:mb-6">
+          <div className="mx-3 mb-3 sm:mx-6 sm:mb-6">
             {/* Versão mobile - Cards */}
-            <div className="block lg:hidden space-y-3">
+            <div className="block space-y-3 lg:hidden">
               <AnimatePresence>
                 {unidadesPaginadas.map((unidade, index) => (
                   <motion.div
@@ -157,78 +169,80 @@ export function TabelaUnidades({
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                   >
-                    <Card className="p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-3">
+                    <Card
+                      className="hover:bg-muted/30 cursor-pointer p-4 transition-all hover:shadow-md"
+                      onClick={() => onVisualizarUnidade(unidade)}
+                    >
+                      <div className="mb-3 flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={unidadesSelecionadas.includes(unidade.id)}
-                            onCheckedChange={(checked) => handleSelecionarUnidade(unidade.id, checked as boolean)}
+                            onCheckedChange={(checked) =>
+                              handleSelecionarUnidade(
+                                unidade.id,
+                                checked as boolean,
+                              )
+                            }
                           />
                           <div>
-                            <div className="font-medium text-sm">{unidade.nome}</div>
-                            <div className="text-xs text-muted-foreground">{unidade.sigla}</div>
+                            <div className="text-sm font-medium">
+                              {unidade.nome}
+                            </div>
+                            <div className="text-muted-foreground text-xs">
+                              {unidade.sigla}
+                            </div>
                           </div>
                         </div>
                         {getStatusBadge(unidade.status)}
                       </div>
 
-                      <div className="space-y-2 mb-3">
+                      <div className="mb-3 space-y-2">
                         <div>
-                          <p className="text-xs text-muted-foreground">UO</p>
+                          <p className="text-muted-foreground text-xs">UO</p>
                           <p className="text-sm">{unidade.UO}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">UG</p>
+                          <p className="text-muted-foreground text-xs">UG</p>
                           <p className="text-sm">{unidade.UG}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Contratos Ativos</p>
-                          <p className="text-sm font-medium">{unidade.contratosAtivos || 0}</p>
+                          <p className="text-muted-foreground text-xs">
+                            Contratos Ativos
+                          </p>
+                          <p className="text-sm font-medium">
+                            {unidade.contratosAtivos || 0}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Valor Total Contratado</p>
-                          <p className="text-sm font-medium">{formatarMoeda(unidade.valorTotalContratado || 0)}</p>
+                          <p className="text-muted-foreground text-xs">
+                            Valor Total Contratado
+                          </p>
+                          <p className="text-sm font-medium">
+                            {currencyUtils.formatar(
+                              unidade.valorTotalContratado || 0,
+                            )}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Endereço</p>
-                          <p className="text-sm line-clamp-2">{unidade.endereco}</p>
+                          <p className="text-muted-foreground text-xs">
+                            Endereço
+                          </p>
+                          <p className="line-clamp-2 text-sm">
+                            {unidade.endereco}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() => handleVisualizarUnidade(unidade)}
-                          className="h-8 w-8 p-0"
+                          onClick={() => onVisualizarUnidade(unidade)}
+                          className="h-8 px-3 text-xs"
                         >
-                          <Eye className="h-4 w-4" />
+                          Abrir
+                          <ExternalLink className="mr-1 h-3 w-3" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => null}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleVisualizarUnidade(unidade)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Visualizar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditarUnidade(unidade)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
                     </Card>
                   </motion.div>
@@ -237,7 +251,7 @@ export function TabelaUnidades({
             </div>
 
             {/* Versão desktop - Tabela */}
-            <div className="hidden lg:block rounded-lg border bg-background/50 overflow-hidden">
+            <div className="bg-background/50 hidden overflow-hidden rounded-lg border lg:block">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -247,8 +261,8 @@ export function TabelaUnidades({
                         onCheckedChange={handleSelecionarTodas}
                       />
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -256,8 +270,8 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('nome')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('sigla')}
                     >
                       <div className="flex items-center gap-2">
@@ -265,8 +279,8 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('sigla')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('UO')}
                     >
                       <div className="flex items-center gap-2">
@@ -274,8 +288,8 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('UO')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('UG')}
                     >
                       <div className="flex items-center gap-2">
@@ -283,8 +297,8 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('UG')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('status')}
                     >
                       <div className="flex items-center gap-2">
@@ -292,8 +306,8 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('status')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('contratosAtivos')}
                     >
                       <div className="flex items-center gap-2">
@@ -301,8 +315,8 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('contratosAtivos')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-semibold cursor-pointer hover:bg-muted/50 transition-colors"
+                    <TableHead
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('valorTotalContratado')}
                     >
                       <div className="flex items-center gap-2">
@@ -311,7 +325,9 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead className="font-semibold">Endereço</TableHead>
-                    <TableHead className="text-right font-semibold">Ações</TableHead>
+                    <TableHead className="w-24 text-center font-semibold">
+                      Abrir
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -323,78 +339,66 @@ export function TabelaUnidades({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="group hover:bg-muted/30 transition-colors"
+                        className="group hover:bg-muted/30 cursor-pointer transition-colors"
+                        onClick={() => onVisualizarUnidade(unidade)}
                       >
                         <TableCell>
                           <Checkbox
                             checked={unidadesSelecionadas.includes(unidade.id)}
-                            onCheckedChange={(checked) => handleSelecionarUnidade(unidade.id, checked as boolean)}
+                            onCheckedChange={(checked) =>
+                              handleSelecionarUnidade(
+                                unidade.id,
+                                checked as boolean,
+                              )
+                            }
                           />
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium text-sm line-clamp-2 max-w-[200px]">
+                          <div className="line-clamp-2 max-w-[200px] text-sm font-medium">
                             {unidade.nome}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm font-mono">{unidade.sigla}</div>
+                          <div className="font-mono text-sm">
+                            {unidade.sigla}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm font-mono">{unidade.UO}</div>
+                          <div className="font-mono text-sm">{unidade.UO}</div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm font-mono">{unidade.UG}</div>
+                          <div className="font-mono text-sm">{unidade.UG}</div>
                         </TableCell>
                         <TableCell>{getStatusBadge(unidade.status)}</TableCell>
                         <TableCell>
-                          <div className="text-sm font-medium text-center">
+                          <div className="text-center text-sm font-medium">
                             {unidade.contratosAtivos || 0}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm font-medium text-right">
-                            {formatarMoeda(unidade.valorTotalContratado || 0)}
+                          <div className="text-right text-sm font-medium">
+                            {currencyUtils.formatar(
+                              unidade.valorTotalContratado || 0,
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm line-clamp-2 max-w-[300px]">{unidade.endereco}</div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleVisualizarUnidade(unidade)}
-                              className="h-8 w-8 p-0 opacity-100"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEditarUnidade(unidade)}
-                              className="h-8 w-8 p-0 opacity-100"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-100">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleVisualizarUnidade(unidade)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Visualizar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onEditarUnidade(unidade)}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Editar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                          <div className="line-clamp-2 max-w-[300px] text-sm">
+                            {unidade.endereco}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-center transition-transform ease-in-out hover:scale-110">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onVisualizarUnidade(unidade)}
+                            className="h-8 px-3 text-xs"
+                          >
+                            Abrir
+                            <div className="transition-transform ease-in-out hover:scale-125">
+                              <ArrowRight className="mr-1 h-5 w-5" />
+                            </div>
+                          </Button>
                         </TableCell>
                       </motion.tr>
                     ))}
@@ -405,10 +409,15 @@ export function TabelaUnidades({
           </div>
 
           {/* Paginação */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-3 sm:px-6 pb-3 sm:pb-6">
-            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-              Mostrando {(paginacao.pagina - 1) * paginacao.itensPorPagina + 1} a{" "}
-              {Math.min(paginacao.pagina * paginacao.itensPorPagina, unidades.length)} de {unidades.length} unidades
+          <div className="flex flex-col gap-3 px-3 pb-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6">
+            <div className="text-muted-foreground text-center text-xs sm:text-left sm:text-sm">
+              Mostrando {(paginacao.pagina - 1) * paginacao.itensPorPagina + 1}{' '}
+              a{' '}
+              {Math.min(
+                paginacao.pagina * paginacao.itensPorPagina,
+                unidades.length,
+              )}{' '}
+              de {unidades.length} unidades
             </div>
 
             <div className="flex items-center justify-center gap-2">
@@ -420,7 +429,7 @@ export function TabelaUnidades({
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Anterior</span>
+                <span className="xs:inline hidden">Anterior</span>
               </Button>
 
               <div className="flex items-center gap-1">
@@ -429,10 +438,14 @@ export function TabelaUnidades({
                   return (
                     <Button
                       key={pageNum}
-                      variant={paginacao.pagina === pageNum ? "default" : "outline"}
+                      variant={
+                        paginacao.pagina === pageNum ? 'default' : 'outline'
+                      }
                       size="sm"
-                      onClick={() => onPaginacaoChange({ ...paginacao, pagina: pageNum })}
-                      className="w-8 h-8 sm:w-9 sm:h-9 p-0 text-xs sm:text-sm"
+                      onClick={() =>
+                        onPaginacaoChange({ ...paginacao, pagina: pageNum })
+                      }
+                      className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
                     >
                       {pageNum}
                     </Button>
@@ -447,13 +460,13 @@ export function TabelaUnidades({
                 disabled={paginacao.pagina === totalPaginas}
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
-                <span className="hidden xs:inline">Próxima</span>
+                <span className="xs:inline hidden">Próxima</span>
                 <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
         </CardContent>
-      </Card>    
-    </motion.div> 
+      </Card>
+    </motion.div>
   )
 }

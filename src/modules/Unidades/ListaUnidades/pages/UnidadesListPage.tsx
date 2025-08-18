@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Plus, FileDown } from "lucide-react"
@@ -12,9 +13,15 @@ import unidadesData from "../data/unidades.json"
 const unidades: Unidade[] = unidadesData
 
 const UnidadesListPage = () => {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [termoPesquisa, setTermoPesquisa] = useState('')
   const [termoPesquisaDebounced, setTermoPesquisaDebounced] = useState('')
+  const [filtrosAvancados, setFiltrosAvancados] = useState<{
+    status?: string
+    sigla?: string
+    tipo?: string
+  }>({})
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<number[]>([])
   const [ordenacao, setOrdenacao] = useState<OrdenacaoParams>({
     coluna: 'nome',
@@ -84,18 +91,43 @@ const UnidadesListPage = () => {
       )
     }
 
+    // Aplicar filtros avançados
+    if (filtrosAvancados.status) {
+      resultado = resultado.filter(unidade => 
+        (unidade.status || 'ativo') === filtrosAvancados.status
+      )
+    }
+
+    if (filtrosAvancados.sigla) {
+      resultado = resultado.filter(unidade =>
+        unidade.sigla.toLowerCase().includes(filtrosAvancados.sigla!.toLowerCase())
+      )
+    }
+
+    if (filtrosAvancados.tipo) {
+      // Filtro por tipo baseado na sigla (simplificado)
+      const tipoMap = {
+        ubs: ['UBS'],
+        hospital: ['HOSPITAL', 'HMS'],
+        caps: ['CAPS'],
+        upa: ['UPA'],
+        centro: ['CENTRO', 'CE']
+      }
+      
+      const siglasTipo = tipoMap[filtrosAvancados.tipo as keyof typeof tipoMap] || []
+      resultado = resultado.filter(unidade =>
+        siglasTipo.some(tipo => unidade.sigla.toUpperCase().includes(tipo))
+      )
+    }
+
     // Aplicar ordenação
     resultado = ordenarUnidades(resultado, ordenacao)
 
     return resultado
-  }, [termoPesquisaDebounced, ordenacao])
+  }, [termoPesquisaDebounced, filtrosAvancados, ordenacao])
 
   const handleVisualizarUnidade = (unidade: Unidade) => {
-    console.log("Visualizar unidade:", unidade)
-  }
-
-  const handleEditarUnidade = (unidade: Unidade) => {
-    console.log("Editar unidade:", unidade)
+    navigate(`/unidades/${unidade.id}`)
   }
 
   const handleOrdenacao = (coluna: ColunaOrdenacao) => {
@@ -197,6 +229,8 @@ const UnidadesListPage = () => {
           <SearchAndFiltersUnidades
             termoPesquisa={termoPesquisa}
             onTermoPesquisaChange={setTermoPesquisa}
+            filtros={filtrosAvancados}
+            onFiltrosChange={setFiltrosAvancados}
           />
         </motion.div>
 
@@ -208,7 +242,6 @@ const UnidadesListPage = () => {
           paginacao={paginacao}
           onPaginacaoChange={setPaginacao}
           onVisualizarUnidade={handleVisualizarUnidade}
-          onEditarUnidade={handleEditarUnidade}
           ordenacao={ordenacao}
           onOrdenacao={handleOrdenacao}
         />

@@ -123,14 +123,20 @@ export function Component({ className, children, ...props }: ComponentProps) {
 - Usar `cn()` utility de `@/lib/utils` para merge de classes
 - Componentes devem aceitar `className` para extensibilidade
 
+#### Utilities Globais (`@/lib/utils`)
+- **SEMPRE usar funções globais** em vez de criar implementações locais
+- **Formatação monetária**: Usar `currencyUtils` para todos os valores monetários
+  - `currencyUtils.aplicarMascara()` para inputs com máscara R$ durante digitação
+  - `currencyUtils.validar()` para validação de valores monetários  
+  - `currencyUtils.formatar()` para exibição de valores formatados
+- **Classes CSS**: Usar `cn()` para merge de classes TailwindCSS
+- **Outras utilities**: Verificar `@/lib/utils` antes de implementar funções auxiliares
+
 #### Formulários
 - **React Hook Form** com resolvers Zod para validação
 - Componentes de formulário do shadcn/ui
 - Validação client-side com feedback visual
-- **Formatação monetária**: Sempre usar `currencyUtils` do `@/lib/utils` para campos de valor
-  - `currencyUtils.aplicarMascara()` para inputs com máscara R$ durante digitação
-  - `currencyUtils.validar()` para validação de valores monetários
-  - `currencyUtils.formatar()` para exibição de valores formatados
+- **Campos monetários**: Sempre integrar com `currencyUtils` do `@/lib/utils`
 
 ## Configurações Importantes
 

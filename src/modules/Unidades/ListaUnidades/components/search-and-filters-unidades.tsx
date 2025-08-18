@@ -9,23 +9,42 @@ import { useState } from "react"
 interface SearchAndFiltersUnidadesProps {
   termoPesquisa: string
   onTermoPesquisaChange: (termo: string) => void
+  filtros?: {
+    status?: string
+    sigla?: string
+    tipo?: string
+  }
+  onFiltrosChange?: (filtros: { status?: string, sigla?: string, tipo?: string }) => void
 }
 
 export function SearchAndFiltersUnidades({
   termoPesquisa,
   onTermoPesquisaChange,
+  filtros = { status: "todos", sigla: "", tipo: "todos" },
+  onFiltrosChange,
 }: SearchAndFiltersUnidadesProps) {
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
-  const [filtroStatus, setFiltroStatus] = useState<string>("todos")
-  const [filtroSigla, setFiltroSigla] = useState<string>("")
+  const [filtroStatus, setFiltroStatus] = useState<string>(filtros.status || "todos")
+  const [filtroSigla, setFiltroSigla] = useState<string>(filtros.sigla || "")
+  const [filtroTipo, setFiltroTipo] = useState<string>(filtros.tipo || "todos")
 
   const limparFiltros = () => {
     setFiltroStatus("todos")
     setFiltroSigla("")
+    setFiltroTipo("todos")
     onTermoPesquisaChange("")
+    onFiltrosChange?.({ status: "todos", sigla: "", tipo: "todos" })
   }
 
-  const temFiltrosAtivos = (filtroStatus && filtroStatus !== "todos") || filtroSigla || termoPesquisa
+  const aplicarFiltros = () => {
+    onFiltrosChange?.({
+      status: filtroStatus !== "todos" ? filtroStatus : undefined,
+      sigla: filtroSigla || undefined,
+      tipo: filtroTipo !== "todos" ? filtroTipo : undefined,
+    })
+  }
+
+  const temFiltrosAtivos = (filtroStatus && filtroStatus !== "todos") || filtroSigla || (filtroTipo && filtroTipo !== "todos") || termoPesquisa
 
   return (
     <div className="space-y-4">
@@ -108,7 +127,7 @@ export function SearchAndFiltersUnidades({
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tipo de Unidade</label>
-                  <Select>
+                  <Select value={filtroTipo} onValueChange={setFiltroTipo}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos os tipos" />
                     </SelectTrigger>
@@ -125,10 +144,7 @@ export function SearchAndFiltersUnidades({
 
                 <div className="flex items-end">
                   <Button
-                    onClick={() => {
-                      // Aqui você aplicaria os filtros avançados
-                      console.log("Aplicar filtros:", { filtroStatus, filtroSigla })
-                    }}
+                    onClick={aplicarFiltros}
                     className="w-full"
                   >
                     Aplicar Filtros
