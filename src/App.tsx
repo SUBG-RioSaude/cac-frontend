@@ -16,6 +16,8 @@ import Unauthorized from './modules/http-codes/401'
 import BadRequest from './modules/http-codes/400'
 import Forbidden from './modules/http-codes/403'
 import ServiceUnavailable from './modules/http-codes/503'
+import UnidadesPage from './pages/unidades/UnidadesPage'
+import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 
 function App() {
   return (
@@ -41,6 +43,7 @@ function App() {
                 <Route path="/403" element={<Forbidden />} />
                 <Route path="/400" element={<BadRequest />} />
                 <Route path="/503" element={<ServiceUnavailable />} />
+                {/* Rotas de erro */}
 
                 {/* Rotas */}
                 <Route path="/" element={<HomePage />} />
@@ -63,6 +66,10 @@ function App() {
                   path="/contratos/:id/editar"
                   element={<VisualizarContrato />}
                 />
+
+                <Route path="/unidades" element={<UnidadesPage />} />
+                <Route path="/unidades/:unidadeId" element={<UnidadeDetailPage />} />
+
               </Routes>
             </div>
           </ErrorBoundary>

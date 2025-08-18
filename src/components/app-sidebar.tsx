@@ -14,6 +14,7 @@ import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 import SidebarFooterCustom from '@/components/sidebar-footer'
 import { Separator } from './ui/separator'
+import { Link } from 'react-router-dom'
 
 const data = {
   user: {
@@ -88,13 +89,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {/* Container principal da logo */}
               <div className="flex flex-col items-center space-y-3 group-data-[state=collapsed]:space-y-2">
                 {/* Logo principal limpa - sem quadrado */}
-                <div className="logo-container relative transition-all duration-500 group-data-[state=collapsed]:scale-75 hover:scale-110">
-                  <img
-                    src="/logo certa.png"
-                    alt="Logo Prefeitura"
-                    className="h-24 w-52 object-contain drop-shadow-lg transition-all duration-500 group-data-[state=collapsed]:h-24 group-data-[state=collapsed]:w-24"
-                  />
-                </div>
+                <Link to="/">
+                  <div className="logo-container relative transition-all duration-500 group-data-[state=collapsed]:scale-75 hover:scale-110">
+                    <img
+                      src="/logo certa.png"
+                      alt="Logo Prefeitura"
+                      className="h-24 w-52 object-contain drop-shadow-lg transition-all duration-500 group-data-[state=collapsed]:h-24 group-data-[state=collapsed]:w-24"
+                    />
+                  </div>
+                </Link>
 
                 {/* Badge CAC melhorada */}
                 <div className="group-data-[state=collapsed]:hidden">

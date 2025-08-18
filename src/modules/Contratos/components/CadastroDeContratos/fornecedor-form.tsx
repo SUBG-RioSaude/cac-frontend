@@ -201,6 +201,7 @@ export default function FornecedorForm({
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
   const [cepPreenchido, setCepPreenchido] = useState(false)
+  const [cepPreenchido, setCepPreenchido] = useState(false)
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {
@@ -208,6 +209,7 @@ export default function FornecedorForm({
 
     setIsLoadingCEP(true)
     setCepError(null)
+    setCepPreenchido(true) // Habilita os campos de endereço
 
     try {
       const cepLimpo = cep.replace(/\D/g, '')
