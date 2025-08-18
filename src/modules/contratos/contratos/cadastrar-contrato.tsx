@@ -5,8 +5,12 @@ import { useState } from 'react'
 import FornecedorForm, {
   type DadosFornecedor,
 } from '../components/CadastroDeContratos/fornecedor-form'
-import ContratoForm, { type DadosContrato } from '../components/CadastroDeContratos/contrato-form'
-import UnidadesForm, { type DadosUnidades } from '../components/CadastroDeContratos/unidades-form'
+import ContratoForm, {
+  type DadosContrato,
+} from '../components/CadastroDeContratos/contrato-form'
+import UnidadesForm, {
+  type DadosUnidades,
+} from '../components/CadastroDeContratos/unidades-form'
 import ConfirmarAvancoModal from '../components/CadastroDeContratos/confirmar-avanco'
 
 interface DadosCompletos {

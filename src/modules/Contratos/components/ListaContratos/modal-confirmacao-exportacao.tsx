@@ -20,7 +20,7 @@ export function ModalConfirmacaoExportacao({
   isOpen,
   onClose,
   onConfirm,
-  totalContratos
+  totalContratos,
 }: ModalConfirmacaoExportacaoProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -38,21 +38,24 @@ export function ModalConfirmacaoExportacao({
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="py-4">
-          <div className="rounded-lg bg-muted/50 p-4 space-y-2">
+          <div className="bg-muted/50 space-y-2 rounded-lg p-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total de contratos:</span>
-              <span className="font-semibold">{totalContratos.toLocaleString('pt-BR')}</span>
+              <span className="font-semibold">
+                {totalContratos.toLocaleString('pt-BR')}
+              </span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Formato:</span>
               <span className="font-semibold">CSV</span>
             </div>
           </div>
-          
-          <p className="text-sm text-muted-foreground mt-4">
-            Esta ação pode levar alguns segundos dependendo da quantidade de dados.
+
+          <p className="text-muted-foreground mt-4 text-sm">
+            Esta ação pode levar alguns segundos dependendo da quantidade de
+            dados.
           </p>
         </div>
 

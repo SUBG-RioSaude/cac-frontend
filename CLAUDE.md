@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Comandos Essenciais
 
 ### Desenvolvimento
+
 ```bash
 pnpm dev              # Inicia servidor de desenvolvimento
 pnpm build            # Compila TypeScript e gera build de produção
@@ -12,6 +13,7 @@ pnpm preview          # Preview do build de produção
 ```
 
 ### Qualidade de Código
+
 ```bash
 pnpm lint             # Executa ESLint
 pnpm format           # Formata código com Prettier
@@ -19,6 +21,7 @@ pnpm format:check     # Verifica formatação sem modificar
 ```
 
 ### Testes
+
 ```bash
 pnpm test             # Executa testes com Vitest
 ```
@@ -26,8 +29,9 @@ pnpm test             # Executa testes com Vitest
 ## Arquitetura do Projeto
 
 ### Stack Tecnológica Principal
+
 - **React 19.1.0** com TypeScript 5.8.3
-- **Vite 7.0.4** como build tool e dev server  
+- **Vite 7.0.4** como build tool e dev server
 - **TailwindCSS 4.1.11** para estilização
 - **shadcn/ui** (estilo New York) com Radix UI primitives
 - **React Router DOM 6.28.1** para roteamento
@@ -37,6 +41,7 @@ pnpm test             # Executa testes com Vitest
 ### Estrutura do Código
 
 #### Organização de Diretórios
+
 ```
 src/
 ├── components/           # Componentes reutilizáveis
@@ -60,14 +65,17 @@ src/
 ```
 
 #### Sistema de Roteamento
+
 A aplicação usa layout sidebar fixo com:
+
 - Header fixo com breadcrumb dinâmico
 - Área de conteúdo principal com scroll
 - Navegação hierárquica na sidebar
 
 **Rotas principais:**
+
 - `/` - HomePage
-- `/contratos` - Lista de contratos  
+- `/contratos` - Lista de contratos
 - `/contratos/cadastrar` - Cadastro de contratos
 - `/contratos/:id` - Detalhes do contrato
 - `/contratos/:id/editar` - Edição de contratos
@@ -75,18 +83,22 @@ A aplicação usa layout sidebar fixo com:
 - `/fornecedores/:id` - Detalhes do fornecedor
 
 #### Gerenciamento de Estado
+
 O projeto utiliza **arquitetura modular de estado**:
+
 - **Estado global:** Zustand para dados compartilhados (ex: `useContratosStore`)
 - **Estado local:** useState/hooks para estado específico de componente
 - **Formulários:** React Hook Form com validação Zod
 
 Exemplo de store (contratos-store.ts):
+
 - Filtros e pesquisa de contratos
 - Paginação
 - Seleção múltipla
 - Estado reativo com ações
 
 #### Componentes e Design System
+
 - **shadcn/ui** configurado no estilo "New York"
 - **Base color:** Neutral com suporte a CSS variables
 - **Ícones:** Lucide React
@@ -96,13 +108,15 @@ Exemplo de store (contratos-store.ts):
 ### Padrões de Desenvolvimento
 
 #### Nomenclatura
+
 - **Idioma:** Português brasileiro
 - **Componentes:** PascalCase
-- **Arquivos:** kebab-case  
+- **Arquivos:** kebab-case
 - **Variáveis:** camelCase descritivo
 - **Tipos:** PascalCase com sufixos descritivos
 
 #### Estrutura de Componentes
+
 ```typescript
 interface ComponentProps {
   className?: string
@@ -119,11 +133,13 @@ export function Component({ className, children, ...props }: ComponentProps) {
 ```
 
 #### Estilização
+
 - **Exclusivamente TailwindCSS** - não usar CSS customizado
 - Usar `cn()` utility de `@/lib/utils` para merge de classes
 - Componentes devem aceitar `className` para extensibilidade
 
 #### Formulários
+
 - **React Hook Form** com resolvers Zod para validação
 - Componentes de formulário do shadcn/ui
 - Validação client-side com feedback visual
@@ -135,17 +151,20 @@ export function Component({ className, children, ...props }: ComponentProps) {
 ## Configurações Importantes
 
 ### Aliases de Path
+
 ```
 @/* -> ./src/*
 ```
 
 ### shadcn/ui
+
 - Estilo: "new-york"
-- Base color: "neutral" 
+- Base color: "neutral"
 - CSS Variables: habilitado
 - Icon library: "lucide"
 
 ### Vite
+
 - Plugin React com SWC
 - Plugin TailwindCSS
 - Configuração de testes com Vitest + jsdom
@@ -153,6 +172,7 @@ export function Component({ className, children, ...props }: ComponentProps) {
 ## Módulo de Contratos
 
 O módulo principal implementado possui:
+
 - **Cadastro de contratos** com formulários multi-step
 - **Listagem com filtros avançados** e pesquisa
 - **Visualização detalhada** de contratos
@@ -163,21 +183,25 @@ O módulo principal implementado possui:
 ## Sistema de Tratamento de Erros
 
 ### Páginas de Erro HTTP
+
 - **Páginas implementadas**: 400, 401, 403, 404, 500, 503
 - **Localização**: `src/modules/http-codes/`
 - **Recursos**: Campo para erro técnico, botões de retry/contato admin, navegação contextual
 - **Design**: Cards responsivos com shadcn/ui, ícones temáticos, cores específicas por tipo
 
 ### Hook useErrorHandler
+
 - **Localização**: `src/hooks/use-error-handler.ts`
-- **Funcionalidades**: 
+- **Funcionalidades**:
   - `handleError()` - redireciona para página de erro com contexto
-  - `handleApiError()` - processa erros de API automaticamente  
+  - `handleApiError()` - processa erros de API automaticamente
   - `handleHttpError()` - processa responses HTTP
 - **Integração**: Páginas de erro recebem informações via `location.state`
 
 ## Convenções de Commit
+
 O projeto segue **Conventional Commits** em português:
+
 - `feat:` para novas funcionalidades
 - `fix:` para correções
 - `refactor:` para refatorações

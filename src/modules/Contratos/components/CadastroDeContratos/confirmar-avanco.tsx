@@ -22,10 +22,7 @@ export default function ConfirmarAvancoModal({
   textoConfirmar = 'Confirmar',
   textoCancelar = 'Cancelar',
 }: ConfirmarAvancoModalProps) {
-
-  useEffect(() => {
-    
-  }, [aberto])
+  useEffect(() => {}, [aberto])
 
   if (!aberto) return null
 

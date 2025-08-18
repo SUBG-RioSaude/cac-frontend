@@ -283,4 +283,4 @@
 
 ---
 
-*🗺️ Este diagrama visual complementa a documentação textual da estrutura global do projeto.*
+_🗺️ Este diagrama visual complementa a documentação textual da estrutura global do projeto._

@@ -7,8 +7,8 @@ import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
-import CadastrarContrato from './modules/contratos/pages/CadastroContratos/cadastrar-contrato'
-import { VisualizarContrato } from './modules/contratos/pages/VisualizacaoContratos/VisualizarContrato'
+import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
+import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import { ErrorBoundary } from './components/error-boundary'
 import NotFound from './modules/http-codes/404'
 import ServerError from './modules/http-codes/500'
@@ -33,7 +33,6 @@ function App() {
         <main className="flex-1 overflow-auto bg-gray-50">
           <ErrorBoundary>
             <div className="mx-auto px-6">
-              
               <Routes>
                 {/* Rotas de erro */}
                 <Route path="*" element={<NotFound />} />
@@ -42,7 +41,6 @@ function App() {
                 <Route path="/403" element={<Forbidden />} />
                 <Route path="/400" element={<BadRequest />} />
                 <Route path="/503" element={<ServiceUnavailable />} />
-
 
                 {/* Rotas */}
                 <Route path="/" element={<HomePage />} />
@@ -67,7 +65,7 @@ function App() {
                 />
               </Routes>
             </div>
-          </ErrorBoundary >
+          </ErrorBoundary>
         </main>
       </SidebarInset>
     </SidebarProvider>

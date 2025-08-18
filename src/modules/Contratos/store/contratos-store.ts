@@ -1,5 +1,9 @@
 import { create } from 'zustand'
-import type { Contrato, FiltrosContrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
+import type {
+  Contrato,
+  FiltrosContrato,
+  PaginacaoParams,
+} from '@/modules/Contratos/types/contrato'
 import { contratosMock } from '@/modules/Contratos/data/contratos-mock'
 
 interface ContratosState {
@@ -9,7 +13,7 @@ interface ContratosState {
   filtros: FiltrosContrato
   paginacao: PaginacaoParams
   contratosSelecionados: string[]
-  
+
   // Actions
   setTermoPesquisa: (termo: string) => void
   setFiltros: (filtros: FiltrosContrato) => void
@@ -28,7 +32,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   paginacao: {
     pagina: 1,
     itensPorPagina: 10,
-    total: contratosMock.length
+    total: contratosMock.length,
   },
   contratosSelecionados: [],
 
@@ -43,10 +47,10 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   },
 
   limparFiltros: () => {
-    set({ 
-      filtros: {}, 
+    set({
+      filtros: {},
       termoPesquisa: '',
-      paginacao: { ...get().paginacao, pagina: 1 }
+      paginacao: { ...get().paginacao, pagina: 1 },
     })
     get().filtrarContratos()
   },
@@ -60,8 +64,10 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     if (selecionado) {
       set({ contratosSelecionados: [...contratosSelecionados, contratoId] })
     } else {
-      set({ 
-        contratosSelecionados: contratosSelecionados.filter(id => id !== contratoId) 
+      set({
+        contratosSelecionados: contratosSelecionados.filter(
+          (id) => id !== contratoId,
+        ),
       })
     }
   },
@@ -69,7 +75,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   selecionarTodosContratos: (selecionado) => {
     const { contratosFiltrados } = get()
     if (selecionado) {
-      set({ contratosSelecionados: contratosFiltrados.map(c => c.id) })
+      set({ contratosSelecionados: contratosFiltrados.map((c) => c.id) })
     } else {
       set({ contratosSelecionados: [] })
     }
@@ -82,67 +88,68 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     // Filtro por termo de pesquisa
     if (termoPesquisa) {
       const termo = termoPesquisa.toLowerCase()
-      resultado = resultado.filter(contrato =>
-        contrato.numeroContrato.toLowerCase().includes(termo) ||
-        contrato.numeroCCon?.toLowerCase().includes(termo) ||
-        contrato.contratada.razaoSocial.toLowerCase().includes(termo) ||
-        contrato.contratada.cnpj.includes(termo) ||
-        contrato.unidade.toLowerCase().includes(termo)
+      resultado = resultado.filter(
+        (contrato) =>
+          contrato.numeroContrato.toLowerCase().includes(termo) ||
+          contrato.numeroCCon?.toLowerCase().includes(termo) ||
+          contrato.contratada.razaoSocial.toLowerCase().includes(termo) ||
+          contrato.contratada.cnpj.includes(termo) ||
+          contrato.unidade.toLowerCase().includes(termo),
       )
     }
 
     // Filtros avançados
     if (filtros.status && filtros.status.length > 0) {
-      resultado = resultado.filter(contrato => 
-        filtros.status!.includes(contrato.status)
+      resultado = resultado.filter((contrato) =>
+        filtros.status!.includes(contrato.status),
       )
     }
 
     if (filtros.unidade && filtros.unidade.length > 0) {
-      resultado = resultado.filter(contrato => 
-        filtros.unidade!.includes(contrato.unidade)
+      resultado = resultado.filter((contrato) =>
+        filtros.unidade!.includes(contrato.unidade),
       )
     }
 
     if (filtros.dataInicialDe) {
-      resultado = resultado.filter(contrato => 
-        contrato.dataInicial >= filtros.dataInicialDe!
+      resultado = resultado.filter(
+        (contrato) => contrato.dataInicial >= filtros.dataInicialDe!,
       )
     }
 
     if (filtros.dataInicialAte) {
-      resultado = resultado.filter(contrato => 
-        contrato.dataInicial <= filtros.dataInicialAte!
+      resultado = resultado.filter(
+        (contrato) => contrato.dataInicial <= filtros.dataInicialAte!,
       )
     }
 
     if (filtros.dataFinalDe) {
-      resultado = resultado.filter(contrato => 
-        contrato.dataFinal >= filtros.dataFinalDe!
+      resultado = resultado.filter(
+        (contrato) => contrato.dataFinal >= filtros.dataFinalDe!,
       )
     }
 
     if (filtros.dataFinalAte) {
-      resultado = resultado.filter(contrato => 
-        contrato.dataFinal <= filtros.dataFinalAte!
+      resultado = resultado.filter(
+        (contrato) => contrato.dataFinal <= filtros.dataFinalAte!,
       )
     }
 
     if (filtros.valorMinimo) {
-      resultado = resultado.filter(contrato => 
-        contrato.valor >= filtros.valorMinimo!
+      resultado = resultado.filter(
+        (contrato) => contrato.valor >= filtros.valorMinimo!,
       )
     }
 
     if (filtros.valorMaximo) {
-      resultado = resultado.filter(contrato => 
-        contrato.valor <= filtros.valorMaximo!
+      resultado = resultado.filter(
+        (contrato) => contrato.valor <= filtros.valorMaximo!,
       )
     }
 
-    set({ 
+    set({
       contratosFiltrados: resultado,
-      paginacao: { ...get().paginacao, total: resultado.length, pagina: 1 }
+      paginacao: { ...get().paginacao, total: resultado.length, pagina: 1 },
     })
-  }
+  },
 }))

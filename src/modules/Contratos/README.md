@@ -18,6 +18,7 @@ src/modules/Contratos/
 ## 🔧 Componentes (`components/`)
 
 ### 📁 CadastroDeContratos/
+
 Componentes responsáveis pelo processo de cadastro de novos contratos.
 
 - **`confirmar-avanco.tsx`** - Modal de confirmação para avançar etapas
@@ -26,6 +27,7 @@ Componentes responsáveis pelo processo de cadastro de novos contratos.
 - **`unidades-form.tsx`** - Formulário de configuração de unidades
 
 ### 📁 ListaContratos/
+
 Componentes para exibição e gerenciamento da lista de contratos.
 
 - **`filtros-contratos.tsx`** - Filtros avançados para busca
@@ -34,6 +36,7 @@ Componentes para exibição e gerenciamento da lista de contratos.
 - **`tabela-contratos.tsx`** - Tabela responsiva de contratos
 
 ### 📁 VisualizacaoContratos/
+
 Componentes para visualização detalhada de contratos.
 
 - **`detalhes-contrato.tsx`** - Aba de detalhes gerais do contrato
@@ -43,11 +46,13 @@ Componentes para visualização detalhada de contratos.
 ## 📊 Dados (`data/`)
 
 ### Arquivos de Dados
+
 - **`contratos-data.json`** - **ARQUIVO PRINCIPAL** com todos os dados mock consolidados
 - **`contratos-mock.ts`** - Interface TypeScript para importação dos dados JSON
 - **`contratos-data.d.ts`** - Declarações de tipos para o arquivo JSON
 
 ### Estrutura dos Dados JSON
+
 ```json
 {
   "contratos": [...],           // Lista de contratos básicos
@@ -60,32 +65,39 @@ Componentes para visualização detalhada de contratos.
 ## 📄 Páginas (`pages/`)
 
 ### 📁 CadastroContratos/
+
 - **`cadastrar-contrato.tsx`** - Página principal de cadastro
 
 ### 📁 VisualizacaoContratos/
+
 - **`ContratosListPage.tsx`** - Lista principal de contratos
 - **`VisualizarContrato.tsx`** - Visualização detalhada de um contrato
 
 ## 🗃️ Estado (`store/`)
 
 ### Gerenciamento de Estado
+
 - **`contratos-store.ts`** - Store Zustand para estado global dos contratos
 
 ## 🏷️ Tipos (`types/`)
 
 ### Definições TypeScript
+
 - **`contrato.ts`** - Interface para contrato básico
 - **`contrato-detalhado.ts`** - Interface para contrato com todas as informações
 
 ## 📋 Páginas Legadas (`contratos/`)
 
 ### Páginas em processo de migração
+
 - **`cadastrar-contrato.tsx`** - Versão legada do cadastro
 
 ## 🧪 Testes
 
 ### Estrutura de Testes
+
 Cada componente possui sua pasta de testes:
+
 ```
 components/
 ├── Componente/
@@ -97,22 +109,25 @@ components/
 ## 📚 Como Usar
 
 ### 1. Importação de Dados
+
 ```typescript
-import { 
-  contratosMock, 
+import {
+  contratosMock,
   contratoDetalhadoMock,
   unidadesMock,
-  empresasMock 
+  empresasMock,
 } from '@/modules/Contratos/data/contratos-mock'
 ```
 
 ### 2. Tipos Disponíveis
+
 ```typescript
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato-detalhado'
 ```
 
 ### 3. Estado Global
+
 ```typescript
 import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
 ```
@@ -150,6 +165,7 @@ Interface do Usuário
 ## 🔍 Busca e Filtros
 
 Para encontrar arquivos específicos:
+
 - **Componentes**: `src/modules/Contratos/components/**/*.tsx`
 - **Páginas**: `src/modules/Contratos/pages/**/*.tsx`
 - **Tipos**: `src/modules/Contratos/types/*.ts`
@@ -158,6 +174,7 @@ Para encontrar arquivos específicos:
 ## 📞 Suporte
 
 Para dúvidas sobre a estrutura ou necessidade de modificações:
+
 1. Verifique primeiro esta documentação
 2. Consulte os tipos TypeScript para entender a estrutura dos dados
 3. Analise os componentes existentes como referência

@@ -8,7 +8,7 @@
         "razaoSocial": "Construtora ABC Ltda",
         "cnpj": "12.345.678/0001-90"
       },
-      "valor": 1250000.00,
+      "valor": 1250000.0,
       "dataInicial": "2023-05-12",
       "dataFinal": "2024-05-11",
       "status": "vencendo",
@@ -23,7 +23,7 @@
         "razaoSocial": "Tech Solutions S.A.",
         "cnpj": "98.765.432/0001-10"
       },
-      "valor": 850000.00,
+      "valor": 850000.0,
       "dataInicial": "2023-04-01",
       "dataFinal": "2024-03-31",
       "status": "ativo",
@@ -38,7 +38,7 @@
         "razaoSocial": "Distribuidora XYZ Ltda",
         "cnpj": "45.678.901/0001-23"
       },
-      "valor": 320000.00,
+      "valor": 320000.0,
       "dataInicial": "2023-03-15",
       "dataFinal": "2024-03-14",
       "status": "ativo",
@@ -53,7 +53,7 @@
         "razaoSocial": "Escritório Jurídico Associados",
         "cnpj": "56.789.012/0001-34"
       },
-      "valor": 480000.00,
+      "valor": 480000.0,
       "dataInicial": "2023-02-01",
       "dataFinal": "2024-01-31",
       "status": "ativo",
@@ -68,7 +68,7 @@
         "razaoSocial": "Clean Services Ltda",
         "cnpj": "67.890.123/0001-45"
       },
-      "valor": 720000.00,
+      "valor": 720000.0,
       "dataInicial": "2023-01-10",
       "dataFinal": "2024-01-09",
       "status": "vencendo",
@@ -83,7 +83,7 @@
         "razaoSocial": "Empresa de Segurança Total",
         "cnpj": "11.222.333/0001-44"
       },
-      "valor": 960000.00,
+      "valor": 960000.0,
       "dataInicial": "2022-12-01",
       "dataFinal": "2023-11-30",
       "status": "vencido",
@@ -98,7 +98,7 @@
         "razaoSocial": "Transportadora Rápida Ltda",
         "cnpj": "22.333.444/0001-55"
       },
-      "valor": 540000.00,
+      "valor": 540000.0,
       "dataInicial": "2024-01-15",
       "dataFinal": "2024-12-31",
       "status": "ativo",
@@ -113,7 +113,7 @@
         "razaoSocial": "Fornecedora de Equipamentos SA",
         "cnpj": "33.444.555/0001-66"
       },
-      "valor": 1800000.00,
+      "valor": 1800000.0,
       "dataInicial": "2024-02-01",
       "dataFinal": "2025-01-31",
       "status": "ativo",
@@ -131,7 +131,7 @@
     "dataTermino": "2024-05-11",
     "prazoInicialMeses": 12,
     "status": "ativo",
-    "valorTotal": 1250000.00,
+    "valorTotal": 1250000.0,
     "ccon": {
       "numero": "CCON-2023/001",
       "dataInicio": "2023-05-12",
@@ -205,7 +205,7 @@
         {
           "nome": "Secretaria de Obras",
           "percentualValor": 60,
-          "valorTotalMensal": 62500.00
+          "valorTotalMensal": 62500.0
         },
         {
           "nome": "Secretaria de Educação",
@@ -215,7 +215,7 @@
         {
           "nome": "Secretaria de Saúde",
           "percentualValor": 15,
-          "valorTotalMensal": 15625.00
+          "valorTotalMensal": 15625.0
         }
       ]
     },
@@ -250,7 +250,7 @@
       }
     ],
     "indicadores": {
-      "saldoAtual": 687500.00,
+      "saldoAtual": 687500.0,
       "percentualExecutado": 45,
       "cronogramaVigencia": [
         {
@@ -283,7 +283,7 @@
   "unidades": {
     "demandantes": [
       "Secretaria de Obras",
-      "Secretaria de TI", 
+      "Secretaria de TI",
       "Secretaria de Saúde",
       "Procuradoria Geral",
       "Secretaria de Administração",

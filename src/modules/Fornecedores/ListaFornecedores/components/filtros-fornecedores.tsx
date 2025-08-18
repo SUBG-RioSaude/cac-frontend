@@ -1,13 +1,27 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Filter, X, ChevronDown, ChevronRight } from "lucide-react"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import type { FiltrosFornecedor } from "@/modules/Fornecedores/ListaFornecedores/types/fornecedor"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Filter, X, ChevronDown, ChevronRight } from 'lucide-react'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import type { FiltrosFornecedor } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
 interface FiltrosFornecedoresProps {
   filtros: FiltrosFornecedor
@@ -15,18 +29,22 @@ interface FiltrosFornecedoresProps {
   onLimparFiltros: () => void
 }
 
-export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros }: FiltrosFornecedoresProps) {
+export function FiltrosFornecedores({
+  filtros,
+  onFiltrosChange,
+  onLimparFiltros,
+}: FiltrosFornecedoresProps) {
   const [filtrosAbertos, setFiltrosAbertos] = useState(false)
-  
+
   // Estados para controlar o colapso de cada seção de filtros
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [contratosExpanded, setContratosExpanded] = useState(false)
 
   const statusOptions = [
-    { value: "ativo", label: "Ativo" },
-    { value: "inativo", label: "Inativo" },
-    { value: "suspenso", label: "Suspenso" },
+    { value: 'ativo', label: 'Ativo' },
+    { value: 'inativo', label: 'Inativo' },
+    { value: 'suspenso', label: 'Suspenso' },
   ]
 
   const handleStatusChange = (status: string, checked: boolean) => {
@@ -34,16 +52,25 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
     if (checked) {
       onFiltrosChange({ ...filtros, status: [...statusAtual, status] })
     } else {
-      onFiltrosChange({ ...filtros, status: statusAtual.filter((s) => s !== status) })
+      onFiltrosChange({
+        ...filtros,
+        status: statusAtual.filter((s) => s !== status),
+      })
     }
   }
 
-  const handleValorChange = (campo: "valorMinimo" | "valorMaximo", valor: string) => {
+  const handleValorChange = (
+    campo: 'valorMinimo' | 'valorMaximo',
+    valor: string,
+  ) => {
     const valorNumerico = valor ? Number.parseFloat(valor) : undefined
     onFiltrosChange({ ...filtros, [campo]: valorNumerico })
   }
 
-  const handleContratosChange = (campo: "contratosAtivosMinimo" | "contratosAtivosMaximo", valor: string) => {
+  const handleContratosChange = (
+    campo: 'contratosAtivosMinimo' | 'contratosAtivosMaximo',
+    valor: string,
+  ) => {
     const valorNumerico = valor ? Number.parseInt(valor) : undefined
     onFiltrosChange({ ...filtros, [campo]: valorNumerico })
   }
@@ -60,24 +87,26 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            className="h-auto w-full justify-between p-0 hover:bg-transparent"
           >
             <Label className="text-sm font-medium">Status</Label>
             {statusExpanded ? (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="text-muted-foreground h-4 w-4" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="text-muted-foreground h-4 w-4" />
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 mt-3">
+        <CollapsibleContent className="mt-3 space-y-3">
           <div className="space-y-2">
             {statusOptions.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox
                   id={`status-${option.value}`}
                   checked={filtros.status?.includes(option.value) || false}
-                  onCheckedChange={(checked) => handleStatusChange(option.value, checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    handleStatusChange(option.value, checked as boolean)
+                  }
                 />
                 <Label htmlFor={`status-${option.value}`} className="text-sm">
                   {option.label}
@@ -93,41 +122,53 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            className="h-auto w-full justify-between p-0 hover:bg-transparent"
           >
-            <Label className="text-sm font-medium">Valor Total dos Contratos</Label>
+            <Label className="text-sm font-medium">
+              Valor Total dos Contratos
+            </Label>
             {valorExpanded ? (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="text-muted-foreground h-4 w-4" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="text-muted-foreground h-4 w-4" />
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 mt-3">
+        <CollapsibleContent className="mt-3 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="valor-minimo" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="valor-minimo"
+                className="text-muted-foreground text-xs"
+              >
                 Mínimo
               </Label>
               <Input
                 id="valor-minimo"
                 type="number"
                 placeholder="0"
-                value={filtros.valorMinimo || ""}
-                onChange={(e) => handleValorChange("valorMinimo", e.target.value)}
+                value={filtros.valorMinimo || ''}
+                onChange={(e) =>
+                  handleValorChange('valorMinimo', e.target.value)
+                }
                 className="text-sm"
               />
             </div>
             <div>
-              <Label htmlFor="valor-maximo" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="valor-maximo"
+                className="text-muted-foreground text-xs"
+              >
                 Máximo
               </Label>
               <Input
                 id="valor-maximo"
                 type="number"
                 placeholder="0"
-                value={filtros.valorMaximo || ""}
-                onChange={(e) => handleValorChange("valorMaximo", e.target.value)}
+                value={filtros.valorMaximo || ''}
+                onChange={(e) =>
+                  handleValorChange('valorMaximo', e.target.value)
+                }
                 className="text-sm"
               />
             </div>
@@ -140,41 +181,53 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            className="h-auto w-full justify-between p-0 hover:bg-transparent"
           >
-            <Label className="text-sm font-medium">Quantidade de Contratos Ativos</Label>
+            <Label className="text-sm font-medium">
+              Quantidade de Contratos Ativos
+            </Label>
             {contratosExpanded ? (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="text-muted-foreground h-4 w-4" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="text-muted-foreground h-4 w-4" />
             )}
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 mt-3">
+        <CollapsibleContent className="mt-3 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="contratos-minimo" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="contratos-minimo"
+                className="text-muted-foreground text-xs"
+              >
                 Mínimo
               </Label>
               <Input
                 id="contratos-minimo"
                 type="number"
                 placeholder="0"
-                value={filtros.contratosAtivosMinimo || ""}
-                onChange={(e) => handleContratosChange("contratosAtivosMinimo", e.target.value)}
+                value={filtros.contratosAtivosMinimo || ''}
+                onChange={(e) =>
+                  handleContratosChange('contratosAtivosMinimo', e.target.value)
+                }
                 className="text-sm"
               />
             </div>
             <div>
-              <Label htmlFor="contratos-maximo" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="contratos-maximo"
+                className="text-muted-foreground text-xs"
+              >
                 Máximo
               </Label>
               <Input
                 id="contratos-maximo"
                 type="number"
                 placeholder="0"
-                value={filtros.contratosAtivosMaximo || ""}
-                onChange={(e) => handleContratosChange("contratosAtivosMaximo", e.target.value)}
+                value={filtros.contratosAtivosMaximo || ''}
+                onChange={(e) =>
+                  handleContratosChange('contratosAtivosMaximo', e.target.value)
+                }
                 className="text-sm"
               />
             </div>
@@ -191,10 +244,10 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
         <Sheet open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="h-9 px-3">
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="mr-2 h-4 w-4" />
               Filtros
               {temFiltrosAtivos && (
-                <span className="ml-2 h-2 w-2 rounded-full bg-primary" />
+                <span className="bg-primary ml-2 h-2 w-2 rounded-full" />
               )}
             </Button>
           </SheetTrigger>
@@ -208,9 +261,9 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
                 <Button
                   variant="outline"
                   onClick={onLimparFiltros}
-                  className="w-full mt-4"
+                  className="mt-4 w-full"
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   Limpar Filtros
                 </Button>
               )}
@@ -224,10 +277,10 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
         <Popover open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="h-9 px-3">
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="mr-2 h-4 w-4" />
               Filtros
               {temFiltrosAtivos && (
-                <span className="ml-2 h-2 w-2 rounded-full bg-primary" />
+                <span className="bg-primary ml-2 h-2 w-2 rounded-full" />
               )}
             </Button>
           </PopoverTrigger>
@@ -242,7 +295,7 @@ export function FiltrosFornecedores({ filtros, onFiltrosChange, onLimparFiltros 
                     onClick={onLimparFiltros}
                     className="h-7 px-2 text-xs"
                   >
-                    <X className="h-3 w-3 mr-1" />
+                    <X className="mr-1 h-3 w-3" />
                     Limpar
                   </Button>
                 )}

@@ -1,6 +1,13 @@
 'use client'
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
+import {
+  BadgeCheck,
+  Bell,
+  ChevronsUpDown,
+  CreditCard,
+  LogOut,
+  Sparkles,
+} from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -37,26 +44,26 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group/user relative overflow-hidden bg-gray-600 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg  data-[state=open]:scale-[1.01] py-8"
+              className="group/user relative overflow-hidden bg-gray-600 py-8 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01]"
             >
               {/* Efeito de brilho animado */}
-              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sidebar-foreground/10 to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full"></div>
-              
+              <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full"></div>
+
               {/* Efeito de luz ambiente suave */}
-              <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/5 to-sidebar-primary/10 opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div>
-              
+              <div className="from-sidebar-primary/5 to-sidebar-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div>
+
               {/* Efeito de pulsação no estado ativo */}
               <div className="absolute inset-0 bg-gradient-to-br opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse"></div>
-              
+
               <div className="relative z-10 flex items-center gap-3">
                 <div className="relative">
-                  <Avatar className="h-11 w-11 rounded-xl border-2 border-sidebar-border/40 bg-sidebar-foreground/5 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:border-sidebar-border/60 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
+                  <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 group-hover/user:border-sidebar-border/60 h-11 w-11 rounded-xl border-2 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
                     <AvatarImage
                       src="/logos-cac/4.png"
                       alt={user.name}
                       className="object-contain p-1.5 opacity-90 transition-all duration-500 group-hover/user:scale-110 group-hover/user:opacity-100 group-data-[state=open]:scale-110 group-data-[state=open]:opacity-100"
                     />
-                    <AvatarFallback className="rounded-xl border border-sidebar-border/30 bg-sidebar-primary font-bold text-sidebar-primary-foreground backdrop-blur-sm">
+                    <AvatarFallback className="border-sidebar-border/30 bg-sidebar-primary text-sidebar-primary-foreground rounded-xl border font-bold backdrop-blur-sm">
                       {user.name
                         .split(' ')
                         .map((n) => n[0])
@@ -65,7 +72,7 @@ export function NavUser({
                         .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   {/* Indicador de status online */}
                   <div className="absolute -right-1 -bottom-1">
                     <div className="relative">
@@ -74,43 +81,43 @@ export function NavUser({
                       {/* Anel médio */}
                       <div className="absolute inset-0.5 h-3 w-3 animate-pulse rounded-full bg-green-400/70"></div>
                       {/* Núcleo sólido */}
-                      <div className="relative h-4 w-4 rounded-full border-2 border-sidebar bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40"></div>
+                      <div className="border-sidebar relative h-4 w-4 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40"></div>
                       {/* Brilho interno */}
                       <div className="absolute inset-1 h-2 w-2 rounded-full bg-green-200/90"></div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="grid flex-1 transform text-left text-sm leading-tight transition-all duration-500 group-hover/user:translate-x-1 group-data-[state=open]:translate-x-2">
-                  <span className="truncate font-semibold text-sidebar-foreground drop-shadow-sm transition-colors duration-300 group-data-[state=open]:font-bold">
+                  <span className="text-sidebar-foreground truncate font-semibold drop-shadow-sm transition-colors duration-300 group-data-[state=open]:font-bold">
                     {user.name}
                   </span>
-                  <span className="truncate text-xs font-medium text-sidebar-foreground/70 transition-all duration-300 group-data-[state=open]:font-semibold">
+                  <span className="text-sidebar-foreground/70 truncate text-xs font-medium transition-all duration-300 group-data-[state=open]:font-semibold">
                     {user.email}
                   </span>
                 </div>
-                
-                <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/60 transition-all duration-500 group-hover/user:scale-125 group-hover/user:rotate-180 group-hover/user:text-sidebar-foreground group-data-[state=open]:scale-125 group-data-[state=open]:rotate-180" />
+
+                <ChevronsUpDown className="text-sidebar-foreground/60 group-hover/user:text-sidebar-foreground ml-auto size-4 transition-all duration-500 group-hover/user:scale-125 group-hover/user:rotate-180 group-data-[state=open]:scale-125 group-data-[state=open]:rotate-180" />
               </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          
+
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg border-sidebar-border bg-sidebar/95 backdrop-blur-md"
+            className="border-sidebar-border bg-sidebar/95 w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg backdrop-blur-md"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="m-1 flex items-center gap-3 rounded-lg border border-sidebar-border/30 bg-sidebar-accent px-2 py-2 text-left text-sm shadow-sm backdrop-blur-sm">
+              <div className="border-sidebar-border/30 bg-sidebar-accent m-1 flex items-center gap-3 rounded-lg border px-2 py-2 text-left text-sm shadow-sm backdrop-blur-sm">
                 <div className="relative">
-                  <Avatar className="h-9 w-9 rounded-xl border-2 border-sidebar-border/40 bg-sidebar-foreground/5 shadow-md backdrop-blur-sm">
+                  <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 h-9 w-9 rounded-xl border-2 shadow-md backdrop-blur-sm">
                     <AvatarImage
                       src="/logos-cac/4.png"
                       alt={user.name}
                       className="object-contain p-1.5 opacity-90"
                     />
-                    <AvatarFallback className="rounded-xl border border-sidebar-border/30 bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground backdrop-blur-sm">
+                    <AvatarFallback className="border-sidebar-border/30 bg-sidebar-primary text-sidebar-primary-foreground rounded-xl border text-xs font-bold backdrop-blur-sm">
                       {user.name
                         .split(' ')
                         .map((n) => n[0])
@@ -121,16 +128,16 @@ export function NavUser({
                   </Avatar>
                   <div className="absolute -right-0.5 -bottom-0.5">
                     <div className="relative">
-                      <div className="h-3 w-3 rounded-full border-2 border-sidebar bg-gradient-to-br from-green-400 to-green-500 shadow-md"></div>
+                      <div className="border-sidebar h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-md"></div>
                       <div className="absolute inset-0.5 h-2 w-2 rounded-full bg-green-200/90"></div>
                     </div>
                   </div>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold text-sidebar-foreground drop-shadow-sm">
+                  <span className="text-sidebar-foreground truncate font-semibold drop-shadow-sm">
                     {user.name}
                   </span>
-                  <span className="truncate text-xs font-medium text-sidebar-foreground/70">
+                  <span className="text-sidebar-foreground/70 truncate text-xs font-medium">
                     {user.email}
                   </span>
                 </div>

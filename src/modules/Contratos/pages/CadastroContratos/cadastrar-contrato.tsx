@@ -16,7 +16,6 @@ import UnidadesForm, {
 } from '@/modules/Contratos/components/CadastroDeContratos/unidades-form'
 import ConfirmarAvancoModal from '@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco'
 
-
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
   contrato?: DadosContrato
@@ -26,7 +25,6 @@ interface DadosCompletos {
 export default function CadastrarContrato() {
   const [passoAtual, setPassoAtual] = useState(1)
   const [dadosCompletos, setDadosCompletos] = useState<DadosCompletos>({})
-
 
   const [modalAberto, setModalAberto] = useState(false)
   const [proximoPassoPendente, setProximoPassoPendente] = useState<
@@ -46,7 +44,6 @@ export default function CadastrarContrato() {
   const handleStepChange = (novoStep: number) => {
     setPassoAtual(novoStep)
   }
-
 
   const handleConfirmarAvanco = () => {
     if (isFinishing && dadosPendentes) {
@@ -207,17 +204,17 @@ export default function CadastrarContrato() {
     const currentStepInfo = getStepInfo(currentStep)
 
     return (
-      <Card className="border-slate-200 border bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl">
-        <CardHeader className="border-slate-200 from-slate-100 border-b bg-gradient-to-r to-white px-6 py-4">
+      <Card className="border border-slate-200 bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl">
+        <CardHeader className="border-b border-slate-200 bg-gradient-to-r from-slate-100 to-white px-6 py-4">
           <div className="flex items-center space-x-3">
-            <div className="bg-slate-100 flex h-10 w-10 items-center justify-center rounded-lg text-lg shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-lg shadow-sm">
               <span className="text-slate-600">{currentStepInfo.icone}</span>
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-gray-900">
                 {currentStepInfo.titulo}
               </CardTitle>
-              <p className="text-slate-600 text-sm">
+              <p className="text-sm text-slate-600">
                 {currentStepInfo.descricao}
               </p>
             </div>
@@ -230,14 +227,12 @@ export default function CadastrarContrato() {
     )
   }
 
-
   return (
     <LayoutPagina
       titulo="Cadastrar Contrato"
       descricao="Cadastre um novo contrato seguindo as etapas abaixo"
       className="px-6 py-8"
     >
-
       {/* Steps component */}
       <Steps
         steps={passos}

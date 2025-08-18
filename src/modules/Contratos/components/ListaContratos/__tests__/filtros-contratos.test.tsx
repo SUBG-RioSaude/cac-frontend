@@ -10,8 +10,8 @@ vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
     'Secretaria de Educação',
     'Secretaria de Saúde',
     'Secretaria de Administração',
-    'Secretaria de Transportes'
-  ]
+    'Secretaria de Transportes',
+  ],
 }))
 
 const filtrosIniciais: FiltrosContrato = {
@@ -22,7 +22,7 @@ const filtrosIniciais: FiltrosContrato = {
   dataFinalDe: '',
   dataFinalAte: '',
   valorMinimo: undefined,
-  valorMaximo: undefined
+  valorMaximo: undefined,
 }
 
 const filtrosMock: FiltrosContrato = {
@@ -33,7 +33,7 @@ const filtrosMock: FiltrosContrato = {
   dataFinalDe: '2024-01-01',
   dataFinalAte: '2024-12-31',
   valorMinimo: 100000,
-  valorMaximo: 1500000.50
+  valorMaximo: 1500000.5,
 }
 
 const mockOnFiltrosChange = vi.fn()
@@ -50,9 +50,9 @@ describe('FiltrosContratos', () => {
         filtros={filtrosIniciais}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
-    
+
     expect(screen.getByText('Filtros Avançados')).toBeInTheDocument()
   })
 
@@ -62,7 +62,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -75,7 +75,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -88,7 +88,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -101,7 +101,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -114,7 +114,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -127,7 +127,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -140,7 +140,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -153,7 +153,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -166,7 +166,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -177,17 +177,17 @@ describe('FiltrosContratos', () => {
     const filtrosComStatus = {
       ...filtrosIniciais,
       status: ['ativo'],
-      unidade: ['Secretaria de Obras']
+      unidade: ['Secretaria de Obras'],
     }
-    
+
     render(
       <FiltrosContratos
         filtros={filtrosComStatus}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
-    
+
     expect(screen.getByText('Ativos')).toBeInTheDocument()
   })
 
@@ -197,15 +197,15 @@ describe('FiltrosContratos', () => {
         filtros={filtrosIniciais}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
-    
+
     const trigger = screen.getByText('Filtros Avançados')
     expect(trigger).toBeInTheDocument()
-    
+
     // Inicialmente fechado
     expect(screen.queryByText('Status do Contrato')).not.toBeInTheDocument()
-    
+
     // Clica para abrir
     fireEvent.click(trigger)
     expect(screen.getByText('Status do Contrato')).toBeInTheDocument()
@@ -217,7 +217,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -230,7 +230,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -243,7 +243,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -256,12 +256,12 @@ describe('FiltrosContratos', () => {
         filtros={filtrosIniciais}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
-    
+
     const trigger = screen.getByText('Filtros Avançados')
     fireEvent.click(trigger)
-    
+
     // Verifica se os checkboxes têm labels corretos
     expect(screen.getByLabelText('Ativo')).toBeInTheDocument()
     expect(screen.getByLabelText('Vencendo em Breve')).toBeInTheDocument()
@@ -276,7 +276,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -289,7 +289,7 @@ describe('FiltrosContratos', () => {
         filtros={filtrosMock}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
 
     // Verifica se o componente está sendo renderizado
@@ -302,9 +302,9 @@ describe('FiltrosContratos', () => {
         filtros={filtrosIniciais}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
-    
+
     // Não deve exibir indicador de filtros ativos
     expect(screen.queryByText('Ativos')).not.toBeInTheDocument()
   })
@@ -312,18 +312,25 @@ describe('FiltrosContratos', () => {
   it('deve aplicar classes CSS corretas para o indicador de filtros ativos', () => {
     const filtrosComStatus = {
       ...filtrosIniciais,
-      status: ['ativo']
+      status: ['ativo'],
     }
-    
+
     render(
       <FiltrosContratos
         filtros={filtrosComStatus}
         onFiltrosChange={mockOnFiltrosChange}
         onLimparFiltros={mockOnLimparFiltros}
-      />
+      />,
     )
-    
+
     const indicador = screen.getByText('Ativos')
-    expect(indicador).toHaveClass('bg-primary', 'text-primary-foreground', 'text-xs', 'px-2', 'py-1', 'rounded-full')
+    expect(indicador).toHaveClass(
+      'bg-primary',
+      'text-primary-foreground',
+      'text-xs',
+      'px-2',
+      'py-1',
+      'rounded-full',
+    )
   })
 })
