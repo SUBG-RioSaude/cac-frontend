@@ -37,6 +37,12 @@ global.IntersectionObserver = class IntersectionObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
+  root: Element | null = null
+  rootMargin: string = ''
+  thresholds: ReadonlyArray<number> = []
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
 } as typeof IntersectionObserver
 
 // Mock do window.scrollTo
