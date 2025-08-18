@@ -8,7 +8,7 @@ import contratosData from './contratos-data.json'
 export const contratosMock: Contrato[] = contratosData.contratos as Contrato[]
 export const contratoDetalhadoMock: ContratoDetalhado =
   contratosData.contratoDetalhado as ContratoDetalhado
-export const unidadesMock: string[] = contratosData.unidades as string[]
+export const unidadesMock: string[] = contratosData.unidades as unknown as string[]
 export const empresasMock = contratosData.empresas
 
 // Função helper para obter dados atualizados

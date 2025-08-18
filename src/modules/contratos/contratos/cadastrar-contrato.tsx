@@ -161,7 +161,7 @@ export default function CadastrarContrato() {
             onPrevious={() => setPassoAtual(2)}
             dadosIniciais={dadosCompletos.unidades}
             valorTotalContrato={parseFloat(
-              dadosCompletos.contrato?.valorTotal || '0',
+              dadosCompletos.contrato?.valorGlobal || '0',
             )}
           />
         )

@@ -25,7 +25,6 @@ describe('FornecedorForm', () => {
   const dadosIniciais: Partial<DadosFornecedor> = {
     cnpj: '11222333000181', // CNPJ válido sem formatação (como vem da API)
     razaoSocial: 'Empresa Teste',
-    nomeFantasia: 'Teste Corp',
     inscricaoEstadual: '123456789',
     inscricaoMunicipal: '987654321',
     endereco: 'Rua das Flores, 123',
