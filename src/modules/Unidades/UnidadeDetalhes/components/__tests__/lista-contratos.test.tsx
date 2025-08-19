@@ -295,7 +295,7 @@ describe('ListaContratos', () => {
     it('deve tratar contratos undefined como array vazio', () => {
       renderWithRouter(
         <ListaContratos 
-          contratos={undefined as any} 
+          contratos={undefined as unknown as ContratoVinculado[]} 
           unidadeNome="Hospital Teste" 
         />
       )
@@ -306,7 +306,7 @@ describe('ListaContratos', () => {
     it('deve funcionar com contratos null', () => {
       renderWithRouter(
         <ListaContratos 
-          contratos={null as any} 
+          contratos={null as unknown as ContratoVinculado[]} 
           unidadeNome="Hospital Teste" 
         />
       )
