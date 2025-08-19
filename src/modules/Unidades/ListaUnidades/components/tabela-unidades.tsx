@@ -354,7 +354,7 @@ export function TabelaUnidades({
                           />
                         </TableCell>
                         <TableCell>
-                          <div className="line-clamp-2 max-w-[200px] text-sm font-medium">
+                          <div className="line-clamp-2 max-w-[200px] text-sm font-medium" data-testid={`unidade-nome-${unidade.id}`}>
                             {unidade.nome}
                           </div>
                         </TableCell>
