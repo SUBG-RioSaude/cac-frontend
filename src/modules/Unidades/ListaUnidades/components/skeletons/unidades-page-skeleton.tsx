@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export function UnidadesPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
+    <div data-testid="unidades-skeleton" className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
         {/* Cabeçalho */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
