@@ -25,7 +25,7 @@ const mockNavigate = vi.fn()
 const mockParams = { unidadeId: '1' }
 
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal() as Record<string, unknown>
   return {
     ...actual,
     useNavigate: () => mockNavigate,

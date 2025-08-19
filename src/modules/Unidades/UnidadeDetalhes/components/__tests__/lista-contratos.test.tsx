@@ -21,7 +21,7 @@ vi.mock('framer-motion', () => ({
 // Mock do useNavigate
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal() as Record<string, unknown>
   return {
     ...actual,
     useNavigate: () => mockNavigate,
