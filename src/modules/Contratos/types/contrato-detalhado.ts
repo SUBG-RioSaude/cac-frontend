@@ -1,3 +1,5 @@
+import type { DocumentoContrato } from '@/modules/Contratos/types/documento-contrato'
+
 export interface ContratoDetalhado {
   id: string
   numeroContrato: string
@@ -42,6 +44,10 @@ export interface ContratoDetalhado {
 
   // Alterações
   alteracoes: AlteracaoContrato[]
+
+  // Documentos
+  documentos: DocumentoContrato[]
+  documentosChecklist: ChecklistData
 
   // Indicadores
   indicadores: {
@@ -91,6 +97,7 @@ export interface AlteracaoContrato {
     | 'atualizacao_documentos'
     | 'alteracao_valor'
     | 'prorrogacao'
+    | 'documento_entregue'
   descricao: string
   dataHora: string
   responsavel: string
@@ -102,4 +109,20 @@ export interface PeriodoVigencia {
   fim: string
   descricao: string
   status: 'concluido' | 'em_andamento' | 'pendente'
+}
+
+// Novas interfaces para a checklist de documentos
+export interface DocumentoChecklist {
+  status: 'entregue' | 'pendente' | 'nao_aplicavel'
+  dataEntrega?: string // ISO date string
+}
+
+export interface ChecklistData {
+  termoReferencia: DocumentoChecklist
+  homologacao: DocumentoChecklist
+  ataRegistroPrecos: DocumentoChecklist
+  garantiaContratual: DocumentoChecklist
+  contrato: DocumentoChecklist
+  publicacaoPncp: DocumentoChecklist
+  publicacaoExtrato: DocumentoChecklist
 }

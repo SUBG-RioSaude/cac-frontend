@@ -26,9 +26,11 @@ import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais
 import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
 import { ContractChat } from '../../components/Timeline/contract-chat'
+import { TabDocumentos } from '../../components/Documentos/tab-documentos'
 import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
 import type { TimelineEntry } from '../../types/timeline'
 import type { ChatMessage } from '../../types/chat'
+import { DOCUMENTOS_MOCK } from '../../data/documentos-mock'
 
 export function VisualizarContrato() {
   const { id } = useParams<{ id: string }>()
@@ -351,7 +353,7 @@ export function VisualizarContrato() {
               onValueChange={setAbaAtiva}
               className="w-full"
             >
-              <TabsList className="grid h-auto w-full grid-cols-5 rounded-lg bg-gray-50 p-1">
+              <TabsList className="grid h-auto w-full grid-cols-6 rounded-lg bg-gray-50 p-1">
                 <TabsTrigger
                   value="detalhes"
                   className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-blue-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
@@ -379,6 +381,13 @@ export function VisualizarContrato() {
                 >
                   <div className="h-2 w-2 rounded-full bg-green-500 data-[state=active]:bg-green-700 sm:h-3 sm:w-3"></div>
                   <span className="text-center">Indicadores e Relatórios</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="documentos"
+                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-teal-200 data-[state=active]:bg-white data-[state=active]:text-teal-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
+                >
+                  <div className="h-2 w-2 rounded-full bg-teal-500 data-[state=active]:bg-teal-700 sm:h-3 sm:w-3"></div>
+                  <span className="text-center">Documentos</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="timeline"
@@ -437,6 +446,45 @@ export function VisualizarContrato() {
                     onSalvar={handleSalvarAlteracao}
                     onSubmeter={handleSubmeterAlteracao}
                     key={contrato.id}
+                  />
+                </TabsContent>
+
+                <TabsContent value="documentos" className="mt-0 w-full">
+                  <TabDocumentos 
+                    documentos={DOCUMENTOS_MOCK}
+                    onDocumentosChange={(documentos) => {
+                      // Callback para sincronizar mudanças nos documentos
+                      console.log('Documentos atualizados:', documentos)
+                    }}
+                    timelineIntegration={{
+                      criarEntradaDocumento: (documento, acao, autor, dadosAdicionais) => {
+                        // Integrar com o hook existente de timeline
+                        console.log('Integrando documento com timeline:', { documento, acao, autor, dadosAdicionais })
+                        
+                        // Simular criação da entrada na timeline
+                        const entrada = {
+                          id: `doc_${acao}_${Date.now()}_${documento.id}`,
+                          contratoId: contrato.id,
+                          tipo: 'manual' as const,
+                          categoria: 'documento' as const,
+                          titulo: `${acao === 'adicionado' ? 'Documento Adicionado' : 
+                                   acao === 'status_alterado' ? 'Status Alterado' :
+                                   acao === 'link_atualizado' ? 'Link Atualizado' :
+                                   'Observações Atualizadas'} - ${documento.nome}`,
+                          descricao: `Documento ${documento.categoria}: ${documento.descricao}`,
+                          dataEvento: new Date().toISOString(),
+                          autor,
+                          status: 'ativo' as const,
+                          prioridade: documento.categoria === 'obrigatorio' ? 'alta' : 'media' as const,
+                          tags: ['documento', documento.categoria, documento.status, acao],
+                          criadoEm: new Date().toISOString()
+                        }
+                        
+                        // Adicionar à timeline local
+                        setEntradasTimeline(prev => [entrada, ...prev])
+                      }
+                    }}
+                    usuarioAtual={{ id: '1', nome: 'Usuário Atual', tipo: 'usuario' }}
                   />
                 </TabsContent>
 
