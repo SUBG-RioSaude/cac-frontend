@@ -114,7 +114,7 @@ export default function FornecedoresListPage() {
       : 'Exportar Todos'
 
   return (
-    <div className="from-background to-muted/20 min-h-screen bg-gradient-to-br p-6">
+    <div className="to-muted/20 min-h-screen bg-gradient-to-br p-6">
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
         {/* Cabeçalho Responsivo */}
         <motion.div

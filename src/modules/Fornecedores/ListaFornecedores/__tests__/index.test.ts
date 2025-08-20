@@ -1,5 +1,6 @@
 // Testes da Lista de Fornecedores
 // Este arquivo importa todos os testes para facilitar a execução
+import { describe, it, expect } from 'vitest'
 
 // Componentes
 import '../components/__tests__/tabela-fornecedores.test'
