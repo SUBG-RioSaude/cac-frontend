@@ -1,20 +1,19 @@
-import LayoutPagina from '@/components/layout-pagina'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Steps } from '@/components/ui/steps'
-import { useState, Suspense } from 'react'
-import { FormErrorBoundary } from '@/components/error-boundary'
-import { FormLoadingFallback } from '@/components/ui/loading'
-import { Building2, FileText, Store } from 'lucide-react'
+"use client"
+
+import LayoutPagina from "@/components/layout-pagina"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Steps } from "@/components/ui/steps"
+import { useState, Suspense } from "react"
+import { FormErrorBoundary } from "@/components/error-boundary"
+import { FormLoadingFallback } from "@/components/ui/loading"
+import { Building2, FileText, Store } from "lucide-react"
 import FornecedorForm, {
   type DadosFornecedor,
-} from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
-import ContratoForm, {
-  type DadosContrato,
-} from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
-import UnidadesForm, {
-  type DadosUnidades,
-} from '@/modules/Contratos/components/CadastroDeContratos/unidades-form'
-import ConfirmarAvancoModal from '@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco'
+} from "@/modules/Contratos/components/CadastroDeContratos/fornecedor-form"
+import ContratoForm, { type DadosContrato } from "@/modules/Contratos/components/CadastroDeContratos/contrato-form"
+import UnidadesFormMelhorado from "@/modules/Contratos/components/CadastroDeContratos/unidades-form"
+import type { DadosUnidades } from "@/modules/Contratos/types/unidades"
+import ConfirmarAvancoModal from "@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco"
 
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
@@ -27,19 +26,11 @@ export default function CadastrarContrato() {
   const [dadosCompletos, setDadosCompletos] = useState<DadosCompletos>({})
 
   const [modalAberto, setModalAberto] = useState(false)
-  const [proximoPassoPendente, setProximoPassoPendente] = useState<
-    number | null
-  >(null)
-  const [dadosPendentes, setDadosPendentes] = useState<
-    DadosFornecedor | DadosContrato | DadosUnidades | null
-  >(null)
+  const [proximoPassoPendente, setProximoPassoPendente] = useState<number | null>(null)
+  const [dadosPendentes, setDadosPendentes] = useState<DadosFornecedor | DadosContrato | DadosUnidades | null>(null)
   const [isFinishing, setIsFinishing] = useState(false)
 
-  const passos = [
-    { title: 'Dados do Fornecedor' },
-    { title: 'Dados do Contrato' },
-    { title: 'Unidades Contempladas' },
-  ]
+  const passos = [{ title: "Dados do Fornecedor" }, { title: "Dados do Contrato" }, { title: "Unidades Contempladas" }]
 
   const handleStepChange = (novoStep: number) => {
     setPassoAtual(novoStep)
@@ -51,11 +42,11 @@ export default function CadastrarContrato() {
         ...prev,
         unidades: dadosPendentes as DadosUnidades,
       }))
-      console.log('Dados completos do cadastro:', {
+      console.log("Dados completos do cadastro:", {
         ...dadosCompletos,
         unidades: dadosPendentes,
       })
-      alert('Contrato cadastrado com sucesso!')
+      alert("Contrato cadastrado com sucesso!")
     } else if (proximoPassoPendente && dadosPendentes) {
       if (proximoPassoPendente === 2) {
         setDadosCompletos((prev) => ({
@@ -104,22 +95,35 @@ export default function CadastrarContrato() {
 
   const handleFornecedorSubmit = (dados: DadosFornecedor) => {
     setDadosCompletos((prev) => ({ ...prev, fornecedor: dados }))
-    console.log('Dados do fornecedor:', dados)
+    console.log("Dados do fornecedor:", dados)
     setPassoAtual(2)
   }
 
   const handleContratoSubmit = (dados: DadosContrato) => {
     setDadosCompletos((prev) => ({ ...prev, contrato: dados }))
-    console.log('Dados do contrato:', dados)
+    console.log("Dados do contrato:", dados)
     setPassoAtual(3)
+  }
+
+  const handleValorContratoChange = (valor: number) => {
+    console.log('handleValorContratoChange chamado com valor:', valor)
+    
+    // Atualizar o valor total do contrato para uso nas unidades
+    setDadosCompletos((prev) => ({
+      ...prev,
+      contrato: prev.contrato ? { 
+        ...prev.contrato, 
+        valorGlobal: valor.toString() // Armazenar como string numérica
+      } : undefined
+    }))
   }
 
   const handleUnidadesSubmit = (dados: DadosUnidades) => {
     setDadosCompletos((prev) => ({ ...prev, unidades: dados }))
-    console.log('Dados das unidades:', dados)
+    console.log("Dados das unidades:", dados)
 
     // Aqui você pode implementar a lógica para salvar os dados completos
-    console.log('Dados completos do cadastro:', {
+    console.log("Dados completos do cadastro:", {
       ...dadosCompletos,
       unidades: dados,
     })
@@ -127,7 +131,7 @@ export default function CadastrarContrato() {
     // Por exemplo, fazer uma chamada à API
     // await salvarContrato(dadosCompletos)
 
-    alert('Contrato cadastrado com sucesso!')
+    alert("Contrato cadastrado com sucesso!")
   }
 
   // Função para obter informações do step atual
@@ -135,24 +139,24 @@ export default function CadastrarContrato() {
     switch (currentStep) {
       case 1:
         return {
-          titulo: 'Dados do Fornecedor',
-          descricao: 'Preencha as informações básicas da empresa fornecedora',
+          titulo: "Dados do Fornecedor",
+          descricao: "Preencha as informações básicas da empresa fornecedora",
           icone: <Building2 className="h-4 w-4" aria-hidden="true" />,
         }
       case 2:
         return {
-          titulo: 'Dados do Contrato',
-          descricao: 'Configure os detalhes e especificações do contrato',
+          titulo: "Dados do Contrato",
+          descricao: "Configure os detalhes e especificações do contrato",
           icone: <FileText className="h-4 w-4" aria-hidden="true" />,
         }
       case 3:
         return {
-          titulo: 'Unidades Contempladas',
-          descricao: 'Defina as unidades que farão parte deste contrato',
+          titulo: "Unidades Contempladas",
+          descricao: "Defina as unidades que farão parte deste contrato",
           icone: <Store className="h-4 w-4" aria-hidden="true" />,
         }
       default:
-        return { titulo: '', descricao: '', icone: null }
+        return { titulo: "", descricao: "", icone: null }
     }
   }
 
@@ -179,20 +183,45 @@ export default function CadastrarContrato() {
                 onAdvanceRequest={handleContratoAdvanceRequest}
                 onPrevious={() => setPassoAtual(1)}
                 dadosIniciais={dadosCompletos.contrato}
+                onValorContratoChange={handleValorContratoChange}
               />
             </Suspense>
           </FormErrorBoundary>
         )
       case 3:
         return (
-          <UnidadesForm
+          <UnidadesFormMelhorado
             onSubmit={handleUnidadesSubmit}
             onFinishRequest={handleFinishRequest}
             onPrevious={() => setPassoAtual(2)}
             dadosIniciais={dadosCompletos.unidades}
-            valorTotalContrato={parseFloat(
-              dadosCompletos.contrato?.valorGlobal || '0',
-            )}
+            valorTotalContrato={(() => {
+              const valor = dadosCompletos.contrato?.valorGlobal
+              if (!valor) return 0
+              
+              // Se for string formatada (R$ 1.234,56), converter para número
+              if (typeof valor === 'string' && valor.includes('R$')) {
+                const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
+                const valorNum = parseFloat(valorLimpo)
+                console.log('Convertendo valorTotalContrato:', { valor, valorLimpo, valorNum })
+                return isNaN(valorNum) ? 0 : valorNum
+              }
+              
+              // Se for string numérica, converter para número
+              if (typeof valor === 'string') {
+                const valorNum = parseFloat(valor)
+                console.log('Convertendo valorTotalContrato string:', { valor, valorNum })
+                return isNaN(valorNum) ? 0 : valorNum
+              }
+              
+              // Se já for número, retornar como está
+              if (typeof valor === 'number') {
+                console.log('valorTotalContrato já é número:', valor)
+                return valor
+              }
+              
+              return 0
+            })()}
           />
         )
       default:
@@ -211,18 +240,12 @@ export default function CadastrarContrato() {
               <span className="text-slate-600">{currentStepInfo.icone}</span>
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-900">
-                {currentStepInfo.titulo}
-              </CardTitle>
-              <p className="text-sm text-slate-600">
-                {currentStepInfo.descricao}
-              </p>
+              <CardTitle className="text-lg font-semibold text-gray-900">{currentStepInfo.titulo}</CardTitle>
+              <p className="text-sm text-slate-600">{currentStepInfo.descricao}</p>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          {renderStepContent(currentStep)}
-        </CardContent>
+        <CardContent className="p-6">{renderStepContent(currentStep)}</CardContent>
       </Card>
     )
   }
@@ -246,21 +269,13 @@ export default function CadastrarContrato() {
         aberto={modalAberto}
         onConfirmar={handleConfirmarAvanco}
         onCancelar={handleCancelarAvanco}
-        titulo={
-          isFinishing
-            ? 'Confirmar Finalização'
-            : 'Confirmar Avanço para Próxima Etapa'
-        }
+        titulo={isFinishing ? "Confirmar Finalização" : "Confirmar Avanço para Próxima Etapa"}
         descricao={
           isFinishing
-            ? 'Tem certeza que deseja finalizar o cadastro do contrato? Após confirmar, todos os dados serão salvos e não poderão ser alterados.'
-            : `Deseja avançar para a etapa "${
-                proximoPassoPendente
-                  ? passos[proximoPassoPendente - 1]?.title
-                  : ''
-              }"? Esta ação confirmará os dados preenchidos na etapa atual.`
+            ? "Tem certeza que deseja finalizar o cadastro do contrato? Após confirmar, todos os dados serão salvos e não poderão ser alterados."
+            : `Deseja avançar para a etapa "${proximoPassoPendente ? passos[proximoPassoPendente - 1]?.title : ""}"? Esta ação confirmará os dados preenchidos na etapa atual.`
         }
-        textoConfirmar={isFinishing ? 'Finalizar Cadastro' : 'Confirmar'}
+        textoConfirmar={isFinishing ? "Finalizar Cadastro" : "Confirmar"}
       />
     </LayoutPagina>
   )
