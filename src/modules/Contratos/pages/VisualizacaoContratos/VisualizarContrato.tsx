@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -22,14 +22,32 @@ import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/in
 // Dados mock
 import { contratoDetalhadoMock } from '../../data/contratos-mock'
 import type { ContratoDetalhado } from '../../types/contrato-detalhado'
+import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
+import { currencyUtils } from '@/lib/utils'
+import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
+import { ContractChat } from '../../components/Timeline/contract-chat'
+import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
+import type { TimelineEntry } from '../../types/timeline'
+import type { ChatMessage } from '../../types/chat'
 
 export function VisualizarContrato() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [contrato, setContrato] = useState<ContratoDetalhado | null>(null)
-  const [abaAtiva, setAbaAtiva] = useState('detalhes')
+  const [abaAtiva, setAbaAtiva] = useState('alteracoes')
   const [loading, setLoading] = useState(true)
   const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
+  const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
+  
+  // Integração com timeline
+  const { criarEntradaAlteracao, criarMarcosAlteracao, atualizarStatusAlteracao } = useTimelineIntegration({
+    contratoId: contrato?.id || '',
+    onAdicionarEntrada: (entrada) => {
+      console.log('Nova entrada adicionada à timeline:', entrada)
+      // Atualizar estado local das entradas
+      setEntradasTimeline(prev => [entrada, ...prev])
+    }
+  })
 
   useEffect(() => {
     // Simular carregamento dos dados
@@ -80,12 +98,7 @@ export function VisualizarContrato() {
     return <Badge className={config.className}>{config.label}</Badge>
   }
 
-  const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(valor)
-  }
+  
 
   const handleEditarGlobal = () => {
     setModoEdicaoGlobal(!modoEdicaoGlobal)
@@ -94,6 +107,73 @@ export function VisualizarContrato() {
   const handleExportar = () => {
     console.log('Exportar contrato:', contrato)
   }
+
+  // Handlers para integração com alterações contratuais
+
+  const handleSalvarAlteracao = useCallback(async (alteracao: AlteracaoContratualForm) => {
+    try {
+      // Simular usuário atual
+      const autor = {
+        id: '1',
+        nome: 'João Silva',
+        tipo: 'usuario' as const
+      }
+      
+      // Criar entrada na timeline
+      criarEntradaAlteracao(alteracao, autor)
+      
+      // Criar marcos relacionados se necessário
+      criarMarcosAlteracao(alteracao)
+      
+      console.log('Alteração salva e integrada à timeline:', alteracao)
+    } catch (error) {
+      console.error('Erro ao salvar alteração:', error)
+    }
+  }, [criarEntradaAlteracao, criarMarcosAlteracao])
+
+  const handleSubmeterAlteracao = useCallback(async (alteracao: AlteracaoContratualForm) => {
+    try {
+      await handleSalvarAlteracao(alteracao)
+      
+      // Atualizar status para submetida
+      if (alteracao.id) {
+        atualizarStatusAlteracao(alteracao.id, 'submetida')
+      }
+      
+      console.log('Alteração submetida:', alteracao)
+    } catch (error) {
+      console.error('Erro ao submeter alteração:', error)
+    }
+  }, [handleSalvarAlteracao, atualizarStatusAlteracao])
+
+  const handleMarcarChatComoAlteracao = useCallback((mensagem: ChatMessage) => {
+    // Converter mensagem do chat em entrada do registro de alterações
+    const autor = {
+      id: mensagem.remetente.id,
+      nome: mensagem.remetente.nome,
+      tipo: mensagem.remetente.tipo
+    }
+    
+    const entradaChat = {
+      id: `chat_${mensagem.id}`,
+      contratoId: contrato?.id || '',
+      tipo: 'manual' as const,
+      categoria: 'observacao' as const,
+      titulo: `Observação do Chat - ${mensagem.remetente.nome}`,
+      descricao: mensagem.conteudo,
+      dataEvento: mensagem.dataEnvio,
+      autor,
+      status: 'ativo' as const,
+      prioridade: 'media' as const,
+      tags: ['chat', 'observacao'],
+      criadoEm: new Date().toISOString()
+    }
+    
+    // Adicionar à timeline
+    setEntradasTimeline(prev => [entradaChat, ...prev])
+    
+    console.log('Mensagem do chat marcada como alteração:', entradaChat)
+  }, [contrato])
 
   if (loading) {
     return (
@@ -240,7 +320,7 @@ export function VisualizarContrato() {
                     Valor Total
                   </p>
                   <p className="text-base font-semibold break-all sm:text-lg">
-                    {formatarMoeda(contrato.valorTotal)}
+                    {currencyUtils.formatar(contrato.valorTotal)}
                   </p>
                 </div>
                 <div className="text-center sm:text-left">
@@ -271,7 +351,7 @@ export function VisualizarContrato() {
               onValueChange={setAbaAtiva}
               className="w-full"
             >
-              <TabsList className="grid h-auto w-full grid-cols-3 rounded-lg bg-gray-50 p-1">
+              <TabsList className="grid h-auto w-full grid-cols-5 rounded-lg bg-gray-50 p-1">
                 <TabsTrigger
                   value="detalhes"
                   className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-blue-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
@@ -287,11 +367,25 @@ export function VisualizarContrato() {
                   <span className="text-center">Registro de Alterações</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="alteracoes-contratuais"
+                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-purple-200 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
+                >
+                  <div className="h-2 w-2 rounded-full bg-purple-500 data-[state=active]:bg-purple-700 sm:h-3 sm:w-3"></div>
+                  <span className="text-center">Alterações Contratuais</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="indicadores"
                   className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-green-200 data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
                 >
                   <div className="h-2 w-2 rounded-full bg-green-500 data-[state=active]:bg-green-700 sm:h-3 sm:w-3"></div>
                   <span className="text-center">Indicadores e Relatórios</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="timeline"
+                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-blue-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
+                >
+                  <div className="h-2 w-2 rounded-full bg-blue-500 data-[state=active]:bg-blue-700 sm:h-3 sm:w-3"></div>
+                  <span className="text-center">Chat</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -320,7 +414,11 @@ export function VisualizarContrato() {
                 </TabsContent>
 
                 <TabsContent value="alteracoes" className="mt-0 w-full">
-                  <RegistroAlteracoes alteracoes={contrato.alteracoes} />
+                  <RegistroAlteracoes 
+                    alteracoes={contrato.alteracoes} 
+                    entradasTimeline={entradasTimeline}
+                    onAdicionarObservacao={() => setAbaAtiva('timeline')}
+                  />
                 </TabsContent>
 
                 <TabsContent value="indicadores" className="mt-0 w-full">
@@ -330,6 +428,27 @@ export function VisualizarContrato() {
                     valorTotal={contrato.valorTotal}
                   />
                 </TabsContent>
+
+                <TabsContent value="alteracoes-contratuais" className="mt-0 w-full">
+                  <AlteracoesContratuais 
+                    contratoId={contrato.id} 
+                    numeroContrato={contrato.numeroContrato}
+                    valorOriginal={contrato.valorTotal}
+                    onSalvar={handleSalvarAlteracao}
+                    onSubmeter={handleSubmeterAlteracao}
+                    key={contrato.id}
+                  />
+                </TabsContent>
+
+                <TabsContent value="timeline" className="mt-0 w-full">
+                  <ContractChat 
+                    contratoId={contrato.id} 
+                    numeroContrato={contrato.numeroContrato}
+                    onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
+                    key={`chat-${contrato.id}`}
+                  />
+                </TabsContent>
+
               </motion.div>
             </AnimatePresence>
           </Tabs>
