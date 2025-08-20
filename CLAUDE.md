@@ -204,6 +204,16 @@ O módulo principal implementado possui:
   - `handleHttpError()` - processa responses HTTP
 - **Integração**: Páginas de erro recebem informações via `location.state`
 
+## Claude Collaboration Guidelines
+
+### Workflow and Behavior Instructions
+- Execute tarefas diretamente sem modo planejamento
+- Não peça aprovação para mudanças de código
+- NUNCA faça commits ou push automaticamente - sempre pergunte antes
+- Quando fizer commits, use apenas o nome/email configurado no git
+- Não mencione IA ou Claude nos commits
+- Execute testes e lint automaticamente após mudanças
+
 ## Convenções de Commit
 
 O projeto segue **Conventional Commits** em português:
