@@ -18,7 +18,7 @@ function ContratoDetailPage() {
           <p className="text-sm text-gray-600">
             Aqui serão exibidos os detalhes completos do contrato ID:{' '}
             {contratoId}
-          </p>
+          </p>  
         </CardContent>
       </Card>
     </LayoutPagina>

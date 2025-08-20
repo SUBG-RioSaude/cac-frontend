@@ -13,20 +13,12 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Eye,
-  Edit,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
   Calendar,
   Building,
   DollarSign,
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import { useNavigate } from 'react-router-dom'
@@ -99,9 +91,6 @@ export function TabelaContratos() {
     navigate(`/contratos/${contrato.id}`)
   }
 
-  const handleEditarContrato = (contrato: Contrato) => {
-    navigate(`/contratos/${contrato.id}/editar`)
-  }
 
   // Paginação
   const inicio = (paginacao.pagina - 1) * paginacao.itensPorPagina
@@ -201,51 +190,17 @@ export function TabelaContratos() {
               {contrato.objeto}
             </p>
 
-            <div className="flex items-center justify-end gap-1 border-t pt-2">
+            <div className="flex items-center justify-end border-t pt-2">
               <Button
-                variant="ghost"
+                variant="default"
                 size="sm"
                 onClick={() => handleVisualizarContrato(contrato)}
-                className="h-8 w-8 p-0"
-                title="Visualizar contrato"
+                className="h-8 px-3 shadow-sm"
+                title="Abrir contrato"
               >
-                <Eye className="h-4 w-4" />
+                <Eye className="mr-1 h-4 w-4" />
+                Abrir
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEditarContrato(contrato)}
-                className="h-8 w-8 p-0"
-                title="Editar contrato"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    title="Mais opções"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => handleVisualizarContrato(contrato)}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Visualizar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleEditarContrato(contrato)}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Editar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </CardContent>
@@ -393,53 +348,17 @@ export function TabelaContratos() {
                         </TableCell>
                         <TableCell>{getStatusBadge(contrato.status)}</TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end">
                             <Button
-                              variant="ghost"
+                              variant="default"
                               size="sm"
                               onClick={() => handleVisualizarContrato(contrato)}
-                              className="hover:bg-muted h-8 w-8 p-0"
-                              title="Visualizar contrato"
+                              className="h-8 px-3 shadow-sm"
+                              title="Abrir contrato"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="mr-1 h-4 w-4" />
+                              Abrir
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditarContrato(contrato)}
-                              className="hover:bg-muted h-8 w-8 p-0"
-                              title="Editar contrato"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="hover:bg-muted h-8 w-8 p-0"
-                                  title="Mais opções"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleVisualizarContrato(contrato)
-                                  }
-                                >
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Visualizar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleEditarContrato(contrato)}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Editar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </div>
                         </TableCell>
                       </motion.tr>

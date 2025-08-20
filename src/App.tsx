@@ -3,7 +3,6 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import PageBreadcrumb from '@/components/page-breadcrumb'
 import { NotificacoesDropdown } from '@/components/notificacoes-dropdown'
-import ContratoDetailPage from './pages/contratos/ContratoDetailPage'
 import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
@@ -50,23 +49,26 @@ function App() {
                 {/* Rotas */}
                 <Route path="/" element={<HomePage />} />
 
-                <Route path="/contratos" element={<ContratosPage />} />
                 <Route
                   path="/contratos/cadastrar"
                   element={<CadastrarContrato />}
                 />
+
+                <Route path="/contratos" element={<ContratosPage />} />
                 <Route
                   path="/contratos/:contratoId"
-                  element={<ContratoDetailPage />}
-                />
-                <Route path="/fornecedores" element={<FornecedoresPage />} />
-                <Route
-                  path="/fornecedores/:fornecedorId"
-                  element={<FornecedorDetailPage />}
+                  element={<VisualizarContrato />}
                 />
                 <Route
                   path="/contratos/:id/editar"
                   element={<VisualizarContrato />}
+                />
+
+
+                <Route path="/fornecedores" element={<FornecedoresPage />} />
+                <Route
+                  path="/fornecedores/:fornecedorId"
+                  element={<FornecedorDetailPage />}
                 />
 
                 <Route path="/unidades" element={<UnidadesPage />} />
