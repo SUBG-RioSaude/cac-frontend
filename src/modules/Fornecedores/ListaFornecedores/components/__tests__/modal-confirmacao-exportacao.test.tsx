@@ -40,7 +40,7 @@ describe('ModalConfirmacaoExportacao', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} totalFornecedores={250} />)
     
     // Verifica se existe algum elemento que contenha o texto esperado
-    const elementos = screen.getAllByText((content, element) => {
+    const elementos = screen.getAllByText((_, element) => {
       return Boolean(element?.textContent?.includes('250') && element?.textContent?.includes('fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
@@ -50,7 +50,7 @@ describe('ModalConfirmacaoExportacao', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} totalFornecedores={1} />)
     
     // Verifica se existe algum elemento que contenha o texto esperado
-    const elementos = screen.getAllByText((content, element) => {
+    const elementos = screen.getAllByText((_, element) => {
       return Boolean(element?.textContent?.includes('1') && element?.textContent?.includes('fornecedor'))
     })
     expect(elementos.length).toBeGreaterThan(0)
@@ -60,7 +60,7 @@ describe('ModalConfirmacaoExportacao', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} totalFornecedores={5} />)
     
     // Verifica se existe algum elemento que contenha o texto esperado
-    const elementos = screen.getAllByText((content, element) => {
+    const elementos = screen.getAllByText((_, element) => {
       return Boolean(element?.textContent?.includes('5') && element?.textContent?.includes('fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
@@ -148,7 +148,7 @@ describe('ModalConfirmacaoExportacao', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} totalFornecedores={100} />)
     
     // Verifica se existe algum elemento que contenha o texto esperado
-    const elementos = screen.getAllByText((content, element) => {
+    const elementos = screen.getAllByText((_, element) => {
       return Boolean(element?.textContent?.includes('Total de fornecedores: 100 fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
