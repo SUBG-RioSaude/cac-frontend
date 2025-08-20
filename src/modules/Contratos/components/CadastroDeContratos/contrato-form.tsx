@@ -146,7 +146,7 @@ const schemaContrato = z.object({
     .max(60, 'Prazo máximo de 60 meses'),
   valorGlobal: z
     .string()
-    .min(1, 'Valor global é obrigatório')
+    .min(1, 'Valor do contrato é obrigatório')
     .refine(currencyUtils.validar, 'Valor deve ser maior que zero')
     .refine((valor) => {
       const valorNumerico = parseFloat(
@@ -1045,9 +1045,9 @@ export default function ContratoForm({
                     <FormControl>
                       <Input
                         id="prazoInicialMeses"
-                        type="number"
-                        min="1"
-                        max="60"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={field.value || ''}
                         onChange={(e) => {
                           const valor = parseInt(e.target.value) || 0
@@ -1100,7 +1100,7 @@ export default function ContratoForm({
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Container para Valor Global */}
+            {/* Container para Valor do Contrato */}
             <div className="space-y-2">
               <FormField
                 control={form.control}
@@ -1121,7 +1121,7 @@ export default function ContratoForm({
 
                   return (
                     <FormItem>
-                      <FormLabel htmlFor="valorGlobal" className="mb-2">Valor Global *</FormLabel>
+                      <FormLabel htmlFor="valorGlobal" className="mb-2">Valor do Contrato *</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input

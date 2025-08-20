@@ -83,7 +83,7 @@ describe('ContratoForm', () => {
     expect(screen.getByLabelText(/vigência inicial/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/prazo inicial/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/vigência final/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/valor global/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/valor do contrato/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/forma de pagamento/i)).toBeInTheDocument()
     // O campo é dinâmico; por padrão é Link do Processo.Rio
     expect(screen.getByLabelText(/link do processo\.rio/i)).toBeInTheDocument()
@@ -147,7 +147,7 @@ describe('ContratoForm', () => {
         screen.getByText(/data de vigência inicial é obrigatória/i),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/valor global é obrigatório/i),
+        screen.getByText(/Valor do contrato é obrigatório/i),
       ).toBeInTheDocument()
       expect(
         screen.getByText(/forma de pagamento é obrigatória/i),
@@ -245,9 +245,9 @@ describe('ContratoForm', () => {
     const prazoInput = screen.getByLabelText(/prazo inicial/i)
 
     fireEvent.change(prazoInput, { target: { value: '12' } })
-    expect(prazoInput).toHaveValue(12)
+    expect(prazoInput).toHaveValue('12')
 
     fireEvent.change(prazoInput, { target: { value: '60' } })
-    expect(prazoInput).toHaveValue(60)
+    expect(prazoInput).toHaveValue('60')
   })
 })

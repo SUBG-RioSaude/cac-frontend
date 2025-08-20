@@ -22,21 +22,34 @@ export default function ConfirmarAvancoModal({
   textoConfirmar = 'Confirmar',
   textoCancelar = 'Cancelar',
 }: ConfirmarAvancoModalProps) {
-  useEffect(() => {}, [aberto])
+  useEffect(() => {
+    // Previne scroll da página quando modal estiver aberto
+    if (aberto) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [aberto])
 
   if (!aberto) return null
 
   const isFinalizacao = textoConfirmar.toLowerCase().includes('finalizar')
 
   return (
-    <>
-      {/* Overlay */}
+    <div className="fixed inset-0 z-50">
+      {/* Overlay com blur */}
       <div
-        className="animate-in fade-in-0 fixed inset-0 z-50 bg-black/50 duration-200"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onCancelar}
       />
+      
       {/* Modal */}
-      <div className="animate-in fade-in-0 zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-md translate-x-[-50%] translate-y-[-50%] rounded-lg border border-gray-200 bg-white shadow-xl duration-300">
+      <div className="absolute top-1/2 left-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-gray-200 bg-white shadow-xl">
         {/* Header */}
         <div className="border-b border-gray-100 px-6 py-4">
           <div className="flex items-center space-x-3">
@@ -89,7 +102,11 @@ export default function ConfirmarAvancoModal({
             {textoCancelar}
           </Button>
           <Button
-            onClick={onConfirmar}
+            onClick={() => {
+              // Rola a página para o topo antes de confirmar
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+              onConfirmar()
+            }}
             className={cn(
               'px-4 py-2 text-sm font-medium',
               isFinalizacao
@@ -101,6 +118,6 @@ export default function ConfirmarAvancoModal({
           </Button>
         </div>
       </div>
-    </>
+    </div>
   )
 }

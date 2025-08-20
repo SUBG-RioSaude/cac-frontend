@@ -240,7 +240,7 @@ export function TabelaUnidades({
                           onClick={() => onVisualizarUnidade(unidade)}
                           className="h-8 px-3 text-xs"
                         >
-                          Abrir
+                          Ações
                           <ExternalLink className="mr-1 h-3 w-3" />
                         </Button>
                       </div>
@@ -326,7 +326,7 @@ export function TabelaUnidades({
                     </TableHead>
                     <TableHead className="font-semibold">Endereço</TableHead>
                     <TableHead className="w-24 text-center font-semibold">
-                      Abrir
+                      Ações
                     </TableHead>
                   </TableRow>
                 </TableHeader>
