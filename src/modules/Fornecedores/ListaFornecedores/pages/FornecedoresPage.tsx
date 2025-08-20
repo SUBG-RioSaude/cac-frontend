@@ -33,7 +33,6 @@ export default function FornecedoresListPage() {
     const csvContent = [
       [
         'Razão Social',
-        'Nome Fantasia',
         'CNPJ',
         'Contratos Ativos',
         'Status',
@@ -65,7 +64,6 @@ export default function FornecedoresListPage() {
     const csvContent = [
       [
         'Razão Social',
-        'Nome Fantasia',
         'CNPJ',
         'Contratos Ativos',
         'Status',
