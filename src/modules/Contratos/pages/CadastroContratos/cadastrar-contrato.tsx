@@ -6,19 +6,21 @@ import { Steps } from "@/components/ui/steps"
 import { useState, Suspense } from "react"
 import { FormErrorBoundary } from "@/components/error-boundary"
 import { FormLoadingFallback } from "@/components/ui/loading"
-import { Building2, FileText, Store } from "lucide-react"
+import { Building2, FileText, Store, UserCheck } from "lucide-react"
 import FornecedorForm, {
   type DadosFornecedor,
 } from "@/modules/Contratos/components/CadastroDeContratos/fornecedor-form"
 import ContratoForm, { type DadosContrato } from "@/modules/Contratos/components/CadastroDeContratos/contrato-form"
 import UnidadesFormMelhorado from "@/modules/Contratos/components/CadastroDeContratos/unidades-form"
 import type { DadosUnidades } from "@/modules/Contratos/types/unidades"
+import AtribuicaoFiscaisForm, { type DadosAtribuicao } from "@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form"
 import ConfirmarAvancoModal from "@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco"
 
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
   contrato?: DadosContrato
   unidades?: DadosUnidades
+  atribuicao?: DadosAtribuicao
 }
 
 export default function CadastrarContrato() {
@@ -27,10 +29,17 @@ export default function CadastrarContrato() {
 
   const [modalAberto, setModalAberto] = useState(false)
   const [proximoPassoPendente, setProximoPassoPendente] = useState<number | null>(null)
-  const [dadosPendentes, setDadosPendentes] = useState<DadosFornecedor | DadosContrato | DadosUnidades | null>(null)
+  const [dadosPendentes, setDadosPendentes] = useState<
+    DadosFornecedor | DadosContrato | DadosUnidades | DadosAtribuicao | null
+  >(null)
   const [isFinishing, setIsFinishing] = useState(false)
 
-  const passos = [{ title: "Dados do Fornecedor" }, { title: "Dados do Contrato" }, { title: "Unidades Contempladas" }]
+  const passos = [
+    { title: "Dados do Fornecedor" },
+    { title: "Dados do Contrato" },
+    { title: "Unidades Contempladas" },
+    { title: "Atribuição de Fiscais" },
+  ]
 
   const handleStepChange = (novoStep: number) => {
     setPassoAtual(novoStep)
@@ -40,11 +49,11 @@ export default function CadastrarContrato() {
     if (isFinishing && dadosPendentes) {
       setDadosCompletos((prev) => ({
         ...prev,
-        unidades: dadosPendentes as DadosUnidades,
+        atribuicao: dadosPendentes as DadosAtribuicao,
       }))
       console.log("Dados completos do cadastro:", {
         ...dadosCompletos,
-        unidades: dadosPendentes,
+        atribuicao: dadosPendentes,
       })
       alert("Contrato cadastrado com sucesso!")
     } else if (proximoPassoPendente && dadosPendentes) {
@@ -57,6 +66,11 @@ export default function CadastrarContrato() {
         setDadosCompletos((prev) => ({
           ...prev,
           contrato: dadosPendentes as DadosContrato,
+        }))
+      } else if (proximoPassoPendente === 4) {
+        setDadosCompletos((prev) => ({
+          ...prev,
+          unidades: dadosPendentes as DadosUnidades,
         }))
       }
       setPassoAtual(proximoPassoPendente)
@@ -87,7 +101,13 @@ export default function CadastrarContrato() {
     setModalAberto(true)
   }
 
-  const handleFinishRequest = (dados: DadosUnidades) => {
+  const handleUnidadesAdvanceRequest = (dados: DadosUnidades) => {
+    setDadosPendentes(dados)
+    setProximoPassoPendente(4)
+    setModalAberto(true)
+  }
+
+  const handleFinishRequest = (dados: DadosAtribuicao) => {
     setDadosPendentes(dados)
     setIsFinishing(true)
     setModalAberto(true)
@@ -121,15 +141,17 @@ export default function CadastrarContrato() {
   const handleUnidadesSubmit = (dados: DadosUnidades) => {
     setDadosCompletos((prev) => ({ ...prev, unidades: dados }))
     console.log("Dados das unidades:", dados)
+    setPassoAtual(4)
+  }
 
-    // Aqui você pode implementar a lógica para salvar os dados completos
+  const handleAtribuicaoSubmit = (dados: DadosAtribuicao) => {
+    setDadosCompletos((prev) => ({ ...prev, atribuicao: dados }))
+    console.log("Dados da atribuição:", dados)
+
     console.log("Dados completos do cadastro:", {
       ...dadosCompletos,
-      unidades: dados,
+      atribuicao: dados,
     })
-
-    // Por exemplo, fazer uma chamada à API
-    // await salvarContrato(dadosCompletos)
 
     alert("Contrato cadastrado com sucesso!")
   }
@@ -154,6 +176,12 @@ export default function CadastrarContrato() {
           titulo: "Unidades Contempladas",
           descricao: "Defina as unidades que farão parte deste contrato",
           icone: <Store className="h-4 w-4" aria-hidden="true" />,
+        }
+      case 4:
+        return {
+          titulo: "Atribuição de Fiscais",
+          descricao: "Atribua fiscais e gestores responsáveis pelo contrato",
+          icone: <UserCheck className="h-4 w-4" aria-hidden="true" />,
         }
       default:
         return { titulo: "", descricao: "", icone: null }
@@ -192,7 +220,7 @@ export default function CadastrarContrato() {
         return (
           <UnidadesFormMelhorado
             onSubmit={handleUnidadesSubmit}
-            onFinishRequest={handleFinishRequest}
+            onFinishRequest={handleUnidadesAdvanceRequest}
             onPrevious={() => setPassoAtual(2)}
             dadosIniciais={dadosCompletos.unidades}
             valorTotalContrato={(() => {
@@ -222,6 +250,15 @@ export default function CadastrarContrato() {
               
               return 0
             })()}
+          />
+        )
+      case 4:
+        return (
+          <AtribuicaoFiscaisForm
+            onSubmit={handleAtribuicaoSubmit}
+            onFinishRequest={handleFinishRequest}
+            onPrevious={() => setPassoAtual(3)}
+            dadosIniciais={dadosCompletos.atribuicao}
           />
         )
       default:

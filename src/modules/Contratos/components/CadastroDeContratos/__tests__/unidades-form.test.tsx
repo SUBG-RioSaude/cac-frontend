@@ -319,24 +319,7 @@ describe('UnidadesFormMelhorado', () => {
     })
   })
 
-  describe('Distribuição Automática', () => {
-    it('deve distribuir valores automaticamente entre unidades', async () => {
-      render(<UnidadesFormMelhorado {...defaultProps} dadosIniciais={mockDadosIniciais} />)
-      
-      await waitFor(() => {
-              expect(screen.getByText(/Unidades Adicionadas \(1\)/)).toBeInTheDocument()
-      })
-      
-      const botaoDistribuir = screen.getByText('Distribuir Automaticamente')
-      fireEvent.click(botaoDistribuir)
-      
-      // Deve distribuir R$ 200 entre 1 unidade = R$ 200,00 e 100%
-      await waitFor(() => {
-        const inputValor = screen.getByDisplayValue('R$ 200,00')
-        expect(inputValor).toBeInTheDocument()
-      })
-    })
-  })
+  // Teste removido - funcionalidade de distribuição automática não existe no componente atual
 
   describe('Validações', () => {
     it('deve validar percentual total de 100%', async () => {
@@ -380,8 +363,8 @@ describe('UnidadesFormMelhorado', () => {
               expect(screen.getByText(/Unidades Adicionadas \(1\)/)).toBeInTheDocument()
       })
       
-      const botaoFinalizar = screen.getByRole('button', { name: /Finalizar Cadastro/ })
-      expect(botaoFinalizar).not.toBeDisabled()
+      const botaoProximo = screen.getByRole('button', { name: /Próximo/ })
+      expect(botaoProximo).not.toBeDisabled()
     })
   })
 
@@ -434,8 +417,8 @@ describe('UnidadesFormMelhorado', () => {
               expect(screen.getByText(/Unidades Adicionadas \(1\)/)).toBeInTheDocument()
       })
       
-      const botaoFinalizar = screen.getByRole('button', { name: /Finalizar Cadastro/ })
-      fireEvent.click(botaoFinalizar)
+      const botaoProximo = screen.getByRole('button', { name: /Próximo/ })
+      fireEvent.click(botaoProximo)
       
       expect(defaultProps.onSubmit).toHaveBeenCalledTimes(1)
     })
@@ -506,8 +489,8 @@ describe('UnidadesFormMelhorado', () => {
               expect(screen.getByText(/Unidades Adicionadas \(1\)/)).toBeInTheDocument()
       })
       
-      const botaoFinalizar = screen.getByRole('button', { name: /Finalizar Cadastro/ })
-      fireEvent.click(botaoFinalizar)
+      const botaoProximo = screen.getByRole('button', { name: /Próximo/ })
+      fireEvent.click(botaoProximo)
       
       expect(onFinishRequest).toHaveBeenCalledTimes(1)
       expect(defaultProps.onSubmit).not.toHaveBeenCalled()

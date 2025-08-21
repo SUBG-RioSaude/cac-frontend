@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Trash2, Plus, Building2, CheckCircle, Edit3 } from "lucide-react"
+import { Trash2, Plus, Building2, CheckCircle, Edit3, ArrowRight } from "lucide-react"
 import { useState } from "react"
 import { currencyUtils } from "@/lib/utils"
 import BuscaUnidadeInteligente from "./busca-unidade-inteligente"
@@ -295,22 +295,6 @@ export default function UnidadesFormMelhorado({
     }))
   }
 
-  const distribuirAutomaticamente = () => {
-    if (dadosUnidades.unidades.length === 0) return
-
-    const valorPorUnidade = valorTotalContrato / dadosUnidades.unidades.length
-    const percentualPorUnidade = 100 / dadosUnidades.unidades.length
-
-    setDadosUnidades((prev) => ({
-      ...prev,
-      unidades: prev.unidades.map((unidade) => ({
-        ...unidade,
-        valorAlocado: currencyUtils.formatar(valorPorUnidade),
-        percentualContrato: percentualPorUnidade,
-      })),
-    }))
-  }
-
   const calcularTotalAlocado = () => {
     return dadosUnidades.unidades.reduce((total, unidade) => {
       return total + currencyUtils.paraNumero(unidade.valorAlocado)
@@ -459,17 +443,6 @@ export default function UnidadesFormMelhorado({
         <div className="flex items-center gap-2">
           <Building2 className="h-5 w-5" />
           <h3 className="text-lg font-medium">Unidades Contempladas</h3>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={distribuirAutomaticamente}
-            disabled={dadosUnidades.unidades.length === 0}
-          >
-            Distribuir Automaticamente
-          </Button>
         </div>
       </div>
 
@@ -768,7 +741,7 @@ export default function UnidadesFormMelhorado({
         <Button 
           type="submit" 
           disabled={!podeFinalizarCadastro()}
-          className="bg-slate-700 hover:bg-slate-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="bg-slate-700 hover:bg-slate-800 disabled:cursor-not-allowed"
         >
           {!podeFinalizarCadastro() ? (
             <div className="flex items-center gap-2">
@@ -776,8 +749,8 @@ export default function UnidadesFormMelhorado({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Finalizar Cadastro
+              Próximo
+              <ArrowRight className="h-4 w-4" />
             </div>
           )}
         </Button>
