@@ -173,6 +173,7 @@ interface ContratoFormProps {
   dadosIniciais?: Partial<DadosContrato>
   onAdvanceRequest?: (dados: DadosContrato) => void
   onDataChange?: (dados: Partial<DadosContrato>) => void
+  onValorContratoChange?: (valor: number) => void
 }
 
 interface ProcessoInstrutivo {
@@ -192,6 +193,7 @@ export default function ContratoForm({
   dadosIniciais = {},
   onAdvanceRequest,
   onDataChange,
+  onValorContratoChange,
 }: ContratoFormProps) {
   const { isSubmitting } = useFormAsyncOperation()
   const [tipoTermo, setTipoTermo] = useState<
@@ -264,6 +266,7 @@ export default function ContratoForm({
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
   const previousDataRef = useRef<string | null>(null)
+  const previousValorRef = useRef<string | null>(null)
 
   // Sincronizar processo selecionado com dados iniciais
   useEffect(() => {
@@ -278,6 +281,16 @@ export default function ContratoForm({
       setPesquisaProcesso('')
     }
   }, [openProcesso])
+
+  // Emitir mudanças no valor do contrato
+  useEffect(() => {
+    const valorAtual = watchedValues.valorGlobal || ''
+    if (valorAtual !== previousValorRef.current && onValorContratoChange) {
+      const valorNumerico = currencyUtils.paraNumero(valorAtual)
+      onValorContratoChange(valorNumerico)
+      previousValorRef.current = valorAtual
+    }
+  }, [watchedValues.valorGlobal, onValorContratoChange])
 
   useEffect(() => {
     if (onDataChange) {
