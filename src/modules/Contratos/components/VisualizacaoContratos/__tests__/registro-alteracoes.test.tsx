@@ -1,219 +1,212 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RegistroAlteracoes } from '../registro-alteracoes'
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato-detalhado'
+import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 
-// Mock do framer-motion para evitar problemas nos testes
+// Mock framer-motion para simplificar testes
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode
-      [key: string]: unknown
-    }) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: React.ComponentPropsWithoutRef<'div'>) => <div {...props}>{children}</div>
   },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
-const alteracoesMock: AlteracaoContrato[] = [
+const mockAlteracoes: AlteracaoContrato[] = [
   {
     id: '1',
     tipo: 'criacao',
     descricao: 'Contrato criado no sistema',
-    dataHora: '2023-05-08T09:00:00',
-    responsavel: 'Sistema Automático',
+    dataHora: '2024-01-10T09:00:00Z',
+    responsavel: 'Sistema'
   },
   {
     id: '2',
-    tipo: 'designacao_fiscais',
-    descricao:
-      'Fiscais administrativos designados: Maria Silva Santos e João Carlos Oliveira',
-    dataHora: '2023-05-10T14:30:00',
-    responsavel: 'Ana Paula Costa',
-  },
-  {
-    id: '3',
-    tipo: 'primeiro_pagamento',
-    descricao: 'Primeiro pagamento realizado no valor de R$ 104.166,67',
-    dataHora: '2023-06-15T10:15:00',
-    responsavel: 'Sistema Financeiro',
-  },
-  {
-    id: '4',
-    tipo: 'atualizacao_documentos',
-    descricao: 'Documentos de regularidade fiscal atualizados',
-    dataHora: '2023-08-22T16:45:00',
-    responsavel: 'Maria Silva Santos',
-  },
-  {
-    id: '5',
     tipo: 'alteracao_valor',
-    descricao: 'Valor do contrato alterado para R$ 1.250.000,00',
-    dataHora: '2023-09-01T11:20:00',
-    responsavel: 'Departamento Financeiro',
-  },
+    descricao: 'Alteração de valor contratual aprovada',
+    dataHora: '2024-01-15T14:30:00Z',
+    responsavel: 'João Silva'
+  }
+]
+
+const mockEntradasTimeline: TimelineEntry[] = [
   {
-    id: '6',
-    tipo: 'prorrogacao',
-    descricao: 'Prazo do contrato prorrogado',
-    dataHora: '2023-09-05T10:10:00',
-    responsavel: 'Ana Paula Costa',
-  },
+    id: 'timeline-1',
+    contratoId: 'contrato-123',
+    tipo: 'alteracao_contratual',
+    categoria: 'alteracao',
+    titulo: 'Aditivo de Quantidade - Acréscimo 15%',
+    descricao: 'Necessário acréscimo devido a demanda adicional',
+    dataEvento: '2024-01-20T10:00:00Z',
+    autor: {
+      id: 'user-1',
+      nome: 'Maria Santos',
+      tipo: 'gestor'
+    },
+    status: 'ativo',
+    prioridade: 'alta',
+    alteracaoContratual: {
+      alteracaoId: 'alt-1',
+      tipoAditivo: 'Aditivo - Quantidade',
+      valorOriginal: 100000,
+      valorNovo: 115000,
+      diferenca: 15000,
+      percentualDiferenca: 15,
+      novaVigencia: '2024-12-31',
+      statusAlteracao: 'aprovada'
+    },
+    tags: ['quantidade', 'aprovada'],
+    criadoEm: '2024-01-20T10:00:00Z'
+  }
 ]
 
 describe('RegistroAlteracoes', () => {
-  it('deve renderizar o componente com título da linha do tempo', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-    expect(screen.getByText('Linha do Tempo')).toBeInTheDocument()
-    expect(screen.getByText('Etapas do Contrato')).toBeInTheDocument()
+  const mockProps = {
+    alteracoes: mockAlteracoes,
+    entradasTimeline: mockEntradasTimeline,
+    onAdicionarObservacao: vi.fn()
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it('deve ordenar as alterações por data (mais recente primeiro)', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
+  describe('Renderização inicial', () => {
+    it('deve renderizar título e contador de entradas', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByText('Registro de Alterações')).toBeInTheDocument()
+      expect(screen.getByText('3')).toBeInTheDocument()
+    })
 
-    // Verifica se as alterações estão ordenadas por data (mais recente primeiro)
-    // 6 alterações na linha do tempo (h3) + 4 etapas fixas (h4) = 10 elementos
-    const alteracoes = screen.getAllByText(
-      /Criação do Contrato|Designação de Fiscais|Primeiro Pagamento|Atualização de Documentos|Alteração de Valor|Prorrogação de Prazo/,
-    )
-    expect(alteracoes).toHaveLength(10) // 6 alterações + 4 etapas
-  })
+    it('deve renderizar barra de pesquisa e filtro', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByPlaceholderText('Pesquisar alterações...')).toBeInTheDocument()
+      expect(screen.getByText('Todos os tipos')).toBeInTheDocument()
+    })
 
-  it('deve exibir ícones corretos para cada tipo de alteração', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Verifica se os títulos estão sendo exibidos (usando getAllByText para lidar com duplicatas)
-    // Criação do Contrato aparece 2 vezes (linha do tempo + etapas)
-    expect(screen.getAllByText('Criação do Contrato')).toHaveLength(2)
-    // Designação de Fiscais aparece 2 vezes (linha do tempo + etapas)
-    expect(screen.getAllByText('Designação de Fiscais')).toHaveLength(2)
-    // Primeiro Pagamento aparece 2 vezes (linha do tempo + etapas)
-    expect(screen.getAllByText('Primeiro Pagamento')).toHaveLength(2)
-  })
-
-  it('deve exibir cores corretas para cada tipo de alteração', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Verifica se as cores estão sendo aplicadas nos containers dos ícones
-    // 6 alterações na linha do tempo (h3) + 4 etapas fixas (h4) = 10 elementos
-    const containersIcones = screen.getAllByText(
-      /Criação do Contrato|Designação de Fiscais|Primeiro Pagamento|Atualização de Documentos|Alteração de Valor|Prorrogação de Prazo/,
-    )
-    expect(containersIcones).toHaveLength(10) // 6 alterações + 4 etapas
-  })
-
-  it('deve exibir títulos corretos para cada tipo de alteração', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Verifica se os títulos estão sendo exibidos corretamente
-    // Cada título aparece na linha do tempo (h3) e nas etapas (h4) se for uma das 4 etapas fixas
-    expect(screen.getAllByText('Criação do Contrato')).toHaveLength(2)
-    expect(screen.getAllByText('Designação de Fiscais')).toHaveLength(2)
-    expect(screen.getAllByText('Primeiro Pagamento')).toHaveLength(2)
-    // Atualização de Documentos aparece em ambos os lugares (linha do tempo + etapas)
-    expect(screen.getAllByText('Atualização de Documentos')).toHaveLength(2)
-  })
-
-  it('deve exibir descrições das alterações', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    expect(screen.getByText('Contrato criado no sistema')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Fiscais administrativos designados: Maria Silva Santos e João Carlos Oliveira',
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Primeiro pagamento realizado no valor de R$ 104.166,67',
-      ),
-    ).toBeInTheDocument()
-  })
-
-  it('deve exibir responsáveis pelas alterações', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Usa getAllByText para lidar com possíveis duplicatas
-    expect(screen.getAllByText('Por: Sistema Automático')).toHaveLength(1)
-    expect(screen.getAllByText('Por: Ana Paula Costa')).toHaveLength(2) // Aparece em 2 alterações
-    expect(screen.getAllByText('Por: Sistema Financeiro')).toHaveLength(1)
-  })
-
-  it('deve exibir badges de data/hora para cada alteração', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Verifica se os badges de data estão sendo exibidos
-    const badges = screen.getAllByText(/\d{2}\/\d{2}\/\d{4}/)
-    expect(badges.length).toBeGreaterThan(0)
-
-    badges.forEach((badge) => {
-      expect(badge).toBeInTheDocument()
+    it('deve renderizar botão de observação quando callback fornecido', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByRole('button', { name: /observação/i })).toBeInTheDocument()
     })
   })
 
-  it('deve exibir a linha vertical do tempo', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
+  describe('Exibição de entradas', () => {
+    it('deve mostrar entradas unificadas ordenadas por data', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByText('Aditivo de Quantidade - Acréscimo 15%')).toBeInTheDocument()
+      expect(screen.getAllByText('Alteração de Valor')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal)
+      expect(screen.getAllByText('Criação do Contrato')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal)
+    })
 
-    // Verifica se a linha vertical está sendo renderizada
-    const linhaVertical = document.querySelector(
-      '.absolute.left-6.top-0.bottom-0.w-0\\.5.bg-border',
-    )
-    expect(linhaVertical).toBeInTheDocument()
+    it('deve exibir dados financeiros para alterações contratuais', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByText('R$ 100.000,00')).toBeInTheDocument()
+      expect(screen.getByText('R$ 115.000,00')).toBeInTheDocument()
+      expect(screen.getByText('+R$ 15.000,00')).toBeInTheDocument()
+    })
+
+    it('deve mostrar badges de origem e prioridade', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByText('Alteração')).toBeInTheDocument() 
+      expect(screen.getByText('alta')).toBeInTheDocument()
+    })
+
+    it('deve exibir tags quando disponíveis', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByText('quantidade')).toBeInTheDocument()
+      expect(screen.getByText('aprovada')).toBeInTheDocument()
+    })
   })
 
-  it('deve aplicar animações com framer-motion', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
+  describe('Filtros e pesquisa', () => {
+    it('deve filtrar entradas por termo de pesquisa', async () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      const searchInput = screen.getByPlaceholderText('Pesquisar alterações...')
+      fireEvent.change(searchInput, { target: { value: 'Quantidade' } })
 
-    // Verifica se as animações estão sendo aplicadas (elementos com motion)
-    const alteracoesAnimadas = document.querySelectorAll('[animate]')
-    expect(alteracoesAnimadas.length).toBeGreaterThan(0)
+      await waitFor(() => {
+        expect(screen.getByText('Aditivo de Quantidade - Acréscimo 15%')).toBeInTheDocument()
+        expect(screen.queryByText('Criação do Contrato')).not.toBeInTheDocument()
+      })
+    })
+
+    it('deve mostrar mensagem quando nenhuma entrada é encontrada', async () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      const searchInput = screen.getByPlaceholderText('Pesquisar alterações...')
+      fireEvent.change(searchInput, { target: { value: 'inexistente' } })
+
+      await waitFor(() => {
+        expect(screen.getByText('Nenhuma alteração encontrada')).toBeInTheDocument()
+      })
+    })
   })
 
-  it('deve exibir detalhes das alterações quando disponíveis', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
+  describe('Estados edge case', () => {
+    it('deve renderizar corretamente sem entradas da timeline', () => {
+      const propsVazias = {
+        ...mockProps,
+        entradasTimeline: []
+      }
+      
+      render(<RegistroAlteracoes {...propsVazias} />)
+      
+      expect(screen.getByText('2')).toBeInTheDocument()
+      expect(screen.getAllByText('Criação do Contrato')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal)
+    })
 
-    // Verifica se os detalhes estão sendo exibidos
-    expect(screen.getByText(/Contrato criado no sistema/)).toBeInTheDocument()
-    expect(
-      screen.getByText(/Maria Silva Santos e João Carlos Oliveira/),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/R\$ 104\.166,67/)).toBeInTheDocument()
+    it('deve mostrar mensagem de vazio quando não há alterações', () => {
+      const propsSemDados = {
+        ...mockProps,
+        alteracoes: [],
+        entradasTimeline: []
+      }
+      
+      render(<RegistroAlteracoes {...propsSemDados} />)
+      
+      expect(screen.getByText('Nenhuma alteração registrada')).toBeInTheDocument()
+    })
+
+    it('deve funcionar sem callbacks opcionais', () => {
+      const propsSemCallbacks = {
+        alteracoes: mockAlteracoes,
+        entradasTimeline: mockEntradasTimeline
+      }
+      
+      expect(() => {
+        render(<RegistroAlteracoes {...propsSemCallbacks} />)
+      }).not.toThrow()
+      
+      expect(screen.queryByRole('button', { name: /observação/i })).not.toBeInTheDocument()
+    })
   })
 
-  it('deve renderizar corretamente quando não há alterações', () => {
-    render(<RegistroAlteracoes alteracoes={[]} />)
-
-    expect(screen.getByText('Linha do Tempo')).toBeInTheDocument()
-    expect(screen.getByText('Etapas do Contrato')).toBeInTheDocument()
-    // As etapas fixas sempre aparecem, mesmo sem alterações
-    expect(screen.getByText('Criação do Contrato')).toBeInTheDocument()
-    expect(screen.getByText('Designação de Fiscais')).toBeInTheDocument()
-    expect(screen.getByText('Primeiro Pagamento')).toBeInTheDocument()
-    expect(screen.getByText('Atualização de Documentos')).toBeInTheDocument()
+  describe('Callbacks', () => {
+    it('deve chamar onAdicionarObservacao quando botão clicado', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      fireEvent.click(screen.getByRole('button', { name: /observação/i }))
+      
+      expect(mockProps.onAdicionarObservacao).toHaveBeenCalledTimes(1)
+    })
   })
 
-  it('deve exibir as etapas do contrato com status correto', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Verifica se as etapas estão sendo exibidas
-    expect(screen.getByText('Etapas do Contrato')).toBeInTheDocument()
-
-    // Verifica se as etapas específicas estão sendo exibidas
-    // Apenas 4 etapas fixas são exibidas, não todas as 6 alterações
-    const etapas = screen.getAllByText(
-      /Criação do Contrato|Designação de Fiscais|Primeiro Pagamento|Atualização de Documentos/,
-    )
-    expect(etapas.length).toBeGreaterThan(0)
-  })
-
-  it('deve aplicar classes CSS corretas para responsividade', () => {
-    render(<RegistroAlteracoes alteracoes={alteracoesMock} />)
-
-    // Verifica se as classes de responsividade estão sendo aplicadas
-    const containerResponsivo = document.querySelector(
-      '.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4',
-    )
-    expect(containerResponsivo).toBeInTheDocument()
+  describe('Resumo por tipo', () => {
+    it('deve exibir seção de resumo com estatísticas', () => {
+      render(<RegistroAlteracoes {...mockProps} />)
+      
+      expect(screen.getByText('Resumo por Tipo')).toBeInTheDocument()
+      
+      const registrosText = screen.getAllByText(/\d+ registros?/)
+      expect(registrosText.length).toBeGreaterThan(0)
+    })
   })
 })

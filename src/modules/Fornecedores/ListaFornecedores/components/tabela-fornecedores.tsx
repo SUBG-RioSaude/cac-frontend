@@ -195,6 +195,15 @@ export function TabelaFornecedores({
                             </p>
                           </div>
                         </div>
+
+                        {fornecedor.endereco && (
+                          <div>
+                            <p className="text-muted-foreground text-xs">Localização</p>
+                            <p className="text-sm">
+                              {fornecedor.endereco.cidade} - {fornecedor.endereco.uf}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-end gap-1">
@@ -203,6 +212,7 @@ export function TabelaFornecedores({
                           size="sm"
                           onClick={() => onVisualizarFornecedor(fornecedor)}
                           className="h-8 w-8 p-0"
+                          aria-label="Visualizar fornecedor"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -211,6 +221,7 @@ export function TabelaFornecedores({
                           size="sm"
                           onClick={() => onEditarFornecedor(fornecedor)}
                           className="h-8 w-8 p-0"
+                          aria-label="Editar fornecedor"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -220,6 +231,7 @@ export function TabelaFornecedores({
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
+                              aria-label="Abrir menu de ações"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
@@ -260,9 +272,6 @@ export function TabelaFornecedores({
                     <TableHead className="font-semibold">
                       Razão Social
                     </TableHead>
-                    <TableHead className="font-semibold">
-                      Nome Fantasia
-                    </TableHead>
                     <TableHead className="font-semibold">CNPJ</TableHead>
                     <TableHead className="font-semibold">
                       Contratos Ativos
@@ -302,6 +311,11 @@ export function TabelaFornecedores({
                           <div className="line-clamp-2 text-sm font-medium">
                             {fornecedor.razaoSocial}
                           </div>
+                          {fornecedor.endereco && (
+                            <div className="text-muted-foreground text-xs mt-1">
+                              {fornecedor.endereco.cidade} - {fornecedor.endereco.uf}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="font-mono text-sm">
@@ -328,6 +342,7 @@ export function TabelaFornecedores({
                               size="sm"
                               onClick={() => onVisualizarFornecedor(fornecedor)}
                               className="h-8 w-8 p-0 opacity-100"
+                              aria-label="Visualizar fornecedor"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -336,6 +351,7 @@ export function TabelaFornecedores({
                               size="sm"
                               onClick={() => onEditarFornecedor(fornecedor)}
                               className="h-8 w-8 p-0 opacity-100"
+                              aria-label="Editar fornecedor"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -345,6 +361,7 @@ export function TabelaFornecedores({
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0 opacity-100"
+                                  aria-label="Abrir menu de ações"
                                 >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>

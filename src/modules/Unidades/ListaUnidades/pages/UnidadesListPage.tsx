@@ -176,7 +176,7 @@ const UnidadesListPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
+    <div className="min-h-screen to-muted/20 p-6">
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
         {/* Cabeçalho Responsivo */}
         <motion.div
