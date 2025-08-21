@@ -88,6 +88,48 @@ const validarPCA = (pca: string) => {
   return /^\d+$/.test(pca)
 }
 
+const unidadesMock = {
+  demandantes: [
+    'Secretaria de Obras',
+    'Secretaria de TI',
+    'Secretaria de Saúde',
+    'Procuradoria Geral',
+    'Secretaria de Administração',
+    'Secretaria de Segurança',
+    'Secretaria de Transporte',
+    'Secretaria de Educação',
+    'Secretaria de Cultura',
+    'Secretaria de Esporte',
+    'Secretaria de Meio Ambiente',
+    'Secretaria de Desenvolvimento Social',
+    'Hospital Central de São Paulo',
+    'Instituto do Coração',
+    'Hospital das Clínicas de Ribeirão Preto',
+    'Hospital Universitário de Brasília',
+    'Hospital de Clínicas de Porto Alegre',
+    'Hospital Universitário Walter Cantídio',
+    'Hospital Universitário João de Barros Barreto',
+    'Hospital Universitário de Santa Maria'
+  ],
+  gestoras: [
+    'Departamento de Compras',
+    'Departamento de Contratos',
+    'Departamento de Administração e Finanças',
+    'Departamento de Planejamento',
+    'Departamento de Recursos Humanos',
+    'Departamento de Tecnologia da Informação',
+    'Departamento de Engenharia',
+    'Departamento de Manutenção',
+    'Departamento de Logística',
+    'Departamento de Patrimônio',
+    'Coordenação de Contratos',
+    'Coordenação de Licitações',
+    'Coordenação de Gestão Contratual',
+    'Coordenação de Fiscalização',
+    'Coordenação de Pagamentos'
+  ]
+}
+
 export interface DadosContrato {
   numeroContrato: string
   processoSei: string
@@ -224,18 +266,9 @@ export default function ContratoForm({
 
   // Carregar dados das unidades
   useEffect(() => {
-    const carregarUnidades = async () => {
-      try {
-        const response = await fetch(
-          '/src/modules/Contratos/data/contratos-data.json',
-        )
-        const data = await response.json()
-        setUnidades(data.unidades)
-      } catch (error) {
-        console.error('Erro ao carregar unidades:', error)
-      }
-    }
-    carregarUnidades()
+    // Em produção, isso viria de uma API
+    // Por enquanto, usamos os dados mock
+    setUnidades(unidadesMock)
   }, [])
 
   const form = useForm<FormDataContrato>({
