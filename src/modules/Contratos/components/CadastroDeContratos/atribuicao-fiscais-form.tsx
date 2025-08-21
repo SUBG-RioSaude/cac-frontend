@@ -118,6 +118,7 @@ export default function AtribuicaoFiscaisForm({
                     size="sm"
                     onClick={() => handleAtribuirUsuario(usuario)}
                     className="ml-2 h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50"
+                    aria-label={`Atribuir ${usuario.nome}`}
                   >
                     <UserPlus className="h-4 w-4" />
                   </Button>
@@ -191,6 +192,7 @@ export default function AtribuicaoFiscaisForm({
                       size="sm"
                       onClick={() => handleRemoverUsuario(usuario.id)}
                       className="ml-2 h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      aria-label={`Remover ${usuario.nome}`}
                     >
                       <X className="h-4 w-4" />
                     </Button>
