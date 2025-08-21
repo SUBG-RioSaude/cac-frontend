@@ -111,10 +111,11 @@ export interface PeriodoVigencia {
   status: 'concluido' | 'em_andamento' | 'pendente'
 }
 
-// Novas interfaces para a checklist de documentos
+// Interface simplificada para a checklist de documentos (API-ready)
 export interface DocumentoChecklist {
-  status: 'entregue' | 'pendente' | 'nao_aplicavel'
-  dataEntrega?: string // ISO date string
+  entregue: boolean        // true/false apenas (para API)
+  link?: string           // URL opcional do documento
+  dataEntrega?: string    // ISO date string - gerada automaticamente quando entregue=true
 }
 
 export interface ChecklistData {

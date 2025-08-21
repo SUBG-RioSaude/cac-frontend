@@ -33,7 +33,7 @@ export function DocumentosChecklist({ checklistData, contratoId }: DocumentosChe
       <CardContent className="space-y-4">
         {Object.entries(checklistLabels).map(([key, label]) => {
           const documentoKey = key as keyof ChecklistData;
-          const isChecked = checklistData[documentoKey]?.status === 'entregue';
+          const isChecked = checklistData[documentoKey]?.entregue || false;
 
           return (
             <div key={documentoKey} className="flex items-center space-x-2">

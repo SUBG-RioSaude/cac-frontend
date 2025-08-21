@@ -248,6 +248,38 @@
         "responsavel": "Maria Silva Santos"
       }
     ],
+    "documentos": [],
+    "documentosChecklist": {
+      "termoReferencia": {
+        "entregue": true,
+        "link": "https://sistema-licitacao.gov.br/termo-referencia-001-2024.pdf",
+        "dataEntrega": "2024-01-10T09:00:00Z"
+      },
+      "homologacao": {
+        "entregue": false
+      },
+      "ataRegistroPrecos": {
+        "entregue": false
+      },
+      "garantiaContratual": {
+        "entregue": true,
+        "link": "https://seguradora.com.br/garantia-contrato-001.pdf",
+        "dataEntrega": "2024-01-20T10:15:00Z"
+      },
+      "contrato": {
+        "entregue": true,
+        "link": "https://contratos.prefeitura.gov.br/contrato-001-2024-assinado.pdf",
+        "dataEntrega": "2024-02-01T08:30:00Z"
+      },
+      "publicacaoPncp": {
+        "entregue": true,
+        "link": "https://pncp.gov.br/contratos/publicacao-001-2024",
+        "dataEntrega": "2024-01-22T16:45:00Z"
+      },
+      "publicacaoExtrato": {
+        "entregue": false
+      }
+    },
     "indicadores": {
       "saldoAtual": 687500.0,
       "percentualExecutado": 45,

@@ -30,7 +30,6 @@ import { TabDocumentos } from '../../components/Documentos/tab-documentos'
 import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
 import type { TimelineEntry } from '../../types/timeline'
 import type { ChatMessage } from '../../types/chat'
-import { DOCUMENTOS_MOCK } from '../../data/documentos-mock'
 
 export function VisualizarContrato() {
   const { id } = useParams<{ id: string }>()
@@ -451,40 +450,16 @@ export function VisualizarContrato() {
 
                 <TabsContent value="documentos" className="mt-0 w-full">
                   <TabDocumentos 
-                    documentos={DOCUMENTOS_MOCK}
-                    onDocumentosChange={(documentos) => {
-                      // Callback para sincronizar mudanças nos documentos
-                      console.log('Documentos atualizados:', documentos)
+                    checklistData={contrato.documentosChecklist}
+                    contratoId={contrato.id}
+                    onChecklistChange={(novaChecklist) => {
+                      // Atualizar o estado do contrato com a nova checklist
+                      setContrato(prev => prev ? { ...prev, documentosChecklist: novaChecklist } : null)
+                      console.log('Checklist atualizada:', novaChecklist)
+                      
+                      // Aqui seria feita a persistência via API
+                      console.log('Persistindo checklist no backend...', novaChecklist)
                     }}
-                    timelineIntegration={{
-                      criarEntradaDocumento: (documento, acao, autor, dadosAdicionais) => {
-                        // Integrar com o hook existente de timeline
-                        console.log('Integrando documento com timeline:', { documento, acao, autor, dadosAdicionais })
-                        
-                        // Simular criação da entrada na timeline
-                        const entrada = {
-                          id: `doc_${acao}_${Date.now()}_${documento.id}`,
-                          contratoId: contrato.id,
-                          tipo: 'manual' as const,
-                          categoria: 'documento' as const,
-                          titulo: `${acao === 'adicionado' ? 'Documento Adicionado' : 
-                                   acao === 'status_alterado' ? 'Status Alterado' :
-                                   acao === 'link_atualizado' ? 'Link Atualizado' :
-                                   'Observações Atualizadas'} - ${documento.nome}`,
-                          descricao: `Documento ${documento.categoria}: ${documento.descricao}`,
-                          dataEvento: new Date().toISOString(),
-                          autor,
-                          status: 'ativo' as const,
-                          prioridade: documento.categoria === 'obrigatorio' ? 'alta' : 'media' as const,
-                          tags: ['documento', documento.categoria, documento.status, acao],
-                          criadoEm: new Date().toISOString()
-                        }
-                        
-                        // Adicionar à timeline local
-                        setEntradasTimeline(prev => [entrada, ...prev])
-                      }
-                    }}
-                    usuarioAtual={{ id: '1', nome: 'Usuário Atual', tipo: 'usuario' }}
                   />
                 </TabsContent>
 

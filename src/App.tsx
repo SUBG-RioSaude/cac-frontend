@@ -17,6 +17,7 @@ import Forbidden from './modules/http-codes/403'
 import ServiceUnavailable from './modules/http-codes/503'
 import UnidadesPage from './pages/unidades/UnidadesPage'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
+import { Toaster } from 'sonner'
 
 function App() {
   return (
@@ -76,6 +77,10 @@ function App() {
             </div>
           </ErrorBoundary>
         </main>
+
+        <Toaster position='bottom-right' richColors closeButton />
+
+
       </SidebarInset>
     </SidebarProvider>
   )

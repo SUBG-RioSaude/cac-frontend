@@ -223,7 +223,7 @@ export function useTimelineIntegration({ contratoId, onAdicionarEntrada }: UseTi
           tipo: autor.tipo as 'usuario' | 'fiscal' | 'gestor' | 'fornecedor' | 'sistema'
         },
         status: 'ativo',
-        prioridade: config.prioridade,
+        prioridade: config.prioridade as 'baixa' | 'media' | 'alta' | 'critica',
         metadata: {
           documentoId: documento.id,
           tipoDocumento: documento.tipo.nome,
