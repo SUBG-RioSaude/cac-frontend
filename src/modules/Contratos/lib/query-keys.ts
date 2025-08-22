@@ -45,6 +45,41 @@ export const contratoKeys = {
   ] as const
 }
 
+// Query keys para empresas/fornecedores
+export const empresaKeys = {
+  // Base key para todas as empresas
+  all: ['empresas'] as const,
+  
+  // Listas de empresas
+  lists: () => [...empresaKeys.all, 'list'] as const,
+  list: (filtros?: any) => [...empresaKeys.all, 'list', filtros] as const,
+  
+  // Empresa individual
+  details: () => [...empresaKeys.all, 'detail'] as const,
+  detail: (id: string) => [...empresaKeys.all, 'detail', id] as const,
+  
+  // Consulta por CNPJ
+  byCnpj: (cnpj: string) => [...empresaKeys.all, 'cnpj', cnpj] as const,
+  
+  // Para mutations - keys que devem ser invalidadas
+  invalidateOnCreate: () => [
+    empresaKeys.lists(),
+    empresaKeys.all
+  ] as const,
+  
+  invalidateOnUpdate: (id: string) => [
+    empresaKeys.detail(id),
+    empresaKeys.lists(),
+    empresaKeys.byCnpj(id)
+  ] as const,
+  
+  invalidateOnDelete: (id: string) => [
+    empresaKeys.detail(id),
+    empresaKeys.lists(),
+    empresaKeys.byCnpj(id)
+  ] as const
+}
+
 // Tipo para garantir type safety - definindo tipos específicos
 export type ContratoQueryKey = 
   | readonly ['contratos']
@@ -52,3 +87,11 @@ export type ContratoQueryKey =
   | readonly ['contratos', 'list', Partial<ContratoParametros> | undefined]
   | readonly ['contratos', 'detail']
   | readonly ['contratos', 'detail', string]
+
+export type EmpresaQueryKey = 
+  | readonly ['empresas']
+  | readonly ['empresas', 'list']
+  | readonly ['empresas', 'list', any]
+  | readonly ['empresas', 'detail']
+  | readonly ['empresas', 'detail', string]
+  | readonly ['empresas', 'cnpj', string]
