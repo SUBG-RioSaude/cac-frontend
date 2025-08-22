@@ -90,24 +90,35 @@ export interface DocumentoContrato {
 export interface Contrato {
   id: string
   numeroContrato?: string | null
+  numeroCCon?: string | null // Added for compatibility
   processoSei?: string | null
   categoriaObjeto?: string | null
   descricaoObjeto?: string | null
+  objeto?: string | null // Added for compatibility (mapped from descricaoObjeto)
   tipoContratacao?: string | null
   tipoContrato?: string | null
   unidadeDemandante?: string | null
   unidadeGestora?: string | null
+  unidade?: string | null // Added for compatibility (mapped from unidadeDemandante)
   contratacao?: string | null
   vigenciaInicial: string // ISO date-time
   vigenciaFinal: string // ISO date-time
+  dataInicial?: string | null // Added for compatibility (mapped from vigenciaInicial)
+  dataFinal?: string | null // Added for compatibility (mapped from vigenciaFinal)
   prazoInicialMeses: number
   valorGlobal: number
+  valor?: number | null // Added for compatibility (mapped from valorGlobal)
   formaPagamento?: string | null
   tipoTermoReferencia?: string | null
   termoReferencia?: string | null
   vinculacaoPCA?: string | null
   status?: string | null
   empresaId: string
+  // Added for compatibility
+  contratada?: {
+    razaoSocial: string
+    cnpj: string
+  } | null
   ativo: boolean
   usuarioCadastroId: string
   usuarioAtualizacaoId: string

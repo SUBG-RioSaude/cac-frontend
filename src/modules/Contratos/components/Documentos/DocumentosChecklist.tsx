@@ -21,7 +21,7 @@ const checklistLabels: Record<keyof ChecklistData, string> = {
 
 export function DocumentosChecklist({ checklistData, contratoId }: DocumentosChecklistProps) {
   const handleCheckedChange = (documentoKey: keyof ChecklistData, checked: boolean) => {
-    console.log(`Documento ${documentoKey} (contrato ${contratoId}) alterado para: ${checked}`);
+    console.log(`Documento ${String(documentoKey)} (contrato ${contratoId}) alterado para: ${checked}`);
     // Lógica para atualizar o estado e criar evento na timeline será adicionada aqui
   };
 
@@ -36,13 +36,13 @@ export function DocumentosChecklist({ checklistData, contratoId }: DocumentosChe
           const isChecked = checklistData[documentoKey]?.entregue || false;
 
           return (
-            <div key={documentoKey} className="flex items-center space-x-2">
+            <div key={String(documentoKey)} className="flex items-center space-x-2">
               <Checkbox
-                id={documentoKey}
+                id={String(documentoKey)}
                 checked={isChecked}
                 onCheckedChange={(checked) => handleCheckedChange(documentoKey, !!checked)}
               />
-              <Label htmlFor={documentoKey} className="text-base">
+              <Label htmlFor={String(documentoKey)} className="text-base">
                 {label}
               </Label>
             </div>

@@ -42,19 +42,20 @@ export function useContratos(
       return failureCount < 2
     },
 
-    onError: (error: unknown) => {
+    throwOnError: (error: unknown) => {
       // Para erros críticos (5xx, 401, 403), usar o error handler que redireciona
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
         
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
-          return
+          return true
         }
       }
 
       // Para outros erros, mostrar toast sem redirecionar
       toastQuery.error(error, "Não foi possível carregar a lista de contratos")
+      return false
     }
   })
 }
@@ -86,23 +87,24 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
       return failureCount < 2
     },
 
-    onError: (error: unknown) => {
+    throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
         
         if (status === 404) {
           // Para 404, redirecionar para página específica
           handleApiError(error)
-          return
+          return true
         }
         
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
-          return
+          return true
         }
       }
 
       toastQuery.error(error, "Não foi possível carregar os detalhes do contrato")
+      return false
     }
   })
 }
@@ -126,17 +128,18 @@ export function useContratosVencendo(diasAntecipados = 30, options?: { enabled?:
     enabled: options?.enabled ?? true,
     staleTime: 5 * 60 * 1000, // 5 minutos
     
-    onError: (error: unknown) => {
+    throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
         
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
-          return
+          return true
         }
       }
 
       toastQuery.error(error, "Não foi possível carregar contratos vencendo")
+      return false
     }
   })
 }
@@ -158,17 +161,18 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
     enabled: options?.enabled ?? true,
     staleTime: 5 * 60 * 1000, // 5 minutos
     
-    onError: (error: unknown) => {
+    throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
         
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
-          return
+          return true
         }
       }
 
       toastQuery.error(error, "Não foi possível carregar contratos vencidos")
+      return false
     }
   })
 }

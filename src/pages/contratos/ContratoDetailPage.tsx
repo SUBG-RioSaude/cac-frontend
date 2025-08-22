@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { useMemo } from 'react';
 import LayoutPagina from '@/components/layout-pagina';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Imports comentados - para implementação futura com React Query
@@ -6,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato';
 // import { RegistroAlteracoes } from '@/modules/Contratos/components/VisualizacaoContratos/registro-alteracoes';
 import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos';
-import { Loading } from '@/components/ui/loading';
+// import { Loading } from '@/components/ui/loading';
 
 function ContratoDetailPage() {
   const { contratoId } = useParams<{ contratoId: string }>();
@@ -35,7 +36,7 @@ function ContratoDetailPage() {
   }, [contratoId]);
 
   if (isLoading) {
-    return <Loading className="h-screen" />;
+    return <div className="h-screen flex items-center justify-center">Carregando...</div>;
   }
 
   if (error || !contrato) {
@@ -63,7 +64,15 @@ function ContratoDetailPage() {
         <TabsContent value="documentos">
           <TabDocumentos 
             contratoId={contrato.id} 
-            checklistData={contrato.documentosChecklist} 
+            checklistData={{
+              termoReferencia: { entregue: true, dataEntrega: '2024-01-15' },
+              homologacao: { entregue: true, dataEntrega: '2024-01-20' },
+              ataRegistroPrecos: { entregue: false },
+              garantiaContratual: { entregue: false },
+              contrato: { entregue: true, dataEntrega: '2024-02-01' },
+              publicacaoPncp: { entregue: true, dataEntrega: '2024-02-05' },
+              publicacaoExtrato: { entregue: false }
+            }} 
           />
         </TabsContent>
 

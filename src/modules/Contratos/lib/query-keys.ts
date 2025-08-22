@@ -45,5 +45,10 @@ export const contratoKeys = {
   ] as const
 }
 
-// Tipo para garantir type safety
-export type ContratoQueryKey = ReturnType<typeof contratoKeys[keyof typeof contratoKeys]>
+// Tipo para garantir type safety - definindo tipos específicos
+export type ContratoQueryKey = 
+  | readonly ['contratos']
+  | readonly ['contratos', 'list']
+  | readonly ['contratos', 'list', Partial<ContratoParametros> | undefined]
+  | readonly ['contratos', 'detail']
+  | readonly ['contratos', 'detail', string]

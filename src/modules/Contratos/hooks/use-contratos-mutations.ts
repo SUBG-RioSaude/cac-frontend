@@ -5,12 +5,14 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { api } from '@/lib/axios'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 // Tipos para as mutations
+
 interface CriarContratoData {
   numeroContrato?: string
   processoSei?: string
@@ -58,13 +60,14 @@ export function useCreateContrato() {
 
     onMutate: async () => {
       // Toast de loading
-      return mutation.loading('Criando contrato')
+      const loadingToast = mutation.loading('Criando contrato')
+      return { loadingToast }
     },
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, _variables, context) => {
       // Dismiss loading toast
-      if (context) {
-        mutation.loading('').then(toast => toast && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+      if (context?.loadingToast) {
+        toast.dismiss(context.loadingToast)
       }
 
       // Toast de sucesso
@@ -78,10 +81,10 @@ export function useCreateContrato() {
       navigate(`/contratos/${data.id}`)
     },
 
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // Dismiss loading toast
-      if (context) {
-        mutation.loading('').then(toast => toast && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+      if (context?.loadingToast) {
+        toast.dismiss(context.loadingToast)
       }
 
       // Toast de erro com handling automático
@@ -121,10 +124,10 @@ export function useUpdateContrato() {
       return { previousContrato, loadingToast }
     },
 
-    onSuccess: (data, variables, context) => {
-      // Dismiss loading toast
-      if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+    onSuccess: (data, _variables, context) => {
+      // Dismiss loading toast - loadingToast is now just the toast ID
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+        // Toast is automatically dismissed by the mutation.success call
       }
 
       // Toast de sucesso
@@ -137,16 +140,16 @@ export function useUpdateContrato() {
       })
     },
 
-    onError: (error, variables, context) => {
-      // Dismiss loading toast
-      if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+    onError: (error, _variables, context) => {
+      // Dismiss loading toast - loadingToast is now just the toast ID
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+        // Toast is automatically dismissed by the mutation.error call
       }
 
       // Rollback optimistic update
       if (context?.previousContrato) {
         queryClient.setQueryData(
-          contratoKeys.detail(variables.id), 
+          contratoKeys.detail(_variables.id), 
           context.previousContrato
         )
       }
@@ -181,10 +184,10 @@ export function useDeleteContrato() {
       return { previousContrato, loadingToast }
     },
 
-    onSuccess: (data, id, context) => {
-      // Dismiss loading toast
-      if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+    onSuccess: (_data, id, context) => {
+      // Dismiss loading toast - loadingToast is now just the toast ID
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+        // Toast is automatically dismissed by the mutation.success call
       }
 
       // Toast de sucesso
@@ -200,10 +203,10 @@ export function useDeleteContrato() {
       navigate('/contratos')
     },
 
-    onError: (error, id, context) => {
-      // Dismiss loading toast
-      if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+    onError: (error, _id, context) => {
+      // Dismiss loading toast - loadingToast is now just the toast ID
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+        // Toast is automatically dismissed by the mutation.error call
       }
 
       // Toast de erro
@@ -237,9 +240,9 @@ export function useSuspendContrato() {
       return { previousContrato, loadingToast }
     },
 
-    onSuccess: (data, id, context) => {
-      if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+    onSuccess: (_data, _id, context) => {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+        // Toast is automatically dismissed by the mutation.success call
       }
 
       mutation.success('Contrato suspenso')
@@ -248,14 +251,14 @@ export function useSuspendContrato() {
       queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
     },
 
-    onError: (error, id, context) => {
-      if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+    onError: (error, _id, context) => {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+        // Toast is automatically dismissed by the mutation.error call
       }
 
       // Rollback
       if (context?.previousContrato) {
-        queryClient.setQueryData(contratoKeys.detail(id), context.previousContrato)
+        queryClient.setQueryData(contratoKeys.detail(_id), context.previousContrato)
       }
 
       mutation.error('suspender contrato', error)
@@ -288,22 +291,22 @@ export function useReactivateContrato() {
       return { previousContrato, loadingToast }
     },
 
-    onSuccess: (data, id, context) => {
+    onSuccess: (_data, _id, context) => {
       if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+        // Toast is automatically dismissed by mutation success/error calls
       }
 
       mutation.success('Contrato reativado')
       queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
     },
 
-    onError: (error, id, context) => {
+    onError: (error, _id, context) => {
       if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+        // Toast is automatically dismissed by mutation success/error calls
       }
 
       if (context?.previousContrato) {
-        queryClient.setQueryData(contratoKeys.detail(id), context.previousContrato)
+        queryClient.setQueryData(contratoKeys.detail(_id), context.previousContrato)
       }
 
       mutation.error('reativar contrato', error)
@@ -336,22 +339,22 @@ export function useEncerrarContrato() {
       return { previousContrato, loadingToast }
     },
 
-    onSuccess: (data, id, context) => {
+    onSuccess: (_data, _id, context) => {
       if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+        // Toast is automatically dismissed by mutation success/error calls
       }
 
       mutation.success('Contrato encerrado')
       queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
     },
 
-    onError: (error, id, context) => {
+    onError: (error, _id, context) => {
       if (context?.loadingToast) {
-        context.loadingToast.then((toast: unknown) => toast && typeof toast === 'object' && toast !== null && 'dismiss' in toast && typeof toast.dismiss === 'function' && toast.dismiss())
+        // Toast is automatically dismissed by mutation success/error calls
       }
 
       if (context?.previousContrato) {
-        queryClient.setQueryData(contratoKeys.detail(id), context.previousContrato)
+        queryClient.setQueryData(contratoKeys.detail(_id), context.previousContrato)
       }
 
       mutation.error('encerrar contrato', error)

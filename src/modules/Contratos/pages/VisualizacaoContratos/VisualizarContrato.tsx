@@ -21,7 +21,7 @@ import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/in
 
 // Dados mock
 import { contratoDetalhadoMock } from '../../data/contratos-mock'
-import type { ContratoDetalhado } from '../../types/contrato'
+import type { ContratoDetalhado } from '../../types/contrato-detalhado'
 import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
 import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'

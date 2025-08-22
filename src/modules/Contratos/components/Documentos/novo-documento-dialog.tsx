@@ -55,7 +55,7 @@ const novoDocumentoSchema = z.object({
   tipoId: z.string()
     .min(1, 'Selecione um tipo de documento'),
   categoria: z.enum(['obrigatorio', 'opcional'], {
-    required_error: 'Selecione a categoria do documento'
+    message: 'Selecione a categoria do documento'
   }),
   linkExterno: z.string()
     .url('Link deve ser uma URL válida')
