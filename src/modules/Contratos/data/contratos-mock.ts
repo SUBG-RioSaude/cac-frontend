@@ -1,5 +1,5 @@
 import type { Contrato } from '@/modules/Contratos/types/contrato'
-import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato-detalhado'
+import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
 
 // Importando dados do arquivo JSON consolidado
 import contratosData from './contratos-data.json'

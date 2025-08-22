@@ -14,7 +14,7 @@ import {
 import type {
   PeriodoVigencia,
   UnidadeVinculada,
-} from '@/modules/Contratos/types/contrato-detalhado'
+} from '@/modules/Contratos/types/contrato'
 
 interface IndicadoresRelatoriosProps {
   indicadores: {

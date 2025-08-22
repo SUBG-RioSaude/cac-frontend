@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
-import type { DocumentoContrato, StatusDocumento } from '@/modules/Contratos/types/documento-contrato'
+import type { DocumentoContrato, StatusDocumento } from '@/modules/Contratos/types/contrato'
 
 interface CardDocumentoProps {
   documento: DocumentoContrato

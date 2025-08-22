@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Search, X, RotateCcw } from 'lucide-react'
 
-import type { DocumentoContrato, FiltroDocumento, StatusDocumento } from '@/modules/Contratos/types/documento-contrato'
-import { TIPOS_DOCUMENTO } from '@/modules/Contratos/types/documento-contrato'
+import type { DocumentoContrato, FiltroDocumento, StatusDocumento } from '@/modules/Contratos/types/contrato'
+import { TIPOS_DOCUMENTO } from '@/modules/Contratos/types/contrato'
 
 interface FiltroDocumentosProps {
   filtro: FiltroDocumento

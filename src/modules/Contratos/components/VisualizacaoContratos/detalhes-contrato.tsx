@@ -17,7 +17,7 @@ import {
   User,
   Edit,
 } from 'lucide-react'
-import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato-detalhado'
+import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -169,13 +169,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           Tipo de Contratação
                         </p>
                         <div className="mt-1">
-                          {getTipoContratacaoBadge(contrato.tipoContratacao)}
+                          {getTipoContratacaoBadge(contrato.tipoContratacao || '')}
                         </div>
                       </div>
                       <div>
                         <p className="text-muted-foreground text-sm">Status</p>
                         <div className="mt-1">
-                          {getStatusBadge(contrato.status)}
+                          {getStatusBadge(contrato.status || '')}
                         </div>
                       </div>
                     </div>

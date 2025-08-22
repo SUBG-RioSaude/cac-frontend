@@ -21,7 +21,7 @@ import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/in
 
 // Dados mock
 import { contratoDetalhadoMock } from '../../data/contratos-mock'
-import type { ContratoDetalhado } from '../../types/contrato-detalhado'
+import type { ContratoDetalhado } from '../../types/contrato'
 import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
 import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
@@ -327,7 +327,7 @@ export function VisualizarContrato() {
                   {contrato.numeroContrato}
                 </h1>
                 <div className="flex items-center gap-2">
-                  {getStatusBadge(contrato.status)}
+                  {getStatusBadge(contrato.status || '')}
                 </div>
               </div>
               <p className="text-muted-foreground text-sm break-words sm:text-base">

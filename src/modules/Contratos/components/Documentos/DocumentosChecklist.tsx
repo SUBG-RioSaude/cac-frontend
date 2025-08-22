@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import type { ChecklistData } from "../../types/contrato-detalhado";
+import type { ChecklistData } from "../../types/contrato";
 
 interface DocumentosChecklistProps {
   checklistData: ChecklistData;

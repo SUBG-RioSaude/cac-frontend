@@ -68,11 +68,14 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: contratoKeys.detail(id),
     queryFn: async () => {
-      // Usar o service existente ou criar um novo método
-      const { data } = await import('@/lib/axios').then(({ api }) => 
-        api.get<Contrato>(`/Contratos/${id}`)
+      // Usar o fallback para buscar contrato por ID
+      const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
+        executeWithFallback<Contrato>({
+          method: 'get',
+          url: `/Contratos/${id}`
+        })
       )
-      return data
+      return response.data
     },
     
     enabled: options?.enabled ?? !!id,
@@ -117,12 +120,14 @@ export function useContratosVencendo(diasAntecipados = 30, options?: { enabled?:
   return useQuery({
     queryKey: contratoKeys.vencendo(diasAntecipados),
     queryFn: async () => {
-      const { data } = await import('@/lib/axios').then(({ api }) => 
-        api.get('/Contratos/vencendo', {
+      const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
+        executeWithFallback({
+          method: 'get',
+          url: '/Contratos/vencendo',
           params: { diasAntecipados }
         })
       )
-      return data
+      return response.data
     },
     
     enabled: options?.enabled ?? true,
@@ -152,10 +157,13 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: contratoKeys.vencidos(),
     queryFn: async () => {
-      const { data } = await import('@/lib/axios').then(({ api }) => 
-        api.get('/Contratos/vencidos')
+      const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
+        executeWithFallback({
+          method: 'get',
+          url: '/Contratos/vencidos'
+        })
       )
-      return data
+      return response.data
     },
     
     enabled: options?.enabled ?? true,

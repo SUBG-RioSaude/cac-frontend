@@ -13,7 +13,7 @@ import {
   Plus
 } from 'lucide-react'
 
-import type { DocumentoContrato, FiltroDocumento, EstatisticaDocumentos } from '@/modules/Contratos/types/documento-contrato'
+import type { DocumentoContrato, FiltroDocumento, EstatisticaDocumentos } from '@/modules/Contratos/types/contrato'
 import { CardDocumento } from './card-documento'
 import { FiltroDocumentos } from './filtro-documentos'
 import { NovoDocumentoDialog } from './novo-documento-dialog'

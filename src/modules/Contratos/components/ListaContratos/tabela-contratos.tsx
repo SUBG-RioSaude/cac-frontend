@@ -19,19 +19,32 @@ import {
   Building,
   DollarSign,
 } from 'lucide-react'
-import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
-import type { Contrato } from '@/modules/Contratos/types/contrato'
+import type { Contrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
 import { useNavigate } from 'react-router-dom'
+import { Skeleton } from '@/components/ui/skeleton'
 
-export function TabelaContratos() {
-  const {
-    contratosFiltrados,
-    paginacao,
-    contratosSelecionados,
-    setPaginacao,
-    selecionarContrato,
-    selecionarTodosContratos,
-  } = useContratosStore()
+interface TabelaContratosProps {
+  contratos: Contrato[]
+  isLoading: boolean
+  paginacao: PaginacaoParams
+  contratosSelecionados: string[]
+  onPaginacaoChange: (paginacao: PaginacaoParams) => void
+  onSelecionarContrato: (contratoId: string, selecionado: boolean) => void
+  onSelecionarTodos: (contratoIds: string[], selecionado: boolean) => void
+  totalContratos: number
+  isPlaceholderData?: boolean
+}
+
+export function TabelaContratos({
+  contratos,
+  isLoading,
+  paginacao,
+  contratosSelecionados,
+  onPaginacaoChange,
+  onSelecionarContrato,
+  onSelecionarTodos,
+  totalContratos,
+}: TabelaContratosProps) {
 
   const navigate = useNavigate()
 
@@ -92,30 +105,34 @@ export function TabelaContratos() {
   }
 
 
-  // Paginação
+  // Paginação - contratos já vêm paginados da API
   const inicio = (paginacao.pagina - 1) * paginacao.itensPorPagina
   const fim = inicio + paginacao.itensPorPagina
-  const contratosPaginados = contratosFiltrados.slice(inicio, fim)
-
-  const totalPaginas = Math.ceil(paginacao.total / paginacao.itensPorPagina)
+  
+  const totalPaginas = Math.ceil(totalContratos / paginacao.itensPorPagina)
 
   const paginaAnterior = () => {
     if (paginacao.pagina > 1) {
-      setPaginacao({ ...paginacao, pagina: paginacao.pagina - 1 })
+      onPaginacaoChange({ ...paginacao, pagina: paginacao.pagina - 1 })
     }
   }
 
   const proximaPagina = () => {
     if (paginacao.pagina < totalPaginas) {
-      setPaginacao({ ...paginacao, pagina: paginacao.pagina + 1 })
+      onPaginacaoChange({ ...paginacao, pagina: paginacao.pagina + 1 })
     }
   }
 
   const todosContratosSelecionados =
-    contratosPaginados.length > 0 &&
-    contratosPaginados.every((c) => contratosSelecionados.includes(c.id))
+    contratos.length > 0 &&
+    contratos.every((c) => contratosSelecionados.includes(c.id))
   const algunsContratosSelecionados =
     contratosSelecionados.length > 0 && !todosContratosSelecionados
+    
+  const handleSelecionarTodos = (checked: boolean) => {
+    const contratoIds = contratos.map(c => c.id)
+    onSelecionarTodos(contratoIds, checked)
+  }
 
   // Mobile Card Component
   const MobileContractCard = ({
@@ -138,7 +155,7 @@ export function TabelaContratos() {
               <Checkbox
                 checked={contratosSelecionados.includes(contrato.id)}
                 onCheckedChange={(checked) =>
-                  selecionarContrato(contrato.id, checked as boolean)
+                  onSelecionarContrato(contrato.id, checked as boolean)
                 }
               />
               <div>
@@ -222,7 +239,7 @@ export function TabelaContratos() {
                 Lista de Contratos
               </CardTitle>
               <p className="text-muted-foreground mt-1 text-sm">
-                {paginacao.total} contratos encontrados
+                {totalContratos} contratos encontrados
               </p>
             </div>
 
@@ -231,9 +248,7 @@ export function TabelaContratos() {
               <div className="flex items-center gap-2">
                 <Checkbox
                   checked={todosContratosSelecionados}
-                  onCheckedChange={(checked) =>
-                    selecionarTodosContratos(checked as boolean)
-                  }
+                  onCheckedChange={handleSelecionarTodos}
                   className={
                     algunsContratosSelecionados
                       ? 'data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground'
@@ -256,9 +271,7 @@ export function TabelaContratos() {
                     <TableHead className="w-12">
                       <Checkbox
                         checked={todosContratosSelecionados}
-                        onCheckedChange={(checked) =>
-                          selecionarTodosContratos(checked as boolean)
-                        }
+                        onCheckedChange={handleSelecionarTodos}
                         className={
                           algunsContratosSelecionados
                             ? 'data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground'
@@ -281,7 +294,22 @@ export function TabelaContratos() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence>
-                    {contratosPaginados.map((contrato, index) => (
+                    {isLoading ? (
+                      // Skeleton loader
+                      Array.from({ length: paginacao.itensPorPagina }).map((_, index) => (
+                        <TableRow key={`skeleton-${index}`}>
+                          <TableCell><Skeleton className="h-4 w-4" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                          <TableCell><Skeleton className="h-8 w-12" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      contratos.map((contrato, index) => (
                       <motion.tr
                         key={contrato.id}
                         initial={{ opacity: 0, y: 20 }}
@@ -296,7 +324,7 @@ export function TabelaContratos() {
                               contrato.id,
                             )}
                             onCheckedChange={(checked) =>
-                              selecionarContrato(
+                              onSelecionarContrato(
                                 contrato.id,
                                 checked as boolean,
                               )
@@ -362,7 +390,8 @@ export function TabelaContratos() {
                           </div>
                         </TableCell>
                       </motion.tr>
-                    ))}
+                    ))
+                    )}
                   </AnimatePresence>
                 </TableBody>
               </Table>
@@ -372,21 +401,40 @@ export function TabelaContratos() {
           {/* Mobile Cards */}
           <div className="px-4 sm:px-6 lg:hidden">
             <AnimatePresence>
-              {contratosPaginados.map((contrato, index) => (
-                <MobileContractCard
-                  key={contrato.id}
-                  contrato={contrato}
-                  index={index}
-                />
-              ))}
+              {isLoading ? (
+                // Mobile skeleton loader
+                Array.from({ length: paginacao.itensPorPagina }).map((_, index) => (
+                  <Card key={`mobile-skeleton-${index}`} className="mb-4">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                        <Skeleton className="h-8 w-16 ml-auto" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                contratos.map((contrato, index) => (
+                  <MobileContractCard
+                    key={contrato.id}
+                    contrato={contrato}
+                    index={index}
+                  />
+                ))
+              )}
             </AnimatePresence>
           </div>
 
           {/* Paginação Responsiva */}
           <div className="flex flex-col items-center justify-between gap-4 px-4 pb-6 sm:flex-row sm:px-6">
             <div className="text-muted-foreground text-center text-sm sm:text-left">
-              Mostrando {inicio + 1} a {Math.min(fim, paginacao.total)} de{' '}
-              {paginacao.total} contratos
+              Mostrando {inicio + 1} a {Math.min(fim, totalContratos)} de{' '}
+              {totalContratos} contratos
             </div>
 
             <div className="flex items-center gap-2">
@@ -412,7 +460,7 @@ export function TabelaContratos() {
                       }
                       size="sm"
                       onClick={() =>
-                        setPaginacao({ ...paginacao, pagina: pageNum })
+                        onPaginacaoChange({ ...paginacao, pagina: pageNum })
                       }
                       className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                     >
@@ -431,7 +479,7 @@ export function TabelaContratos() {
                       }
                       size="sm"
                       onClick={() =>
-                        setPaginacao({ ...paginacao, pagina: totalPaginas })
+                        onPaginacaoChange({ ...paginacao, pagina: totalPaginas })
                       }
                       className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                     >

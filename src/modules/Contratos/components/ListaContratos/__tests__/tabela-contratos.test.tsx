@@ -2,7 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { TabelaContratos } from '../tabela-contratos'
-import type { Contrato } from '@/modules/Contratos/types/contrato'
+import type { Contrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
+
+// Mock props para os testes
+const mockProps = {
+  contratos: [] as Contrato[],
+  isLoading: false,
+  paginacao: {
+    pagina: 1,
+    itensPorPagina: 10,
+    total: 0
+  } as PaginacaoParams,
+  contratosSelecionados: [] as string[],
+  onPaginacaoChange: vi.fn(),
+  onSelecionarContrato: vi.fn(),
+  onSelecionarTodos: vi.fn(),
+  totalContratos: 0
+}
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
@@ -176,7 +192,7 @@ describe('TabelaContratos', () => {
       limparSelecao: vi.fn(),
     })
 
-    renderizarComRouter(<TabelaContratos />)
+    renderizarComRouter(<TabelaContratos {...mockProps} />)
 
     expect(screen.getByText('0 contratos encontrados')).toBeInTheDocument()
   })

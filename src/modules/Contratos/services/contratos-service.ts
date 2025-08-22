@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { executeWithFallback } from '@/lib/axios'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 
@@ -35,9 +35,11 @@ export interface PaginacaoResponse<T> {
 export async function getContratos (
   filtros: ContratoParametros
 ): Promise<PaginacaoResponse<Contrato>> {
-  const {data} = await api.get<PaginacaoResponse<Contrato>>("/Contratos", {
+  const response = await executeWithFallback<PaginacaoResponse<Contrato>>({
+    method: 'get',
+    url: '/Contratos',
     params: filtros
   })
 
-  return data
+  return response.data
 }
