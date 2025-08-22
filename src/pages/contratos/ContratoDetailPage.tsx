@@ -1,9 +1,10 @@
 import { useParams } from 'react-router-dom';
 import LayoutPagina from '@/components/layout-pagina';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useContratoDetalhado } from '@/modules/Contratos/store/contratos-store';
-import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato';
-import { RegistroAlteracoes } from '@/modules/Contratos/components/VisualizacaoContratos/registro-alteracoes';
+// Imports comentados - para implementação futura com React Query
+// import { useContratoDetalhado } from '@/modules/Contratos/store/contratos-store';
+// import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato';
+// import { RegistroAlteracoes } from '@/modules/Contratos/components/VisualizacaoContratos/registro-alteracoes';
 import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos';
 import { Loading } from '@/components/ui/loading';
 

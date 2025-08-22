@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+// import { cn } from '@/lib/utils' // Não usado no momento
 import { 
   FileText, 
   CheckCircle, 
@@ -60,7 +60,8 @@ export function TabDocumentos({
   const [editingLink, setEditingLink] = useState<keyof ChecklistData | null>(null)
   const [tempLink, setTempLink] = useState('')
 
-  const { success, info } = useToast()
+  const { success } = useToast()
+  // const { info } = useToast() // Para uso futuro em notificações
   const progressData = calcularProgressoChecklist(checklistData)
 
   const onAdicionarEntradaTimeline = useCallback((entrada: TimelineEntry) => {
@@ -72,13 +73,13 @@ export function TabDocumentos({
     onAdicionarEntrada: onAdicionarEntradaTimeline 
   })
 
-  const handleCheckedChange = useCallback((documentoKey: keyof ChecklistData, checked: boolean) => {
-    // Checkbox agora é só visual - controle é feito pelo link
-    info({
-      title: 'Controle via link',
-      description: 'Use o botão de editar link para alterar o status do documento.'
-    })
-  }, [info])
+  // Função interna - remoção temporária para evitar warning
+  // const handleInfoChecklist = useCallback(() => {
+  //   info({
+  //     title: 'Controle via link',
+  //     description: 'Use o botão de editar link para alterar o status do documento.'
+  //   })
+  // }, [info])
 
   const handleStartEditingLink = (documentoKey: keyof ChecklistData) => {
     setEditingLink(documentoKey)
