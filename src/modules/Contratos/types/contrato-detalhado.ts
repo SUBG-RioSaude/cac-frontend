@@ -7,6 +7,7 @@ export interface ContratoDetalhado {
   dataInicio: string
   dataTermino: string
   prazoInicialMeses: number
+  prazoInicialDias: number
   status: 'ativo' | 'vencendo' | 'vencido' | 'suspenso' | 'encerrado'
   valorTotal: number
 
