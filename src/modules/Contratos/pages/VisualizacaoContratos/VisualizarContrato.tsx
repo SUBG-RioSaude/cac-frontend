@@ -26,15 +26,22 @@ import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais
 import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
 import { ContractChat } from '../../components/Timeline/contract-chat'
+import { TabDocumentos } from '../../components/Documentos/tab-documentos'
 import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
 import type { TimelineEntry } from '../../types/timeline'
-import type { ChatMessage } from '../../types/chat'
+import type { ChatMessage } from '../../types/timeline'
+import { 
+  getActiveTabs, 
+  getDefaultTab, 
+  isTabEnabled, 
+  getGridCols 
+} from '../../config/tabs-config'
 
 export function VisualizarContrato() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [contrato, setContrato] = useState<ContratoDetalhado | null>(null)
-  const [abaAtiva, setAbaAtiva] = useState('alteracoes')
+  const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
   const [loading, setLoading] = useState(true)
   const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
   const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
@@ -174,6 +181,24 @@ export function VisualizarContrato() {
     
     console.log('Mensagem do chat marcada como alteração:', entradaChat)
   }, [contrato])
+
+  // Função para validar mudança de aba
+  const handleTabChange = useCallback((novaAba: string) => {
+    if (isTabEnabled(novaAba)) {
+      setAbaAtiva(novaAba)
+    } else {
+      // Se aba está desabilitada, redireciona para aba padrão
+      console.warn(`Aba "${novaAba}" está desabilitada. Redirecionando para aba padrão.`)
+      setAbaAtiva(getDefaultTab())
+    }
+  }, [])
+
+  // Validar aba ativa quando componente carrega
+  useEffect(() => {
+    if (!isTabEnabled(abaAtiva)) {
+      setAbaAtiva(getDefaultTab())
+    }
+  }, [abaAtiva])
 
   if (loading) {
     return (
@@ -348,45 +373,27 @@ export function VisualizarContrato() {
           <div className="rounded-lg border bg-white shadow-sm">
             <Tabs
               value={abaAtiva}
-              onValueChange={setAbaAtiva}
+              onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList className="grid h-auto w-full grid-cols-5 rounded-lg bg-gray-50 p-1">
-                <TabsTrigger
-                  value="detalhes"
-                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-blue-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
-                >
-                  <div className="h-2 w-2 rounded-full bg-blue-500 data-[state=active]:bg-blue-700 sm:h-3 sm:w-3"></div>
-                  <span className="text-center">Detalhes do Contrato</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="alteracoes"
-                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-orange-200 data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
-                >
-                  <div className="h-2 w-2 rounded-full bg-orange-500 data-[state=active]:bg-orange-700 sm:h-3 sm:w-3"></div>
-                  <span className="text-center">Registro de Alterações</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="alteracoes-contratuais"
-                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-purple-200 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
-                >
-                  <div className="h-2 w-2 rounded-full bg-purple-500 data-[state=active]:bg-purple-700 sm:h-3 sm:w-3"></div>
-                  <span className="text-center">Alterações Contratuais</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="indicadores"
-                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-green-200 data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
-                >
-                  <div className="h-2 w-2 rounded-full bg-green-500 data-[state=active]:bg-green-700 sm:h-3 sm:w-3"></div>
-                  <span className="text-center">Indicadores e Relatórios</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="timeline"
-                  className="flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border data-[state=active]:border-blue-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
-                >
-                  <div className="h-2 w-2 rounded-full bg-blue-500 data-[state=active]:bg-blue-700 sm:h-3 sm:w-3"></div>
-                  <span className="text-center">Chat</span>
-                </TabsTrigger>
+              <TabsList className={`grid h-auto w-full ${
+                getGridCols() === 1 ? 'grid-cols-1' :
+                getGridCols() === 2 ? 'grid-cols-2' : 
+                getGridCols() === 3 ? 'grid-cols-3' :
+                getGridCols() === 4 ? 'grid-cols-4' :
+                getGridCols() === 5 ? 'grid-cols-5' :
+                'grid-cols-6'
+              } rounded-lg bg-gray-50 p-1`}>
+                {getActiveTabs().map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className={`flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border ${tab.icon.activeBorder} ${tab.icon.activeBg} ${tab.icon.activeText} data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm`}
+                  >
+                    <div className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}></div>
+                    <span className="text-center">{tab.label}</span>
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </Tabs>
           </div>
@@ -399,7 +406,7 @@ export function VisualizarContrato() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="w-full"
         >
-          <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="w-full">
+          <Tabs value={abaAtiva} onValueChange={handleTabChange} className="w-full">
             <AnimatePresence mode="wait">
               <motion.div
                 key={abaAtiva}
@@ -409,45 +416,73 @@ export function VisualizarContrato() {
                 transition={{ duration: 0.3 }}
                 className="w-full"
               >
-                <TabsContent value="detalhes" className="mt-0 w-full">
-                  <DetalhesContrato contrato={contrato} />
-                </TabsContent>
+                {/* Renderizar apenas abas ativas */}
+                {isTabEnabled('detalhes') && (
+                  <TabsContent value="detalhes" className="mt-0 w-full">
+                    <DetalhesContrato contrato={contrato} />
+                  </TabsContent>
+                )}
 
-                <TabsContent value="alteracoes" className="mt-0 w-full">
-                  <RegistroAlteracoes 
-                    alteracoes={contrato.alteracoes} 
-                    entradasTimeline={entradasTimeline}
-                    onAdicionarObservacao={() => setAbaAtiva('timeline')}
-                  />
-                </TabsContent>
+                {isTabEnabled('alteracoes') && (
+                  <TabsContent value="alteracoes" className="mt-0 w-full">
+                    <RegistroAlteracoes 
+                      alteracoes={contrato.alteracoes} 
+                      entradasTimeline={entradasTimeline}
+                      onAdicionarObservacao={() => handleTabChange('timeline')}
+                    />
+                  </TabsContent>
+                )}
 
-                <TabsContent value="indicadores" className="mt-0 w-full">
-                  <IndicadoresRelatorios
-                    indicadores={contrato.indicadores}
-                    unidades={contrato.unidades}
-                    valorTotal={contrato.valorTotal}
-                  />
-                </TabsContent>
+                {isTabEnabled('indicadores') && (
+                  <TabsContent value="indicadores" className="mt-0 w-full">
+                    <IndicadoresRelatorios
+                      indicadores={contrato.indicadores}
+                      unidades={contrato.unidades}
+                      valorTotal={contrato.valorTotal}
+                    />
+                  </TabsContent>
+                )}
 
-                <TabsContent value="alteracoes-contratuais" className="mt-0 w-full">
-                  <AlteracoesContratuais 
-                    contratoId={contrato.id} 
-                    numeroContrato={contrato.numeroContrato}
-                    valorOriginal={contrato.valorTotal}
-                    onSalvar={handleSalvarAlteracao}
-                    onSubmeter={handleSubmeterAlteracao}
-                    key={contrato.id}
-                  />
-                </TabsContent>
+                {isTabEnabled('alteracoes-contratuais') && (
+                  <TabsContent value="alteracoes-contratuais" className="mt-0 w-full">
+                    <AlteracoesContratuais 
+                      contratoId={contrato.id} 
+                      numeroContrato={contrato.numeroContrato}
+                      valorOriginal={contrato.valorTotal}
+                      onSalvar={handleSalvarAlteracao}
+                      onSubmeter={handleSubmeterAlteracao}
+                      key={contrato.id}
+                    />
+                  </TabsContent>
+                )}
 
-                <TabsContent value="timeline" className="mt-0 w-full">
-                  <ContractChat 
-                    contratoId={contrato.id} 
-                    numeroContrato={contrato.numeroContrato}
-                    onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
-                    key={`chat-${contrato.id}`}
-                  />
-                </TabsContent>
+                {isTabEnabled('documentos') && (
+                  <TabsContent value="documentos" className="mt-0 w-full">
+                    <TabDocumentos 
+                      checklistData={contrato.documentosChecklist}
+                      contratoId={contrato.id}
+                      onChecklistChange={(novaChecklist) => {
+                        // Atualizar o estado do contrato com a nova checklist
+                        setContrato(prev => prev ? { ...prev, documentosChecklist: novaChecklist } : null)
+                        console.log('Checklist atualizada:', novaChecklist)
+                        
+                        // Aqui seria feita a persistência via API
+                        console.log('Persistindo checklist no backend...', novaChecklist)
+                      }}
+                    />
+                  </TabsContent>
+                )}
+
+                {isTabEnabled('timeline') && (
+                  <TabsContent value="timeline" className="mt-0 w-full">
+                    <ContractChat 
+                      contratoId={contrato.id} 
+                      numeroContrato={contrato.numeroContrato}
+                      onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
+                      key={`chat-${contrato.id}`}
+                    />
+                  </TabsContent>
+                )}
 
               </motion.div>
             </AnimatePresence>
