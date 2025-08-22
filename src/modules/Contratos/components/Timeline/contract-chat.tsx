@@ -18,7 +18,7 @@ import {
   MessageSquare,
 } from 'lucide-react'
 
-import type { ChatMessage, ChatParticipante } from '@/modules/Contratos/types/chat'
+import type { ChatMessage, ChatParticipante } from '@/modules/Contratos/types/timeline'
 import { MENSAGENS_MOCK, PARTICIPANTES_MOCK } from '@/modules/Contratos/data/chat-mock'
 
 interface ContractChatProps {

@@ -18,7 +18,7 @@ import {
   BarChart3
 } from 'lucide-react'
 
-import type { ChecklistData } from '../../types/contrato-detalhado'
+import type { ChecklistData } from '../../types/contrato'
 import type { TimelineEntry } from '../../types/timeline'
 import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
 import { useToast } from '../../hooks/useToast'

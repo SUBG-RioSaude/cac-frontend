@@ -4,7 +4,7 @@ import type {
 } from '@/modules/Contratos/types/timeline'
 import type { AlteracaoContratualForm } from '@/modules/Contratos/types/alteracoes-contratuais'
 import { TIPOS_ADITIVO_CONFIG } from '@/modules/Contratos/types/alteracoes-contratuais'
-import type { DocumentoContrato, StatusDocumento } from '@/modules/Contratos/types/documento-contrato'
+import type { DocumentoContrato, StatusDocumento } from '@/modules/Contratos/types/contrato'
 
 interface UseTimelineIntegrationProps {
   contratoId: string
