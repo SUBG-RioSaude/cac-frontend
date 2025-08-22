@@ -7,6 +7,10 @@ import ContratosPage from './pages/contratos/ContratosPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import HomePage from './pages/inicial/HomePage'
+import LoginForm from './pages/auth/login'
+import ResetPasswordForm from './pages/auth/reset-password-form'
+import VerifyForm from './pages/auth/verify-form'
+import ForgotPasswordForm from './pages/auth/forgot-password-form'
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import { ErrorBoundary } from './components/error-boundary'
@@ -21,65 +25,75 @@ import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 
 function App() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        {/* Header fixo - nunca sai da tela */}
-        <header className="flex-shrink-0 border-b border-gray-100 bg-white shadow-sm">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <PageBreadcrumb />
-            <NotificacoesDropdown />
-          </div>
-        </header>
+    <Routes>
+      {/* Rotas sem layout padrão (páginas de autenticação) */}
+      <Route path="/login" element={<LoginForm />} />
+      <Route path="/reset-password" element={<ResetPasswordForm />} />
+      <Route path="/verify" element={<VerifyForm />} />
+      <Route path="/esqueci-senha" element={<ForgotPasswordForm />} />
 
-        {/* Conteúdo principal com scroll */}
-        <main className="flex-1 overflow-auto bg-gray-50">
-          <ErrorBoundary>
-            <div className="mx-auto px-6">
-              <Routes>
-                {/* Rotas de erro */}
-                <Route path="*" element={<NotFound />} />
-                <Route path="/500" element={<ServerError />} />
-                <Route path="/401" element={<Unauthorized />} />
-                <Route path="/403" element={<Forbidden />} />
-                <Route path="/400" element={<BadRequest />} />
-                <Route path="/503" element={<ServiceUnavailable />} />
-                {/* Rotas de erro */}
+      {/* Rotas com layout padrão */}
+      <Route path="/*" element={
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            {/* Header fixo - nunca sai da tela */}
+            <header className="flex-shrink-0 border-b border-gray-100 bg-white shadow-sm">
+              <div className="px-6 py-4 flex items-center justify-between">
+                <PageBreadcrumb />
+                <NotificacoesDropdown />
+              </div>
+            </header>
 
-                {/* Rotas */}
-                <Route path="/" element={<HomePage />} />
+            {/* Conteúdo principal com scroll */}
+            <main className="flex-1 overflow-auto bg-gray-50">
+              <ErrorBoundary>
+                <div className="mx-auto px-6">
+                  <Routes>
+                    {/* Rotas de erro */}
+                    <Route path="*" element={<NotFound />} />
+                    <Route path="/500" element={<ServerError />} />
+                    <Route path="/401" element={<Unauthorized />} />
+                    <Route path="/403" element={<Forbidden />} />
+                    <Route path="/400" element={<BadRequest />} />
+                    <Route path="/503" element={<ServiceUnavailable />} />
+                    {/* Rotas de erro */}
 
-                <Route
-                  path="/contratos/cadastrar"
-                  element={<CadastrarContrato />}
-                />
+                    {/* Rotas principais */}
+                    <Route path="/" element={<HomePage />} />
 
-                <Route path="/contratos" element={<ContratosPage />} />
-                <Route
-                  path="/contratos/:contratoId"
-                  element={<VisualizarContrato />}
-                />
-                <Route
-                  path="/contratos/:id/editar"
-                  element={<VisualizarContrato />}
-                />
+                    <Route
+                      path="/contratos/cadastrar"
+                      element={<CadastrarContrato />}
+                    />
 
+                    <Route path="/contratos" element={<ContratosPage />} />
+                    <Route
+                      path="/contratos/:contratoId"
+                      element={<VisualizarContrato />}
+                    />
+                    <Route
+                      path="/contratos/:id/editar"
+                      element={<VisualizarContrato />}
+                    />
 
-                <Route path="/fornecedores" element={<FornecedoresPage />} />
-                <Route
-                  path="/fornecedores/:fornecedorId"
-                  element={<FornecedorDetailPage />}
-                />
+                    <Route path="/fornecedores" element={<FornecedoresPage />} />
+                    <Route
+                      path="/fornecedores/:fornecedorId"
+                      element={<FornecedorDetailPage />}
+                    />
 
-                <Route path="/unidades" element={<UnidadesPage />} />
-                <Route path="/unidades/:unidadeId" element={<UnidadeDetailPage />} />
+                    <Route path="/unidades" element={<UnidadesPage />} />
+                    <Route path="/unidades/:unidadeId" element={<UnidadeDetailPage />} />
 
-              </Routes>
-            </div>
-          </ErrorBoundary>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+                  </Routes>
+                </div>
+              </ErrorBoundary>
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
+      } />
+    </Routes>
   )
 }
 
