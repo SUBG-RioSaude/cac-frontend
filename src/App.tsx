@@ -15,7 +15,7 @@ import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
 import FornecedorDetailPage from './pages/fornecedores/FornecedorDetailPage'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
-import VisualizarContrato from './pages/contratos/ContratoDetailPage'
+import {VisualizarContrato} from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
 
