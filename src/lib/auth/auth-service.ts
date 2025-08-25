@@ -29,7 +29,7 @@ interface ApiError {
 
 // Configuração do axios para autenticação
 const authApi = axios.create({
-  baseURL: `${API_URL}/api/auth`,
+  baseURL: `${API_URL}/api/Auth`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
