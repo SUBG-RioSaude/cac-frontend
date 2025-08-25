@@ -209,9 +209,7 @@ export default function FornecedorForm({
 
   // Hook para consultar empresa por CNPJ
   const {
-    data: empresaConsultada,
     isLoading: isConsultandoCNPJ,
-    error: erroConsultaCNPJ,
     refetch: refetchConsultaCNPJ
   } = useConsultarEmpresaPorCNPJ(cnpjParaConsultar, {
     enabled: false, // Só executa quando chamarmos refetch
@@ -251,7 +249,7 @@ export default function FornecedorForm({
         icon: <Check className="h-4 w-4" />,
       })
     },
-    onError: (error) => {
+    onError: () => {
       // Empresa não encontrada
       toast.info('Empresa não cadastrada', {
         description: 'Continue preenchendo o formulário para cadastrar.',
@@ -260,7 +258,7 @@ export default function FornecedorForm({
   })
 
   // Hook para cadastrar empresa
-  const { mutateAsync: cadastrarEmpresaAsync, isPending: isCadastrando } = useCadastrarEmpresa()
+  const { mutateAsync: cadastrarEmpresaAsync } = useCadastrarEmpresa()
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {

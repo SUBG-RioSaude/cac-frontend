@@ -52,7 +52,7 @@ export const empresaKeys = {
   
   // Listas de empresas
   lists: () => [...empresaKeys.all, 'list'] as const,
-  list: (filtros?: any) => [...empresaKeys.all, 'list', filtros] as const,
+  list: (filtros?: unknown) => [...empresaKeys.all, 'list', filtros] as const,
   
   // Empresa individual
   details: () => [...empresaKeys.all, 'detail'] as const,
@@ -91,7 +91,7 @@ export type ContratoQueryKey =
 export type EmpresaQueryKey = 
   | readonly ['empresas']
   | readonly ['empresas', 'list']
-  | readonly ['empresas', 'list', any]
+  | readonly ['empresas', 'list', unknown]
   | readonly ['empresas', 'detail']
   | readonly ['empresas', 'detail', string]
   | readonly ['empresas', 'cnpj', string]

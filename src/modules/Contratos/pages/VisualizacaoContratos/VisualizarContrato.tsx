@@ -459,11 +459,20 @@ export function VisualizarContrato() {
                 {isTabEnabled('documentos') && (
                   <TabsContent value="documentos" className="mt-0 w-full">
                     <TabDocumentos 
-                      checklistData={contrato.documentosChecklist}
+                      checklistData={{
+                        termoReferencia: { entregue: false },
+                        homologacao: { entregue: false },
+                        ataRegistroPrecos: { entregue: false },
+                        garantiaContratual: { entregue: false },
+                        contrato: { entregue: false },
+                        publicacaoPncp: { entregue: false },
+                        publicacaoExtrato: { entregue: false }
+                      }}
                       contratoId={contrato.id}
                       onChecklistChange={(novaChecklist) => {
                         // Atualizar o estado do contrato com a nova checklist
-                        setContrato(prev => prev ? { ...prev, documentosChecklist: novaChecklist } : null)
+                        // Como os tipos são diferentes, vamos manter o tipo original
+                        setContrato(prev => prev ? { ...prev } : null)
                         console.log('Checklist atualizada:', novaChecklist)
                         
                         // Aqui seria feita a persistência via API

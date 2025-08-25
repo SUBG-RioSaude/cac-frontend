@@ -3,6 +3,7 @@
  * Integra o service existente com cache, error handling e loading states
  */
 
+import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { cadastrarEmpresa, consultarEmpresaPorCNPJ } from '@/modules/Contratos/services/contratos-service'
@@ -26,7 +27,7 @@ export function useConsultarEmpresaPorCNPJ(
   const { query: toastQuery } = useToast()
   const { handleApiError } = useErrorHandler()
 
-  return useQuery({
+  const query = useQuery({
     queryKey: empresaKeys.byCnpj(cnpj),
     queryFn: () => consultarEmpresaPorCNPJ(cnpj),
     
@@ -65,10 +66,6 @@ export function useConsultarEmpresaPorCNPJ(
       toastQuery.error(error, "Erro ao consultar empresa por CNPJ")
       return false
     },
-
-    // Callbacks
-    onSuccess: options?.onSuccess,
-    onError: options?.onError,
     
     // Cache por 5 minutos para consultas de CNPJ
     staleTime: 5 * 60 * 1000,
@@ -78,6 +75,21 @@ export function useConsultarEmpresaPorCNPJ(
     refetchOnMount: false,
     refetchOnReconnect: false
   })
+
+  // Usar useEffect para callbacks customizados
+  React.useEffect(() => {
+    if (query.data && options?.onSuccess) {
+      options.onSuccess(query.data)
+    }
+  }, [query.data, options?.onSuccess, options])
+
+  React.useEffect(() => {
+    if (query.error && options?.onError) {
+      options.onError(query.error)
+    }
+  }, [query.error, options?.onError, options])
+
+  return query
 }
 
 /**
@@ -188,7 +200,7 @@ export function useEmpresa(id: string, options?: { enabled?: boolean }) {
  * Query para operação de GET com paginação
  */
 export function useEmpresas(
-  filtros?: any,
+  filtros?: unknown,
   options?: {
     enabled?: boolean
     keepPreviousData?: boolean

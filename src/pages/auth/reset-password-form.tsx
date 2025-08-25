@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Check, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuthStore } from "@/lib/auth/auth-store"
 
 interface PasswordRequirement {
   text: string
@@ -22,12 +23,18 @@ export default function ResetPasswordForm() {
   const [confirmarSenha, setConfirmarSenha] = useState("")
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false)
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false)
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState("")
   const [sucesso, setSucesso] = useState("")
   const [email, setEmail] = useState("")
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
+
+  const { 
+    trocarSenha, 
+    carregando, 
+    erro, 
+    limparErro,
+    estaAutenticado 
+  } = useAuthStore()
 
   const requisitosSenha: PasswordRequirement[] = [
     { text: "Pelo menos 8 caracteres", met: novaSenha.length >= 8 },
@@ -40,7 +47,15 @@ export default function ResetPasswordForm() {
   const senhaValida = requisitosSenha.every((req) => req.met)
 
   useEffect(() => {
-    // Simular obtenção do email do usuário
+    // Redireciona se já estiver autenticado
+    if (estaAutenticado) {
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectPath, { replace: true })
+      return
+    }
+
+    // Obtém email da sessão
     const emailArmazenado = sessionStorage.getItem("auth_email")
     if (emailArmazenado) {
       setEmail(emailArmazenado)
@@ -48,34 +63,32 @@ export default function ResetPasswordForm() {
       // Se não houver email, redirecionar para login
       navigate("/login")
     }
-  }, [navigate])
+  }, [navigate, estaAutenticado])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!senhaValida) {
-      setErro("Por favor, atenda a todos os requisitos de senha")
       return
     }
 
-    setCarregando(true)
-    setErro("")
+    limparErro()
     setSucesso("")
 
-    // Simular processo de alteração de senha
-    setTimeout(() => {
-      setCarregando(false)
+    // Obtém token de troca de senha
+    const tokenTrocaSenha = sessionStorage.getItem("tokenTrocaSenha")
+
+    // Executa troca de senha
+    const sucesso = await trocarSenha(email, novaSenha, tokenTrocaSenha || undefined)
+    
+    if (sucesso) {
       setSucesso("Senha alterada com sucesso!")
       
-      // Limpar dados da sessão
-      sessionStorage.removeItem("auth_email")
-      sessionStorage.removeItem("tokenTrocaSenha")
-      
-      // Redirecionar para login após 2 segundos
+      // Redireciona para login após 2 segundos
       setTimeout(() => {
         navigate("/login")
       }, 2000)
-    }, 1500)
+    }
   }
 
   const containerVariants = {

@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import type { ChecklistData } from "../../types/contrato-detalhado";
+import type { ChecklistData } from "../../types/contrato";
 
 interface DocumentosChecklistProps {
   checklistData: ChecklistData;
@@ -33,7 +33,8 @@ export function DocumentosChecklist({ checklistData, contratoId }: DocumentosChe
       <CardContent className="space-y-4">
         {Object.entries(checklistLabels).map(([key, label]) => {
           const documentoKey = key as keyof ChecklistData;
-          const isChecked = checklistData[documentoKey]?.entregue || false;
+          const documento = checklistData[documentoKey];
+          const isChecked = documento?.entregue || false;
 
           return (
             <div key={String(documentoKey)} className="flex items-center space-x-2">
