@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { ProtectedRoute, AuthFlowRoute } from '../../middleware'
+import { ProtectedRoute, AuthFlowRoute } from '@/lib/middleware'
 import { useAuthStore } from '@/lib/auth/auth-store'
 
 // Mock do useAuthStore

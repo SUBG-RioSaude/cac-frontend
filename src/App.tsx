@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { ProtectedRoute, AuthFlowGuard } from '../middleware'
+import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 import { LayoutAuthenticated } from '@/components/layout-authenticated'
 import LoginForm from './pages/auth/login'
 import ForgotPasswordForm from './pages/auth/forgot-password-form'
