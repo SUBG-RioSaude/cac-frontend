@@ -4,6 +4,7 @@ import type {
 } from '@/modules/Contratos/types/timeline'
 import type { AlteracaoContratualForm } from '@/modules/Contratos/types/alteracoes-contratuais'
 import { TIPOS_ADITIVO_CONFIG } from '@/modules/Contratos/types/alteracoes-contratuais'
+import type { DocumentoContrato, StatusDocumento } from '@/modules/Contratos/types/contrato'
 
 interface UseTimelineIntegrationProps {
   contratoId: string
@@ -173,10 +174,123 @@ export function useTimelineIntegration({ contratoId, onAdicionarEntrada }: UseTi
     return entradaStatus
   }, [contratoId, onAdicionarEntrada])
 
+  /**
+   * Cria entrada na timeline quando um documento é adicionado, modificado ou tem status alterado
+   */
+  const criarEntradaDocumento = useCallback((
+    documento: DocumentoContrato,
+    acao: 'adicionado' | 'status_alterado' | 'link_atualizado' | 'observacao_adicionada',
+    autor: { id: string; nome: string; tipo: string },
+    dadosAdicionais?: { statusAnterior?: StatusDocumento; linkAnterior?: string }
+  ) => {
+    try {
+      const acaoLabels = {
+        adicionado: {
+          titulo: `Documento Adicionado - ${documento.nome}`,
+          descricao: `Novo documento ${documento.categoria} foi adicionado: ${documento.descricao}`,
+          prioridade: documento.categoria === 'obrigatorio' ? 'alta' : 'media' as const
+        },
+        status_alterado: {
+          titulo: `Status Alterado - ${documento.nome}`,
+          descricao: `Status do documento alterado ${dadosAdicionais?.statusAnterior ? `de "${dadosAdicionais.statusAnterior}" ` : ''}para "${documento.status}". ${documento.observacoes ? `Observações: ${documento.observacoes}` : ''}`,
+          prioridade: documento.status === 'com_pendencia' ? 'alta' : 'media' as const
+        },
+        link_atualizado: {
+          titulo: `Link Atualizado - ${documento.nome}`,
+          descricao: `Link externo do documento foi ${documento.linkExterno ? 'adicionado/atualizado' : 'removido'}. ${documento.linkExterno ? `Novo link: ${documento.linkExterno}` : ''}`,
+          prioridade: 'baixa' as const
+        },
+        observacao_adicionada: {
+          titulo: `Observações Atualizadas - ${documento.nome}`,
+          descricao: `Observações do documento foram atualizadas: ${documento.observacoes || 'Observações removidas'}`,
+          prioridade: 'baixa' as const
+        }
+      }
+
+      const config = acaoLabels[acao]
+      
+      const entrada: TimelineEntry = {
+        id: `doc_${acao}_${Date.now()}_${documento.id}`,
+        contratoId,
+        tipo: 'manual',
+        categoria: 'documento',
+        titulo: config.titulo,
+        descricao: config.descricao,
+        dataEvento: new Date().toISOString(),
+        autor: {
+          id: autor.id,
+          nome: autor.nome,
+          tipo: autor.tipo as 'usuario' | 'fiscal' | 'gestor' | 'fornecedor' | 'sistema'
+        },
+        status: 'ativo',
+        prioridade: config.prioridade as 'baixa' | 'media' | 'alta' | 'critica',
+        metadata: {
+          documentoId: documento.id,
+          tipoDocumento: documento.tipo.nome,
+          categoria: documento.categoria,
+          statusAtual: documento.status,
+          linkExterno: documento.linkExterno,
+          acao
+        },
+        tags: ['documento', documento.categoria, documento.status, acao],
+        criadoEm: new Date().toISOString()
+      }
+
+      onAdicionarEntrada?.(entrada)
+      return entrada
+
+    } catch (error) {
+      console.error('Erro ao criar entrada de documento na timeline:', error)
+      return null
+    }
+  }, [contratoId, onAdicionarEntrada])
+
+  const criarEntradaChecklist = useCallback((
+    documentoNome: string,
+    status: 'entregue' | 'pendente' | 'nao_aplicavel',
+    autor: { id: string; nome: string; tipo: string }
+  ) => {
+    try {
+      const statusLabels = {
+        entregue: 'marcado como Entregue',
+        pendente: 'marcado como Pendente',
+        nao_aplicavel: 'marcado como Não Aplicável'
+      };
+
+      const entrada: TimelineEntry = {
+        id: `checklist_${Date.now()}_${documentoNome.replace(/\s/g, '_')}`,
+        contratoId,
+        tipo: 'marco_sistema',
+        categoria: 'documento',
+        titulo: `Checklist: ${documentoNome}`,
+        descricao: `O documento '${documentoNome}' foi ${statusLabels[status]}.`,
+        dataEvento: new Date().toISOString(),
+        autor: {
+          id: autor.id,
+          nome: autor.nome,
+          tipo: autor.tipo as 'usuario' | 'sistema',
+        },
+        status: 'ativo',
+        prioridade: 'media',
+        tags: ['checklist', 'documento', status],
+        criadoEm: new Date().toISOString(),
+      };
+
+      onAdicionarEntrada?.(entrada);
+      return entrada;
+
+    } catch (error) {
+      console.error('Erro ao criar entrada de checklist na timeline:', error);
+      return null;
+    }
+  }, [contratoId, onAdicionarEntrada]);
+
   return {
     criarEntradaAlteracao,
     criarMarcosAlteracao,
-    atualizarStatusAlteracao
+    atualizarStatusAlteracao,
+    criarEntradaDocumento,
+    criarEntradaChecklist
   }
 }
 

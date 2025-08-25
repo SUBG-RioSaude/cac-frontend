@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,15 +11,31 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Loader2, Mail, Send, Check } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuthStore } from "@/lib/auth/auth-store"
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState("")
   const [sucesso, setSucesso] = useState("")
   const [emailEnviado, setEmailEnviado] = useState(false)
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
+
+  const { 
+    esqueciSenha, 
+    carregando, 
+    erro, 
+    limparErro,
+    estaAutenticado 
+  } = useAuthStore()
+
+  // Redireciona se já estiver autenticado
+  useEffect(() => {
+    if (estaAutenticado) {
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectPath, { replace: true })
+    }
+  }, [estaAutenticado, navigate])
 
   const validarEmail = (email: string): boolean => {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -30,34 +46,30 @@ export default function ForgotPasswordForm() {
     e.preventDefault()
     
     if (!validarEmail(email)) {
-      setErro("E-mail inválido")
       return
     }
 
-    setCarregando(true)
-    setErro("")
+    limparErro()
     setSucesso("")
 
-    // Simular processo de envio de e-mail
-    setTimeout(() => {
-      setCarregando(false)
+    // Executa esqueci senha
+    const sucesso = await esqueciSenha(email)
+    
+    if (sucesso) {
       setSucesso("Instruções de recuperação enviadas para seu e-mail!")
       setEmailEnviado(true)
-
-      // Armazena o email para possível uso posterior
-      sessionStorage.setItem("recovery_email", email)
-    }, 1500)
+    }
   }
 
   const handleResendEmail = async () => {
-    setCarregando(true)
-    setErro("")
+    limparErro()
 
-    // Simular reenvio de e-mail
-    setTimeout(() => {
-      setCarregando(false)
+    // Reenvia e-mail
+    const sucesso = await esqueciSenha(email)
+    
+    if (sucesso) {
       setSucesso("E-mail reenviado com sucesso!")
-    }, 1000)
+    }
   }
 
   const containerVariants = {

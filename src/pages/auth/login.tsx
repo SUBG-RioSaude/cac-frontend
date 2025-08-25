@@ -1,6 +1,6 @@
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,15 +9,31 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuthStore } from "@/lib/auth/auth-store"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [mostrarSenha, setMostrarSenha] = useState(false)
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState("")
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
+  
+  const { 
+    login, 
+    carregando, 
+    erro, 
+    limparErro,
+    estaAutenticado 
+  } = useAuthStore()
+
+  // Redireciona se já estiver autenticado
+  useEffect(() => {
+    if (estaAutenticado) {
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectPath, { replace: true })
+    }
+  }, [estaAutenticado, navigate])
 
   const validarEmail = (email: string): boolean => {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -30,29 +46,24 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setCarregando(true)
-    setErro("")
+    limparErro()
 
     // Validação local
     if (!validarEmail(email)) {
-      setErro("E-mail inválido")
-      setCarregando(false)
       return
     }
 
     if (!validarSenha(senha)) {
-      setErro("Senha deve ter pelo menos 6 caracteres")
-      setCarregando(false)
       return
     }
 
-    // Simular processo de login
-    setTimeout(() => {
-      setCarregando(false)
-      // Aqui você pode adicionar lógica de autenticação local
-      // Por enquanto, apenas simula sucesso
-      navigate("/")
-    }, 1500)
+    // Executa login
+    const sucesso = await login(email, senha)
+    
+    if (sucesso) {
+      // Redireciona para verificação 2FA
+      navigate("/auth/verificar-codigo", { replace: true })
+    }
   }
 
   const containerVariants = {
@@ -203,7 +214,7 @@ export default function LoginForm() {
                       <motion.button
                         type="button"
                         className="cursor-pointer text-sm text-blue-600 hover:underline transition-colors duration-200"
-                        onClick={() => navigate("/esqueci-senha")}
+                        onClick={() => navigate("/auth/esqueci-senha")}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >

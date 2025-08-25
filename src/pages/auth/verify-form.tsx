@@ -11,17 +11,24 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Loader2, Mail, Check } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuthStore } from "@/lib/auth/auth-store"
 
 export default function VerifyForm() {
   const [codigo, setCodigo] = useState(["", "", "", "", "", ""])
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState("")
   const [email, setEmail] = useState("")
   const [tempoRestante, setTempoRestante] = useState(600)
   const [podeReenviar, setPodeReenviar] = useState(false)
   const [indiceFocado, setIndiceFocado] = useState<number | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const navigate = useNavigate()
+
+  const { 
+    confirmarCodigo2FA, 
+    carregando, 
+    erro, 
+    limparErro,
+    estaAutenticado 
+  } = useAuthStore()
 
   useEffect(() => {
     const emailArmazenado = sessionStorage.getItem("auth_email")
@@ -30,6 +37,14 @@ export default function VerifyForm() {
       return
     }
     setEmail(emailArmazenado)
+
+    // Redireciona se já estiver autenticado
+    if (estaAutenticado) {
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectPath, { replace: true })
+      return
+    }
 
     const timer = setInterval(() => {
       setTempoRestante((prev) => {
@@ -42,7 +57,7 @@ export default function VerifyForm() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [navigate])
+  }, [navigate, estaAutenticado])
 
   const formatarTempo = (segundos: number) => {
     const mins = Math.floor(segundos / 60)
@@ -73,35 +88,36 @@ export default function VerifyForm() {
     const codigoString = codigo.join("")
 
     if (codigoString.length !== 6) {
-      setErro("Por favor, digite o código completo")
       return
     }
 
-    setCarregando(true)
-    setErro("")
+    limparErro()
 
-    // Simular processo de verificação
-    setTimeout(() => {
-      setCarregando(false)
-      
-      // Simular sucesso na verificação
-      // Aqui você pode adicionar lógica de autenticação local
-      sessionStorage.removeItem("auth_email")
-      navigate("/")
-    }, 1500)
+    // Confirma código 2FA
+    const sucesso = await confirmarCodigo2FA(email, codigoString)
+    
+    if (sucesso) {
+      // Login bem-sucedido, redireciona para a página principal
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      sessionStorage.removeItem('redirectAfterLogin')
+      navigate(redirectPath, { replace: true })
+    }
+    // Se não foi sucesso, pode ser que precise trocar senha
+    // O store já redirecionará automaticamente se necessário
   }
 
   const handleResendCode = async () => {
-    setCarregando(true)
-    setErro("")
-
-    // Simular reenvio de código
-    setTimeout(() => {
+    // Reenvia código através do esqueci senha
+    const { esqueciSenha } = useAuthStore.getState()
+    
+    try {
+      await esqueciSenha(email)
       setTempoRestante(600)
       setPodeReenviar(false)
       setCodigo(["", "", "", "", "", ""])
-      setCarregando(false)
-    }, 1000)
+    } catch (erro) {
+      console.error('Erro ao reenviar código:', erro)
+    }
   }
 
   const containerVariants = {
