@@ -136,11 +136,18 @@ describe('useTimelineIntegration', () => {
 
       const alteracaoInvalida = { ...mockAlteracao, tipoAditivo: 'tipo_invalido' as AlteracaoContratualForm['tipoAditivo'] }
       
-      expect(() => {
+      // Testa se o erro é lançado corretamente
+      let error: Error | null = null
+      try {
         act(() => {
           result.current.criarEntradaAlteracao(alteracaoInvalida, mockAutor)
         })
-      }).toThrow('Tipo de aditivo não encontrado: tipo_invalido')
+      } catch (e) {
+        error = e as Error
+      }
+      
+      expect(error).toBeInstanceOf(Error)
+      expect(error?.message).toBe('Tipo de aditivo não encontrado: tipo_invalido')
     })
   })
 
@@ -290,11 +297,18 @@ describe('useTimelineIntegration', () => {
         })
       )
 
-      expect(() => {
+      // Testa se o erro é propagado corretamente
+      let error: Error | null = null
+      try {
         act(() => {
           result.current.criarEntradaAlteracao(mockAlteracao, mockAutor)
         })
-      }).toThrow('Erro ao adicionar entrada')
+      } catch (e) {
+        error = e as Error
+      }
+      
+      expect(error).toBeInstanceOf(Error)
+      expect(error?.message).toBe('Erro ao adicionar entrada')
     })
   })
 })

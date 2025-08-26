@@ -1,54 +1,68 @@
 import { useParams } from 'react-router-dom';
-import { useMemo } from 'react';
 import LayoutPagina from '@/components/layout-pagina';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// Imports comentados - para implementação futura com React Query
-// import { useContratoDetalhado } from '@/modules/Contratos/store/contratos-store';
-// import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato';
-// import { RegistroAlteracoes } from '@/modules/Contratos/components/VisualizacaoContratos/registro-alteracoes';
+import { useContratoDetalhado } from '@/modules/Contratos/hooks';
 import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos';
-// import { Loading } from '@/components/ui/loading';
+import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+
+// Definição de um checklist vazio para fallback
+const checklistVazia = {
+  termoReferencia: { entregue: false },
+  homologacao: { entregue: false },
+  ataRegistroPrecos: { entregue: false },
+  garantiaContratual: { entregue: false },
+  contrato: { entregue: false },
+  publicacaoPncp: { entregue: false },
+  publicacaoExtrato: { entregue: false },
+};
 
 function ContratoDetailPage() {
   const { contratoId } = useParams<{ contratoId: string }>();
 
-  const { data: contrato, isLoading, error } = useMemo(() => {
-    // O uso de useMemo garante que os dados mocados não sejam recriados a cada renderização,
-    // evitando que o estado da checklist seja resetado inesperadamente.
-    const mockContrato = {
-      id: contratoId!,
-      numeroContrato: '123/2024',
-      objeto: 'Desenvolvimento de um novo sistema de gestão',
-      status: 'ativo' as const,
-      documentos: [],
-      alteracoes: [],
-      documentosChecklist: {
-        termoReferencia: { status: 'entregue' as const, dataEntrega: '2024-01-15' },
-        homologacao: { status: 'entregue' as const, dataEntrega: '2024-01-20' },
-        ataRegistroPrecos: { status: 'pendente' as const },
-        garantiaContratual: { status: 'nao_aplicavel' as const },
-        contrato: { status: 'pendente' as const },
-        publicacaoPncp: { status: 'pendente' as const },
-        publicacaoExtrato: { status: 'pendente' as const },
-      }
-    };
-    return { data: mockContrato, isLoading: false, error: null };
-  }, [contratoId]);
+  // Usando o hook real para buscar dados do contrato
+  const { data: contrato, isLoading, error } = useContratoDetalhado(contratoId!, {
+    enabled: !!contratoId,
+  });
 
   if (isLoading) {
-    return <div className="h-screen flex items-center justify-center">Carregando...</div>;
+    return (
+      <LayoutPagina titulo="Carregando Contrato..." >
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-1/2" />
+          <Skeleton className="h-8 w-3/4" />
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </LayoutPagina>
+    );
   }
 
   if (error || !contrato) {
-    return <div>Erro ao carregar o contrato.</div>;
+    return (
+       <LayoutPagina titulo="Erro" descricao="Não foi possível carregar o contrato.">
+         <Alert variant="destructive">
+           <AlertCircle className="h-4 w-4" />
+           <AlertTitle>Erro de Carregamento</AlertTitle>
+           <AlertDescription>
+             Ocorreu um erro ao buscar os detalhes do contrato. Por favor, tente novamente mais tarde.
+           </AlertDescription>
+         </Alert>
+       </LayoutPagina>
+    );
   }
 
   return (
     <LayoutPagina
-      titulo={`Contrato ${contrato.numeroContrato}`}
-      descricao={contrato.objeto}
+      titulo={`Contrato ${contrato.numeroContrato || 'Sem número'}`}
+      descricao={contrato.objeto || 'Contrato sem objeto definido.'}
     >
-      <Tabs defaultValue="detalhes" className="space-y-4">
+      <Tabs defaultValue="documentos" className="space-y-4">
         <TabsList>
           <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
@@ -56,28 +70,20 @@ function ContratoDetailPage() {
         </TabsList>
 
         <TabsContent value="detalhes">
-          {/* O componente DetalhesContrato receberia os dados necessários */}
           {/* <DetalhesContrato contrato={contrato} /> */}
           <p>Área para os detalhes do contrato.</p>
         </TabsContent>
 
-        <TabsContent value="documentos">
+        <TabsContent value="documentos" className="space-y-6">
           <TabDocumentos 
             contratoId={contrato.id} 
-            checklistData={{
-              termoReferencia: { entregue: true, dataEntrega: '2024-01-15' },
-              homologacao: { entregue: true, dataEntrega: '2024-01-20' },
-              ataRegistroPrecos: { entregue: false },
-              garantiaContratual: { entregue: false },
-              contrato: { entregue: true, dataEntrega: '2024-02-01' },
-              publicacaoPncp: { entregue: true, dataEntrega: '2024-02-05' },
-              publicacaoExtrato: { entregue: false }
-            }} 
+            checklistData={contrato.documentosChecklist || checklistVazia} 
           />
+          <Separator />
+          <ListaDocumentosContrato contratoId={contrato.id} />
         </TabsContent>
 
         <TabsContent value="alteracoes">
-          {/* O componente RegistroAlteracoes receberia as alterações */}
           {/* <RegistroAlteracoes alteracoes={contrato.alteracoes} /> */}
           <p>Área para o registro de alterações.</p>
         </TabsContent>

@@ -37,18 +37,19 @@ import {
 import { cn } from '@/lib/utils'
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 
-// Mock de unidades - será substituído por dados reais da API
-const unidadesMock = {
-  demandantes: [
-    'Hospital Municipal',
-    'UPA Centro',
-    'Posto de Saúde Norte',
-    'Clínica da Família Sul',
-    'CAPS Adulto',
-    'CAPS Infantil',
-    'Laboratório Central'
-  ]
-}
+// Lista de unidades baseada nos contratos existentes
+const unidadesConhecidas = [
+  'SMS', // Do exemplo da API
+  'Hospital Municipal',
+  'UPA Centro',
+  'Posto de Saúde Norte',
+  'Clínica da Família Sul',
+  'CAPS Adulto',
+  'CAPS Infantil',
+  'Laboratório Central',
+  'Secretaria de Saúde',
+  'Superintendência de Saúde'
+]
 
 interface SearchAndFiltersProps {
   termoPesquisa: string
@@ -72,23 +73,32 @@ export function SearchAndFilters({
   const [valorExpanded, setValorExpanded] = useState(false)
   const [unidadeExpanded, setUnidadeExpanded] = useState(false)
 
-  // Props já fornecem os dados e handlers necessários
+  // Calcular número de filtros ativos
+  const calcularFiltrosAtivos = () => {
+    let count = 0
+    if (filtros.status && filtros.status.length > 0) count++
+    if (filtros.dataInicialDe || filtros.dataInicialAte || filtros.dataFinalDe || filtros.dataFinalAte) count++
+    if (filtros.valorMinimo && filtros.valorMinimo > 0) count++
+    if (filtros.valorMaximo && filtros.valorMaximo > 0) count++
+    if (filtros.unidade && filtros.unidade.length > 0) count++
+    return count
+  }
 
   const statusOptions = [
-    { value: 'ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
+    { value: 'Ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
     {
-      value: 'vencendo',
+      value: 'Vencendo',
       label: 'Vencendo em Breve',
       color: 'bg-yellow-100 text-yellow-800',
     },
-    { value: 'vencido', label: 'Vencido', color: 'bg-red-100 text-red-800' },
+    { value: 'Vencido', label: 'Vencido', color: 'bg-red-100 text-red-800' },
     {
-      value: 'suspenso',
+      value: 'Suspenso',
       label: 'Suspenso',
       color: 'bg-gray-100 text-gray-800',
     },
     {
-      value: 'encerrado',
+      value: 'Encerrado',
       label: 'Encerrado',
       color: 'bg-blue-100 text-blue-800',
     },
@@ -112,17 +122,7 @@ export function SearchAndFilters({
     onFiltrosChange({ ...filtros, unidade: newUnidades })
   }
 
-  const contarFiltrosAtivos = () => {
-    let count = 0
-    if (filtros.status && filtros.status.length > 0) count++
-    if (filtros.unidade && filtros.unidade.length > 0) count++
-    if (filtros.dataInicialDe || filtros.dataInicialAte) count++
-    if (filtros.dataFinalDe || filtros.dataFinalAte) count++
-    if (filtros.valorMinimo || filtros.valorMaximo) count++
-    return count
-  }
-
-  const filtrosAtivos = contarFiltrosAtivos()
+  const filtrosAtivos = calcularFiltrosAtivos()
 
   // Componente de filtros reutilizável
   const FilterContent = ({ isMobile = false }: { isMobile?: boolean }) => (
@@ -402,7 +402,7 @@ export function SearchAndFilters({
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 ml-6 space-y-2">
           <div className="max-h-32 space-y-2 overflow-y-auto">
-            {unidadesMock.demandantes.map((unidade) => (
+            {unidadesConhecidas.map((unidade) => (
               <div key={unidade} className="flex items-center space-x-2">
                 <Checkbox
                   id={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}

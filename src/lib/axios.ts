@@ -7,21 +7,21 @@ import { apiMetrics } from './api-metrics';
 export const apiGateway = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 5000, // Timeout mais curto para fallback rápido
-    withCredentials: true,
+    withCredentials: false,
 })
 
 // Cliente para Microserviço Direto (fallback)
 export const apiDirect = axios.create({
     baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
     timeout: 10000,
-    withCredentials: true,
+    withCredentials: false,
 })
 
 // Cliente principal com fallback automático
 export const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 5000,
-    withCredentials: true,
+    withCredentials: false,
 })
 
 // Interceptor de autenticação para todos os clientes

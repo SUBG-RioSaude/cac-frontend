@@ -74,9 +74,11 @@ function mapearFiltrosParaAPI(
     params.valorMaximo = filtros.valorMaximo
   }
 
-  // Unidades (array → string separado por vírgula)
+  // Unidades - usando unidadeSaudeId conforme API
   if (filtros.unidade && filtros.unidade.length > 0) {
-    params.unidadeSaudeId = filtros.unidade.join(',')
+    // Para agora, vamos usar o primeiro valor da unidade como string de busca
+    // TODO: Implementar mapeamento correto de nomes para IDs quando disponível
+    params.unidadeSaudeId = filtros.unidade[0]
   }
 
   return params
@@ -94,7 +96,7 @@ export function useContratosPageState(): ContratosPageState {
   const [contratosSelecionados, setContratosSelecionados] = useState<string[]>([])
 
   // Debounce da pesquisa para evitar muitas requisições
-  const debouncedSearch = useDebounce(termoPesquisa, 300)
+  const debouncedSearch = useDebounce(termoPesquisa, 500)
 
   // Parâmetros para a API (calculados quando filtros mudam)
   const parametrosAPI = useMemo(() => {

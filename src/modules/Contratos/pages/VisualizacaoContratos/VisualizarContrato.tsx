@@ -19,9 +19,8 @@ import { DetalhesContrato } from '../../components/VisualizacaoContratos/detalhe
 import { RegistroAlteracoes } from '../../components/VisualizacaoContratos/registro-alteracoes'
 import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/indicadores-relatorios'
 
-// Dados mock
-import { contratoDetalhadoMock } from '../../data/contratos-mock'
 import type { ContratoDetalhado } from '../../types/contrato'
+import { useContratoDetalhado } from '../../hooks/use-contratos'
 import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
 import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
@@ -40,11 +39,19 @@ import {
 export function VisualizarContrato() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [contrato, setContrato] = useState<ContratoDetalhado | null>(null)
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
-  const [loading, setLoading] = useState(true)
   const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
   const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
+  
+  // Buscar contrato da API usando React Query
+  const { 
+    data: contrato, 
+    isLoading: loading, 
+    isError,
+    error,
+    refetch
+  } = useContratoDetalhado(id || '', { enabled: !!id })
+
   
   // Integração com timeline
   const { criarEntradaAlteracao, criarMarcosAlteracao, atualizarStatusAlteracao } = useTimelineIntegration({
@@ -55,19 +62,6 @@ export function VisualizarContrato() {
       setEntradasTimeline(prev => [entrada, ...prev])
     }
   })
-
-  useEffect(() => {
-    // Simular carregamento dos dados
-    const carregarContrato = async () => {
-      setLoading(true)
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setContrato(contratoDetalhadoMock)
-      setLoading(false)
-    }
-
-    carregarContrato()
-  }, [id])
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -214,6 +208,33 @@ export function VisualizarContrato() {
     )
   }
 
+  if (isError) {
+    return (
+      <div className="from-background to-muted/20 flex min-h-screen items-center justify-center bg-gradient-to-br">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="mb-2 text-xl font-semibold">
+              Erro ao carregar contrato
+            </h2>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error 
+                ? error.message 
+                : 'Não foi possível carregar os dados do contrato. Tente novamente.'}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => refetch()} variant="outline">
+                Tentar novamente
+              </Button>
+              <Button onClick={() => navigate('/contratos')}>
+                Voltar para Lista
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (!contrato) {
     return (
       <div className="from-background to-muted/20 flex min-h-screen items-center justify-center bg-gradient-to-br">
@@ -223,8 +244,7 @@ export function VisualizarContrato() {
               Contrato não encontrado
             </h2>
             <p className="text-muted-foreground mb-4">
-              O contrato solicitado não foi encontrado ou você não tem permissão
-              para visualizá-lo.
+              O contrato solicitado não foi encontrado.
             </p>
             <Button onClick={() => navigate('/contratos')}>
               Voltar para Lista
@@ -462,12 +482,13 @@ export function VisualizarContrato() {
                       checklistData={contrato.documentosChecklist}
                       contratoId={contrato.id}
                       onChecklistChange={(novaChecklist) => {
-                        // Atualizar o estado do contrato com a nova checklist
-                        setContrato(prev => prev ? { ...prev, documentosChecklist: novaChecklist } : null)
                         console.log('Checklist atualizada:', novaChecklist)
                         
                         // Aqui seria feita a persistência via API
                         console.log('Persistindo checklist no backend...', novaChecklist)
+                        
+                        // Refetch para atualizar dados com a API
+                        refetch()
                       }}
                     />
                   </TabsContent>

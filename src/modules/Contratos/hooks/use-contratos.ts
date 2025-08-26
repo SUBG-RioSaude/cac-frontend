@@ -4,11 +4,11 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { getContratos, type ContratoParametros } from '@/modules/Contratos/services/contratos-service'
+import { getContratos, getContratoDetalhado, type ContratoParametros } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import { useErrorHandler } from '@/hooks/use-error-handler'
-import type { Contrato } from '@/modules/Contratos/types/contrato'
+import type { Contrato, ContratoDetalhado } from '@/modules/Contratos/types/contrato'
 
 export function useContratos(
   filtros: ContratoParametros = {},
@@ -72,7 +72,7 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
       const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
         executeWithFallback<Contrato>({
           method: 'get',
-          url: `/Contratos/${id}`
+          url: `/contratos/${id}`
         })
       )
       return response.data
@@ -123,7 +123,7 @@ export function useContratosVencendo(diasAntecipados = 30, options?: { enabled?:
       const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
         executeWithFallback({
           method: 'get',
-          url: '/Contratos/vencendo',
+          url: '/contratos/vencendo',
           params: { diasAntecipados }
         })
       )
@@ -160,7 +160,7 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
       const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
         executeWithFallback({
           method: 'get',
-          url: '/Contratos/vencidos'
+          url: '/contratos/vencidos'
         })
       )
       return response.data
@@ -180,6 +180,50 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
       }
 
       toastQuery.error(error, "Não foi possível carregar contratos vencidos")
+      return false
+    }
+  })
+}
+
+// Hook especializado para buscar contrato detalhado
+export function useContratoDetalhado(id: string, options?: { enabled?: boolean }) {
+  const { query: toastQuery } = useToast()
+  const { handleApiError } = useErrorHandler()
+
+  return useQuery({
+    queryKey: contratoKeys.detalhado(id),
+    queryFn: () => getContratoDetalhado(id),
+    
+    enabled: options?.enabled ?? !!id,
+    
+    retry: (failureCount, error: unknown) => {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const status = (error as { response: { status: number } }).response?.status
+        // Não retry para erros de cliente (4xx)
+        if (status >= 400 && status < 500) {
+          return false
+        }
+      }
+      return failureCount < 2
+    },
+
+    throwOnError: (error: unknown) => {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const status = (error as { response: { status: number } }).response?.status
+        
+        if (status === 404) {
+          // Para 404, redirecionar para página específica
+          handleApiError(error)
+          return true
+        }
+        
+        if (status && (status >= 500 || status === 401 || status === 403)) {
+          handleApiError(error)
+          return true
+        }
+      }
+
+      toastQuery.error(error, "Não foi possível carregar os detalhes do contrato")
       return false
     }
   })

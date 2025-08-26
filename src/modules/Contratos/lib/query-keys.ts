@@ -17,6 +17,10 @@ export const contratoKeys = {
   details: () => [...contratoKeys.all, 'detail'] as const,
   detail: (id: string) => [...contratoKeys.details(), id] as const,
   
+  // Contrato detalhado (com dados extras para visualização)
+  detalhados: () => [...contratoKeys.all, 'detalhado'] as const,
+  detalhado: (id: string) => [...contratoKeys.detalhados(), id] as const,
+  
   // Queries relacionadas
   related: (id: string) => [...contratoKeys.all, 'related', id] as const,
   
@@ -34,15 +38,20 @@ export const contratoKeys = {
   
   invalidateOnUpdate: (id: string) => [
     contratoKeys.detail(id),
+    contratoKeys.detalhado(id),
     contratoKeys.lists(),
     contratoKeys.related(id)
   ] as const,
   
   invalidateOnDelete: (id: string) => [
     contratoKeys.detail(id),
+    contratoKeys.detalhado(id),
     contratoKeys.lists(),
     contratoKeys.related(id)
-  ] as const
+  ] as const,
+
+  // Documentos de um contrato
+  documentos: (contratoId: string) => [...contratoKeys.detail(contratoId), 'documentos'] as const,
 }
 
 // Tipo para garantir type safety - definindo tipos específicos

@@ -1,274 +1,181 @@
-
-import { useState, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-// import { cn } from '@/lib/utils' // Não usado no momento
-import { 
-  FileText, 
-  CheckCircle, 
-  ExternalLink, 
-  Edit, 
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  FileText,
+  CheckCircle,
+  ExternalLink,
+  Edit,
   Save,
   Calendar,
-  BarChart3
-} from 'lucide-react'
+  BarChart3,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react';
 
-import type { ChecklistData } from '../../types/contrato'
-import type { TimelineEntry } from '../../types/timeline'
-import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
-import { useToast } from '../../hooks/useToast'
-import { calcularProgressoChecklist } from '../../data/checklist-mock'
+import { useDocumentos, useUpdateDocumento, useCreateDocumento } from '../../hooks';
+import type { DocumentoContratoDto } from '../../types/contrato';
 
 interface TabDocumentosProps {
-  checklistData: ChecklistData
-  contratoId: string
-  onChecklistChange?: (checklist: ChecklistData) => void
+  contratoId: string;
 }
 
-const checklistLabels: Record<keyof ChecklistData, string> = {
-  termoReferencia: 'Termo de Referência/Edital',
-  homologacao: 'Homologação',
-  ataRegistroPrecos: 'Ata de Registro de Preços',
-  garantiaContratual: 'Garantia Contratual',
-  contrato: 'Contrato',
-  publicacaoPncp: 'Publicação PNCP',
-  publicacaoExtrato: 'Publicação de Extrato Contratual'
-}
+const tiposDeDocumentoObrigatorio = [
+  { key: 'termo_referencia', nome: 'Termo de Referência/Edital', tipo: '1' },
+  { key: 'homologacao', nome: 'Homologação', tipo: '2' },
+  { key: 'ata_registro_precos', nome: 'Ata de Registro de Preços', tipo: '3' },
+  { key: 'garantia_contratual', nome: 'Garantia Contratual', tipo: '4' },
+  { key: 'contrato', nome: 'Contrato', tipo: '5' },
+  { key: 'publicacao_pncp', nome: 'Publicação PNCP', tipo: '6' },
+  { key: 'publicacao_extrato', nome: 'Publicação de Extrato Contratual', tipo: '7' },
+];
 
-export function TabDocumentos({ 
-  checklistData: initialChecklistData, 
-  contratoId,
-  onChecklistChange 
-}: TabDocumentosProps) {
-  // Criar checklist vazia se não houver dados - sempre começa vazia para contratos novos
-  const checklistVazia: ChecklistData = {
-    termoReferencia: { entregue: false },
-    homologacao: { entregue: false },
-    ataRegistroPrecos: { entregue: false },
-    garantiaContratual: { entregue: false },
-    contrato: { entregue: false },
-    publicacaoPncp: { entregue: false },
-    publicacaoExtrato: { entregue: false }
-  }
-  
-  const [checklistData, setChecklistData] = useState(initialChecklistData || checklistVazia)
-  const [editingLink, setEditingLink] = useState<keyof ChecklistData | null>(null)
-  const [tempLink, setTempLink] = useState('')
+export function TabDocumentos({ contratoId }: TabDocumentosProps) {
+  const { data: documentosApi = [], isLoading, error } = useDocumentos(contratoId);
+  const updateMutation = useUpdateDocumento();
+  const createMutation = useCreateDocumento();
 
-  const { success } = useToast()
-  // const { info } = useToast() // Para uso futuro em notificações
-  const progressData = calcularProgressoChecklist(checklistData)
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [tempLink, setTempLink] = useState('');
+  const [tempObservacoes, setTempObservacoes] = useState('');
 
-  const onAdicionarEntradaTimeline = useCallback((entrada: TimelineEntry) => {
-    console.log('Nova entrada na timeline:', entrada)
-  }, [])
-  
-  const { criarEntradaChecklist } = useTimelineIntegration({ 
-    contratoId, 
-    onAdicionarEntrada: onAdicionarEntradaTimeline 
-  })
+  const checklistItems = useMemo(() => {
+    return tiposDeDocumentoObrigatorio.map(tipoEstatico => {
+      const docApi = documentosApi.find(d => d.tipo === tipoEstatico.tipo);
+      if (docApi) {
+        return { ...docApi, key: tipoEstatico.key, nome: tipoEstatico.nome };
+      }
+      return {
+        id: null,
+        key: tipoEstatico.key,
+        nome: tipoEstatico.nome,
+        tipo: tipoEstatico.tipo,
+        status: 'pendente',
+        linkExterno: null,
+        observacoes: '',
+        dataAtualizacao: null,
+      };
+    });
+  }, [documentosApi]);
 
-  // Função interna - remoção temporária para evitar warning
-  // const handleInfoChecklist = useCallback(() => {
-  //   info({
-  //     title: 'Controle via link',
-  //     description: 'Use o botão de editar link para alterar o status do documento.'
-  //   })
-  // }, [info])
+  const progressData = useMemo(() => {
+    const entregues = checklistItems.filter(doc => doc.status === 'conferido' || doc.status === 'entregue').length;
+    const total = checklistItems.length;
+    const percentual = total > 0 ? Math.round((entregues / total) * 100) : 0;
+    return { entregues, total, percentual };
+  }, [checklistItems]);
 
-  const handleStartEditingLink = (documentoKey: keyof ChecklistData) => {
-    setEditingLink(documentoKey)
-    setTempLink(checklistData[documentoKey].link || '')
-  }
+  const handleStartEditing = (documento: (typeof checklistItems)[0]) => {
+    setEditingKey(documento.key);
+    setTempLink(documento.linkExterno || '');
+    setTempObservacoes(documento.observacoes || '');
+  };
 
-  const handleSaveLink = useCallback((documentoKey: keyof ChecklistData) => {
-    const documento = checklistData[documentoKey]
-    const temLink = tempLink.trim() !== ''
-    
-    const novoDocumento = {
-      ...documento,
-      link: temLink ? tempLink : undefined,
-      // NOVA REGRA: Adicionar link = automaticamente entregue
-      entregue: temLink,
-      dataEntrega: temLink ? new Date().toISOString() : undefined
+  const handleSave = (documento: (typeof checklistItems)[0]) => {
+    const temLink = tempLink.trim() !== '';
+    const commonPayload = {
+      contratoId:  contratoId,
+      nome: documento.nome,
+      tipo: documento.tipo,
+      linkExterno: temLink ? tempLink : undefined,
+      observacoes: tempObservacoes,
+      status: temLink ? 'conferido' : 'pendente',
+      dataEntrega: new Date().toISOString(), // Requerido pela API de criação
+      dataAtualizacao: new Date().toISOString(),
+    };
+
+    const onSuccess = () => {
+      setEditingKey(null);
+      setTempLink('');
+      setTempObservacoes('');
+    };
+
+    if (documento.id) {
+      updateMutation.mutate({ contratoId, documentoId: documento.id, payload: commonPayload }, { onSuccess });
+    } else {
+      createMutation.mutate({ contratoId, payload: commonPayload }, { onSuccess });
     }
-    
-    const novaChecklist = {
-      ...checklistData,
-      [documentoKey]: novoDocumento
-    }
-    
-    setChecklistData(novaChecklist)
-    onChecklistChange?.(novaChecklist)
-    setEditingLink(null)
-    setTempLink('')
+  };
 
-    // Timeline integration
-    const autor = { id: 'user-1', nome: 'Usuário Atual', tipo: 'usuario' as const }
-    criarEntradaChecklist(checklistLabels[documentoKey], temLink ? 'entregue' : 'pendente', autor)
+  const formatarData = (data?: string | null) => {
+    if (!data) return null;
+    return new Date(data).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
 
-    success({
-      title: `"${checklistLabels[documentoKey]}" foi ${temLink ? 'marcado como entregue' : 'marcado como pendente'}`,
-      description: temLink ? 'Link adicionado e documento entregue automaticamente' : 'Link removido - documento voltou para pendente'
-    })
-
-    console.log(`Salvando link para ${documentoKey}: ${tempLink}`)
-  }, [checklistData, tempLink, onChecklistChange, success, criarEntradaChecklist])
-
-  const formatarData = (data?: string) => {
-    if (!data) return null
-    return new Date(data).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  if (isLoading) {
+    return <Card><CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>;
   }
 
+  if (error) {
+    return <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>Erro</AlertTitle><AlertDescription>Não foi possível carregar o checklist.</AlertDescription></Alert>;
+  }
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-blue-600" />
-            Checklist de Documentos Obrigatórios
-          </CardTitle>
-          
-          <Badge variant="outline" className="font-medium">
-            {progressData.entregues} de {progressData.total} entregues
-          </Badge>
+          <CardTitle className="flex items-center gap-2"><FileText />Checklist de Documentos</CardTitle>
+          <Badge variant="outline">{progressData.entregues} de {progressData.total} entregues</Badge>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6">
-        {/* Progress bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Progresso de Entrega
-            </span>
-            <span className="font-medium">{progressData.percentual}%</span>
-          </div>
-          <Progress value={progressData.percentual} className="h-2 [&>div]:bg-green-500" />
+        <div>
+          <div className="flex items-center justify-between text-sm"><span><BarChart3 className="inline h-4 w-4 mr-1" />Progresso</span><span>{progressData.percentual}%</span></div>
+          <Progress value={progressData.percentual} />
         </div>
-
-        {/* Grid de documentos */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-          {Object.entries(checklistLabels).map(([key, label]) => {
-            const documentoKey = key as keyof ChecklistData
-            const documento = checklistData[documentoKey]
-            const isChecked = documento.entregue
-            const isEditingThisLink = editingLink === documentoKey
+        <div className="grid gap-4 md:grid-cols-2">
+          {checklistItems.map((documento) => {
+            const isChecked = documento.status === 'conferido' || documento.status === 'entregue';
+            const isEditing = editingKey === documento.key;
+            const isSaving = (updateMutation.isPending || createMutation.isPending) && editingKey === documento.key;
 
             return (
-              <div 
-                key={documentoKey} 
-                className="p-4 rounded-lg border border-gray-200 bg-gray-50/50 transition-all hover:shadow-sm"
-              >
-                <div className="space-y-3">
-                  {/* Checkbox e label */}
-                  <div className="flex items-start space-x-3">
-                    <Checkbox
-                      id={documentoKey}
-                      checked={isChecked}
-                      disabled={true}
-                      className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 mt-1 opacity-60"
-                      aria-label={label}
-                    />
-                    <div className="flex-1 space-y-2">
-                      <Label 
-                        htmlFor={documentoKey} 
-                        className="text-sm font-medium cursor-pointer block leading-tight"
-                      >
-                        {label}
-                        {isChecked && <CheckCircle className="inline-block h-4 w-4 text-green-600 ml-2" />}
-                      </Label>
-                      
-                      {/* Data de entrega */}
-                      {isChecked && documento.dataEntrega && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>Entregue em {formatarData(documento.dataEntrega)}</span>
-                        </div>
-                      )}
-                    </div>
+              <div key={documento.key} className="p-4 rounded-lg border bg-card space-y-3">
+                <div className="flex items-start space-x-3">
+                  <Checkbox id={documento.key} checked={isChecked} disabled className="mt-1"/>
+                  <div className="flex-1 space-y-1">
+                    <Label htmlFor={documento.key}>{documento.nome}</Label>
+                    {isChecked && documento.dataAtualizacao && <div className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Entregue em {formatarData(documento.dataAtualizacao)}</div>}
                   </div>
-
-                  {/* Link do documento - sempre visível */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Link {!documento.link && <span className="text-red-500">*</span>}
-                      </span>
-                      {!isEditingThisLink && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleStartEditingLink(documentoKey)}
-                          className="h-6 px-1"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-
-                    {isEditingThisLink ? (
-                      <div className="flex gap-2">
-                        <Input
-                          value={tempLink}
-                          onChange={(e) => setTempLink(e.target.value)}
-                          placeholder="https://exemplo.com/documento.pdf"
-                          className="text-xs h-8"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => handleSaveLink(documentoKey)}
-                          className="px-2 h-8"
-                        >
-                          <Save className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div>
-                        {documento.link ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asChild
-                            className="text-xs h-7 justify-start w-full"
-                          >
-                            <a
-                              href={documento.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="truncate"
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1 flex-shrink-0" />
-                              Visualizar
-                            </a>
-                          </Button>
-                        ) : (
-                          <div className="text-xs text-orange-600 italic">
-                            📎 Clique para adicionar link e marcar como entregue
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  {!isEditing && <Button variant="ghost" size="sm" onClick={() => handleStartEditing(documento)}><Edit className="h-3 w-3" /></Button>}
                 </div>
+                
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <div>
+                      <Label htmlFor={`link-${documento.key}`} className="text-xs font-medium">Link</Label>
+                      <Input id={`link-${documento.key}`} value={tempLink} onChange={(e) => setTempLink(e.target.value)} placeholder="https://..." disabled={isSaving} />
+                    </div>
+                    <div>
+                      <Label htmlFor={`obs-${documento.key}`} className="text-xs font-medium">Observações</Label>
+                      <Textarea id={`obs-${documento.key}`} value={tempObservacoes} onChange={(e) => setTempObservacoes(e.target.value)} placeholder="Observações..." disabled={isSaving} />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" onClick={() => setEditingKey(null)} disabled={isSaving}>Cancelar</Button>
+                      <Button onClick={() => handleSave(documento)} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {documento.linkExterno ? <Button variant="outline" size="sm" asChild><a href={documento.linkExterno} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-1" />Visualizar</a></Button> : <div className="text-xs text-muted-foreground italic">Nenhum link fornecido.</div>}
+                    {documento.observacoes && <p className="text-xs text-muted-foreground p-2 bg-muted rounded-md"><strong>Obs:</strong> {documento.observacoes}</p>}
+                  </div>
+                )}
               </div>
-            )
+            );
           })}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

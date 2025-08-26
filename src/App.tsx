@@ -55,7 +55,7 @@ function App() {
 
                 <Route path="/contratos" element={<ContratosPage />} />
                 <Route
-                  path="/contratos/:contratoId"
+                  path="/contratos/:id"
                   element={<VisualizarContrato />}
                 />
                 <Route

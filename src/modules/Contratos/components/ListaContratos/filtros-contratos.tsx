@@ -27,11 +27,11 @@ export function FiltrosContratos({
   const [isOpen, setIsOpen] = useState(false)
 
   const statusOptions = [
-    { value: 'ativo', label: 'Ativo' },
-    { value: 'vencendo', label: 'Vencendo em Breve' },
-    { value: 'vencido', label: 'Vencido' },
-    { value: 'suspenso', label: 'Suspenso' },
-    { value: 'encerrado', label: 'Encerrado' },
+    { value: 'Ativo', label: 'Ativo' },
+    { value: 'Vencendo', label: 'Vencendo em Breve' },
+    { value: 'Vencido', label: 'Vencido' },
+    { value: 'Suspenso', label: 'Suspenso' },
+    { value: 'Encerrado', label: 'Encerrado' },
   ]
 
   const handleStatusChange = (status: string, checked: boolean) => {

@@ -200,8 +200,9 @@ describe('SearchAndFilters', () => {
   })
 
   it('deve exibir contador de filtros ativos', () => {
-    mockUseContratosStore.mockReturnValue({
-      termoPesquisa: '',
+    // O componente usa as props diretamente, não o store mockado
+    const propsComFiltros = {
+      ...mockProps,
       filtros: {
         status: ['ativo', 'vencendo'],
         unidade: ['Secretaria de Obras'],
@@ -211,18 +212,15 @@ describe('SearchAndFilters', () => {
         dataFinalAte: '',
         valorMinimo: 100000,
         valorMaximo: undefined,
-      },
-      setTermoPesquisa: vi.fn(),
-      setFiltros: vi.fn(),
-      limparFiltros: vi.fn(),
-    })
+      }
+    }
 
-    render(<SearchAndFilters {...mockProps} />)
+    render(<SearchAndFilters {...propsComFiltros} />)
 
-    // Deve exibir o contador de filtros ativos
-    // Pode haver múltiplos elementos "4", então usamos getAllByText
-    const elementosQuatro = screen.getAllByText('4')
-    expect(elementosQuatro.length).toBeGreaterThan(0)
+    // Deve exibir o contador de filtros ativos (4: status, unidade, dataInicialDe, valorMinimo)
+    // O contador aparece como badges em múltiplos botões (desktop e mobile)
+    const contadores = screen.getAllByText('4')
+    expect(contadores.length).toBeGreaterThan(0)
   })
 
   it('deve exibir botão de limpar filtros quando há filtros ativos', () => {
@@ -285,32 +283,20 @@ describe('SearchAndFilters', () => {
   })
 
   it('deve permitir pesquisa por termo', () => {
-    const mockSetTermoPesquisa = vi.fn()
-    mockUseContratosStore.mockReturnValue({
-      termoPesquisa: '',
-      filtros: {
-        status: [],
-        unidade: [],
-        dataInicialDe: '',
-        dataInicialAte: '',
-        dataFinalDe: '',
-        dataFinalAte: '',
-        valorMinimo: undefined,
-        valorMaximo: undefined,
-      },
-      setTermoPesquisa: mockSetTermoPesquisa,
-      setFiltros: vi.fn(),
-      limparFiltros: vi.fn(),
-    })
+    const mockOnTermoPesquisaChange = vi.fn()
+    const propsComCallback = {
+      ...mockProps,
+      onTermoPesquisaChange: mockOnTermoPesquisaChange
+    }
 
-    render(<SearchAndFilters {...mockProps} />)
+    render(<SearchAndFilters {...propsComCallback} />)
 
     const campoPesquisa = screen.getByPlaceholderText(
       'Pesquisar contratos, fornecedores...',
     )
     fireEvent.change(campoPesquisa, { target: { value: 'manutenção' } })
 
-    expect(mockSetTermoPesquisa).toHaveBeenCalledWith('manutenção')
+    expect(mockOnTermoPesquisaChange).toHaveBeenCalledWith('manutenção')
   })
 
   it('deve exibir filtros móveis em telas pequenas', () => {

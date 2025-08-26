@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Plus, FileDown } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
 import { SearchAndFilters } from '@/modules/Contratos/components/ListaContratos/pesquisa-e-filtros'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
 import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
@@ -19,7 +20,10 @@ export function ContratosPage() {
   const { 
     data: contractsResponse, 
     isLoading, 
-    isPlaceholderData 
+    isPlaceholderData,
+    error,
+    isError,
+    refetch
   } = useContratos(pageState.parametrosAPI, {
     keepPreviousData: true, // Mantém dados anteriores durante paginação
     refetchOnMount: true
@@ -196,18 +200,51 @@ export function ContratosPage() {
           />
         </motion.div>
 
+        {/* Estado de Erro */}
+        {isError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-red-200 bg-red-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-red-800">
+                  <AlertCircle className="h-5 w-5" />
+                  Erro ao carregar contratos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-red-700 text-sm">
+                  {error?.message || 'Ocorreu um erro inesperado ao carregar os dados.'}
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  className="border-red-300 text-red-700 hover:bg-red-100"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Tentar novamente
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Tabela */}
-        <TabelaContratos 
-          contratos={contratos}
-          isLoading={isLoading}
-          paginacao={pageState.paginacao}
-          contratosSelecionados={pageState.contratosSelecionados}
-          onPaginacaoChange={pageState.setPaginacao}
-          onSelecionarContrato={pageState.selecionarContrato}
-          onSelecionarTodos={pageState.selecionarTodosContratos}
-          totalContratos={totalContratos}
-          isPlaceholderData={isPlaceholderData}
-        />
+        {!isError && (
+          <TabelaContratos 
+            contratos={contratos}
+            isLoading={isLoading}
+            paginacao={pageState.paginacao}
+            contratosSelecionados={pageState.contratosSelecionados}
+            onPaginacaoChange={pageState.setPaginacao}
+            onSelecionarContrato={pageState.selecionarContrato}
+            onSelecionarTodos={pageState.selecionarTodosContratos}
+            totalContratos={totalContratos}
+            isPlaceholderData={isPlaceholderData}
+          />
+        )}
       </div>
 
       {/* Modal de Confirmação */}

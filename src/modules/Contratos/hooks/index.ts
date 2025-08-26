@@ -10,6 +10,7 @@ export {
   useContratosVencendo, 
   useContratosVencidos 
 } from './use-contratos'
+export { useDocumentos } from './use-documentos'
 
 // Hooks de mutations (modificação de dados)
 export { 
@@ -20,6 +21,7 @@ export {
   useReactivateContrato,
   useEncerrarContrato
 } from './use-contratos-mutations'
+export { useUploadDocumento, useDeleteDocumento, useUpdateDocumento, useCreateDocumento } from './use-documentos-mutations'
 
 // Hook de toast melhorado
 export { useToast } from './useToast'
