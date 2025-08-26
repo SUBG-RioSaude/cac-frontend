@@ -223,10 +223,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         Prazo Inicial
                       </p>
                       <p className="font-semibold">
-                        {contrato.prazoInicialMeses > 0 && `${contrato.prazoInicialMeses} ${contrato.prazoInicialMeses === 1 ? 'mês' : 'meses'}`}
-                        {contrato.prazoInicialMeses > 0 && contrato.prazoInicialDias > 0 && ' e '}
-                        {contrato.prazoInicialDias > 0 && `${contrato.prazoInicialDias} ${contrato.prazoInicialDias === 1 ? 'dia' : 'dias'}`}
-                        {contrato.prazoInicialMeses === 0 && contrato.prazoInicialDias === 0 && 'Não informado'}
+                        {contrato.prazoInicialMeses} meses
                       </p>
                     </div>
 

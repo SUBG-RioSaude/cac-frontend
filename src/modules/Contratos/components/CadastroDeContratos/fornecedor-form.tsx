@@ -37,8 +37,6 @@ import {
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Contratos/hooks'
-import type { EmpresaResponse } from '@/modules/Contratos/types/empresa'
 
 interface Contato {
   id: string
@@ -51,7 +49,6 @@ interface Contato {
 export interface DadosFornecedor {
   cnpj: string
   razaoSocial: string
-  nomeFantasia: string
   estadoIE?: string
   inscricaoEstadual: string
   inscricaoMunicipal: string
@@ -204,61 +201,6 @@ export default function FornecedorForm({
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
   const [cepPreenchido, setCepPreenchido] = useState(false)
-  const [cnpjParaConsultar, setCnpjParaConsultar] = useState<string>('')
-  const [empresaEncontrada, setEmpresaEncontrada] = useState<EmpresaResponse | null>(null)
-
-  // Hook para consultar empresa por CNPJ
-  const {
-    isLoading: isConsultandoCNPJ,
-    refetch: refetchConsultaCNPJ
-  } = useConsultarEmpresaPorCNPJ(cnpjParaConsultar, {
-    enabled: false, // Só executa quando chamarmos refetch
-    onSuccess: (data) => {
-      // Empresa encontrada - preenche o formulário automaticamente
-      setEmpresaEncontrada(data)
-      
-      // Preenche todos os campos do formulário
-      form.reset({
-        cnpj: cnpjUtils.formatar(data.cnpj),
-        razaoSocial: data.razaoSocial,
-        estadoIE: data.estado,
-        inscricaoEstadual: data.inscricaoEstadual || '',
-        inscricaoMunicipal: data.inscricaoMunicipal || '',
-        endereco: data.endereco,
-        numero: '', // Número não vem da API
-        complemento: '', // Complemento não vem da API
-        bairro: data.bairro,
-        cidade: data.cidade,
-        estado: data.estado,
-        cep: data.cep,
-        ativo: data.ativo,
-        contatos: data.contatos.map((contato, index) => ({
-          id: (index + 1).toString(),
-          nome: contato.nome,
-          valor: contato.valor,
-          tipo: contato.tipo as 'Email' | 'Fixo' | 'Celular',
-          ativo: true,
-        })),
-      })
-
-      // Habilita campos de endereço
-      setCepPreenchido(true)
-      
-      toast.success('Empresa já cadastrada!', {
-        description: 'Formulário preenchido automaticamente com os dados existentes.',
-        icon: <Check className="h-4 w-4" />,
-      })
-    },
-    onError: () => {
-      // Empresa não encontrada
-      toast.info('Empresa não cadastrada', {
-        description: 'Continue preenchendo o formulário para cadastrar.',
-      })
-    }
-  })
-
-  // Hook para cadastrar empresa
-  const { mutateAsync: cadastrarEmpresaAsync } = useCadastrarEmpresa()
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {
@@ -275,6 +217,7 @@ export default function FornecedorForm({
 
       if (data.erro) {
         setCepError('CEP não encontrado')
+        toast.error('CEP não encontrado. Verifique e tente novamente.')
         // Habilita campos mesmo com CEP inválido para permitir edição manual
         setCepPreenchido(true)
         return
@@ -286,6 +229,8 @@ export default function FornecedorForm({
         form.setValue('bairro', data.bairro || '')
         form.setValue('cidade', data.localidade || '')
         form.setValue('estado', data.uf || '')
+
+        toast.success('Endereço preenchido automaticamente!')
 
         // Habilita campos após sucesso
         setCepPreenchido(true)
@@ -300,22 +245,12 @@ export default function FornecedorForm({
       }
     } catch {
       setCepError('Erro ao buscar CEP')
+      toast.error('Erro ao buscar CEP. Tente novamente.')
       // Habilita campos mesmo com erro para permitir edição manual
       setCepPreenchido(true)
     } finally {
       setIsLoadingCEP(false)
     }
-  }
-
-  // Função para consultar empresa por CNPJ
-  const consultarEmpresaCNPJ = async (cnpj: string) => {
-    if (!cnpj || !cnpjUtils.validar(cnpj)) return
-
-    const cnpjLimpo = cnpjUtils.limpar(cnpj)
-    setCnpjParaConsultar(cnpjLimpo)
-    
-    // Executa a consulta usando o hook
-    await refetchConsultaCNPJ()
   }
 
   const form = useForm({
@@ -387,8 +322,9 @@ export default function FornecedorForm({
       cnpj: cnpjUtils.limpar(dados.cnpj), // Limpa o CNPJ antes de enviar
     } as DadosFornecedor
 
-    // Validações adicionais
+    // Validações adicionais com toast
     if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
+      toast.error('Adicione pelo menos um contato para o fornecedor.')
       return
     }
 
@@ -397,34 +333,11 @@ export default function FornecedorForm({
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
+      toast.error('Preencha todos os dados dos contatos adicionados.')
       return
     }
 
     const submitOperation = async () => {
-      // Se não é uma empresa existente, cadastra no sistema
-      if (!empresaEncontrada) {
-        const empresaRequest = {
-          cnpj: dadosFornecedor.cnpj,
-          razaoSocial: dadosFornecedor.razaoSocial,
-          inscricaoEstadual: dadosFornecedor.inscricaoEstadual || '',
-          inscricaoMunicipal: dadosFornecedor.inscricaoMunicipal || '',
-          endereco: dadosFornecedor.endereco,
-          bairro: dadosFornecedor.bairro,
-          cidade: dadosFornecedor.cidade,
-          estado: dadosFornecedor.estado,
-          cep: dadosFornecedor.cep,
-          usuarioCadastroId: '3fa85f64-5717-4562-b3fc-2c963f66afa6', // Valor fixo conforme especificação
-          contatos: dadosFornecedor.contatos.map(contato => ({
-            nome: contato.nome,
-            valor: contato.valor,
-            tipo: contato.tipo,
-          })),
-        }
-
-        await cadastrarEmpresaAsync(empresaRequest)
-      }
-
-      // Avança para o próximo step
       if (onAdvanceRequest) {
         await onAdvanceRequest(dadosFornecedor)
       } else {
@@ -559,8 +472,8 @@ export default function FornecedorForm({
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Container para CNPJ */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* Container para CNPJ e Razão Social */}
             <div className="space-y-2">
               <FormField
                 control={form.control}
@@ -585,14 +498,18 @@ export default function FornecedorForm({
                               )
                               field.onChange(valorMascarado)
 
-                            // Validação consultarEmpresa
-                               if (valorMascarado.length >= 18) {
-                                 const isValid =
-                                   cnpjUtils.validar(valorMascarado)
-                                 if (isValid) {
-                                   consultarEmpresaCNPJ(valorMascarado)
-                                 }
-                               }
+                              // Validação com toast
+                              if (valorMascarado.length >= 18) {
+                                const isValid =
+                                  cnpjUtils.validar(valorMascarado)
+                                if (isValid) {
+                                  toast.success('CNPJ válido!')
+                                } else {
+                                  toast.error(
+                                    'CNPJ inválido. Verifique os números.',
+                                  )
+                                }
+                              }
                             }}
                             className={cn(
                               isValidCnpj === true &&
@@ -601,12 +518,7 @@ export default function FornecedorForm({
                                 'border-red-500 bg-red-50 pr-10',
                             )}
                           />
-                          {isConsultandoCNPJ && (
-                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
-                            </div>
-                          )}
-                          {isValidCnpj !== null && !isConsultandoCNPJ && (
+                          {isValidCnpj !== null && (
                             <div className="absolute top-1/2 right-3 -translate-y-1/2">
                               {isValidCnpj ? (
                                 <Check className="h-4 w-4 text-green-500" />
@@ -624,7 +536,6 @@ export default function FornecedorForm({
               />
             </div>
 
-            {/* Container para Razão Social */}
             <div className="space-y-2">
               <FormField
                 control={form.control}
@@ -710,6 +621,21 @@ export default function FornecedorForm({
                                   estadoSelecionado,
                                 )
                                 field.onChange(valorMascarado)
+
+                                // Validação com toast
+                                if (e.target.value.length > 0) {
+                                  const isValid = ieUtils.validar(
+                                    e.target.value,
+                                    estadoSelecionado,
+                                  )
+                                  if (isValid) {
+                                    toast.success('Inscrição Estadual válida!')
+                                  } else {
+                                    toast.error(
+                                      'Inscrição Estadual inválida para o estado selecionado.',
+                                    )
+                                  }
+                                }
                               } else {
                                 field.onChange(e.target.value)
                               }
@@ -777,6 +703,21 @@ export default function FornecedorForm({
                                   estadoSelecionado,
                                 )
                                 field.onChange(valorMascarado)
+
+                                // Validação com toast
+                                if (e.target.value.length > 0) {
+                                  const isValid = imUtils.validar(
+                                    e.target.value,
+                                    estadoSelecionado,
+                                  )
+                                  if (isValid) {
+                                    toast.success('Inscrição Municipal válida!')
+                                  } else {
+                                    toast.error(
+                                      'Inscrição Municipal inválida para o estado selecionado.',
+                                    )
+                                  }
+                                }
                               } else {
                                 field.onChange(e.target.value)
                               }
@@ -1202,18 +1143,44 @@ export default function FornecedorForm({
 
                                       valorField.onChange(valorProcessado)
 
-                                      // Validação em tempo real
+                                      // Validação com toast
                                       if (valorProcessado.length > 0) {
                                         if (tipoContato === 'Email') {
-                                          validarEmail(valorProcessado)
+                                          const emailValido =
+                                            validarEmail(valorProcessado)
+                                          if (emailValido) {
+                                            toast.success('E-mail válido!')
+                                          } else {
+                                            toast.error(
+                                              'E-mail inválido. Verifique o formato.',
+                                            )
+                                          }
                                         } else if (tipoContato === 'Fixo') {
-                                          validarFormatoTelefoneFixo(
-                                            valorProcessado,
-                                          )
+                                          const telefoneValido =
+                                            validarFormatoTelefoneFixo(
+                                              valorProcessado,
+                                            )
+                                          if (telefoneValido) {
+                                            toast.success(
+                                              'Telefone fixo válido!',
+                                            )
+                                          } else {
+                                            toast.error(
+                                              'Telefone fixo inválido. Use o formato (11) 3333-4444',
+                                            )
+                                          }
                                         } else if (tipoContato === 'Celular') {
-                                          validarFormatoCelular(
-                                            valorProcessado,
-                                          )
+                                          const celularValido =
+                                            validarFormatoCelular(
+                                              valorProcessado,
+                                            )
+                                          if (celularValido) {
+                                            toast.success('Celular válido!')
+                                          } else {
+                                            toast.error(
+                                              'Celular inválido. Use o formato (11) 9 9999-8888',
+                                            )
+                                          }
                                         }
                                       }
                                     }}

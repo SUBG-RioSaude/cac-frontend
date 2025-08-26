@@ -152,16 +152,16 @@ export function TabelaContratos() {
                 )}
               </div>
             </div>
-            {getStatusBadge(contrato.status || 'indefinido')}
+            {getStatusBadge(contrato.status)}
           </div>
 
           <div className="space-y-3">
             <div>
               <p className="line-clamp-1 text-sm font-medium">
-                {contrato.contratada?.razaoSocial || 'N/A'}
+                {contrato.contratada.razaoSocial}
               </p>
               <p className="text-muted-foreground text-xs">
-                {formatarCNPJ(contrato.contratada?.cnpj || '')}
+                {formatarCNPJ(contrato.contratada.cnpj)}
               </p>
             </div>
 
@@ -169,7 +169,7 @@ export function TabelaContratos() {
               <div className="flex items-center gap-1">
                 <DollarSign className="text-muted-foreground h-3 w-3" />
                 <span className="font-semibold">
-                  {formatarMoeda(contrato.valor || 0)}
+                  {formatarMoeda(contrato.valor)}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -181,8 +181,8 @@ export function TabelaContratos() {
             <div className="flex items-center gap-1 text-xs">
               <Calendar className="text-muted-foreground h-3 w-3" />
               <span>
-                {formatarData(contrato.dataInicial || '')} -{' '}
-                {formatarData(contrato.dataFinal || '')}
+                {formatarData(contrato.dataInicial)} -{' '}
+                {formatarData(contrato.dataFinal)}
               </span>
             </div>
 
@@ -321,10 +321,10 @@ export function TabelaContratos() {
                         <TableCell>
                           <div className="space-y-1">
                             <div className="line-clamp-1 text-sm font-medium">
-                              {contrato.contratada?.razaoSocial || 'N/A'}
+                              {contrato.contratada.razaoSocial}
                             </div>
                             <div className="text-muted-foreground text-xs">
-                              {formatarCNPJ(contrato.contratada?.cnpj || '')}
+                              {formatarCNPJ(contrato.contratada.cnpj)}
                             </div>
                             <div className="text-muted-foreground line-clamp-1 text-xs">
                               {contrato.unidade}
@@ -333,20 +333,20 @@ export function TabelaContratos() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm font-semibold">
-                            {formatarMoeda(contrato.valor || 0)}
+                            {formatarMoeda(contrato.valor)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {formatarData(contrato.dataInicial || '')}
+                            {formatarData(contrato.dataInicial)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {formatarData(contrato.dataFinal || '')}
+                            {formatarData(contrato.dataFinal)}
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(contrato.status || 'indefinido')}</TableCell>
+                        <TableCell>{getStatusBadge(contrato.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end">
                             <Button

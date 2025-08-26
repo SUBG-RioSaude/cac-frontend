@@ -7,7 +7,7 @@ import contratosData from './contratos-data.json'
 // Exportando dados tipados
 export const contratosMock: Contrato[] = contratosData.contratos as Contrato[]
 export const contratoDetalhadoMock: ContratoDetalhado =
-  contratosData.contratoDetalhado as unknown as ContratoDetalhado
+  contratosData.contratoDetalhado as ContratoDetalhado
 
 // Garantindo que unidadesMock tenha a estrutura correta
 export const unidadesMock = {

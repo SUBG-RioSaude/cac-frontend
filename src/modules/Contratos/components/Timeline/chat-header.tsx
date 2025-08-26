@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { ChatParticipante } from '@/modules/Contratos/types/timeline'
+import type { ChatParticipante } from '@/modules/Contratos/types/chat'
 
 interface ChatHeaderProps {
   numeroContrato: string

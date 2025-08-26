@@ -1,10 +1,30 @@
-export interface ChatMensagem {
+export interface ChatMessage {
   id: string
+  contratoId: string
+  remetente: {
+    id: string
+    nome: string
+    avatar?: string
+    tipo: 'usuario' | 'fiscal' | 'gestor' | 'fornecedor' | 'sistema'
+  }
   conteudo: string
-  timestamp: string
-  autorId: string
-  autorNome: string
-  tipo: 'texto' | 'arquivo' | 'sistema'
+  tipo: 'texto' | 'sistema' | 'alteracao_contratual'
+  dataEnvio: string
+  lida: boolean
+  editada?: boolean
+  editadaEm?: string
+  metadata?: Record<string, unknown>
+}
+
+
+export interface ChatState {
+  mensagens: ChatMessage[]
+  participantes: ChatParticipante[]
+  contratoId: string
+  isLoading: boolean
+  isTyping: string[] // IDs dos usuários digitando
+  mensagensNaoLidas: number
+  filtroAtivo?: ChatFiltro
 }
 
 export interface ChatParticipante {
@@ -12,46 +32,42 @@ export interface ChatParticipante {
   nome: string
   email: string
   avatar?: string
-  online: boolean
-  status?: 'online' | 'offline' | 'away'
+  tipo: 'usuario' | 'fiscal' | 'gestor' | 'fornecedor'
+  status: 'online' | 'offline' | 'ausente'
+  ultimoAcesso?: string
 }
 
-export interface Chat {
+export interface ChatFiltro {
+  tipo?: ChatMessage['tipo']
+  remetente?: string
+  dataInicio?: string
+  dataFim?: string
+  termo?: string
+}
+
+
+export interface NotificacaoChat {
   id: string
   contratoId: string
+  mensagemId: string
+  tipo: 'nova_mensagem' | 'mencao' | 'alteracao_contratual'
   titulo: string
-  mensagens: ChatMensagem[]
-  participantes: ChatParticipante[]
-  criadoEm: string
-  atualizadoEm: string
+  descricao: string
+  lida: boolean
+  criadaEm: string
 }
 
-// Alias for compatibility
-export type ChatMessage = ChatMensagem
-
-// Chat state interface for individual chat
-export interface ChatState {
-  mensagens: ChatMensagem[]
-  participantes: ChatParticipante[]
-  contratoId: string
-  isLoading: boolean
-  isTyping: TypingStatus[]
-  mensagensNaoLidas: number
-}
-
-// Global chat state interface
-export interface GlobalChatState {
-  chats: Chat[]
-  chatAtivo: string | null
-  participantesOnline: string[]
-  mensagensNaoLidas: Record<string, number>
-}
-
-// Typing status interface
+// Tipos para sistema de typing/digitando
 export interface TypingStatus {
-  participanteId: string
   userId: string
   userName: string
-  isTyping: boolean
   timestamp: number
+}
+
+// Configurações de chat por contrato
+export interface ChatConfig {
+  contratoId: string
+  participantesPermitidos: string[]
+  historicoVisivel: boolean
+  notificacoesHabilitadas: boolean
 }

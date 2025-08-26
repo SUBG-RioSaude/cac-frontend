@@ -25,36 +25,17 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuthStore } from '@/lib/auth/auth-store'
-import { useState } from 'react'
 
-export function NavUser() {
+export function NavUser({
+  user,
+}: {
+  user: {
+    name: string
+    email: string
+    avatar: string
+  }
+}) {
   const { isMobile } = useSidebar()
-  const { usuario, logoutTodasSessoes } = useAuthStore()
-  const [fazendoLogout, setFazendoLogout] = useState(false)
-
-  // Se não há usuário autenticado, não renderiza o componente
-  if (!usuario) {
-    return null
-  }
-
-  const handleLogout = async () => {
-    try {
-      setFazendoLogout(true)
-      
-      // Chama a API de logout para invalidar TODOS os tokens no servidor
-      await logoutTodasSessoes()
-      
-      // O logout já foi tratado no store (limpa cookies, estado, etc.)
-      // Redirecionamento será feito automaticamente pelo middleware
-    } catch (erro) {
-      console.error('Erro ao fazer logout:', erro)
-      // Mesmo com erro, força o logout local para garantir segurança
-      logoutTodasSessoes()
-    } finally {
-      setFazendoLogout(false)
-    }
-  }
 
   return (
     <SidebarMenu>
@@ -79,11 +60,11 @@ export function NavUser() {
                   <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 group-hover/user:border-sidebar-border/60 h-11 w-11 rounded-xl border-2 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
                     <AvatarImage
                       src="/logos-cac/4.png"
-                      alt={usuario.nomeCompleto || usuario.email}
+                      alt={user.name}
                       className="object-contain p-1.5 opacity-90 transition-all duration-500 group-hover/user:scale-110 group-hover/user:opacity-100 group-data-[state=open]:scale-110 group-data-[state=open]:opacity-100"
                     />
                     <AvatarFallback className="border-sidebar-border/30 bg-sidebar-primary text-sidebar-primary-foreground rounded-xl border font-bold backdrop-blur-sm">
-                      {(usuario.nomeCompleto || usuario.email)
+                      {user.name
                         .split(' ')
                         .map((n) => n[0])
                         .join('')
@@ -109,10 +90,10 @@ export function NavUser() {
 
                 <div className="grid flex-1 transform text-left text-sm leading-tight transition-all duration-500 group-hover/user:translate-x-1 group-data-[state=open]:translate-x-2">
                   <span className="text-sidebar-foreground truncate font-semibold drop-shadow-sm transition-colors duration-300 group-data-[state=open]:font-bold">
-                    {usuario.nomeCompleto || 'Usuário'}
+                    {user.name}
                   </span>
                   <span className="text-sidebar-foreground/70 truncate text-xs font-medium transition-all duration-300 group-data-[state=open]:font-semibold">
-                    {usuario.email}
+                    {user.email}
                   </span>
                 </div>
 
@@ -133,11 +114,11 @@ export function NavUser() {
                   <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 h-9 w-9 rounded-xl border-2 shadow-md backdrop-blur-sm">
                     <AvatarImage
                       src="/logos-cac/4.png"
-                      alt={usuario.nomeCompleto || usuario.email}
+                      alt={user.name}
                       className="object-contain p-1.5 opacity-90"
                     />
                     <AvatarFallback className="border-sidebar-border/30 bg-sidebar-primary text-sidebar-primary-foreground rounded-xl border text-xs font-bold backdrop-blur-sm">
-                      {(usuario.nomeCompleto || usuario.email)
+                      {user.name
                         .split(' ')
                         .map((n) => n[0])
                         .join('')
@@ -154,10 +135,10 @@ export function NavUser() {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="text-sidebar-foreground truncate font-semibold drop-shadow-sm">
-                    {usuario.nomeCompleto || 'Usuário'}
+                    {user.name}
                   </span>
                   <span className="text-sidebar-foreground/70 truncate text-xs font-medium">
-                    {usuario.email}
+                    {user.email}
                   </span>
                 </div>
               </div>
@@ -173,25 +154,21 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground">
                 <BadgeCheck />
-                Conta
+                Account
               </DropdownMenuItem>
               <DropdownMenuItem className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground">
                 <CreditCard />
-                Faturamento
+                Billing
               </DropdownMenuItem>
               <DropdownMenuItem className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground">
                 <Bell />
-                Notificações
+                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
-            <DropdownMenuItem 
-              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground"
-              onClick={handleLogout}
-              disabled={fazendoLogout}
-            >
-              <LogOut className={fazendoLogout ? 'animate-spin' : ''} />
-              {fazendoLogout ? 'Saindo...' : 'Sair'}
+            <DropdownMenuItem className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground">
+              <LogOut />
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

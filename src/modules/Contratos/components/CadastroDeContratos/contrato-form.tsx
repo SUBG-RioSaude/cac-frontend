@@ -88,48 +88,6 @@ const validarPCA = (pca: string) => {
   return /^\d+$/.test(pca)
 }
 
-const unidadesMock = {
-  demandantes: [
-    'Secretaria de Obras',
-    'Secretaria de TI',
-    'Secretaria de Saúde',
-    'Procuradoria Geral',
-    'Secretaria de Administração',
-    'Secretaria de Segurança',
-    'Secretaria de Transporte',
-    'Secretaria de Educação',
-    'Secretaria de Cultura',
-    'Secretaria de Esporte',
-    'Secretaria de Meio Ambiente',
-    'Secretaria de Desenvolvimento Social',
-    'Hospital Central de São Paulo',
-    'Instituto do Coração',
-    'Hospital das Clínicas de Ribeirão Preto',
-    'Hospital Universitário de Brasília',
-    'Hospital de Clínicas de Porto Alegre',
-    'Hospital Universitário Walter Cantídio',
-    'Hospital Universitário João de Barros Barreto',
-    'Hospital Universitário de Santa Maria'
-  ],
-  gestoras: [
-    'Departamento de Compras',
-    'Departamento de Contratos',
-    'Departamento de Administração e Finanças',
-    'Departamento de Planejamento',
-    'Departamento de Recursos Humanos',
-    'Departamento de Tecnologia da Informação',
-    'Departamento de Engenharia',
-    'Departamento de Manutenção',
-    'Departamento de Logística',
-    'Departamento de Patrimônio',
-    'Coordenação de Contratos',
-    'Coordenação de Licitações',
-    'Coordenação de Gestão Contratual',
-    'Coordenação de Fiscalização',
-    'Coordenação de Pagamentos'
-  ]
-}
-
 export interface DadosContrato {
   numeroContrato: string
   processoSei: string
@@ -143,10 +101,8 @@ export interface DadosContrato {
   vigenciaInicial: string
   vigenciaFinal: string
   prazoInicialMeses: number
-  prazoInicialDias: number
   valorGlobal: string
-  formaPagamento: 'Mensal' | 'Etapas' | 'Outro'
-  formaPagamentoComplemento?: string
+  formaPagamento: string
   tipoTermoReferencia: 'processo_rio' | 'google_drive' | 'texto_livre'
   termoReferencia: string
   vinculacaoPCA: string
@@ -186,13 +142,9 @@ const schemaContrato = z.object({
   vigenciaFinal: z.string().min(1, 'Data de vigência final é obrigatória'),
   prazoInicialMeses: z
     .number()
-    .min(0, 'Meses deve ser pelo menos 0')
-    .max(60, 'Meses máximo de 60'),
-  prazoInicialDias: z
-    .number()
-    .min(0, 'Dias deve ser pelo menos 0')
-    .max(30, 'Dias máximo de 30'),
-    valorGlobal: z
+    .min(1, 'Prazo deve ser pelo menos 1 mês')
+    .max(60, 'Prazo máximo de 60 meses'),
+  valorGlobal: z
     .string()
     .min(1, 'Valor do contrato é obrigatório')
     .refine(currencyUtils.validar, 'Valor deve ser maior que zero')
@@ -202,8 +154,7 @@ const schemaContrato = z.object({
       )
       return valorNumerico >= 100
     }, 'Valor mínimo é R$ 100,00'),
-  formaPagamento: z.enum(['Mensal', 'Etapas', 'Outro']),
-  formaPagamentoComplemento: z.string().optional(),
+  formaPagamento: z.string().min(1, 'Forma de pagamento é obrigatória'),
   tipoTermoReferencia: z.enum(['processo_rio', 'google_drive', 'texto_livre']),
   termoReferencia: z.string().min(1, 'Termo de referência é obrigatório'),
   vinculacaoPCA: z
@@ -211,41 +162,6 @@ const schemaContrato = z.object({
     .min(1, 'Vinculação a PCA é obrigatória')
     .refine(validarPCA, 'Apenas números são permitidos'),
   ativo: z.boolean(),
-}).refine((data) => {
-  return data.prazoInicialMeses > 0 || data.prazoInicialDias > 0
-}, {
-  message: 'Informe pelo menos meses ou dias para definir o prazo do contrato',
-  path: ['prazoInicialMeses']
-}).refine((data) => {
-  // Validação adicional: se ambos os campos estão preenchidos, verifica se a soma faz sentido
-  if (data.prazoInicialMeses > 0 && data.prazoInicialDias > 0) {
-    // Se há meses e dias, verifica se os dias não excedem 30
-    return data.prazoInicialDias <= 30
-  }
-  return true
-}, {
-  message: 'Dias não podem exceder 30 quando há meses definidos',
-  path: ['prazoInicialDias']
-}).refine((data) => {
-  // Validação: vigência final deve ser posterior à vigência inicial
-  if (data.vigenciaInicial && data.vigenciaFinal) {
-    const dataInicial = new Date(data.vigenciaInicial)
-    const dataFinal = new Date(data.vigenciaFinal)
-    return dataFinal > dataInicial
-  }
-  return true
-}, {
-  message: 'A vigência final deve ser posterior à vigência inicial',
-  path: ['vigenciaFinal']
-}).refine((data) => {
-  // Validação: se forma de pagamento é "Outro", o complemento é obrigatório
-  if (data.formaPagamento === 'Outro') {
-    return data.formaPagamentoComplemento && data.formaPagamentoComplemento.trim().length > 0
-  }
-  return true
-}, {
-  message: 'Detalhamento da forma de pagamento é obrigatório quando "Outro" é selecionado',
-  path: ['formaPagamentoComplemento']
 })
 
 type FormDataContrato = z.infer<typeof schemaContrato>
@@ -257,7 +173,6 @@ interface ContratoFormProps {
   dadosIniciais?: Partial<DadosContrato>
   onAdvanceRequest?: (dados: DadosContrato) => void
   onDataChange?: (dados: Partial<DadosContrato>) => void
-  onValorContratoChange?: (valor: number) => void
 }
 
 interface ProcessoInstrutivo {
@@ -277,7 +192,6 @@ export default function ContratoForm({
   dadosIniciais = {},
   onAdvanceRequest,
   onDataChange,
-  onValorContratoChange,
 }: ContratoFormProps) {
   const { isSubmitting } = useFormAsyncOperation()
   const [tipoTermo, setTipoTermo] = useState<
@@ -289,7 +203,6 @@ export default function ContratoForm({
   const [openProcesso, setOpenProcesso] = useState(false)
   const [processoSelecionado, setProcessoSelecionado] = useState('')
   const [pesquisaProcesso, setPesquisaProcesso] = useState('')
-  const [vigenciaFinalEditadaManualmente, setVigenciaFinalEditadaManualmente] = useState(false)
 
   // Carregar dados do processo instrutivo
   useEffect(() => {
@@ -309,9 +222,18 @@ export default function ContratoForm({
 
   // Carregar dados das unidades
   useEffect(() => {
-    // Em produção, isso viria de uma API
-    // Por enquanto, usamos os dados mock
-    setUnidades(unidadesMock)
+    const carregarUnidades = async () => {
+      try {
+        const response = await fetch(
+          '/src/modules/Contratos/data/contratos-data.json',
+        )
+        const data = await response.json()
+        setUnidades(data.unidades)
+      } catch (error) {
+        console.error('Erro ao carregar unidades:', error)
+      }
+    }
+    carregarUnidades()
   }, [])
 
   const form = useForm<FormDataContrato>({
@@ -329,10 +251,8 @@ export default function ContratoForm({
       vigenciaInicial: '',
       vigenciaFinal: '',
       prazoInicialMeses: 12,
-      prazoInicialDias: 0,
       valorGlobal: '',
-             formaPagamento: 'Mensal' as const,
-       formaPagamentoComplemento: '',
+      formaPagamento: '',
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: '',
       vinculacaoPCA: '',
@@ -344,7 +264,6 @@ export default function ContratoForm({
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
   const previousDataRef = useRef<string | null>(null)
-  const previousValorRef = useRef<string | null>(null)
 
   // Sincronizar processo selecionado com dados iniciais
   useEffect(() => {
@@ -359,16 +278,6 @@ export default function ContratoForm({
       setPesquisaProcesso('')
     }
   }, [openProcesso])
-
-  // Emitir mudanças no valor do contrato
-  useEffect(() => {
-    const valorAtual = watchedValues.valorGlobal || ''
-    if (valorAtual !== previousValorRef.current && onValorContratoChange) {
-      const valorNumerico = currencyUtils.paraNumero(valorAtual)
-      onValorContratoChange(valorNumerico)
-      previousValorRef.current = valorAtual
-    }
-  }, [watchedValues.valorGlobal, onValorContratoChange])
 
   useEffect(() => {
     if (onDataChange) {
@@ -385,10 +294,8 @@ export default function ContratoForm({
         vigenciaInicial: watchedValues.vigenciaInicial || '',
         vigenciaFinal: watchedValues.vigenciaFinal || '',
         prazoInicialMeses: watchedValues.prazoInicialMeses || 0,
-        prazoInicialDias: watchedValues.prazoInicialDias || 0,
-                 valorGlobal: watchedValues.valorGlobal || '',
-         formaPagamento: watchedValues.formaPagamento || 'Mensal',
-         formaPagamentoComplemento: watchedValues.formaPagamentoComplemento || '',
+        valorGlobal: watchedValues.valorGlobal || '',
+        formaPagamento: watchedValues.formaPagamento || '',
         tipoTermoReferencia:
           watchedValues.tipoTermoReferencia || 'processo_rio',
         termoReferencia: watchedValues.termoReferencia || '',
@@ -422,161 +329,24 @@ export default function ContratoForm({
   const calcularVigenciaFinal = (
     vigenciaInicial: string,
     prazoMeses: number,
-    prazoDias: number,
   ) => {
     if (!vigenciaInicial) return ''
-    if (prazoMeses === 0 && prazoDias === 0) return vigenciaInicial
 
-    try {
-      const data = new Date(vigenciaInicial)
-      
-      // Adiciona meses primeiro
-      if (prazoMeses > 0) {
-        data.setMonth(data.getMonth() + prazoMeses)
-      }
-      
-      // Adiciona dias depois
-      if (prazoDias > 0) {
-        data.setDate(data.getDate() + prazoDias)
-      }
-      
-      // Verifica se a data resultante é válida
-      if (isNaN(data.getTime())) {
-        console.error('Data inválida calculada:', { vigenciaInicial, prazoMeses, prazoDias })
-        return ''
-      }
-      
-      return data.toISOString().split('T')[0]
-    } catch (error) {
-      console.error('Erro ao calcular vigência final:', error)
-      return ''
-    }
+    const data = new Date(vigenciaInicial)
+    data.setMonth(data.getMonth() + prazoMeses)
+    return data.toISOString().split('T')[0]
   }
 
   const handleVigenciaInicialChange = (value: string) => {
-    if (!value) {
-      // Se não há vigência inicial, limpa a vigência final
-      form.setValue('vigenciaFinal', '')
-      return
-    }
-    
-    const prazoMeses = form.getValues('prazoInicialMeses')
-    const prazoDias = form.getValues('prazoInicialDias')
-    
-    // Só calcula se há pelo menos um prazo definido
-    if (prazoMeses > 0 || prazoDias > 0) {
-      const vigenciaFinal = calcularVigenciaFinal(value, prazoMeses, prazoDias)
-      
-      if (vigenciaFinal) {
-        form.setValue('vigenciaFinal', vigenciaFinal)
-      } else {
-        form.setValue('vigenciaFinal', '')
-      }
-    } else {
-      // Se não há prazo definido, limpa a vigência final
-      form.setValue('vigenciaFinal', '')
-    }
+    const prazoAtual = form.getValues('prazoInicialMeses')
+    const vigenciaFinal = calcularVigenciaFinal(value, prazoAtual)
+    form.setValue('vigenciaFinal', vigenciaFinal)
   }
 
-  const handlePrazoChange = (prazoMeses: number, prazoDias: number) => {
+  const handlePrazoChange = (value: number) => {
     const vigenciaInicial = form.getValues('vigenciaInicial')
-    
-    if (!vigenciaInicial) {
-      // Se não há vigência inicial, limpa a vigência final
-      form.setValue('vigenciaFinal', '')
-      return
-    }
-    
-    const vigenciaFinal = calcularVigenciaFinal(vigenciaInicial, prazoMeses, prazoDias)
-    
-    if (vigenciaFinal) {
-      form.setValue('vigenciaFinal', vigenciaFinal)
-      // Marca que a vigência final foi calculada automaticamente
-      setVigenciaFinalEditadaManualmente(false)
-    } else {
-      // Se o cálculo falhou, limpa o campo
-      form.setValue('vigenciaFinal', '')
-    }
-  }
-
-  const calcularPrazoAPartirDaVigenciaFinal = (
-    vigenciaInicial: string,
-    vigenciaFinal: string,
-  ) => {
-    if (!vigenciaInicial || !vigenciaFinal) return { meses: 0, dias: 0 }
-
-    try {
-      const dataInicial = new Date(vigenciaInicial)
-      const dataFinal = new Date(vigenciaFinal)
-      
-      if (isNaN(dataInicial.getTime()) || isNaN(dataFinal.getTime())) {
-        return { meses: 0, dias: 0 }
-      }
-
-      // Calcula a diferença em milissegundos
-      const diferencaMs = dataFinal.getTime() - dataInicial.getTime()
-      
-      if (diferencaMs <= 0) {
-        return { meses: 0, dias: 0 }
-      }
-
-      // Converte para dias
-      const diferencaDias = Math.floor(diferencaMs / (1000 * 60 * 60 * 24))
-      
-      // Calcula meses e dias restantes
-      const meses = Math.floor(diferencaDias / 30)
-      const dias = diferencaDias % 30
-      
-      return { meses, dias }
-    } catch (error) {
-      console.error('Erro ao calcular prazo a partir da vigência final:', error)
-      return { meses: 0, dias: 0 }
-    }
-  }
-
-  const handleVigenciaFinalChange = (value: string) => {
-    const vigenciaInicial = form.getValues('vigenciaInicial')
-    
-    if (!vigenciaInicial || !value) {
-      // Se não há vigência inicial ou final, limpa os prazos
-      form.setValue('prazoInicialMeses', 0)
-      form.setValue('prazoInicialDias', 0)
-      return
-    }
-    
-    // Valida se a vigência final é posterior à inicial
-    const dataInicial = new Date(vigenciaInicial)
-    const dataFinal = new Date(value)
-    
-    if (dataFinal <= dataInicial) {
-      toast.error('A vigência final deve ser posterior à vigência inicial')
-      return
-    }
-    
-    // Calcula o prazo a partir da vigência final informada
-    const { meses, dias } = calcularPrazoAPartirDaVigenciaFinal(vigenciaInicial, value)
-    
-    // Atualiza os campos de prazo
-    form.setValue('prazoInicialMeses', meses)
-    form.setValue('prazoInicialDias', dias)
-    
-    toast.success('Prazo recalculado automaticamente!')
-  }
-
-  const formatarPrazoTotal = (meses: number, dias: number): string => {
-    if (meses === 0 && dias === 0) return '0 dias'
-    
-    const partes: string[] = []
-    
-    if (meses > 0) {
-      partes.push(`${meses} ${meses === 1 ? 'mês' : 'meses'}`)
-    }
-    
-    if (dias > 0) {
-      partes.push(`${dias} ${dias === 1 ? 'dia' : 'dias'}`)
-    }
-    
-    return partes.join(' e ')
+    const vigenciaFinal = calcularVigenciaFinal(vigenciaInicial, value)
+    form.setValue('vigenciaFinal', vigenciaFinal)
   }
 
   const aplicarMascaraNumeroContrato = (valor: string) => {
@@ -606,9 +376,8 @@ export default function ContratoForm({
       vigenciaInicial: '2024-01-15',
       vigenciaFinal: '2024-12-31',
       prazoInicialMeses: 12,
-      prazoInicialDias: 0,
       valorGlobal: currencyUtils.formatar(1500000),
-             formaPagamento: 'Mensal',
+      formaPagamento: 'Boleto',
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: 'https://processo.rio/processo/12345',
       vinculacaoPCA: '2024',
@@ -1200,275 +969,135 @@ export default function ContratoForm({
             <h3 className="text-lg font-medium">Prazos e Valores</h3>
           </div>
 
-                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-             {/* Container para Vigência Inicial */}
-             <div className="space-y-2">
-               <FormField
-                 control={form.control}
-                 name="vigenciaInicial"
-                 render={({ field }) => {
-                   const dataValue = field.value || ''
-                   const isValidData =
-                     dataValue.length > 0 ? validarData(dataValue) : null
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {/* Container para Vigência Inicial */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="vigenciaInicial"
+                render={({ field }) => {
+                  const dataValue = field.value || ''
+                  const isValidData =
+                    dataValue.length > 0 ? validarData(dataValue) : null
 
-                   return (
-                     <FormItem>
-                       <FormLabel htmlFor="vigenciaInicial" className="mb-2">Vigência Inicial *</FormLabel>
-                       <FormControl>
-                         <div className="relative">
-                           <Input
-                             id="vigenciaInicial"
-                             type="date"
-                             max={new Date().toISOString().split('T')[0]}
-                             value={field.value || ''}
-                             onChange={(e) => {
-                               field.onChange(e.target.value)
-                               handleVigenciaInicialChange(e.target.value)
-
-                               if (e.target.value) {
-                                 const isValid = validarData(e.target.value)
-                                 if (isValid) {
-                                   toast.success('Data válida!')
-                                 } else {
-                                   toast.error(
-                                     'Data não pode ser posterior à data atual',
-                                   )
-                                 }
-                               }
-                             }}
-                             onBlur={field.onBlur}
-                             name={field.name}
-                             className={cn(
-                               isValidData === true &&
-                                 'border-green-500 bg-green-50 pr-10',
-                               isValidData === false &&
-                                 'border-red-500 bg-red-50 pr-10',
-                             )}
-                           />
-                           {isValidData !== null && (
-                             <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                               {isValidData ? (
-                                 <Check className="h-4 w-4 text-green-500" />
-                               ) : (
-                                 <X className="h-4 w-4 text-red-500" />
-                               )}
-                             </div>
-                           )}
-                         </div>
-                       </FormControl>
-                       <FormMessage />
-                     </FormItem>
-                   )
-                 }}
-               />
-             </div>
-
-            {/* Container para Prazo Inicial */}
-               <div className="space-y-2">
-                 <FormField
-                   control={form.control}
-                   name="prazoInicialMeses"
-                   render={({ field }) => (
-                     <FormItem>
-                       <FormLabel htmlFor="prazoInicialMeses" className="mb-2">Prazo Inicial *</FormLabel>
-                       <div className="grid grid-cols-2 gap-2">
-                         <div className="relative">
-                           <FormControl>
-                             <div className="relative">
-                               <Input
-                                 id="prazoInicialMeses"
-                                 type="text"
-                                 inputMode="numeric"
-                                 pattern="[0-9]*"
-                                 value={field.value || ''}
-                                 onChange={(e) => {
-                                   let valor = parseInt(e.target.value) || 0
-                                   if (valor > 60) {
-                                     valor = 60
-                                   }
-                                   field.onChange(valor)
-                                   const prazoDias = form.getValues('prazoInicialDias')
-                                   handlePrazoChange(valor, prazoDias)
-                                 }}
-                                 onBlur={field.onBlur}
-                                 name={field.name}
-                                 className="pr-8 h-10 text-center"
-                                 placeholder="0"
-                               />
-                               <div className="bg-gray-100 rounded-s-sm pr-3 absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                 <span className="text-xs text-muted-foreground font-medium">Meses</span>
-                               </div>
-                               <div className="absolute inset-y-0 right-0 flex flex-col">
-                                 <button
-                                   type="button"
-                                   onClick={() => {
-                                     const novoValor = Math.min((field.value || 0) + 1, 60)
-                                     field.onChange(novoValor)
-                                     const prazoDias = form.getValues('prazoInicialDias')
-                                     handlePrazoChange(novoValor, prazoDias)
-                                   }}
-                                   className="h-1/2 w-6 flex items-center justify-center hover:bg-gray-100 border-l border-b rounded-tr-sm"
-                                   aria-label="Aumentar meses"
-                                 >
-                                   <ChevronsUpDown className="h-2 w-2 rotate-180" />
-                                 </button>
-                                 <button
-                                   type="button"
-                                   onClick={() => {
-                                     const novoValor = Math.max((field.value || 0) - 1, 0)
-                                     field.onChange(novoValor)
-                                     const prazoDias = form.getValues('prazoInicialDias')
-                                     handlePrazoChange(novoValor, prazoDias)
-                                   }}
-                                   className="h-1/2 w-6 flex items-center justify-center hover:bg-gray-100 border-l rounded-br-sm"
-                                   aria-label="Diminuir meses"
-                                 >
-                                   <ChevronsUpDown className="h-2 w-2" />
-                                 </button>
-                               </div>
-                             </div>
-                           </FormControl>
-                         </div>
-                         
-                         <div className="relative">
-                           <FormControl>
-                             <div className="relative">
-                               <Input
-                                 id="prazoInicialDias"
-                                 type="text"
-                                 inputMode="numeric"
-                                 pattern="[0-9]*"
-                                 maxLength={4}
-                                 value={form.watch('prazoInicialDias') || ''}
-                                 onChange={(e) => {
-                                   let valor = parseInt(e.target.value) || 0
-                                   
-                                   // Limita o valor máximo a 30 dias
-                                   if (valor > 30) {
-                                     valor = 30
-                                   }
-                                   
-                                   form.setValue('prazoInicialDias', valor)
-                                   const prazoMeses = form.getValues('prazoInicialMeses')
-                                   handlePrazoChange(prazoMeses, valor)
-                                 }}
-                                 onBlur={field.onBlur}
-                                 name="prazoInicialDias"
-                                 className="pr-8 h-10 text-center"
-                                 placeholder="0"
-                                 data-testid="prazo-dias-input"
-                               />
-                               <div className="bg-gray-100 rounded-s-sm pr-3 absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                 <span className="text-xs text-muted-foreground font-medium">Dias</span>
-                               </div>
-                               <div className="absolute inset-y-0 right-0 flex flex-col">
-                                 <button
-                                   type="button"
-                                   onClick={() => {
-                                     const novoValor = Math.min((form.watch('prazoInicialDias') || 0) + 1, 30)
-                                     form.setValue('prazoInicialDias', novoValor)
-                                     const prazoMeses = form.getValues('prazoInicialMeses')
-                                     handlePrazoChange(prazoMeses, novoValor)
-                                   }}
-                                   className="h-1/2 w-6 flex items-center justify-center hover:bg-gray-100 border-l border-b rounded-tr-sm"
-                                   aria-label="Aumentar dias"
-                                 >
-                                   <ChevronsUpDown className="h-2 w-2 rotate-180" />
-                                 </button>
-                                 <button
-                                   type="button"
-                                   onClick={() => {
-                                     const novoValor = Math.max((form.watch('prazoInicialDias') || 0) - 1, 0)
-                                     form.setValue('prazoInicialDias', novoValor)
-                                     const prazoMeses = form.getValues('prazoInicialMeses')
-                                     handlePrazoChange(prazoMeses, novoValor)
-                                   }}
-                                   className="h-1/2 w-6 flex items-center justify-center hover:bg-gray-100 border-l rounded-br-sm"
-                                   aria-label="Diminuir dias"
-                                 >
-                                   <ChevronsUpDown className="h-2 w-2" />
-                                 </button>
-                               </div>
-                             </div>
-                           </FormControl>
-                         </div>
-                       </div>
-                       
-                                               {/* Exibição do prazo total calculado */}
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          <span className="font-medium">Prazo total:</span>{' '}
-                          {formatarPrazoTotal(
-                            form.watch('prazoInicialMeses') || 0,
-                            form.watch('prazoInicialDias') || 0
-                          )}
-                          {vigenciaFinalEditadaManualmente && (
-                            <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                              Calculado automaticamente
-                            </span>
-                          )}
-                        </div>
-                       
-                       {/* Aviso para prazos muito longos */}
-                       {(form.watch('prazoInicialMeses') || 0) > 60 && (
-                         <div className="mt-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                           ⚠️ Prazo muito longo. Considere revisar a duração do contrato.
-                         </div>
-                       )}
-                       
-                       <FormMessage />
-                     </FormItem>
-                   )}
-                 />
-               </div>
-
-             {/* Container para Vigência Final */}
-             <div className="space-y-2">
-               <FormField
-                 control={form.control}
-                 name="vigenciaFinal"
-                 render={({ field }) => {
-                                       const vigenciaInicial = form.watch('vigenciaInicial')
-                    const isDisabled = !vigenciaInicial
-
-                   return (
-                     <FormItem>
-                                               <FormLabel htmlFor="vigenciaFinal" className="mb-2">
-                          Vigência Final
-                          {vigenciaFinalEditadaManualmente && (
-                            <span className="ml-2 text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded">
-                              Editada manualmente
-                            </span>
-                          )}
-                        </FormLabel>
-                                               <FormControl>
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor="vigenciaInicial" className="mb-2">Vigência Inicial *</FormLabel>
+                      <FormControl>
+                        <div className="relative">
                           <Input
-                            id="vigenciaFinal"
+                            id="vigenciaInicial"
                             type="date"
-                            readOnly={isDisabled}
-                            className={cn(
-                              isDisabled && 'cursor-not-allowed bg-gray-50',
-                            )}
+                            max={new Date().toISOString().split('T')[0]}
                             value={field.value || ''}
                             onChange={(e) => {
                               field.onChange(e.target.value)
-                              // Se o usuário alterar manualmente a vigência final, recalcula o prazo
-                              if (!isDisabled) {
-                                handleVigenciaFinalChange(e.target.value)
-                                // Marca que foi editada manualmente
-                                setVigenciaFinalEditadaManualmente(true)
+                              handleVigenciaInicialChange(e.target.value)
+
+                              if (e.target.value) {
+                                const isValid = validarData(e.target.value)
+                                if (isValid) {
+                                  toast.success('Data válida!')
+                                } else {
+                                  toast.error(
+                                    'Data não pode ser posterior à data atual',
+                                  )
+                                }
                               }
                             }}
                             onBlur={field.onBlur}
                             name={field.name}
+                            className={cn(
+                              isValidData === true &&
+                                'border-green-500 bg-green-50 pr-10',
+                              isValidData === false &&
+                                'border-red-500 bg-red-50 pr-10',
+                            )}
                           />
-                        </FormControl>
-                       <FormMessage />
-                     </FormItem>
-                   )
-                 }}
-               />
-             </div>
-           </div>
+                          {isValidData !== null && (
+                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                              {isValidData ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <X className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            </div>
+
+            {/* Container para Prazo Inicial */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="prazoInicialMeses"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="prazoInicialMeses" className="mb-2">
+                      Prazo Inicial (meses) *
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        id="prazoInicialMeses"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          const valor = parseInt(e.target.value) || 0
+                          field.onChange(valor)
+                          handlePrazoChange(valor)
+                        }}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Container para Vigência Final */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="vigenciaFinal"
+                render={({ field }) => {
+                  const vigenciaInicial = form.watch('vigenciaInicial')
+                  const prazoMeses = form.watch('prazoInicialMeses')
+                  const isDisabled = !vigenciaInicial || !prazoMeses
+
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor="vigenciaFinal" className="mb-2">Vigência Final</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="vigenciaFinal"
+                          type="date"
+                          readOnly={isDisabled}
+                          className={cn(
+                            isDisabled && 'cursor-not-allowed bg-gray-50',
+                          )}
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Container para Valor do Contrato */}
@@ -1504,7 +1133,13 @@ export default function ContratoForm({
                                 currencyUtils.aplicarMascara(e.target.value)
                               field.onChange(valorMascarado)
                             }}
-                            className=""
+                            className={cn(
+                              isValidValor === true &&
+                                isValorMinimo &&
+                                'border-green-500 bg-green-50 pr-10',
+                              (isValidValor === false || !isValorMinimo) &&
+                                'border-red-500 bg-red-50 pr-10',
+                            )}
                           />
                           {isValidValor !== null && (
                             <div className="absolute top-1/2 right-3 -translate-y-1/2">
@@ -1539,66 +1174,35 @@ export default function ContratoForm({
               />
             </div>
 
-                         {/* Container para Forma de Pagamento */}
-             <div className="space-y-2">
-               <FormField
-                 control={form.control}
-                 name="formaPagamento"
-                 render={({ field }) => (
-                   <FormItem>
-                     <FormLabel htmlFor="formaPagamento" className="mb-2">Forma de Pagamento *</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
-                       <FormControl className="w-full">
-                         <SelectTrigger id="formaPagamento">
-                           <SelectValue placeholder="Selecione a forma" />
-                         </SelectTrigger>
-                       </FormControl>
-                       <SelectContent>
-                         <SelectItem value="Mensal">Mensal</SelectItem>
-                         <SelectItem value="Etapas">Etapas</SelectItem>
-                         <SelectItem value="Outro">Outro</SelectItem>
-                       </SelectContent>
-                     </Select>
+            {/* Container para Forma de Pagamento */}
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="formaPagamento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="formaPagamento" className="mb-2">Forma de Pagamento *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl className="w-full">
+                        <SelectTrigger id="formaPagamento">
+                          <SelectValue placeholder="Selecione a forma" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Cartao">Cartão</SelectItem>
+                        <SelectItem value="Boleto">Boleto</SelectItem>
+                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                     {/* Campo complementar para "Outro" */}
-                     {field.value === 'Outro' && (
-                       <FormField
-                         control={form.control}
-                         name="formaPagamentoComplemento"
-                         render={({ field: complementoField }) => (
-                           <FormItem className="mt-3">
-                             <FormLabel htmlFor="formaPagamentoComplemento" className="text-sm">
-                               Detalhamento da forma de pagamento *
-                             </FormLabel>
-                             <FormControl>
-                               <Input
-                                 id="formaPagamentoComplemento"
-                                 placeholder="Descreva a forma de pagamento..."
-                                 maxLength={100}
-                                 value={complementoField.value || ''}
-                                 onChange={complementoField.onChange}
-                                 onBlur={complementoField.onBlur}
-                                 name={complementoField.name}
-                               />
-                             </FormControl>
-                             <div className="flex justify-between text-xs text-muted-foreground">
-                               <span>Campo obrigatório quando "Outro" é selecionado</span>
-                               <span>{(complementoField.value?.length || 0)}/100</span>
-                             </div>
-                             <FormMessage />
-                           </FormItem>
-                         )}
-                       />
-                     )}
+                    {/* Espaço reservado para manter alinhamento com campo de valor */}
+                    <div className="mt-1 h-6"></div>
 
-                     {/* Espaço reservado para manter alinhamento com campo de valor */}
-                     <div className="mt-1 h-6"></div>
-
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
-             </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </div>
 

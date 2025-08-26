@@ -13,7 +13,7 @@ import type {
   ChatParticipante,
   ChatState,
   TypingStatus,
-} from '../types/chat'
+} from '@/modules/Contratos/types/chat'
 import { contratosMock } from '@/modules/Contratos/data/contratos-mock'
 
 interface ContratosState {
@@ -127,60 +127,60 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
       const termo = termoPesquisa.toLowerCase()
       resultado = resultado.filter(
         (contrato) =>
-          contrato.numeroContrato?.toLowerCase().includes(termo) ||
+          contrato.numeroContrato.toLowerCase().includes(termo) ||
           contrato.numeroCCon?.toLowerCase().includes(termo) ||
-          contrato.contratada?.razaoSocial.toLowerCase().includes(termo) ||
-          contrato.contratada?.cnpj.includes(termo) ||
-          contrato.unidade?.toLowerCase().includes(termo),
+          contrato.contratada.razaoSocial.toLowerCase().includes(termo) ||
+          contrato.contratada.cnpj.includes(termo) ||
+          contrato.unidade.toLowerCase().includes(termo),
       )
     }
 
     // Filtros avançados
     if (filtros.status && filtros.status.length > 0) {
       resultado = resultado.filter((contrato) =>
-        filtros.status!.includes(contrato.status || ''),
+        filtros.status!.includes(contrato.status),
       )
     }
 
     if (filtros.unidade && filtros.unidade.length > 0) {
       resultado = resultado.filter((contrato) =>
-        filtros.unidade!.includes(contrato.unidade || ''),
+        filtros.unidade!.includes(contrato.unidade),
       )
     }
 
     if (filtros.dataInicialDe) {
       resultado = resultado.filter(
-        (contrato) => (contrato.dataInicial || '') >= filtros.dataInicialDe!,
+        (contrato) => contrato.dataInicial >= filtros.dataInicialDe!,
       )
     }
 
     if (filtros.dataInicialAte) {
       resultado = resultado.filter(
-        (contrato) => (contrato.dataInicial || '') <= filtros.dataInicialAte!,
+        (contrato) => contrato.dataInicial <= filtros.dataInicialAte!,
       )
     }
 
     if (filtros.dataFinalDe) {
       resultado = resultado.filter(
-        (contrato) => (contrato.dataFinal || '') >= filtros.dataFinalDe!,
+        (contrato) => contrato.dataFinal >= filtros.dataFinalDe!,
       )
     }
 
     if (filtros.dataFinalAte) {
       resultado = resultado.filter(
-        (contrato) => (contrato.dataFinal || '') <= filtros.dataFinalAte!,
+        (contrato) => contrato.dataFinal <= filtros.dataFinalAte!,
       )
     }
 
     if (filtros.valorMinimo) {
       resultado = resultado.filter(
-        (contrato) => (contrato.valor || 0) >= filtros.valorMinimo!,
+        (contrato) => contrato.valor >= filtros.valorMinimo!,
       )
     }
 
     if (filtros.valorMaximo) {
       resultado = resultado.filter(
-        (contrato) => (contrato.valor || 0) <= filtros.valorMaximo!,
+        (contrato) => contrato.valor <= filtros.valorMaximo!,
       )
     }
 
@@ -294,8 +294,8 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     const chatAtual = chats[contratoId]
     if (!chatAtual) return
 
-    const mensagensAtualizadas = chatAtual.mensagens.map((mensagem: ChatMessage) =>
-      mensagem.id === mensagemId ? { ...mensagem } : mensagem
+    const mensagensAtualizadas = chatAtual.mensagens.map(mensagem =>
+      mensagem.id === mensagemId ? { ...mensagem, lida: true } : mensagem
     )
 
     set({
@@ -321,7 +321,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
       mensagensNaoLidas: 0
     }
 
-    const participanteExiste = chatAtual.participantes.some((p: ChatParticipante) => p.id === participante.id)
+    const participanteExiste = chatAtual.participantes.some(p => p.id === participante.id)
     if (participanteExiste) return
 
     set({
@@ -340,7 +340,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     const chatAtual = chats[contratoId]
     if (!chatAtual) return
 
-    const participantesAtualizados = chatAtual.participantes.map((participante: ChatParticipante) =>
+    const participantesAtualizados = chatAtual.participantes.map(participante =>
       participante.id === participanteId
         ? { ...participante, status, ultimoAcesso: new Date().toISOString() }
         : participante
@@ -367,10 +367,8 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
       const existeUsuario = typingAtual.some(t => t.userId === userId)
       if (!existeUsuario) {
         novoTyping = [...typingAtual, {
-          participanteId: userId,
           userId,
           userName,
-          isTyping: true,
           timestamp: Date.now()
         }]
       } else {
@@ -423,8 +421,8 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     const chat = chats[contratoId]
     if (!chat) return 0
 
-    return chat.mensagens.filter((m: ChatMessage) => 
-      m.autorId !== userId
+    return chat.mensagens.filter(m => 
+      !m.lida && m.remetente.id !== userId
     ).length
   },
 }))

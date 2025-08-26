@@ -7,24 +7,8 @@ export interface ContratoDetalhado {
   dataInicio: string
   dataTermino: string
   prazoInicialMeses: number
-  prazoInicialDias: number
   status: 'ativo' | 'vencendo' | 'vencido' | 'suspenso' | 'encerrado'
   valorTotal: number
-
-  // Required properties from base Contrato interface
-  vigenciaInicial: string
-  vigenciaFinal: string
-  valorGlobal: number
-  empresaId: string
-  ativo: boolean
-  usuarioCadastroId: string
-  usuarioAtualizacaoId: string
-  dataCadastro: string
-  dataAtualizacao: string
-  valorTotalAtribuido: number
-  valorDisponivel: number
-  quantidadeUnidadesVinculadas: number
-  quantidadeDocumentos: number
 
   // Informações CCon
   ccon?: {
@@ -58,12 +42,6 @@ export interface ContratoDetalhado {
 
   // Alterações
   alteracoes: AlteracaoContrato[]
-
-  // Documentos
-  documentos: DocumentoContrato[]
-
-  // Documentos Checklist
-  documentosChecklist: ChecklistData
 
   // Indicadores
   indicadores: {
@@ -106,7 +84,13 @@ export interface UnidadeVinculada {
 
 export interface AlteracaoContrato {
   id: string
-  tipo: string
+  tipo:
+    | 'criacao'
+    | 'designacao_fiscais'
+    | 'primeiro_pagamento'
+    | 'atualizacao_documentos'
+    | 'alteracao_valor'
+    | 'prorrogacao'
   descricao: string
   dataHora: string
   responsavel: string
@@ -118,31 +102,4 @@ export interface PeriodoVigencia {
   fim: string
   descricao: string
   status: 'concluido' | 'em_andamento' | 'pendente'
-}
-
-export interface DocumentoContrato {
-  id: string
-  nome: string
-  tipo: string
-  url?: string
-  dataUpload: string
-}
-
-export interface ChecklistData {
-  id: string
-  nome: string
-  itens: ChecklistItem[]
-  dataCriacao: string
-  dataAtualizacao: string
-  status: 'pendente' | 'em_andamento' | 'concluido'
-}
-
-export interface ChecklistItem {
-  id: string
-  descricao: string
-  obrigatorio: boolean
-  status: 'pendente' | 'concluido' | 'nao_aplicavel'
-  observacoes?: string
-  dataConclusao?: string
-  responsavel?: string
 }

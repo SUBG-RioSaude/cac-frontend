@@ -1,21 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import FornecedorForm, {
   type DadosFornecedor,
 } from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
-import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Contratos/hooks'
-
-// Mock dos hooks de empresa
-vi.mock('@/modules/Contratos/hooks', () => ({
-  useConsultarEmpresaPorCNPJ: vi.fn(),
-  useCadastrarEmpresa: vi.fn()
-}))
-
-const mockUseConsultarEmpresaPorCNPJ = vi.mocked(useConsultarEmpresaPorCNPJ)
-const mockUseCadastrarEmpresa = vi.mocked(useCadastrarEmpresa)
 
 // Mock dos componentes de ícone
 vi.mock('lucide-react', () => ({
@@ -35,25 +23,6 @@ vi.mock('lucide-react', () => ({
   ArrowRight: () => <div data-testid="arrow-right-icon">➡️</div>,
   X: () => <div data-testid="x-icon">❌</div>,
 }))
-
-// Função helper para renderizar com Router e QueryClient
-const renderWithProviders = (ui: React.ReactElement) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  })
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {ui}
-      </BrowserRouter>
-    </QueryClientProvider>
-  )
-}
 
 describe('FornecedorForm', () => {
   const mockOnSubmit = vi.fn()
@@ -84,25 +53,11 @@ describe('FornecedorForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
-    // Mock dos hooks de empresa
-    mockUseConsultarEmpresaPorCNPJ.mockReturnValue({
-      mutate: vi.fn(),
-      isPending: false,
-      error: null
-    } as unknown as ReturnType<typeof useConsultarEmpresaPorCNPJ>)
-    
-    mockUseCadastrarEmpresa.mockReturnValue({
-      mutate: vi.fn(),
-      mutateAsync: vi.fn().mockResolvedValue({}),
-      isPending: false,
-      error: null
-    } as unknown as ReturnType<typeof useCadastrarEmpresa>)
   })
 
   describe('Renderização', () => {
     it('deve renderizar todos os campos obrigatórios', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       expect(screen.getByLabelText(/cnpj/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/razão social/i)).toBeInTheDocument()
@@ -111,7 +66,7 @@ describe('FornecedorForm', () => {
     })
 
     it('deve renderizar botão de próximo', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       expect(
         screen.getByRole('button', { name: /próximo/i }),
@@ -119,7 +74,7 @@ describe('FornecedorForm', () => {
     })
 
     it('deve renderizar botão de preenchimento rápido', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       expect(
         screen.getByRole('button', { name: /preencher dados de teste/i }),
@@ -127,7 +82,7 @@ describe('FornecedorForm', () => {
     })
 
     it('deve renderizar botão de cancelar quando onCancel é fornecido', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />)
 
       expect(
         screen.getByRole('button', { name: /cancelar/i }),
@@ -135,7 +90,7 @@ describe('FornecedorForm', () => {
     })
 
     it('deve preencher campos com dados iniciais', () => {
-      renderWithProviders(
+      render(
         <FornecedorForm
           onSubmit={mockOnSubmit}
           dadosIniciais={dadosIniciais}
@@ -150,7 +105,7 @@ describe('FornecedorForm', () => {
   describe('Preenchimento Rápido', () => {
     it('deve preencher todos os campos ao clicar no botão de preenchimento rápido', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const botaoPreenchimento = screen.getByRole('button', {
         name: /preencher dados de teste/i,
@@ -178,7 +133,7 @@ describe('FornecedorForm', () => {
 
     it('deve preencher contatos de teste', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const botaoPreenchimento = screen.getByRole('button', {
         name: /preencher dados de teste/i,
@@ -198,7 +153,7 @@ describe('FornecedorForm', () => {
   describe('Validação', () => {
     it('deve mostrar erro para campos obrigatórios vazios', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const botaoProximo = screen.getByRole('button', { name: /próximo/i })
       await user.click(botaoProximo)
@@ -213,7 +168,7 @@ describe('FornecedorForm', () => {
 
     it('deve validar campo CNPJ vazio', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       // Tentar submeter o formulário sem preencher o CNPJ
       const botaoProximo = screen.getByRole('button', { name: /próximo/i })
@@ -228,7 +183,7 @@ describe('FornecedorForm', () => {
   describe('Gerenciamento de Contatos', () => {
     it('deve adicionar novo contato', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const botaoAdicionarContato = screen.getByRole('button', {
         name: /adicionar contato/i,
@@ -244,7 +199,7 @@ describe('FornecedorForm', () => {
 
     it('deve remover contato existente', async () => {
       const user = userEvent.setup()
-      renderWithProviders(
+      render(
         <FornecedorForm
           onSubmit={mockOnSubmit}
           dadosIniciais={dadosIniciais}
@@ -270,7 +225,7 @@ describe('FornecedorForm', () => {
   describe('Submissão do Formulário', () => {
     it('deve chamar onSubmit com dados corretos quando não há onAdvanceRequest', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       // Preencher dados rapidamente
       const botaoPreenchimento = screen.getByRole('button', {
@@ -287,7 +242,6 @@ describe('FornecedorForm', () => {
       const botaoProximo = screen.getByRole('button', { name: /próximo/i })
       await user.click(botaoProximo)
 
-      // Aguardar a submissão assíncrona com timeout maior
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
           cnpj: '11222333000181', // CNPJ limpo (sem formatação)
@@ -320,12 +274,12 @@ describe('FornecedorForm', () => {
             },
           ],
         })
-      }, { timeout: 5000 })
+      })
     })
 
     it('deve chamar onAdvanceRequest quando fornecido', async () => {
       const user = userEvent.setup()
-      renderWithProviders(
+      render(
         <FornecedorForm
           onSubmit={mockOnSubmit}
           onAdvanceRequest={mockOnAdvanceRequest}
@@ -347,16 +301,15 @@ describe('FornecedorForm', () => {
       const botaoProximo = screen.getByRole('button', { name: /próximo/i })
       await user.click(botaoProximo)
 
-      // Aguardar a submissão assíncrona com timeout maior
       await waitFor(() => {
         expect(mockOnAdvanceRequest).toHaveBeenCalled()
         expect(mockOnSubmit).not.toHaveBeenCalled()
-      }, { timeout: 5000 })
+      })
     })
 
     it('deve chamar onCancel ao clicar no botão cancelar', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />)
 
       const botaoCancelar = screen.getByRole('button', { name: /cancelar/i })
       await user.click(botaoCancelar)
@@ -367,7 +320,7 @@ describe('FornecedorForm', () => {
 
   describe('Acessibilidade', () => {
     it('deve ter labels apropriados para todos os campos', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const cnpjInput = screen.getByLabelText(/cnpj/i)
       const razaoSocialInput = screen.getByLabelText(/razão social/i)
@@ -382,7 +335,7 @@ describe('FornecedorForm', () => {
     })
 
     it('deve ter botões com textos descritivos', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />)
 
       expect(
         screen.getByRole('button', { name: /próximo/i }),
@@ -398,7 +351,7 @@ describe('FornecedorForm', () => {
 
   describe('Estados do Formulário', () => {
     it('deve marcar checkbox de ativo como verdadeiro por padrão', () => {
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const checkboxAtivo = screen.getByRole('checkbox', {
         name: /fornecedor ativo/i,
@@ -408,7 +361,7 @@ describe('FornecedorForm', () => {
 
     it('deve permitir alterar estado ativo', async () => {
       const user = userEvent.setup()
-      renderWithProviders(<FornecedorForm onSubmit={mockOnSubmit} />)
+      render(<FornecedorForm onSubmit={mockOnSubmit} />)
 
       const checkboxAtivo = screen.getByRole('checkbox', {
         name: /fornecedor ativo/i,

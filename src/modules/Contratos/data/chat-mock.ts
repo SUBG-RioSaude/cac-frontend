@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatParticipante } from '../types/timeline'
+import type { ChatMessage, ChatParticipante } from '../types/chat'
 
 // Mock data para participantes do chat
 export const PARTICIPANTES_MOCK: ChatParticipante[] = [
