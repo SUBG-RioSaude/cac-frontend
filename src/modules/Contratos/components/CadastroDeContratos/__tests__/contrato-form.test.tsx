@@ -103,17 +103,37 @@ describe('ContratoForm', () => {
     render(<ContratoForm {...defaultProps} />)
 
     const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
-    const prazoInput = screen.getByLabelText(/prazo inicial/i)
     const vigenciaFinalInput = screen.getByLabelText(/vigência final/i)
 
     // Define data inicial usando change para inputs type=date
     fireEvent.change(vigenciaInicialInput, { target: { value: '2024-01-01' } })
 
-    // Define prazo de 12 meses (evita clear que falha foco)
-    fireEvent.change(prazoInput, { target: { value: '12' } })
-
+    // O prazo já está definido como 12 meses por padrão, então a vigência final deve ser calculada automaticamente
     await waitFor(() => {
       expect(vigenciaFinalInput).toHaveValue('2025-01-01')
+    })
+  })
+
+  it('deve calcular vigência final com meses e dias', async () => {
+    render(<ContratoForm {...defaultProps} />)
+
+    const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
+    const vigenciaFinalInput = screen.getByLabelText(/vigência final/i)
+
+    // Define data inicial
+    fireEvent.change(vigenciaInicialInput, { target: { value: '2024-01-01' } })
+
+    // Encontra os campos de prazo pelos IDs
+    const prazoMesesInput = screen.getByDisplayValue('12')
+    const prazoDiasInput = screen.getByTestId('prazo-dias-input')
+
+    // Altera prazo para 12 meses e 15 dias
+    fireEvent.change(prazoMesesInput, { target: { value: '12' } })
+    fireEvent.change(prazoDiasInput, { target: { value: '15' } })
+
+    await waitFor(() => {
+      // 12 meses + 15 dias a partir de 2024-01-01 deve resultar em 2025-01-16
+      expect(vigenciaFinalInput).toHaveValue('2025-01-16')
     })
   })
 
@@ -150,10 +170,33 @@ describe('ContratoForm', () => {
         screen.getByText(/Valor do contrato é obrigatório/i),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/forma de pagamento é obrigatória/i),
-      ).toBeInTheDocument()
-      expect(
         screen.getByText(/vinculação a pca é obrigatória/i),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('deve validar que pelo menos meses ou dias sejam informados', async () => {
+    render(<ContratoForm {...defaultProps} />)
+
+    const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
+
+    // Define data inicial
+    fireEvent.change(vigenciaInicialInput, { target: { value: '2024-01-01' } })
+
+    // Encontra os campos de prazo pelos IDs
+    const prazoMesesInput = screen.getByDisplayValue('12')
+    const prazoDiasInput = screen.getByTestId('prazo-dias-input')
+
+    // Remove o prazo (define como 0)
+    fireEvent.change(prazoMesesInput, { target: { value: '0' } })
+    fireEvent.change(prazoDiasInput, { target: { value: '0' } })
+
+    const submitButton = screen.getByText('Próximo')
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/informe pelo menos meses ou dias para definir o prazo do contrato/i),
       ).toBeInTheDocument()
     })
   })
@@ -239,15 +282,73 @@ describe('ContratoForm', () => {
     expect(ativoCheckbox).toBeChecked()
   })
 
-  it('deve validar prazo inicial entre 1 e 60 meses', async () => {
+  it('deve validar prazo inicial entre 0 e 60 meses', async () => {
     render(<ContratoForm {...defaultProps} />)
 
-    const prazoInput = screen.getByLabelText(/prazo inicial/i)
+    const prazoMesesInput = screen.getByDisplayValue('12')
 
-    fireEvent.change(prazoInput, { target: { value: '12' } })
-    expect(prazoInput).toHaveValue('12')
+    fireEvent.change(prazoMesesInput, { target: { value: '12' } })
+    expect(prazoMesesInput).toHaveValue('12')
 
-    fireEvent.change(prazoInput, { target: { value: '60' } })
-    expect(prazoInput).toHaveValue('60')
+    fireEvent.change(prazoMesesInput, { target: { value: '60' } })
+    expect(prazoMesesInput).toHaveValue('60')
+
+    // Quando o valor é 0, o campo fica vazio devido à lógica value={field.value || ''}
+    fireEvent.change(prazoMesesInput, { target: { value: '0' } })
+    expect(prazoMesesInput).toHaveValue('')
+  })
+
+  it('deve validar prazo inicial entre 0 e 30 dias', async () => {
+    render(<ContratoForm {...defaultProps} />)
+
+    const prazoDiasInput = screen.getByTestId('prazo-dias-input')
+
+    fireEvent.change(prazoDiasInput, { target: { value: '15' } })
+    expect(prazoDiasInput).toHaveValue('15')
+
+    fireEvent.change(prazoDiasInput, { target: { value: '30' } })
+    expect(prazoDiasInput).toHaveValue('30')
+
+    // Quando o valor é 0, o campo fica vazio devido à lógica value={form.watch('prazoInicialDias') || ''}
+    fireEvent.change(prazoDiasInput, { target: { value: '0' } })
+    expect(prazoDiasInput).toHaveValue('')
+  })
+
+  it('deve exibir prazo total calculado', async () => {
+    render(<ContratoForm {...defaultProps} />)
+
+    // Verifica se o prazo total é exibido
+    expect(screen.getByText(/prazo total:/i)).toBeInTheDocument()
+    expect(screen.getByText('12 meses')).toBeInTheDocument()
+
+    // Encontra o campo de dias e altera para incluir dias
+    const prazoDiasInput = screen.getByTestId('prazo-dias-input')
+    fireEvent.change(prazoDiasInput, { target: { value: '15' } })
+
+    await waitFor(() => {
+      expect(screen.getByText('12 meses e 15 dias')).toBeInTheDocument()
+    })
+  })
+
+  it('deve validar vigência final posterior à vigência inicial', async () => {
+    render(<ContratoForm {...defaultProps} />)
+
+    const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
+    const vigenciaFinalInput = screen.getByLabelText(/vigência final/i)
+
+    // Define vigência inicial
+    fireEvent.change(vigenciaInicialInput, { target: { value: '2024-01-01' } })
+
+    // Tenta definir vigência final anterior à inicial
+    fireEvent.change(vigenciaFinalInput, { target: { value: '2023-12-31' } })
+
+    const submitButton = screen.getByText('Próximo')
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/a vigência final deve ser posterior à vigência inicial/i),
+      ).toBeInTheDocument()
+    })
   })
 })

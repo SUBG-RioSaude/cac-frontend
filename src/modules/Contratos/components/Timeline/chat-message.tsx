@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { ChatMessage as ChatMessageType } from '@/modules/Contratos/types/chat'
+import type { ChatMessage as ChatMessageType } from '@/modules/Contratos/types/timeline'
 
 interface ChatMessageProps {
   mensagem: ChatMessageType
