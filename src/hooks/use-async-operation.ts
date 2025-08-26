@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useCallback, useState, useTransition } from 'react'
+import { useCallback, useState } from 'react'
 
 interface UseAsyncOperationResult<T> {
   execute: (operation: () => Promise<T>) => Promise<T>
@@ -9,7 +9,7 @@ interface UseAsyncOperationResult<T> {
 }
 
 /**
- * Hook para executar operações assíncronas com Suspense
+ * Hook para executar operações assíncronas
  *
  * @example
  * ```tsx
@@ -19,34 +19,32 @@ interface UseAsyncOperationResult<T> {
  *   const handleSubmit = () => {
  *     execute(async () => {
  *       await saveData()
- *       // Componente será suspenso durante esta operação
  *     })
  *   }
  * }
  * ```
  */
 export function useAsyncOperation<T = any>(): UseAsyncOperationResult<T> {
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   const execute = useCallback(
     async (operation: () => Promise<T>): Promise<T> => {
       setError(null)
+      setIsPending(true)
 
-      return new Promise((resolve, reject) => {
-        startTransition(async () => {
-          try {
-            const result = await operation()
-            resolve(result)
-          } catch (err) {
-            const error = err instanceof Error ? err : new Error(String(err))
-            setError(error)
-            reject(error)
-          }
-        })
-      })
+      try {
+        const result = await operation()
+        return result
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err))
+        setError(error)
+        throw error
+      } finally {
+        setIsPending(false)
+      }
     },
-    [startTransition],
+    [],
   )
 
   const clearError = useCallback(() => {

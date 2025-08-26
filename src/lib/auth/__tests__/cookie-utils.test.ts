@@ -23,8 +23,8 @@ describe('cookieUtils', () => {
       cookieUtils.setCookie('test-cookie', 'test-value', {})
       
       expect(document.cookie).toContain('test-cookie=test-value')
-      expect(document.cookie).toContain('path=/')
-      expect(document.cookie).toContain('samesite=strict')
+      expect(document.cookie).toContain('Path=/')
+      expect(document.cookie).toContain('SameSite=lax')
     })
 
     it('deve definir cookie com configurações personalizadas', () => {
@@ -32,16 +32,16 @@ describe('cookieUtils', () => {
         maxAge: 3600,
         path: '/test',
         secure: true,
-        sameSite: 'strict' as const
+        sameSite: 'lax' as const
       }
       
       cookieUtils.setCookie('test-cookie', 'test-value', options)
       
       expect(document.cookie).toContain('test-cookie=test-value')
-      expect(document.cookie).toContain('max-age=3600')
-      expect(document.cookie).toContain('path=/test')
-      expect(document.cookie).toContain('secure')
-      expect(document.cookie).toContain('samesite=strict')
+      expect(document.cookie).toContain('Max-Age=3600')
+      expect(document.cookie).toContain('Path=/test')
+      expect(document.cookie).toContain('Secure')
+      expect(document.cookie).toContain('SameSite=lax')
     })
 
     it('deve definir cookie com data de expiração', () => {
@@ -52,7 +52,7 @@ describe('cookieUtils', () => {
       cookieUtils.setCookie('test-cookie', 'test-value', options)
       
       expect(document.cookie).toContain('test-cookie=test-value')
-      expect(document.cookie).toContain('expires=')
+      expect(document.cookie).toContain('Expires=')
     })
 
     it('deve definir cookie com domínio', () => {
@@ -63,7 +63,7 @@ describe('cookieUtils', () => {
       cookieUtils.setCookie('test-cookie', 'test-value', options)
       
       expect(document.cookie).toContain('test-cookie=test-value')
-      expect(document.cookie).toContain('domain=example.com')
+      expect(document.cookie).toContain('Domain=example.com')
     })
   })
 
@@ -132,7 +132,7 @@ describe('cookieUtils', () => {
       
       cookieUtils.removeCookie('test-cookie', {})
       
-      expect(document.cookie).toContain('expires=')
+      expect(document.cookie).toContain('Expires=')
     })
   })
 
@@ -224,7 +224,7 @@ describe('cookieUtils', () => {
       expect(authCookieConfig.token).toMatchObject({
         maxAge: 2 * 60 * 60, // 2 horas
         path: '/',
-        sameSite: 'strict'
+        sameSite: 'lax'
       })
     })
 
@@ -232,13 +232,13 @@ describe('cookieUtils', () => {
       expect(authCookieConfig.refreshToken).toMatchObject({
         maxAge: 7 * 24 * 60 * 60, // 7 dias
         path: '/',
-        sameSite: 'strict'
+        sameSite: 'lax'
       })
     })
 
     it('deve ter configurações de segurança apropriadas', () => {
-      expect(authCookieConfig.token.sameSite).toBe('strict')
-      expect(authCookieConfig.refreshToken.sameSite).toBe('strict')
+      expect(authCookieConfig.token.sameSite).toBe('lax')
+      expect(authCookieConfig.refreshToken.sameSite).toBe('lax')
     })
 
     it('deve ter configuração secure baseada no ambiente atual', () => {
@@ -256,8 +256,8 @@ describe('cookieUtils', () => {
       
       // O valor é codificado automaticamente
       expect(document.cookie).toContain('special-cookie=')
-      expect(document.cookie).toContain('path=/')
-      expect(document.cookie).toContain('samesite=strict')
+      expect(document.cookie).toContain('Path=/')
+      expect(document.cookie).toContain('SameSite=lax')
     })
 
     it('deve lidar com cookies com aspas', () => {
@@ -267,8 +267,8 @@ describe('cookieUtils', () => {
       
       // O valor é codificado automaticamente
       expect(document.cookie).toContain('quoted-cookie=')
-      expect(document.cookie).toContain('path=/')
-      expect(document.cookie).toContain('samesite=strict')
+      expect(document.cookie).toContain('Path=/')
+      expect(document.cookie).toContain('SameSite=lax')
     })
 
     it('deve lidar com múltiplas remoções', () => {

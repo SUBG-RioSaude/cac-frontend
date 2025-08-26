@@ -29,13 +29,25 @@ export function useConsultarEmpresaPorCNPJ(
 
   const query = useQuery({
     queryKey: empresaKeys.byCnpj(cnpj),
-    queryFn: () => consultarEmpresaPorCNPJ(cnpj),
+    queryFn: async () => {
+      const result = await consultarEmpresaPorCNPJ(cnpj)
+      if (result === null) {
+        // Se retornar null, lança um erro 404 para ser tratado pelo error handling
+        throw new Error('Empresa não encontrada')
+      }
+      return result
+    },
     
-    // Só executa quando o CNPJ for válido e completo
-    enabled: options?.enabled ?? (!!cnpj && cnpj.length >= 18),
+    // Só executa quando o CNPJ for válido e completo (14 dígitos limpos)
+    enabled: options?.enabled ?? (!!cnpj && cnpj.length === 14 && /^\d{14}$/.test(cnpj)),
     
-    // Não retry para CNPJs não encontrados (404)
+    // Não retry para CNPJs não encontrados
     retry: (failureCount, error: unknown) => {
+      // Se for erro de "empresa não encontrada", não retry
+      if (error instanceof Error && error.message === 'Empresa não encontrada') {
+        return false
+      }
+      
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
         if (status === 404) {
@@ -47,6 +59,11 @@ export function useConsultarEmpresaPorCNPJ(
 
     // Error handling customizado
     throwOnError: (error: unknown) => {
+      // Se for erro de "empresa não encontrada", não é um erro crítico
+      if (error instanceof Error && error.message === 'Empresa não encontrada') {
+        return false
+      }
+      
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
         
@@ -114,7 +131,11 @@ export function useCadastrarEmpresa() {
     onSuccess: (data, variables, context) => {
       // Dismiss loading toast
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        try {
+          toast.dismiss(context.loadingToast)
+        } catch (error) {
+          // Ignora erro se o toast já foi dismissado
+        }
       }
 
       // Toast de sucesso
@@ -133,7 +154,11 @@ export function useCadastrarEmpresa() {
     onError: (error, _variables, context) => {
       // Dismiss loading toast
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        try {
+          toast.dismiss(context.loadingToast)
+        } catch (dismissError) {
+          // Ignora erro se o toast já foi dismissado
+        }
       }
 
       // Toast de erro com handling automático

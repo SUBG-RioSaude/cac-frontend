@@ -5,7 +5,7 @@ import { getToken, renovarToken, logout } from './auth/auth'
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
-  withCredentials: true,
+  withCredentials: false,
 })
 
 // Interceptador de requisição para adicionar token dos cookies

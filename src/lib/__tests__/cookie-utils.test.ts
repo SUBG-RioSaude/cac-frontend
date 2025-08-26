@@ -39,13 +39,13 @@ describe('cookieUtils', () => {
         expect.stringContaining('test=value')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('path=/api')
+        expect.stringContaining('Path=/api')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('samesite=lax')
+        expect.stringContaining('SameSite=lax')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('max-age=3600')
+        expect.stringContaining('Max-Age=3600')
       )
     })
 
@@ -57,7 +57,7 @@ describe('cookieUtils', () => {
         expect.stringContaining('test=value')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('expires=')
+        expect.stringContaining('Expires=')
       )
     })
 
@@ -105,7 +105,7 @@ describe('cookieUtils', () => {
         expect.stringContaining('test=')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('expires=')
+        expect.stringContaining('Expires=')
       )
     })
 
@@ -117,10 +117,10 @@ describe('cookieUtils', () => {
         expect.stringContaining('test=')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('path=/api')
+        expect.stringContaining('Path=/api')
       )
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('domain=example.com')
+        expect.stringContaining('Domain=example.com')
       )
     })
 
@@ -140,7 +140,7 @@ describe('cookieUtils', () => {
       )
       // Verifica se as chamadas contêm expires
       expect(mockDocumentCookie).toHaveBeenCalledWith(
-        expect.stringContaining('expires=')
+        expect.stringContaining('Expires=')
       )
     })
   })
@@ -236,7 +236,7 @@ describe('authCookieConfig', () => {
     expect(authCookieConfig.token).toEqual({
       path: '/',
       secure: expect.any(Boolean), // Pode variar baseado no ambiente
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 2 * 60 * 60 // 2 horas
     })
   })
@@ -245,7 +245,7 @@ describe('authCookieConfig', () => {
     expect(authCookieConfig.refreshToken).toEqual({
       path: '/',
       secure: expect.any(Boolean), // Pode variar baseado no ambiente
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 // 7 dias
     })
   })

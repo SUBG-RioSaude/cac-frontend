@@ -18,8 +18,8 @@ import {
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useEffect, useRef, useState } from 'react'
-import { useFormAsyncOperation } from '@/hooks/use-async-operation'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { ButtonLoadingSpinner } from '@/components/ui/loading'
 import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -149,6 +149,7 @@ const fornecedorSchema = z.object({
           return true
         }, 'Valor inválido para o tipo de contato selecionado'),
     )
+    .min(1, 'Pelo menos um contato é obrigatório')
     .max(3, 'Máximo de 3 contatos permitidos')
     .default([]),
 })
@@ -200,12 +201,13 @@ export default function FornecedorForm({
   onAdvanceRequest,
   onDataChange,
 }: FornecedorFormProps) {
-  const { submitForm, isSubmitting } = useFormAsyncOperation()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
   const [cepPreenchido, setCepPreenchido] = useState(false)
   const [cnpjParaConsultar, setCnpjParaConsultar] = useState<string>('')
   const [empresaEncontrada, setEmpresaEncontrada] = useState<EmpresaResponse | null>(null)
+  const [toastJaMostrado, setToastJaMostrado] = useState(false)
 
   // Hook para consultar empresa por CNPJ
   const {
@@ -214,10 +216,31 @@ export default function FornecedorForm({
   } = useConsultarEmpresaPorCNPJ(cnpjParaConsultar, {
     enabled: false, // Só executa quando chamarmos refetch
     onSuccess: (data) => {
+      // Valida se os dados essenciais existem
+      if (!data || !data.cnpj || !data.razaoSocial) {
+        toast.error('Erro ao carregar dados da empresa', {
+          description: 'Dados incompletos recebidos da API.',
+        })
+        return
+      }
+      
+      // Evita processar a mesma empresa múltiplas vezes
+      if (empresaEncontrada?.id === data.id) {
+        return
+      }
+      
       // Empresa encontrada - preenche o formulário automaticamente
       setEmpresaEncontrada(data)
       
-      // Preenche todos os campos do formulário
+      // Preenche todos os campos do formulário de uma vez
+      const contatosMapeados = data.contatos?.map((contato, index) => ({
+        id: (index + 1).toString(),
+        nome: contato.nome,
+        valor: contato.valor,
+        tipo: contato.tipo as 'Email' | 'Fixo' | 'Celular',
+        ativo: true,
+      })) || []
+
       form.reset({
         cnpj: cnpjUtils.formatar(data.cnpj),
         razaoSocial: data.razaoSocial,
@@ -225,37 +248,48 @@ export default function FornecedorForm({
         inscricaoEstadual: data.inscricaoEstadual || '',
         inscricaoMunicipal: data.inscricaoMunicipal || '',
         endereco: data.endereco,
-        numero: '', // Número não vem da API
+        numero: 'S/N', // Número não vem da API, usa "S/N" como padrão
         complemento: '', // Complemento não vem da API
         bairro: data.bairro,
         cidade: data.cidade,
         estado: data.estado,
         cep: data.cep,
         ativo: data.ativo,
-        contatos: data.contatos.map((contato, index) => ({
-          id: (index + 1).toString(),
-          nome: contato.nome,
-          valor: contato.valor,
-          tipo: contato.tipo as 'Email' | 'Fixo' | 'Celular',
-          ativo: true,
-        })),
+        contatos: contatosMapeados, // Preenche contatos diretamente no reset
       })
 
       // Habilita campos de endereço
       setCepPreenchido(true)
       
-      toast.success('Empresa já cadastrada!', {
-        description: 'Formulário preenchido automaticamente com os dados existentes.',
-        icon: <Check className="h-4 w-4" />,
-      })
+      // Só mostra o toast se ainda não foi mostrado para esta empresa
+      if (!toastJaMostrado) {
+        setToastJaMostrado(true)
+        toast.success('Empresa já cadastrada!', {
+          description: 'Formulário preenchido automaticamente com os dados existentes.',
+          icon: <Check className="h-4 w-4" />,
+        })
+      }
     },
-    onError: () => {
-      // Empresa não encontrada
-      toast.info('Empresa não cadastrada', {
-        description: 'Continue preenchendo o formulário para cadastrar.',
-      })
+    onError: (error) => {
+      // Empresa não encontrada - limpa estado
+      setEmpresaEncontrada(null)
+      
+      // Se for erro de "empresa não encontrada", mostra mensagem informativa
+      if (error instanceof Error && error.message === 'Empresa não encontrada') {
+        toast.info('Empresa não cadastrada', {
+          description: 'Continue preenchendo o formulário para cadastrar.',
+        })
+      }
     }
   })
+
+  // Effect para executar consulta quando cnpjParaConsultar mudar
+  useEffect(() => {
+    if (cnpjParaConsultar && cnpjParaConsultar.length === 14) {
+      refetchConsultaCNPJ()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cnpjParaConsultar]) // Removido refetchConsultaCNPJ das dependências para evitar loops
 
   // Hook para cadastrar empresa
   const { mutateAsync: cadastrarEmpresaAsync } = useCadastrarEmpresa()
@@ -308,14 +342,18 @@ export default function FornecedorForm({
   }
 
   // Função para consultar empresa por CNPJ
-  const consultarEmpresaCNPJ = async (cnpj: string) => {
-    if (!cnpj || !cnpjUtils.validar(cnpj)) return
-
+  const consultarEmpresaCNPJ = (cnpj: string) => {
+    // Garante que o CNPJ está limpo (sem máscara)
     const cnpjLimpo = cnpjUtils.limpar(cnpj)
-    setCnpjParaConsultar(cnpjLimpo)
     
-    // Executa a consulta usando o hook
-    await refetchConsultaCNPJ()
+    if (!cnpjLimpo || !cnpjUtils.validar(cnpjLimpo)) return
+
+    // Reset do estado de toast quando CNPJ muda
+    setToastJaMostrado(false)
+    setEmpresaEncontrada(null)
+
+    // Atualiza o estado - o useEffect vai executar a consulta
+    setCnpjParaConsultar(cnpjLimpo)
   }
 
   const form = useForm({
@@ -343,52 +381,64 @@ export default function FornecedorForm({
     name: 'contatos',
   })
 
-  // Watch para mudanças em tempo real
+  // Watch para mudanças em tempo real - usando watch específico para evitar loops
   const watchedValues = form.watch()
   const previousDataRef = useRef<string | null>(null)
+  
+  const handleDataChange = useCallback((dados: Partial<DadosFornecedor>) => {
+    if (onDataChange) {
+      onDataChange(dados)
+    }
+  }, [onDataChange])
 
   useEffect(() => {
-    if (onDataChange) {
-      const dados: Partial<DadosFornecedor> = {
-        cnpj: watchedValues.cnpj || '',
-        razaoSocial: watchedValues.razaoSocial || '',
-        estadoIE: watchedValues.estadoIE || '',
-        inscricaoEstadual: watchedValues.inscricaoEstadual || '',
-        inscricaoMunicipal: watchedValues.inscricaoMunicipal || '',
-        endereco: watchedValues.endereco || '',
-        numero: watchedValues.numero || '',
-        complemento: watchedValues.complemento || '',
-        bairro: watchedValues.bairro || '',
-        cidade: watchedValues.cidade || '',
-        estado: watchedValues.estado || '',
-        cep: watchedValues.cep || '',
-        ativo: watchedValues.ativo || false,
-        contatos: (watchedValues.contatos || []).map((contato) => ({
-          id: contato.id,
-          nome: contato.nome || '',
-          valor: contato.valor || '',
-          tipo: contato.tipo,
-          ativo: contato.ativo,
-        })),
-      }
+    // Só executa se onDataChange estiver definido
+    if (!onDataChange) return
 
-      // Só chama onDataChange se os dados realmente mudaram
-      const currentDataString = JSON.stringify(dados)
-      if (previousDataRef.current !== currentDataString) {
-        previousDataRef.current = currentDataString
-        onDataChange(dados)
-      }
+    const dados: Partial<DadosFornecedor> = {
+      cnpj: watchedValues.cnpj || '',
+      razaoSocial: watchedValues.razaoSocial || '',
+      estadoIE: watchedValues.estadoIE || '',
+      inscricaoEstadual: watchedValues.inscricaoEstadual || '',
+      inscricaoMunicipal: watchedValues.inscricaoMunicipal || '',
+      endereco: watchedValues.endereco || '',
+      numero: watchedValues.numero || '',
+      complemento: watchedValues.complemento || '',
+      bairro: watchedValues.bairro || '',
+      cidade: watchedValues.cidade || '',
+      estado: watchedValues.estado || '',
+      cep: watchedValues.cep || '',
+      ativo: watchedValues.ativo || false,
+      contatos: (watchedValues.contatos || []).map((contato) => ({
+        id: contato.id,
+        nome: contato.nome || '',
+        valor: contato.valor || '',
+        tipo: contato.tipo,
+        ativo: contato.ativo,
+      })),
     }
-  }, [watchedValues, onDataChange])
 
-  const handleFormSubmit = (dados: z.infer<typeof fornecedorSchema>) => {
+    // Só chama onDataChange se os dados realmente mudaram
+    const currentDataString = JSON.stringify(dados)
+    if (previousDataRef.current !== currentDataString) {
+      previousDataRef.current = currentDataString
+      handleDataChange(dados)
+    }
+  }, [watchedValues, handleDataChange, onDataChange])
+
+  const handleFormSubmit = async (dados: z.infer<typeof fornecedorSchema>) => {
+    if (isSubmitting) return // Previne múltiplos submits
+
     const dadosFornecedor = {
       ...dados,
       cnpj: cnpjUtils.limpar(dados.cnpj), // Limpa o CNPJ antes de enviar
     } as DadosFornecedor
 
-    // Validações adicionais
+    // Validações adicionais com feedback ao usuário
     if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
+      toast.error('Pelo menos um contato é obrigatório', {
+        description: 'Adicione pelo menos um contato antes de continuar.',
+      })
       return
     }
 
@@ -397,10 +447,15 @@ export default function FornecedorForm({
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
+      toast.error('Contatos inválidos', {
+        description: 'Verifique se todos os contatos estão preenchidos corretamente.',
+      })
       return
     }
 
-    const submitOperation = async () => {
+    setIsSubmitting(true)
+
+    try {
       // Se não é uma empresa existente, cadastra no sistema
       if (!empresaEncontrada) {
         const empresaRequest = {
@@ -422,6 +477,17 @@ export default function FornecedorForm({
         }
 
         await cadastrarEmpresaAsync(empresaRequest)
+        
+        toast.success('Empresa cadastrada com sucesso!', {
+          description: 'Nova empresa foi cadastrada no sistema.',
+          icon: <Check className="h-4 w-4" />,
+        })
+      } else {
+        // Empresa já existe - apenas informa
+        toast.info('Empresa já cadastrada', {
+          description: 'Utilizando dados da empresa existente.',
+          icon: <Check className="h-4 w-4" />,
+        })
       }
 
       // Avança para o próximo step
@@ -430,9 +496,13 @@ export default function FornecedorForm({
       } else {
         await onSubmit?.(dadosFornecedor)
       }
+    } catch (error) {
+      toast.error('Erro ao processar formulário', {
+        description: 'Tente novamente ou verifique os dados.',
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-
-    submitForm(dados, submitOperation)
   }
 
   const adicionarContato = () => {
@@ -547,19 +617,27 @@ export default function FornecedorForm({
       >
         {/* Informações Básicas */}
         <div className="space-y-6">
-          <div className="flex items-center space-x-3 border-b border-slate-200 pb-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
-              <Building2
-                className="h-4 w-4 text-slate-600"
-                aria-hidden="true"
-              />
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center space-x-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
+                <Building2
+                  className="h-4 w-4 text-slate-600"
+                  aria-hidden="true"
+                />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900">
+                Informações Básicas
+              </h3>
             </div>
-            <h3 className="text-base font-semibold text-gray-900">
-              Informações Básicas
-            </h3>
+            {empresaEncontrada && (
+              <div className="flex items-center space-x-2 rounded-md bg-green-50 px-3 py-1.5 text-sm text-green-700">
+                <Check className="h-4 w-4" />
+                <span>Empresa já cadastrada</span>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Container para CNPJ */}
             <div className="space-y-2">
               <FormField
@@ -585,16 +663,18 @@ export default function FornecedorForm({
                               )
                               field.onChange(valorMascarado)
 
-                            // Validação consultarEmpresa
                                if (valorMascarado.length >= 18) {
-                                 const isValid =
-                                   cnpjUtils.validar(valorMascarado)
+                                 // Valida e consulta com CNPJ limpo (sem máscara)
+                                 const cnpjLimpo = cnpjUtils.limpar(valorMascarado)
+                                 const isValid = cnpjUtils.validar(cnpjLimpo)
+                                 
                                  if (isValid) {
-                                   consultarEmpresaCNPJ(valorMascarado)
+                                   consultarEmpresaCNPJ(cnpjLimpo)
                                  }
                                }
                             }}
                             className={cn(
+                              "w-full",
                               isValidCnpj === true &&
                                 'border-green-500 bg-green-50 pr-10',
                               isValidCnpj === false &&
@@ -633,7 +713,7 @@ export default function FornecedorForm({
                   <FormItem>
                     <FormLabel htmlFor="razaoSocial" className="mb-2">Razão Social *</FormLabel>
                     <FormControl>
-                      <Input id="razaoSocial" placeholder="Digite a razão social" {...field} />
+                      <Input id="razaoSocial" placeholder="Digite a razão social" className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -650,11 +730,6 @@ export default function FornecedorForm({
                 name="inscricaoEstadual"
                 render={({ field }) => {
                   const estadoSelecionado = form.watch('estadoIE')
-                  const ieValue = field.value || ''
-                  const isValidIe =
-                    ieValue.length > 0 && estadoSelecionado
-                      ? ieUtils.validar(ieValue, estadoSelecionado)
-                      : null
 
                   return (
                     <FormItem>
@@ -717,21 +792,8 @@ export default function FornecedorForm({
                             className={cn(
                               !estadoSelecionado &&
                                 'cursor-not-allowed opacity-50',
-                              isValidIe === true &&
-                                'border-green-500 bg-green-50 pr-10',
-                              isValidIe === false &&
-                                'border-red-500 bg-red-50 pr-10',
                             )}
                           />
-                          {isValidIe !== null && (
-                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              {isValidIe ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <X className="h-4 w-4 text-red-500" />
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
                       <FormMessage />
@@ -748,11 +810,6 @@ export default function FornecedorForm({
                 name="inscricaoMunicipal"
                 render={({ field }) => {
                   const estadoSelecionado = form.watch('estadoIE')
-                  const imValue = field.value || ''
-                  const isValidIm =
-                    imValue.length > 0 && estadoSelecionado
-                      ? imUtils.validar(imValue, estadoSelecionado)
-                      : null
 
                   return (
                     <FormItem>
@@ -783,22 +840,9 @@ export default function FornecedorForm({
                             }}
                             className={cn(
                               !estadoSelecionado &&
-                                'cursor-not-allowed opacity-50',
-                              isValidIm === true &&
-                                'border-green-500 bg-green-50 pr-10',
-                              isValidIm === false &&
-                                'border-red-500 bg-red-50 pr-10',
+                                'cursor-not-allowed opacity-50'
                             )}
                           />
-                          {isValidIm !== null && (
-                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              {isValidIm ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <X className="h-4 w-4 text-red-500" />
-                              )}
-                            </div>
-                          )}
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -1151,18 +1195,7 @@ export default function FornecedorForm({
                           )
                           const valor = valorField.value || ''
 
-                          // Validação em tempo real
-                          let isValid = null
-
-                          if (valor.length > 0) {
-                            if (tipoContato === 'Email') {
-                              isValid = validarEmail(valor)
-                            } else if (tipoContato === 'Fixo') {
-                              isValid = validarFormatoTelefoneFixo(valor)
-                            } else if (tipoContato === 'Celular') {
-                              isValid = validarFormatoCelular(valor)
-                            }
-                          }
+                          // Validação em tempo real - removida variável não utilizada
 
                           return (
                             <FormItem>
@@ -1217,22 +1250,7 @@ export default function FornecedorForm({
                                         }
                                       }
                                     }}
-                                    className={cn(
-                                      isValid === true &&
-                                        'border-green-500 bg-green-50 pr-10',
-                                      isValid === false &&
-                                        'border-red-500 bg-red-50 pr-10',
-                                    )}
                                   />
-                                  {isValid !== null && (
-                                    <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                                      {isValid ? (
-                                        <Check className="h-4 w-4 text-green-500" />
-                                      ) : (
-                                        <X className="h-4 w-4 text-red-500" />
-                                      )}
-                                    </div>
-                                  )}
                                 </div>
                               </FormControl>
                               <FormMessage />
