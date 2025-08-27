@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import PageBreadcrumb from '@/components/page-breadcrumb'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
@@ -9,13 +10,29 @@ vi.mock('@/hooks/use-mobile', () => ({
   useIsMobile: () => false,
 }))
 
+// Mock do axios para evitar calls reais na API
+vi.mock('@/lib/axios', () => ({
+  executeWithFallback: vi.fn().mockResolvedValue({
+    data: { numeroContrato: '123', id: '123' }
+  }),
+}))
+
 const renderWithProviders = (initialEntries = ['/']) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+  
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <SidebarProvider>
-        <PageBreadcrumb />
-      </SidebarProvider>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={initialEntries}>
+        <SidebarProvider>
+          <PageBreadcrumb />
+        </SidebarProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -35,12 +52,17 @@ describe('PageBreadcrumb', () => {
     expect(screen.getByRole('button')).toBeInTheDocument() // SidebarTrigger
   })
 
-  it('deve renderizar o breadcrumb na página de detalhes do contrato', () => {
+  it('deve renderizar o breadcrumb na página de detalhes do contrato', async () => {
     renderWithProviders(['/contratos/123'])
 
     expect(screen.getByText('Início')).toBeInTheDocument()
     expect(screen.getByText('Contratos')).toBeInTheDocument()
-    expect(screen.getByText('123')).toBeInTheDocument()
+    
+    // Aguardar dados assíncronos do contrato
+    await waitFor(() => {
+      expect(screen.getByText('Contrato 123')).toBeInTheDocument()
+    })
+    
     expect(screen.getByRole('button')).toBeInTheDocument() // SidebarTrigger
   })
 

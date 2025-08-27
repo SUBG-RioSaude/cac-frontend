@@ -8,11 +8,38 @@ import {
   BreadcrumbSeparator,
 } from './ui/breadcrumb'
 import { SidebarTrigger } from './ui/sidebar'
-import { useLocation, useParams, Link } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { executeWithFallback } from '@/lib/axios'
 
 export default function PageBreadcrumb() {
   const location = useLocation()
-  const params = useParams()
+
+  // Extrair ID do contrato manualmente da URL
+  const contratoId = location.pathname.match(/\/contratos\/([^/]+)/)?.[1]
+  const isContratoRoute = !!contratoId
+  
+  console.log('🍞 Breadcrumb Debug:', { 
+    pathname: location.pathname, 
+    contratoId,
+    isContratoRoute
+  })
+  
+  const { data: contratoData, isLoading: contratoLoading } = useQuery<{ numeroContrato?: string; id?: string }>({ 
+    queryKey: ['contrato-breadcrumb', contratoId],
+    queryFn: async (): Promise<{ numeroContrato?: string; id?: string }> => {
+      console.log('🔍 Breadcrumb buscando contrato:', contratoId)
+      const response = await executeWithFallback({
+        method: 'get',
+        url: `/contratos/${contratoId}`
+      })
+      console.log('✅ Breadcrumb dados recebidos:', response.data)
+      return response.data as { numeroContrato?: string; id?: string }
+    },
+    enabled: !!isContratoRoute && !!contratoId,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1, // Retry apenas 1 vez para breadcrumb
+  })
 
   // Generate breadcrumbs based on current path
   const generateCrumbs = () => {
@@ -23,16 +50,35 @@ export default function PageBreadcrumb() {
     pathSegments.forEach((segment) => {
       currentPath += `/${segment}`
 
-      // Check if segment is a parameter (like contratoId, fornecedorId)
-      const isParam = Object.values(params).includes(segment)
+      console.log('🔄 Processando segment:', { segment, currentPath, contratoId })
 
-      if (isParam) {
-        // Handle dynamic routes
-        if (segment === params.contratoId) {
-          crumbs.push({ label: `Contrato ${segment}`, href: currentPath })
-        } else if (segment === params.fornecedorId) {
-          crumbs.push({ label: `Fornecedor ${segment}`, href: currentPath })
-        }
+      // Handle dynamic routes - diretamente baseado na URL
+      if (currentPath.includes('/contratos/') && segment === contratoId) {
+          // Use número do contrato se disponível, senão use o ID
+          let label = `Contrato ${segment}`
+          
+          console.log('🏷️ Estado atual:', { 
+            segment, 
+            contratoId,
+            contratoLoading, 
+            hasData: !!contratoData,
+            numeroContrato: contratoData?.numeroContrato,
+            fullData: contratoData
+          })
+          
+          if (contratoLoading) {
+            label = 'Carregando...'
+          } else if (contratoData?.numeroContrato) {
+            label = `Contrato ${contratoData.numeroContrato}`
+          } else if (contratoData?.id) {
+            label = `Contrato ${contratoData.id}`
+          }
+          
+          console.log('🏷️ Label final:', label)
+          crumbs.push({ label, href: currentPath })
+      } else if (currentPath.includes('/fornecedores/') && segment.match(/^[a-f0-9-]{36}$/)) {
+        // Handle fornecedores route
+        crumbs.push({ label: `Fornecedor ${segment}`, href: currentPath })
       } else {
         // Handle static routes
         const labels: Record<string, string> = {

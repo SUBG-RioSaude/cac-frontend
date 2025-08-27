@@ -6,7 +6,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { api } from '@/lib/axios'
+import { executeWithFallback } from '@/lib/axios'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
@@ -54,7 +54,11 @@ export function useCreateContrato() {
 
   return useMutation({
     mutationFn: async (data: CriarContratoData): Promise<Contrato> => {
-      const response = await api.post('/Contratos', data)
+      const response = await executeWithFallback<Contrato>({
+        method: 'post',
+        url: '/Contratos',
+        data
+      })
       return response.data
     },
 
@@ -101,7 +105,11 @@ export function useUpdateContrato() {
   return useMutation({
     mutationFn: async (data: AtualizarContratoData): Promise<Contrato> => {
       const { id, ...updateData } = data
-      const response = await api.put(`/Contratos/${id}`, updateData)
+      const response = await executeWithFallback<Contrato>({
+        method: 'put',
+        url: `/Contratos/${id}`,
+        data: updateData
+      })
       return response.data
     },
 
@@ -168,7 +176,10 @@ export function useDeleteContrato() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      await api.delete(`/Contratos/${id}`)
+      await executeWithFallback({
+        method: 'delete',
+        url: `/Contratos/${id}`
+      })
     },
 
     onMutate: async (id) => {
@@ -222,7 +233,10 @@ export function useSuspendContrato() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      await api.patch(`/Contratos/${id}/suspender`)
+      await executeWithFallback({
+        method: 'patch',
+        url: `/Contratos/${id}/suspender`
+      })
     },
 
     onMutate: async (id) => {
@@ -273,7 +287,10 @@ export function useReactivateContrato() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      await api.patch(`/Contratos/${id}/reativar`)
+      await executeWithFallback({
+        method: 'patch',
+        url: `/Contratos/${id}/reativar`
+      })
     },
 
     onMutate: async (id) => {
@@ -321,7 +338,10 @@ export function useEncerrarContrato() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      await api.patch(`/Contratos/${id}/encerrar`)
+      await executeWithFallback({
+        method: 'patch',
+        url: `/Contratos/${id}/encerrar`
+      })
     },
 
     onMutate: async (id) => {

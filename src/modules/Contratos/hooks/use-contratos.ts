@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { getContratos, type ContratoParametros } from '@/modules/Contratos/services/contratos-service'
+import { getContratos, getContratoDetalhado, type ContratoParametros } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import { useErrorHandler } from '@/hooks/use-error-handler'
@@ -68,11 +68,14 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: contratoKeys.detail(id),
     queryFn: async () => {
-      // Usar o service existente ou criar um novo método
-      const { data } = await import('@/lib/axios').then(({ api }) => 
-        api.get<Contrato>(`/Contratos/${id}`)
+      // Usar o fallback para buscar contrato por ID
+      const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
+        executeWithFallback<Contrato>({
+          method: 'get',
+          url: `/contratos/${id}`
+        })
       )
-      return data
+      return response.data
     },
     
     enabled: options?.enabled ?? !!id,
@@ -117,12 +120,14 @@ export function useContratosVencendo(diasAntecipados = 30, options?: { enabled?:
   return useQuery({
     queryKey: contratoKeys.vencendo(diasAntecipados),
     queryFn: async () => {
-      const { data } = await import('@/lib/axios').then(({ api }) => 
-        api.get('/Contratos/vencendo', {
+      const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
+        executeWithFallback({
+          method: 'get',
+          url: '/contratos/vencendo',
           params: { diasAntecipados }
         })
       )
-      return data
+      return response.data
     },
     
     enabled: options?.enabled ?? true,
@@ -152,10 +157,13 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: contratoKeys.vencidos(),
     queryFn: async () => {
-      const { data } = await import('@/lib/axios').then(({ api }) => 
-        api.get('/Contratos/vencidos')
+      const response = await import('@/lib/axios').then(({ executeWithFallback }) => 
+        executeWithFallback({
+          method: 'get',
+          url: '/contratos/vencidos'
+        })
       )
-      return data
+      return response.data
     },
     
     enabled: options?.enabled ?? true,
@@ -172,6 +180,60 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
       }
 
       toastQuery.error(error, "Não foi possível carregar contratos vencidos")
+      return false
+    }
+  })
+}
+
+// Hook especializado para buscar contrato detalhado
+export function useContratoDetalhado(id: string, options?: { enabled?: boolean }) {
+  const { query: toastQuery } = useToast()
+  const { handleApiError } = useErrorHandler()
+
+  return useQuery({
+    queryKey: contratoKeys.detalhado(id),
+    queryFn: async () => {
+      console.log('🎯 Hook: Iniciando busca para ID:', id)
+      try {
+        const resultado = await getContratoDetalhado(id)
+        console.log('🎯 Hook: Resultado obtido:', resultado)
+        return resultado
+      } catch (error) {
+        console.error('🎯 Hook: Erro capturado:', error)
+        throw error
+      }
+    },
+    
+    enabled: options?.enabled ?? !!id,
+    
+    retry: (failureCount, error: unknown) => {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const status = (error as { response: { status: number } }).response?.status
+        // Não retry para erros de cliente (4xx)
+        if (status >= 400 && status < 500) {
+          return false
+        }
+      }
+      return failureCount < 2
+    },
+
+    throwOnError: (error: unknown) => {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const status = (error as { response: { status: number } }).response?.status
+        
+        if (status === 404) {
+          // Para 404, redirecionar para página específica
+          handleApiError(error)
+          return true
+        }
+        
+        if (status && (status >= 500 || status === 401 || status === 403)) {
+          handleApiError(error)
+          return true
+        }
+      }
+
+      toastQuery.error(error, "Não foi possível carregar os detalhes do contrato")
       return false
     }
   })

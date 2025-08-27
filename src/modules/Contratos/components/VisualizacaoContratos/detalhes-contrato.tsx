@@ -17,7 +17,7 @@ import {
   User,
   Edit,
 } from 'lucide-react'
-import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato-detalhado'
+import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -169,13 +169,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           Tipo de Contratação
                         </p>
                         <div className="mt-1">
-                          {getTipoContratacaoBadge(contrato.tipoContratacao)}
+                          {getTipoContratacaoBadge(contrato.tipoContratacao || '')}
                         </div>
                       </div>
                       <div>
                         <p className="text-muted-foreground text-sm">Status</p>
                         <div className="mt-1">
-                          {getStatusBadge(contrato.status)}
+                          {getStatusBadge(contrato.status || '')}
                         </div>
                       </div>
                     </div>
@@ -223,10 +223,10 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         Prazo Inicial
                       </p>
                       <p className="font-semibold">
-                        {contrato.prazoInicialMeses > 0 && `${contrato.prazoInicialMeses} ${contrato.prazoInicialMeses === 1 ? 'mês' : 'meses'}`}
-                        {contrato.prazoInicialMeses > 0 && contrato.prazoInicialDias > 0 && ' e '}
-                        {contrato.prazoInicialDias > 0 && `${contrato.prazoInicialDias} ${contrato.prazoInicialDias === 1 ? 'dia' : 'dias'}`}
-                        {contrato.prazoInicialMeses === 0 && contrato.prazoInicialDias === 0 && 'Não informado'}
+                        {(contrato as any).prazoInicialMeses > 0 && `${(contrato as any).prazoInicialMeses} ${(contrato as any).prazoInicialMeses === 1 ? 'mês' : 'meses'}`}
+                        {(contrato as any).prazoInicialMeses > 0 && (contrato as any).prazoInicialDias > 0 && ' e '}
+                        {(contrato as any).prazoInicialDias > 0 && `${(contrato as any).prazoInicialDias} ${(contrato as any).prazoInicialDias === 1 ? 'dia' : 'dias'}`}
+                        {((contrato as any).prazoInicialMeses === 0 && (contrato as any).prazoInicialDias === 0) && 'Não informado'}
                       </p>
                     </div>
 

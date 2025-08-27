@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RegistroAlteracoes } from '../registro-alteracoes'
-import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato-detalhado'
+import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 
 // Mock framer-motion para simplificar testes

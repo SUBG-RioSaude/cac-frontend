@@ -26,12 +26,19 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/lib/auth/auth-store'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { usuario, logoutTodasSessoes } = useAuthStore()
   const [fazendoLogout, setFazendoLogout] = useState(false)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   // Se não há usuário autenticado, não renderiza o componente
   if (!usuario) {
@@ -52,7 +59,10 @@ export function NavUser() {
       // Mesmo com erro, força o logout local para garantir segurança
       logoutTodasSessoes()
     } finally {
-      setFazendoLogout(false)
+      // Só atualiza estado se componente ainda está montado
+      if (isMountedRef.current) {
+        setFazendoLogout(false)
+      }
     }
   }
 

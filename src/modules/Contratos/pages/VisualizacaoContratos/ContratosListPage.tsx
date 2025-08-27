@@ -1,16 +1,45 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Plus, FileDown } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
 import { SearchAndFilters } from '@/modules/Contratos/components/ListaContratos/pesquisa-e-filtros'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
 import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
-import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
+import { useContratosPageState } from '@/modules/Contratos/hooks/useContratosPageState'
+import { useContratos } from '@/modules/Contratos/hooks'
+import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 export function ContratosPage() {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
-  const { contratosFiltrados, contratosSelecionados, contratos } =
-    useContratosStore()
+  
+  // Estado local da página
+  const pageState = useContratosPageState()
+  
+  // Dados da API via React Query
+  const { 
+    data: contractsResponse, 
+    isLoading, 
+    isPlaceholderData,
+    error,
+    isError,
+    refetch
+  } = useContratos(pageState.parametrosAPI, {
+    keepPreviousData: true, // Mantém dados anteriores durante paginação
+    refetchOnMount: true
+  })
+
+  // Extrair dados da resposta ou usar array vazio
+  const contratos: Contrato[] = contractsResponse?.dados || []
+  const totalContratos = contractsResponse?.totalRegistros || 0
+  
+  // Atualizar paginação quando receber dados da API
+  if (contractsResponse && pageState.paginacao.total !== totalContratos) {
+    pageState.setPaginacao({
+      ...pageState.paginacao,
+      total: totalContratos
+    })
+  }
 
   const handleExportarTodos = () => {
     const csvContent = [
@@ -25,14 +54,14 @@ export function ContratosPage() {
         'Unidade',
       ],
       ...contratos.map((c) => [
-        c.numeroContrato,
+        c.numeroContrato || 'N/A',
         c.contratada?.razaoSocial || 'N/A',
         c.contratada?.cnpj || 'N/A',
-        (c.valor || 0).toString(),
-        c.dataInicial,
-        c.dataFinal,
-        c.status,
-        c.unidade,
+        (c.valor || c.valorGlobal || 0).toString(),
+        c.dataInicial || c.vigenciaInicial,
+        c.dataFinal || c.vigenciaFinal,
+        c.status || 'N/A',
+        c.unidade || c.unidadeDemandante || 'N/A',
       ]),
     ]
       .map((row) => row.join(','))
@@ -52,8 +81,8 @@ export function ContratosPage() {
   }
 
   const handleExportarSelecionados = () => {
-    const contratosSelecionadosData = contratosFiltrados.filter((c) =>
-      contratosSelecionados.includes(c.id),
+    const contratosSelecionadosData = contratos.filter((c) =>
+      pageState.contratosSelecionados.includes(c.id),
     )
 
     const csvContent = [
@@ -68,14 +97,14 @@ export function ContratosPage() {
         'Unidade',
       ],
       ...contratosSelecionadosData.map((c) => [
-        c.numeroContrato,
+        c.numeroContrato || 'N/A',
         c.contratada?.razaoSocial || 'N/A',
         c.contratada?.cnpj || 'N/A',
-        (c.valor || 0).toString(),
-        c.dataInicial,
-        c.dataFinal,
-        c.status,
-        c.unidade,
+        (c.valor || c.valorGlobal || 0).toString(),
+        c.dataInicial || c.vigenciaInicial,
+        c.dataFinal || c.vigenciaFinal,
+        c.status || 'N/A',
+        c.unidade || c.unidadeDemandante || 'N/A',
       ]),
     ]
       .map((row) => row.join(','))
@@ -93,7 +122,7 @@ export function ContratosPage() {
   }
 
   const handleClickExportar = () => {
-    if (contratosSelecionados.length > 0) {
+    if (pageState.contratosSelecionados.length > 0) {
       handleExportarSelecionados()
     } else {
       setModalExportacaoAberto(true)
@@ -105,8 +134,8 @@ export function ContratosPage() {
   }
 
   const textoExportar =
-    contratosSelecionados.length > 0
-      ? `Exportar (${contratosSelecionados.length})`
+    pageState.contratosSelecionados.length > 0
+      ? `Exportar (${pageState.contratosSelecionados.length})`
       : 'Exportar Todos'
 
   return (
@@ -140,8 +169,8 @@ export function ContratosPage() {
             >
               <FileDown className="mr-2 h-4 w-4" />
               <span className="sm:hidden">
-                {contratosSelecionados.length > 0
-                  ? `Exportar (${contratosSelecionados.length})`
+                {pageState.contratosSelecionados.length > 0
+                  ? `Exportar (${pageState.contratosSelecionados.length})`
                   : 'Exportar'}
               </span>
               <span className="hidden sm:inline">{textoExportar}</span>
@@ -162,11 +191,60 @@ export function ContratosPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <SearchAndFilters />
+          <SearchAndFilters 
+            termoPesquisa={pageState.termoPesquisa}
+            filtros={pageState.filtros}
+            onTermoPesquisaChange={pageState.setTermoPesquisa}
+            onFiltrosChange={pageState.setFiltros}
+            onLimparFiltros={pageState.limparFiltros}
+          />
         </motion.div>
 
+        {/* Estado de Erro */}
+        {isError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-red-200 bg-red-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-red-800">
+                  <AlertCircle className="h-5 w-5" />
+                  Erro ao carregar contratos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-red-700 text-sm">
+                  {(error as Error)?.message || 'Ocorreu um erro inesperado ao carregar os dados.'}
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  className="border-red-300 text-red-700 hover:bg-red-100"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Tentar novamente
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Tabela */}
-        <TabelaContratos />
+        {!isError && (
+          <TabelaContratos 
+            contratos={contratos}
+            isLoading={isLoading}
+            paginacao={pageState.paginacao}
+            contratosSelecionados={pageState.contratosSelecionados}
+            onPaginacaoChange={pageState.setPaginacao}
+            onSelecionarContrato={pageState.selecionarContrato}
+            onSelecionarTodos={pageState.selecionarTodosContratos}
+            totalContratos={totalContratos}
+            isPlaceholderData={isPlaceholderData}
+          />
+        )}
       </div>
 
       {/* Modal de Confirmação */}

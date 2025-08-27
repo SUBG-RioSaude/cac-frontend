@@ -45,19 +45,78 @@ export interface ContratoUnidadeSaudeDto {
   ativo: boolean
 }
 
-export interface DocumentoContratoDto {
+// ========== TIPOS DA API DE DOCUMENTOS ==========
+
+// Resposta da API documentos-contrato
+export interface DocumentoApiResponse {
   id: string
   contratoId: string
-  nome: string
-  tipo: string
-  categoria: 'obrigatorio' | 'opcional'
-  arquivo?: string
-  linkExterno?: string
-  status: string
+  tipoDocumento: string // Nome do tipo ("TermoReferencia", "Homologacao", etc.)
+  tipoDocumentoNumero: number // Número do tipo (pode estar incorreto na API)
+  nomeTipoDocumento: string // nome amigável do tipo
+  urlDocumento: string
+  dataEntrega: string // ISO date-time
   observacoes?: string
-  dataCadastro: string
-  dataAtualizacao: string
+  ativo: boolean // true = documento entregue/ativado
+  dataCadastro: string // ISO date-time
+  dataAtualizacao: string // ISO date-time
   usuarioCadastroId: string
+  usuarioAtualizacaoId: string
+}
+
+// DTO para criação via API
+export interface CreateDocumentoApiPayload {
+  contratoId: string
+  tipoDocumento: number // 1-7
+  urlDocumento: string
+  dataEntrega: string // ISO date-time
+  observacoes?: string
+}
+
+// DTO para atualização via API
+export interface UpdateDocumentoApiPayload {
+  urlDocumento: string
+  dataEntrega?: string // ISO date-time
+  observacoes?: string
+}
+
+// DTO para gestão múltipla de documentos
+export interface DocumentoMultiplo {
+  tipoDocumento: number // 1-7 conforme API
+  urlDocumento: string
+  dataEntrega: string // ISO date-time
+  observacoes: string
+  selecionado: boolean
+}
+
+export interface SaveDocumentosMultiplosPayload {
+  documentos: DocumentoMultiplo[]
+}
+
+// Mapeamento de tipos de documento da API (1-7)
+export const TIPOS_DOCUMENTO_API = {
+  1: { nome: 'TermoReferencia', descricao: 'Termo de Referência/Edital' },
+  2: { nome: 'Homologacao', descricao: 'Homologação' },
+  3: { nome: 'AtaRegistroPrecos', descricao: 'Ata de Registro de Preços' },
+  4: { nome: 'GarantiaContratual', descricao: 'Garantia Contratual' },
+  5: { nome: 'Contrato', descricao: 'Contrato' },
+  6: { nome: 'PublicacaoPNCP', descricao: 'Publicação PNCP' },
+  7: { nome: 'PublicacaoExtrato', descricao: 'Publicação de Extrato Contratual' },
+} as const
+
+// Interface legada para compatibilidade (mantida para componente atual)
+export interface DocumentoContratoDto {
+  id: string | null
+  contratoId: string
+  nome: string
+  tipo: string // número como string para compatibilidade
+  categoria: 'obrigatorio' | 'opcional'
+  linkExterno?: string | null
+  status: string // baseado no ativo da API
+  observacoes?: string
+  dataCadastro?: string
+  dataAtualizacao?: string | null
+  usuarioCadastroId?: string
 }
 
 // Documentos - Tipos detalhados (legado, manter para compatibilidade)

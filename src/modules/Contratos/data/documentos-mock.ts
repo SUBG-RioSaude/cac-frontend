@@ -1,5 +1,4 @@
-import type { DocumentoContrato } from '@/modules/Contratos/types/documento-contrato'
-// TipoDocumento pode ser usado em expansões futuras
+import type { DocumentoContrato } from '@/modules/Contratos/types/contrato'
 
 export const DOCUMENTOS_MOCK: DocumentoContrato[] = [
   // Documento obrigatório - Edital (conferido)

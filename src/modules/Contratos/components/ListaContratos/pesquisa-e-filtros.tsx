@@ -34,11 +34,38 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useContratosStore } from '@/modules/Contratos/store/contratos-store'
-import { unidadesMock } from '@/modules/Contratos/data/contratos-mock'
 import { cn } from '@/lib/utils'
+import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 
-export function SearchAndFilters() {
+// Lista de unidades baseada nos contratos existentes
+const unidadesConhecidas = [
+  'SMS', // Do exemplo da API
+  'Hospital Municipal',
+  'UPA Centro',
+  'Posto de Saúde Norte',
+  'Clínica da Família Sul',
+  'CAPS Adulto',
+  'CAPS Infantil',
+  'Laboratório Central',
+  'Secretaria de Saúde',
+  'Superintendência de Saúde'
+]
+
+interface SearchAndFiltersProps {
+  termoPesquisa: string
+  filtros: FiltrosContrato
+  onTermoPesquisaChange: (termo: string) => void
+  onFiltrosChange: (filtros: FiltrosContrato) => void
+  onLimparFiltros: () => void
+}
+
+export function SearchAndFilters({
+  termoPesquisa,
+  filtros,
+  onTermoPesquisaChange,
+  onFiltrosChange,
+  onLimparFiltros
+}: SearchAndFiltersProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
   const [statusExpanded, setStatusExpanded] = useState(false)
@@ -46,29 +73,32 @@ export function SearchAndFilters() {
   const [valorExpanded, setValorExpanded] = useState(false)
   const [unidadeExpanded, setUnidadeExpanded] = useState(false)
 
-  const {
-    termoPesquisa,
-    filtros,
-    setTermoPesquisa,
-    setFiltros,
-    limparFiltros,
-  } = useContratosStore()
+  // Calcular número de filtros ativos
+  const calcularFiltrosAtivos = () => {
+    let count = 0
+    if (filtros.status && filtros.status.length > 0) count++
+    if (filtros.dataInicialDe || filtros.dataInicialAte || filtros.dataFinalDe || filtros.dataFinalAte) count++
+    if (filtros.valorMinimo && filtros.valorMinimo > 0) count++
+    if (filtros.valorMaximo && filtros.valorMaximo > 0) count++
+    if (filtros.unidade && filtros.unidade.length > 0) count++
+    return count
+  }
 
   const statusOptions = [
-    { value: 'ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
+    { value: 'Ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
     {
-      value: 'vencendo',
+      value: 'Vencendo',
       label: 'Vencendo em Breve',
       color: 'bg-yellow-100 text-yellow-800',
     },
-    { value: 'vencido', label: 'Vencido', color: 'bg-red-100 text-red-800' },
+    { value: 'Vencido', label: 'Vencido', color: 'bg-red-100 text-red-800' },
     {
-      value: 'suspenso',
+      value: 'Suspenso',
       label: 'Suspenso',
       color: 'bg-gray-100 text-gray-800',
     },
     {
-      value: 'encerrado',
+      value: 'Encerrado',
       label: 'Encerrado',
       color: 'bg-blue-100 text-blue-800',
     },
@@ -80,7 +110,7 @@ export function SearchAndFilters() {
       ? [...currentStatus, status]
       : currentStatus.filter((s) => s !== status)
 
-    setFiltros({ ...filtros, status: newStatus })
+    onFiltrosChange({ ...filtros, status: newStatus })
   }
 
   const handleUnidadeChange = (unidade: string, checked: boolean) => {
@@ -89,20 +119,10 @@ export function SearchAndFilters() {
       ? [...currentUnidades, unidade]
       : currentUnidades.filter((u) => u !== unidade)
 
-    setFiltros({ ...filtros, unidade: newUnidades })
+    onFiltrosChange({ ...filtros, unidade: newUnidades })
   }
 
-  const contarFiltrosAtivos = () => {
-    let count = 0
-    if (filtros.status && filtros.status.length > 0) count++
-    if (filtros.unidade && filtros.unidade.length > 0) count++
-    if (filtros.dataInicialDe || filtros.dataInicialAte) count++
-    if (filtros.dataFinalDe || filtros.dataFinalAte) count++
-    if (filtros.valorMinimo || filtros.valorMaximo) count++
-    return count
-  }
-
-  const filtrosAtivos = contarFiltrosAtivos()
+  const filtrosAtivos = calcularFiltrosAtivos()
 
   // Componente de filtros reutilizável
   const FilterContent = ({ isMobile = false }: { isMobile?: boolean }) => (
@@ -117,7 +137,7 @@ export function SearchAndFilters() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={limparFiltros}
+            onClick={onLimparFiltros}
             className="h-7 text-xs"
           >
             <X className="mr-1 h-3 w-3" />
@@ -218,7 +238,7 @@ export function SearchAndFilters() {
                 type="date"
                 value={filtros.dataInicialDe || ''}
                 onChange={(e) =>
-                  setFiltros({ ...filtros, dataInicialDe: e.target.value })
+                  onFiltrosChange({ ...filtros, dataInicialDe: e.target.value })
                 }
                 className="h-9"
               />
@@ -235,7 +255,7 @@ export function SearchAndFilters() {
                 type="date"
                 value={filtros.dataInicialAte || ''}
                 onChange={(e) =>
-                  setFiltros({ ...filtros, dataInicialAte: e.target.value })
+                  onFiltrosChange({ ...filtros, dataInicialAte: e.target.value })
                 }
                 className="h-9"
               />
@@ -252,7 +272,7 @@ export function SearchAndFilters() {
                 type="date"
                 value={filtros.dataFinalDe || ''}
                 onChange={(e) =>
-                  setFiltros({ ...filtros, dataFinalDe: e.target.value })
+                  onFiltrosChange({ ...filtros, dataFinalDe: e.target.value })
                 }
                 className="h-9"
               />
@@ -269,7 +289,7 @@ export function SearchAndFilters() {
                 type="date"
                 value={filtros.dataFinalAte || ''}
                 onChange={(e) =>
-                  setFiltros({ ...filtros, dataFinalAte: e.target.value })
+                  onFiltrosChange({ ...filtros, dataFinalAte: e.target.value })
                 }
                 className="h-9"
               />
@@ -318,7 +338,7 @@ export function SearchAndFilters() {
                 placeholder="0,00"
                 value={filtros.valorMinimo || ''}
                 onChange={(e) =>
-                  setFiltros({
+                  onFiltrosChange({
                     ...filtros,
                     valorMinimo: e.target.value
                       ? Number(e.target.value)
@@ -341,7 +361,7 @@ export function SearchAndFilters() {
                 placeholder="0,00"
                 value={filtros.valorMaximo || ''}
                 onChange={(e) =>
-                  setFiltros({
+                  onFiltrosChange({
                     ...filtros,
                     valorMaximo: e.target.value
                       ? Number(e.target.value)
@@ -382,7 +402,7 @@ export function SearchAndFilters() {
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 ml-6 space-y-2">
           <div className="max-h-32 space-y-2 overflow-y-auto">
-            {unidadesMock.demandantes.map((unidade) => (
+            {unidadesConhecidas.map((unidade) => (
               <div key={unidade} className="flex items-center space-x-2">
                 <Checkbox
                   id={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}
@@ -419,14 +439,14 @@ export function SearchAndFilters() {
           <Input
             placeholder="Pesquisar contratos, fornecedores..."
             value={termoPesquisa}
-            onChange={(e) => setTermoPesquisa(e.target.value)}
+            onChange={(e) => onTermoPesquisaChange(e.target.value)}
             className="bg-background focus:border-primary h-10 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 sm:h-11"
           />
           {termoPesquisa && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setTermoPesquisa('')}
+              onClick={() => onTermoPesquisaChange('')}
               className="hover:bg-muted absolute top-1/2 right-2 h-6 w-6 -translate-y-1/2 transform p-0"
             >
               <X className="h-3 w-3" />

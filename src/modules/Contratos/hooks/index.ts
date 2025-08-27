@@ -14,9 +14,11 @@ export {
   useEmpresa, 
   useEmpresas 
 } from './use-empresas'
+export { useDocumentos } from './use-documentos'
 
 // Hooks de Timeline
 export { useTimelineIntegration } from './useTimelineIntegration'
+export { useUploadDocumento, useDeleteDocumento, useUpdateDocumento, useCreateDocumento, useUpdateDocumentosMultiplos, useUpdateDocumentoStatus } from './use-documentos-mutations'
 
 // Hooks de Toast
 export { useToast } from './useToast'

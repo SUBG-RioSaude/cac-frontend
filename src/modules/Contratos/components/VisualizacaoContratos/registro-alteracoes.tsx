@@ -24,7 +24,7 @@ import {
   FileEdit,
   Bookmark,
 } from 'lucide-react'
-import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato-detalhado'
+import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
 

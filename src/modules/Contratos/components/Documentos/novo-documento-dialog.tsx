@@ -29,8 +29,8 @@ import {
   Loader2
 } from 'lucide-react'
 
-import type { DocumentoContrato, TipoDocumento } from '@/modules/Contratos/types/documento-contrato'
-import { TIPOS_DOCUMENTO } from '@/modules/Contratos/types/documento-contrato'
+import type { DocumentoContrato, TipoDocumento } from '@/modules/Contratos/types/contrato'
+import { TIPOS_DOCUMENTO } from '@/modules/Contratos/types/contrato'
 
 const tipoIcons = {
   FileText,
