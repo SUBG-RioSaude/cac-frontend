@@ -9,10 +9,10 @@ O sistema implementa um mecanismo de fallback automático onde as requisições 
 ### Variáveis de Ambiente (.env)
 ```bash
 # Gateway principal (primeira tentativa)
-VITE_API_URL="http://devcac:8080/api"
+VITE_API_URL="http://devcac:7000/api"
 
 # Microserviço direto (fallback)
-VITE_API_URL_CONTRATOS="http://devcac:7006/api"
+VITE_API_URL_CONTRATOS="http://devcac:7000/api"
 ```
 
 ## Como Funciona
