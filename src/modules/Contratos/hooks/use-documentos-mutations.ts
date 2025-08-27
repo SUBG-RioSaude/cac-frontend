@@ -7,9 +7,16 @@ import {
   deleteDocumento, 
   updateDocumento, 
   createDocumento,
-  type CreateDocumentoPayload
+  saveDocumentosMultiplos,
+  saveDocumentoStatus
 } from '@/modules/Contratos/services/documentos-service'
-import type { DocumentoContratoDto } from '@/modules/Contratos/types/contrato'
+import type { 
+  DocumentoContratoDto, 
+  CreateDocumentoApiPayload, 
+  UpdateDocumentoApiPayload,
+  SaveDocumentosMultiplosPayload,
+  DocumentoMultiplo
+} from '@/modules/Contratos/types/contrato'
 
 interface UploadDocumentoData {
   contratoId: string
@@ -17,16 +24,29 @@ interface UploadDocumentoData {
 }
 
 interface DeleteDocumentoData {
+  contratoId: string
   documentoId: string
 }
 
 interface UpdateDocumentoData {
+  contratoId: string
   documentoId: string
-  payload: Partial<Omit<DocumentoContratoDto, 'id' | 'contratoId'>>
+  payload: UpdateDocumentoApiPayload
 }
 
 interface CreateDocumentoData {
-  payload: CreateDocumentoPayload
+  contratoId: string
+  payload: CreateDocumentoApiPayload
+}
+
+interface SaveDocumentosMultiplosData {
+  contratoId: string
+  payload: SaveDocumentosMultiplosPayload
+}
+
+interface SaveDocumentoStatusData {
+  contratoId: string
+  documento: DocumentoMultiplo
 }
 
 
@@ -45,7 +65,7 @@ export function useUploadDocumento() {
       const loadingToast = mutation.loading('Enviando documento...')
       return { loadingToast }
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (_data, variables, context) => {
       if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
@@ -77,11 +97,7 @@ export function useDeleteDocumento() {
       return deleteDocumento(data.documentoId)
     },
     onMutate: async (data) => {
-      // We need contratoId for invalidation, but it's not in DeleteDocumentoData anymore.
-      // This means we need to pass it down from the component or fetch it from cache.
-      // For now, we'll assume the component will pass it if needed for optimistic update.
-      // Or, we invalidate more broadly.
-      const contratoId = queryClient.getQueryData(contratoKeys.documentos(data.documentoId))?.[0]?.contratoId || ''; // Fallback
+      const contratoId = data.contratoId
 
       const loadingToast = mutation.loading('Excluindo documento...')
 
@@ -101,7 +117,7 @@ export function useDeleteDocumento() {
 
       return { previousDocumentos, loadingToast, contratoId }
     },
-    onSuccess: (_data, variables, context) => {
+    onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
@@ -112,7 +128,7 @@ export function useDeleteDocumento() {
         queryKey: contratoKeys.documentos(context?.contratoId),
       })
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
@@ -140,9 +156,7 @@ export function useUpdateDocumento() {
       return updateDocumento(data.documentoId, data.payload)
     },
     onMutate: async (data) => {
-      // We need contratoId for invalidation, but it's not in UpdateDocumentoData anymore.
-      // This means we need to pass it down from the component or fetch it from cache.
-      const contratoId = queryClient.getQueryData(contratoKeys.documentos(data.documentoId))?.[0]?.contratoId || ''; // Fallback
+      const contratoId = data.contratoId
 
       const loadingToast = mutation.loading('Atualizando documento...')
       await queryClient.cancelQueries({ queryKey: contratoKeys.documentos(contratoId) })
@@ -161,14 +175,14 @@ export function useUpdateDocumento() {
 
       return { previousDocumentos, loadingToast, contratoId }
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
       mutation.success('Documento atualizado com sucesso!')
       queryClient.invalidateQueries({ queryKey: contratoKeys.documentos(context?.contratoId) })
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
@@ -195,9 +209,7 @@ export function useCreateDocumento() {
       return createDocumento(data.payload);
     },
     onMutate: async (data) => {
-      // We need contratoId for invalidation, but it's not in CreateDocumentoData anymore.
-      // It must be in the payload.
-      const contratoId = data.payload.contratoId;
+      const contratoId = data.contratoId
 
       const loadingToast = mutation.loading('Registrando documento...');
       await queryClient.cancelQueries({ queryKey: contratoKeys.documentos(contratoId) });
@@ -215,7 +227,7 @@ export function useCreateDocumento() {
 
       return { previousDocumentos, loadingToast, contratoId };
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
         toast.dismiss(context.loadingToast);
       }
@@ -240,4 +252,99 @@ export function useCreateDocumento() {
       mutation.error('Falha ao registrar documento', error);
     },
   });
+}
+
+/**
+ * Hook para salvar múltiplos documentos em lote.
+ */
+export function useUpdateDocumentosMultiplos() {
+  const queryClient = useQueryClient()
+  const { mutation } = useToast()
+
+  return useMutation({
+    mutationFn: async (data: SaveDocumentosMultiplosData): Promise<DocumentoContratoDto[]> => {
+      return saveDocumentosMultiplos(data.contratoId, data.payload)
+    },
+    onMutate: async (data) => {
+      const contratoId = data.contratoId
+      const loadingToast = mutation.loading('Salvando documentos...')
+      
+      await queryClient.cancelQueries({ 
+        queryKey: contratoKeys.documentos(contratoId) 
+      })
+
+      const previousDocumentos = queryClient.getQueryData<DocumentoContratoDto[]>(
+        contratoKeys.documentos(contratoId)
+      )
+
+      return { previousDocumentos, loadingToast, contratoId }
+    },
+    onSuccess: (_data, _variables, context) => {
+      if (context?.loadingToast) {
+        toast.dismiss(context.loadingToast)
+      }
+      mutation.success('Documentos salvos com sucesso!')
+
+      // Invalidar cache para buscar dados atualizados
+      queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context?.contratoId),
+      })
+    },
+    onError: (error, _variables, context) => {
+      if (context?.loadingToast) {
+        toast.dismiss(context.loadingToast)
+      }
+      if (context?.previousDocumentos) {
+        queryClient.setQueryData(
+          contratoKeys.documentos(context?.contratoId),
+          context.previousDocumentos
+        )
+      }
+      mutation.error('Falha ao salvar documentos', error)
+    },
+  })
+}
+
+/**
+ * Hook para salvar status de entrega de um documento específico.
+ */
+export function useUpdateDocumentoStatus() {
+  const queryClient = useQueryClient()
+  const { mutation } = useToast()
+
+  return useMutation({
+    mutationFn: async (data: SaveDocumentoStatusData): Promise<DocumentoContratoDto[]> => {
+      return saveDocumentoStatus(data.contratoId, data.documento)
+    },
+    onMutate: async (data) => {
+      const contratoId = data.contratoId
+      
+      await queryClient.cancelQueries({ 
+        queryKey: contratoKeys.documentos(contratoId) 
+      })
+
+      const previousDocumentos = queryClient.getQueryData<DocumentoContratoDto[]>(
+        contratoKeys.documentos(contratoId)
+      )
+
+      return { previousDocumentos, contratoId }
+    },
+    onSuccess: (_data, _variables, context) => {
+      mutation.success('Status atualizado com sucesso!')
+
+      // Invalidar cache para buscar dados atualizados
+      queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context?.contratoId),
+      })
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousDocumentos) {
+        queryClient.setQueryData(
+          contratoKeys.documentos(context?.contratoId),
+          context.previousDocumentos
+        )
+      }
+      mutation.error('Falha ao atualizar status', error)
+    },
+  })
 }

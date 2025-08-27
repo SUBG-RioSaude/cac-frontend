@@ -1,6 +1,6 @@
 
 import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import { getToken } from './auth';
+import { getToken, logout, renovarToken } from './auth/auth';
 import { apiMetrics } from './api-metrics';
 
 // Cliente para Gateway (rota principal)

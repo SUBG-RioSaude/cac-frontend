@@ -34,7 +34,7 @@ export interface PaginacaoResponse<T> {
 export async function getContratos (
   filtros: ContratoParametros
 ): Promise<PaginacaoResponse<Contrato>> {
-  const response = await executeWithFallback<any>({
+  const response = await executeWithFallback<PaginacaoResponse<Contrato> | { dados: Contrato[] }>({ 
     method: 'get',
     url: '/contratos',
     params: filtros
@@ -48,12 +48,12 @@ export async function getContratos (
     // Usar metadados de paginação se existirem, senão criar defaults
     const paginatedResponse: PaginacaoResponse<Contrato> = {
       dados,
-      paginaAtual: response.data.paginaAtual || filtros.pagina || 1,
-      tamanhoPagina: response.data.tamanhoPagina || filtros.tamanhoPagina || dados.length,
-      totalRegistros: response.data.totalRegistros || dados.length,
-      totalPaginas: response.data.totalPaginas || 1,
-      temProximaPagina: response.data.temProximaPagina || false,
-      temPaginaAnterior: response.data.temPaginaAnterior || false
+      paginaAtual: ('paginaAtual' in response.data ? response.data.paginaAtual : filtros.pagina) || 1,
+      tamanhoPagina: ('tamanhoPagina' in response.data ? response.data.tamanhoPagina : filtros.tamanhoPagina) || dados.length,
+      totalRegistros: ('totalRegistros' in response.data ? response.data.totalRegistros : dados.length) || dados.length,
+      totalPaginas: ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
+      temProximaPagina: ('temProximaPagina' in response.data ? response.data.temProximaPagina : false) || false,
+      temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
     }
     
     return paginatedResponse
@@ -80,47 +80,41 @@ export async function getContratos (
   throw new Error('Formato de resposta da API não reconhecido')
 }
 
-// Função para mapear Contrato da API para ContratoDetalhado
-function mapearContratoParaDetalhado(contrato: Contrato): ContratoDetalhado {
-  // Calcular dias vigente
-  const hoje = new Date()
-  const dataInicio = new Date(contrato.vigenciaInicial)
-  const diffTime = hoje.getTime() - dataInicio.getTime()
-  const diasVigente = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
 
-  // Calcular percentual executado baseado nos dados disponíveis
-  const percentualExecutado = contrato.valorExecutado 
-    ? Math.round((contrato.valorExecutado / contrato.valorGlobal) * 100)
-    : 0
+// Função para buscar contrato detalhado por ID
+export async function getContratoDetalhado(id: string): Promise<ContratoDetalhado> {
+  console.log('🔍 getContratoDetalhado chamado para ID:', id)
+  
+  const response = await executeWithFallback<Contrato>({
+    method: 'get',
+    url: `/contratos/${id}`
+  })
 
-  const contratoDetalhado: ContratoDetalhado = {
-    // Campos base do Contrato
-    ...contrato,
+  console.log('✅ API Response recebida:', response.data)
+
+  // TEMPORÁRIO: bypass do mapeamento complexo para debug
+  if (!response.data) {
+    console.error('❌ Response.data é null/undefined')
+    throw new Error('Dados não recebidos da API')
+  }
+
+  // Mapeamento simplificado temporário
+  const contratoSimples: Record<string, unknown> = {
+    ...response.data,
+    numeroContrato: response.data.numeroContrato || response.data.id || 'Sem número',
+    objeto: response.data.descricaoObjeto || response.data.objeto || 'Sem descrição',
+    dataInicio: response.data.vigenciaInicial,
+    dataTermino: response.data.vigenciaFinal,
+    valorTotal: response.data.valorGlobal,
     
-    // Campos mapeados/renomeados para compatibilidade
-    numeroContrato: contrato.numeroContrato || '',
-    objeto: contrato.descricaoObjeto || '',
-    dataInicio: contrato.vigenciaInicial,
-    dataTermino: contrato.vigenciaFinal,
-    valorTotal: contrato.valorGlobal,
-    
-    // CCon (se disponível)
-    ccon: contrato.ccon ? {
-      numero: contrato.ccon.numero,
-      dataInicio: contrato.ccon.vigenciaInicial,
-      dataTermino: contrato.ccon.vigenciaFinal,
-    } : undefined,
-
-    // Responsáveis (estrutura padrão)
+    // Campos obrigatórios com defaults seguros
     responsaveis: {
-      fiscaisAdministrativos: contrato.responsaveis?.fiscaisAdministrativos || [],
-      gestores: contrato.responsaveis?.gestores || [],
+      fiscaisAdministrativos: [],
+      gestores: [],
     },
-
-    // Fornecedor (estrutura padrão)
-    fornecedor: contrato.fornecedor || {
-      razaoSocial: 'Não informado',
-      cnpj: '',
+    fornecedor: {
+      razaoSocial: response.data.contratada?.razaoSocial || 'Não informado',
+      cnpj: response.data.contratada?.cnpj || '',
       contatos: [],
       endereco: {
         logradouro: '',
@@ -131,25 +125,14 @@ function mapearContratoParaDetalhado(contrato: Contrato): ContratoDetalhado {
         cep: ''
       }
     },
-
-    // Unidades (estrutura padrão)
     unidades: {
-      demandante: contrato.unidades?.demandante || 'Não informado',
-      gestora: contrato.unidades?.gestora || 'Não informado',
-      vinculadas: contrato.unidades?.vinculadas || [],
+      demandante: response.data.unidadeDemandante || 'Não informado',
+      gestora: response.data.unidadeGestora || 'Não informado',
+      vinculadas: [],
     },
-
-    // Alterações (array vazio se não houver)
-    alteracoes: contrato.alteracoes || [],
-
-    // Documentos (mapeamento de tipos)
-    documentos: contrato.documentos?.map(doc => ({
-      ...doc,
-      // Garantir compatibilidade com interface legado
-    })) || [],
-
-    // Checklist de documentos (estrutura padrão)
-    documentosChecklist: contrato.documentosChecklist || {
+    alteracoes: [],
+    documentos: [],
+    documentosChecklist: {
       termoReferencia: { entregue: false },
       homologacao: { entregue: false },
       ataRegistroPrecos: { entregue: false },
@@ -158,27 +141,14 @@ function mapearContratoParaDetalhado(contrato: Contrato): ContratoDetalhado {
       publicacaoPncp: { entregue: false },
       publicacaoExtrato: { entregue: false },
     },
-
-    // Indicadores calculados
     indicadores: {
-      saldoAtual: contrato.valorGlobal - (contrato.valorExecutado || 0),
-      percentualExecutado,
-      cronogramaVigencia: contrato.indicadores?.cronogramaVigencia || [],
+      saldoAtual: response.data.valorGlobal,
+      percentualExecutado: 0,
+      cronogramaVigencia: [],
     },
   }
-
-  return contratoDetalhado
-}
-
-// Função para buscar contrato detalhado por ID
-export async function getContratoDetalhado(id: string): Promise<ContratoDetalhado> {
-  const response = await executeWithFallback<Contrato>({
-    method: 'get',
-    url: `/contratos/${id}`
-  })
-
-  // Mapear resposta da API para ContratoDetalhado
-  const contratoDetalhado = mapearContratoParaDetalhado(response.data)
   
-  return contratoDetalhado
+  console.log('📦 Contrato simplificado criado:', contratoSimples)
+  
+  return contratoSimples as unknown as ContratoDetalhado
 }

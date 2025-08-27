@@ -19,7 +19,7 @@ import { DetalhesContrato } from '../../components/VisualizacaoContratos/detalhe
 import { RegistroAlteracoes } from '../../components/VisualizacaoContratos/registro-alteracoes'
 import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/indicadores-relatorios'
 
-import type { ContratoDetalhado } from '../../types/contrato'
+// import type { ContratoDetalhado } from '../../types/contrato' // removido pois não está sendo usado
 import { useContratoDetalhado } from '../../hooks/use-contratos'
 import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
 import { currencyUtils } from '@/lib/utils'
@@ -37,7 +37,7 @@ import {
 } from '../../config/tabs-config'
 
 export function VisualizarContrato() {
-  const { id } = useParams<{ id: string }>()
+  const { contratoId: id } = useParams<{ contratoId: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
   const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
@@ -51,6 +51,14 @@ export function VisualizarContrato() {
     error,
     refetch
   } = useContratoDetalhado(id || '', { enabled: !!id })
+
+  console.log('🔍 VisualizarContrato Debug:', { 
+    id, 
+    contrato, 
+    loading, 
+    isError, 
+    error 
+  })
 
   
   // Integração com timeline
@@ -478,27 +486,7 @@ export function VisualizarContrato() {
 
                 {isTabEnabled('documentos') && (
                   <TabsContent value="documentos" className="mt-0 w-full">
-                    <TabDocumentos 
-                      checklistData={{
-                        termoReferencia: { entregue: false },
-                        homologacao: { entregue: false },
-                        ataRegistroPrecos: { entregue: false },
-                        garantiaContratual: { entregue: false },
-                        contrato: { entregue: false },
-                        publicacaoPncp: { entregue: false },
-                        publicacaoExtrato: { entregue: false }
-                      }}
-                      contratoId={contrato.id}
-                      onChecklistChange={(novaChecklist) => {
-                        console.log('Checklist atualizada:', novaChecklist)
-                        
-                        // Aqui seria feita a persistência via API
-                        console.log('Persistindo checklist no backend...', novaChecklist)
-                        
-                        // Refetch para atualizar dados com a API
-                        refetch()
-                      }}
-                    />
+                    <TabDocumentos contratoId={contrato.id} />
                   </TabsContent>
                 )}
 

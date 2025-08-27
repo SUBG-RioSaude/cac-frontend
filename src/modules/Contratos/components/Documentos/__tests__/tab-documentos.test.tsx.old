@@ -1,0 +1,492 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { TabDocumentos } from '../tab-documentos'
+import type { DocumentoContratoDto } from '@/modules/Contratos/types/contrato'
+
+// Mock do sonner toast
+vi.mock('sonner', () => ({
+  toast: {
+    dismiss: vi.fn(),
+  },
+}))
+
+// Mock dos hooks
+const mockUseDocumentos = vi.fn()
+const mockUpdateMutation = vi.fn()
+
+vi.mock('@/modules/Contratos/hooks', () => ({
+  useDocumentos: () => mockUseDocumentos(),
+  useUpdateDocumentosMultiplos: () => mockUpdateMutation(),
+}))
+
+// Mock do useToast
+vi.mock('@/modules/Contratos/hooks/useToast', () => ({
+  useToast: () => ({
+    mutation: {
+      loading: vi.fn(() => 'loading-toast-id'),
+      success: vi.fn(),
+      error: vi.fn(),
+    },
+  }),
+}))
+
+// Helper para renderizar com QueryClient
+function renderWithQueryClient(component: React.ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+  
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {component}
+    </QueryClientProvider>
+  )
+}
+
+describe('TabDocumentos', () => {
+  const contratoId = 'contrato-123'
+  
+  const mockDocumentosApi: DocumentoContratoDto[] = [
+    {
+      id: 'doc-1',
+      contratoId,
+      nome: 'Termo de Referência/Edital',
+      tipo: '1',
+      categoria: 'obrigatorio',
+      status: 'conferido',
+      linkExterno: 'https://exemplo.com/termo',
+      observacoes: 'Documento entregue',
+      dataCadastro: '2025-01-01T10:00:00Z',
+      dataAtualizacao: '2025-01-02T14:00:00Z',
+    },
+    {
+      id: 'doc-2',
+      contratoId,
+      nome: 'Homologação',
+      tipo: '2',
+      categoria: 'obrigatorio',
+      status: 'pendente',
+      observacoes: '',
+      dataCadastro: '2025-01-01T10:00:00Z',
+      dataAtualizacao: null,
+    }
+  ]
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    
+    // Setup padrão dos mocks
+    mockUseDocumentos.mockReturnValue({
+      data: mockDocumentosApi,
+      isLoading: false,
+      error: null,
+    })
+    
+    mockUpdateMutation.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    })
+  })
+
+  describe('Renderização', () => {
+    it('deve renderizar o título e progresso', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      expect(screen.getByText('Checklist de Documentos')).toBeInTheDocument()
+      expect(screen.getByText('Progresso')).toBeInTheDocument()
+      expect(screen.getByText('1 de 7 entregues')).toBeInTheDocument()
+    })
+
+    it('deve renderizar todos os 7 tipos de documento', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      expect(screen.getByLabelText('Termo de Referência/Edital')).toBeInTheDocument()
+      expect(screen.getByLabelText('Homologação')).toBeInTheDocument()
+      expect(screen.getByLabelText('Ata de Registro de Preços')).toBeInTheDocument()
+      expect(screen.getByLabelText('Garantia Contratual')).toBeInTheDocument()
+      expect(screen.getByLabelText('Contrato')).toBeInTheDocument()
+      expect(screen.getByLabelText('Publicação PNCP')).toBeInTheDocument()
+      expect(screen.getByLabelText('Publicação de Extrato Contratual')).toBeInTheDocument()
+    })
+
+    it('deve mostrar estado de loading', () => {
+      mockUseDocumentos.mockReturnValue({
+        data: [],
+        isLoading: true,
+        error: null,
+      })
+
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+      
+      const skeletons = document.querySelectorAll('[data-slot="skeleton"]')
+      expect(skeletons).toHaveLength(2)
+    })
+
+    it('deve mostrar erro quando API falha', () => {
+      mockUseDocumentos.mockReturnValue({
+        data: [],
+        isLoading: false,
+        error: new Error('Erro da API'),
+      })
+
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+      
+      expect(screen.getByText('Erro')).toBeInTheDocument()
+      expect(screen.getByText('Não foi possível carregar o checklist de documentos.')).toBeInTheDocument()
+    })
+  })
+
+  describe('Grid Layout', () => {
+    it('deve aplicar classes de grid responsivo', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+      
+      const gridContainer = screen.getByText('Termo de Referência/Edital').closest('.grid')
+      expect(gridContainer).toHaveClass('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+    })
+
+    it('deve renderizar cards compactos', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+      
+      const card = screen.getByText('Termo de Referência/Edital').closest('.p-3')
+      expect(card).toBeInTheDocument()
+    })
+  })
+
+  describe('Sincronização com API', () => {
+    it('deve sincronizar dados da API com estado local', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      // Documento conferido deve aparecer marcado
+      expect(screen.getByLabelText('Termo de Referência/Edital')).toBeChecked()
+      
+      // Documento pendente deve aparecer desmarcado  
+      expect(screen.getByLabelText('Homologação')).not.toBeChecked()
+    })
+
+    it('deve preencher URL quando disponível na API', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const urlInput = screen.getByDisplayValue('https://exemplo.com/termo')
+      expect(urlInput).toBeInTheDocument()
+    })
+
+    it('deve filtrar "sem url" da API', () => {
+      const mockComSemUrl = [
+        {
+          ...mockDocumentosApi[0],
+          linkExterno: 'sem url'
+        }
+      ]
+      
+      mockUseDocumentos.mockReturnValue({
+        data: mockComSemUrl,
+        isLoading: false,
+        error: null,
+      })
+
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      // Deve ter pelo menos um input URL vazio após filtrar "sem url"
+      const urlInputs = screen.getAllByPlaceholderText('https://...')
+      const inputVazio = urlInputs.find(input => input.getAttribute('value') === '')
+      expect(inputVazio).toBeInTheDocument()
+    })
+  })
+
+  describe('Interações de Checkbox', () => {
+    it('deve marcar checkbox e definir mudanças não salvas', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Ata de Registro de Preços')
+      expect(checkbox).not.toBeChecked()
+
+      await user.click(checkbox)
+
+      expect(checkbox).toBeChecked()
+      expect(screen.getByText('Há alterações não salvas')).toBeInTheDocument()
+    })
+
+    it('deve desmarcar checkbox quando já marcado', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Termo de Referência/Edital')
+      expect(checkbox).toBeChecked()
+
+      await user.click(checkbox)
+
+      expect(checkbox).not.toBeChecked()
+      expect(screen.getByText('Há alterações não salvas')).toBeInTheDocument()
+    })
+  })
+
+  describe('Edição de Campos', () => {
+    it('deve atualizar URL e marcar mudanças não salvas', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const urlInputs = screen.getAllByPlaceholderText('https://...')
+      const urlInput = urlInputs[0] as HTMLInputElement
+      
+      await user.click(urlInput)
+      await user.type(urlInput, 'https://novo-url.com')
+
+      await waitFor(() => {
+        expect(screen.getByText('Há alterações não salvas')).toBeInTheDocument()
+      })
+    })
+
+    it('deve atualizar observações e marcar mudanças não salvas', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const obsTextareas = screen.getAllByPlaceholderText('Observações...')
+      const obsTextarea = obsTextareas.find(textarea => !textarea.getAttribute('value')) as HTMLTextAreaElement
+      
+      await user.click(obsTextarea)
+      await user.type(obsTextarea, 'Nova observação')
+
+      await waitFor(() => {
+        expect(obsTextarea.value).toContain('Nova observação')
+        expect(screen.getByText('Há alterações não salvas')).toBeInTheDocument()
+      })
+    })
+
+    it('deve mostrar botão de link externo quando URL está preenchida', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const urlInputs = screen.getAllByPlaceholderText('https://...')
+      await user.type(urlInputs[1], 'https://exemplo.com')
+
+      await waitFor(() => {
+        const links = screen.getAllByRole('link')
+        expect(links.length).toBeGreaterThan(0)
+        const newLink = links.find(link => link.getAttribute('href') === 'https://exemplo.com')
+        expect(newLink).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Dialog de Confirmação', () => {
+    it('deve abrir dialog quando clica em salvar', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      // Fazer uma mudança para habilitar o botão
+      const checkbox = screen.getByLabelText('Ata de Registro de Preços')
+      await user.click(checkbox)
+
+      const saveButton = screen.getByText('Salvar Alterações')
+      await user.click(saveButton)
+
+      expect(screen.getByText('Salvar Alterações')).toBeInTheDocument()
+      expect(screen.getByText('Deseja salvar todas as alterações nos documentos? Isso incluirá status de entrega, URLs e observações.')).toBeInTheDocument()
+    })
+
+    it('deve cancelar dialog sem fazer mudanças', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Ata de Registro de Preços')
+      await user.click(checkbox)
+
+      const saveButton = screen.getByText('Salvar Alterações')
+      await user.click(saveButton)
+
+      const cancelButton = screen.getByText('Cancelar')
+      await user.click(cancelButton)
+
+      await waitFor(() => {
+        expect(screen.queryByText('Deseja salvar todas as alterações')).not.toBeInTheDocument()
+      })
+    })
+
+    it('deve confirmar e chamar mutation', async () => {
+      const mockMutate = vi.fn()
+      mockUpdateMutation.mockReturnValue({
+        mutate: mockMutate,
+        isPending: false,
+      })
+
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Ata de Registro de Preços')
+      await user.click(checkbox)
+
+      const saveButton = screen.getByText('Salvar Alterações')
+      await user.click(saveButton)
+
+      const confirmButton = screen.getByText('Salvar Tudo')
+      await user.click(confirmButton)
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        contratoId,
+        payload: {
+          documentos: expect.arrayContaining([
+            expect.objectContaining({
+              tipoDocumento: 3,
+              selecionado: true,
+              urlDocumento: 'sem url',
+            })
+          ])
+        }
+      })
+    })
+  })
+
+  describe('Estado do Botão Salvar', () => {
+    it('deve desabilitar botão quando não há mudanças', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+      
+      const saveButton = screen.getByText('Salvar Alterações')
+      expect(saveButton).toBeDisabled()
+    })
+
+    it('deve habilitar botão quando há mudanças', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Contrato')
+      await user.click(checkbox)
+
+      const saveButton = screen.getByText('Salvar Alterações')
+      expect(saveButton).toBeEnabled()
+    })
+
+    it('deve mostrar loading quando mutation está pendente', () => {
+      mockUpdateMutation.mockReturnValue({
+        mutate: vi.fn(),
+        isPending: true,
+      })
+
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      expect(screen.getByRole('button', { name: /loading/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('Cálculo de Progresso', () => {
+    it('deve calcular progresso corretamente', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      // 1 de 7 documentos marcados = ~14%
+      expect(screen.getByText('14%')).toBeInTheDocument()
+      expect(screen.getByText('1 de 7 entregues')).toBeInTheDocument()
+    })
+
+    it('deve atualizar progresso quando documentos são marcados', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Homologação')
+      await user.click(checkbox)
+
+      // 2 de 7 documentos = ~29%
+      expect(screen.getByText('29%')).toBeInTheDocument()
+      expect(screen.getByText('2 de 7 entregues')).toBeInTheDocument()
+    })
+  })
+
+  describe('Formatação de Data', () => {
+    it('deve formatar data de entrega corretamente', () => {
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      expect(screen.getByText(/Entregue em.*jan.*2025/)).toBeInTheDocument()
+    })
+
+    it('deve definir data automaticamente quando marca checkbox', async () => {
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Garantia Contratual')
+      await user.click(checkbox)
+
+      // Deve aparecer data de hoje
+      const today = new Date().toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      })
+      
+      await waitFor(() => {
+        expect(screen.getByText(`Entregue em ${today}`)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Payload da API', () => {
+    it('deve enviar "sem url" quando URL está vazia', async () => {
+      const mockMutate = vi.fn()
+      mockUpdateMutation.mockReturnValue({
+        mutate: mockMutate,
+        isPending: false,
+      })
+
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      const checkbox = screen.getByLabelText('Publicação PNCP')
+      await user.click(checkbox)
+
+      const saveButton = screen.getByText('Salvar Alterações')
+      await user.click(saveButton)
+
+      const confirmButton = screen.getByText('Salvar Tudo')
+      await user.click(confirmButton)
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        contratoId,
+        payload: {
+          documentos: expect.arrayContaining([
+            expect.objectContaining({
+              tipoDocumento: 6,
+              urlDocumento: 'sem url',
+              selecionado: true,
+            })
+          ])
+        }
+      })
+    })
+
+    it('deve enviar URL real quando preenchida', async () => {
+      const mockMutate = vi.fn()
+      mockUpdateMutation.mockReturnValue({
+        mutate: mockMutate,
+        isPending: false,
+      })
+
+      const user = userEvent.setup()
+      renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
+
+      // Preencher URL
+      const urlInput = screen.getAllByPlaceholderText('https://...')[2]
+      await user.type(urlInput, 'https://meu-documento.com')
+
+      const saveButton = screen.getByText('Salvar Alterações')
+      await user.click(saveButton)
+
+      const confirmButton = screen.getByText('Salvar Tudo')
+      await user.click(confirmButton)
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        contratoId,
+        payload: {
+          documentos: expect.arrayContaining([
+            expect.objectContaining({
+              tipoDocumento: 3,
+              urlDocumento: 'https://meu-documento.com',
+            })
+          ])
+        }
+      })
+    })
+  })
+})

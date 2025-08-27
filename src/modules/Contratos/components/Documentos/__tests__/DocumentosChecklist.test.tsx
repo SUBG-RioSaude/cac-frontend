@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DocumentosChecklist } from '../DocumentosChecklist'
@@ -262,8 +262,8 @@ describe('DocumentosChecklist', () => {
     it('deve lidar com checklistData undefined/null graciosamente', () => {
       const checklistDataComUndefined = {
         ...checklistDataVazio,
-        termoReferencia: undefined as any,
-        homologacao: null as any
+        termoReferencia: undefined as never,
+        homologacao: null as never
       }
 
       render(

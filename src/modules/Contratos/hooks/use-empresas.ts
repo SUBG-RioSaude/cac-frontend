@@ -6,11 +6,11 @@
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { cadastrarEmpresa, consultarEmpresaPorCNPJ } from '@/modules/Contratos/services/contratos-service'
 import { empresaKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from './useToast'
 import { useErrorHandler } from '@/hooks/use-error-handler'
 import type { EmpresaRequest, EmpresaResponse } from '@/modules/Contratos/types/empresa'
+import { consultarEmpresaPorCNPJ, cadastrarEmpresa } from '../services/empresa-service'
 
 /**
  * Hook para consultar empresa por CNPJ

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ValoresCalculator } from '../valores-calculator'
@@ -6,7 +6,7 @@ import { ValoresCalculator } from '../valores-calculator'
 // Mock do Framer Motion apenas para evitar problemas de animação nos testes
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>
   }
 }))
 
@@ -91,7 +91,7 @@ describe('ValoresCalculator', () => {
 
       // Verifica que o campo aceita entrada (não precisa validar formatação exata)
       // Focamos na funcionalidade, não na implementação específica da máscara
-      const inputValue = input.value
+      const inputValue = (input as HTMLInputElement).value
       expect(typeof inputValue).toBe('string')
     })
 

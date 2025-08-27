@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -10,10 +10,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   FileText,
-  CheckCircle,
   ExternalLink,
-  Edit,
   Save,
   Calendar,
   BarChart3,
@@ -21,160 +27,320 @@ import {
   Loader2,
 } from 'lucide-react';
 
-import { useDocumentos, useUpdateDocumento, useCreateDocumento } from '../../hooks';
-import type { DocumentoContratoDto } from '../../types/contrato';
+import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
+import type { DocumentoMultiplo } from '../../types/contrato'
 
 interface TabDocumentosProps {
   contratoId: string;
 }
 
-const tiposDeDocumentoObrigatorio = [
-  { key: 'termo_referencia', nome: 'Termo de Referência/Edital', tipo: '1' },
-  { key: 'homologacao', nome: 'Homologação', tipo: '2' },
-  { key: 'ata_registro_precos', nome: 'Ata de Registro de Preços', tipo: '3' },
-  { key: 'garantia_contratual', nome: 'Garantia Contratual', tipo: '4' },
-  { key: 'contrato', nome: 'Contrato', tipo: '5' },
-  { key: 'publicacao_pncp', nome: 'Publicação PNCP', tipo: '6' },
-  { key: 'publicacao_extrato', nome: 'Publicação de Extrato Contratual', tipo: '7' },
-];
+// Tipos de documento obrigatórios (1-7 conforme API)
+const tiposDeDocumento = [
+  { tipo: 1, nome: 'Termo de Referência/Edital', key: 'termo_referencia', apiName: 'TermoReferencia' },
+  { tipo: 2, nome: 'Homologação', key: 'homologacao', apiName: 'Homologacao' },
+  { tipo: 3, nome: 'Ata de Registro de Preços', key: 'ata_registro_precos', apiName: 'AtaRegistroPrecos' },
+  { tipo: 4, nome: 'Garantia Contratual', key: 'garantia_contratual', apiName: 'GarantiaContratual' },
+  { tipo: 5, nome: 'Contrato', key: 'contrato', apiName: 'Contrato' },
+  { tipo: 6, nome: 'Publicação PNCP', key: 'publicacao_pncp', apiName: 'PublicacaoPNCP' },
+  { tipo: 7, nome: 'Publicação de Extrato Contratual', key: 'publicacao_extrato', apiName: 'PublicacaoExtrato' },
+]
+
+interface DocumentoLocal {
+  tipo: number
+  nome: string
+  key: string
+  apiName: string
+  selecionado: boolean
+  urlDocumento: string
+  observacoes: string
+  dataEntrega?: string
+}
 
 export function TabDocumentos({ contratoId }: TabDocumentosProps) {
   const { data: documentosApi = [], isLoading, error } = useDocumentos(contratoId);
-  const updateMutation = useUpdateDocumento();
-  const createMutation = useCreateDocumento();
+  const updateMutation = useUpdateDocumentosMultiplos();
 
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [tempLink, setTempLink] = useState('');
-  const [tempObservacoes, setTempObservacoes] = useState('');
+  // Estados para confirmações
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const checklistItems = useMemo(() => {
-    return tiposDeDocumentoObrigatorio.map(tipoEstatico => {
-      const docApi = documentosApi.find(d => d.tipo === tipoEstatico.tipo);
-      if (docApi) {
-        return { ...docApi, key: tipoEstatico.key, nome: tipoEstatico.nome };
-      }
-      return {
-        id: null,
-        key: tipoEstatico.key,
-        nome: tipoEstatico.nome,
-        tipo: tipoEstatico.tipo,
-        status: 'pendente',
-        linkExterno: null,
-        observacoes: '',
-        dataAtualizacao: null,
-      };
-    });
-  }, [documentosApi]);
+  // Estado local dos documentos (todos os 7 tipos sempre)
+  const [documentosLocais, setDocumentosLocais] = useState<DocumentoLocal[]>(() => 
+    tiposDeDocumento.map(tipo => ({
+      tipo: tipo.tipo,
+      nome: tipo.nome,
+      key: tipo.key,
+      apiName: tipo.apiName,
+      selecionado: false,
+      urlDocumento: '',
+      observacoes: '',
+    }))
+  )
 
-  const progressData = useMemo(() => {
-    const entregues = checklistItems.filter(doc => doc.status === 'conferido' || doc.status === 'entregue').length;
-    const total = checklistItems.length;
-    const percentual = total > 0 ? Math.round((entregues / total) * 100) : 0;
-    return { entregues, total, percentual };
-  }, [checklistItems]);
-
-  const handleStartEditing = (documento: (typeof checklistItems)[0]) => {
-    setEditingKey(documento.key);
-    setTempLink(documento.linkExterno || '');
-    setTempObservacoes(documento.observacoes || '');
-  };
-
-  const handleSave = (documento: (typeof checklistItems)[0]) => {
-    const temLink = tempLink.trim() !== '';
-    const commonPayload = {
-      contratoId:  contratoId,
-      nome: documento.nome,
-      tipo: documento.tipo,
-      linkExterno: temLink ? tempLink : undefined,
-      observacoes: tempObservacoes,
-      status: temLink ? 'conferido' : 'pendente',
-      dataEntrega: new Date().toISOString(), // Requerido pela API de criação
-      dataAtualizacao: new Date().toISOString(),
-    };
-
-    const onSuccess = () => {
-      setEditingKey(null);
-      setTempLink('');
-      setTempObservacoes('');
-    };
-
-    if (documento.id) {
-      updateMutation.mutate({ contratoId, documentoId: documento.id, payload: commonPayload }, { onSuccess });
-    } else {
-      createMutation.mutate({ contratoId, payload: commonPayload }, { onSuccess });
+  // Sincronizar com dados da API quando carregarem
+  useMemo(() => {
+    if (documentosApi.length > 0) {
+      setDocumentosLocais(prev => 
+        prev.map(local => {
+          // Buscar documento da API pelo tipo numérico
+          const docApi = documentosApi.find(d => d.tipo === local.tipo.toString())
+          if (docApi) {
+            return {
+              ...local,
+              selecionado: docApi.status === 'conferido', // baseado no campo 'ativo' da API
+              urlDocumento: docApi.linkExterno && docApi.linkExterno !== 'sem url' ? docApi.linkExterno : '',
+              observacoes: docApi.observacoes || '',
+              dataEntrega: docApi.dataAtualizacao || undefined
+            }
+          }
+          return local
+        })
+      )
     }
-  };
+  }, [documentosApi])
 
-  const formatarData = (data?: string | null) => {
+  // Calcular progresso
+  const progressData = useMemo(() => {
+    const entregues = documentosLocais.filter(doc => doc.selecionado).length
+    const total = documentosLocais.length
+    const percentual = total > 0 ? Math.round((entregues / total) * 100) : 0
+    return { entregues, total, percentual }
+  }, [documentosLocais])
+
+  // Atualizar documento local
+  const atualizarDocumento = useCallback((key: string, campo: keyof DocumentoLocal, valor: string | boolean) => {
+    setDocumentosLocais(prev => 
+      prev.map(doc => 
+        doc.key === key 
+          ? { 
+              ...doc, 
+              [campo]: valor,
+              // Quando marca como selecionado, define data automaticamente
+              ...(campo === 'selecionado' && valor === true ? { dataEntrega: new Date().toISOString() } : {})
+            }
+          : doc
+      )
+    )
+    
+    // Marcar como tendo mudanças não salvas
+    setHasUnsavedChanges(true)
+  }, [])
+
+  // Salvar todas as alterações (com confirmação)
+  const handleSalvarTodos = useCallback(() => {
+    setShowSaveConfirm(true)
+  }, [])
+
+  // Confirmar e salvar todas as alterações
+  const confirmarSalvarTodos = useCallback(() => {
+    const payload = {
+      documentos: documentosLocais.map(doc => ({
+        tipoDocumento: doc.tipo,
+        urlDocumento: doc.urlDocumento || 'sem url',
+        dataEntrega: doc.dataEntrega || new Date().toISOString(),
+        observacoes: doc.observacoes || '',
+        selecionado: doc.selecionado
+      } as DocumentoMultiplo))
+    }
+
+    updateMutation.mutate({ contratoId, payload })
+    setShowSaveConfirm(false)
+    setHasUnsavedChanges(false)
+  }, [contratoId, documentosLocais, updateMutation])
+
+  const formatarData = useCallback((data?: string) => {
     if (!data) return null;
-    return new Date(data).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
+    return new Date(data).toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric' 
+    });
+  }, [])
 
   if (isLoading) {
-    return <Card><CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>;
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-40 w-full" />
+        </CardContent>
+      </Card>
+    )
   }
 
   if (error) {
-    return <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>Erro</AlertTitle><AlertDescription>Não foi possível carregar o checklist.</AlertDescription></Alert>;
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erro</AlertTitle>
+        <AlertDescription>
+          Não foi possível carregar o checklist de documentos.
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2"><FileText />Checklist de Documentos</CardTitle>
-          <Badge variant="outline">{progressData.entregues} de {progressData.total} entregues</Badge>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Checklist de Documentos
+          </CardTitle>
+          <Badge variant="outline">
+            {progressData.entregues} de {progressData.total} entregues
+          </Badge>
         </div>
       </CardHeader>
+      
       <CardContent className="space-y-6">
-        <div>
-          <div className="flex items-center justify-between text-sm"><span><BarChart3 className="inline h-4 w-4 mr-1" />Progresso</span><span>{progressData.percentual}%</span></div>
-          <Progress value={progressData.percentual} />
+        {/* Progresso */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-1">
+              <BarChart3 className="h-4 w-4" />
+              Progresso
+            </span>
+            <span className="font-medium">{progressData.percentual}%</span>
+          </div>
+          <Progress value={progressData.percentual} className="h-2" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {checklistItems.map((documento) => {
-            const isChecked = documento.status === 'conferido' || documento.status === 'entregue';
-            const isEditing = editingKey === documento.key;
-            const isSaving = (updateMutation.isPending || createMutation.isPending) && editingKey === documento.key;
 
-            return (
-              <div key={documento.key} className="p-4 rounded-lg border bg-card space-y-3">
-                <div className="flex items-start space-x-3">
-                  <Checkbox id={documento.key} checked={isChecked} disabled className="mt-1"/>
-                  <div className="flex-1 space-y-1">
-                    <Label htmlFor={documento.key}>{documento.nome}</Label>
-                    {isChecked && documento.dataAtualizacao && <div className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Entregue em {formatarData(documento.dataAtualizacao)}</div>}
-                  </div>
-                  {!isEditing && <Button variant="ghost" size="sm" onClick={() => handleStartEditing(documento)}><Edit className="h-3 w-3" /></Button>}
+        {/* Grid de documentos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {documentosLocais.map((documento) => (
+            <div 
+              key={documento.key} 
+              className={`p-3 rounded-lg border transition-colors ${
+                documento.selecionado 
+                  ? 'border-green-200 bg-green-50' 
+                  : 'border-gray-200 bg-white'
+              }`}
+            >
+              {/* Header do documento */}
+              <div className="flex items-start gap-2 mb-3">
+                <Checkbox 
+                  id={documento.key}
+                  checked={documento.selecionado}
+                  onCheckedChange={(checked) => 
+                    atualizarDocumento(documento.key, 'selecionado', checked === true)
+                  }
+                  className="mt-0.5 shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <Label htmlFor={documento.key} className="text-xs font-medium leading-4 block">
+                    {documento.nome}
+                  </Label>
+                  {documento.selecionado && documento.dataEntrega && (
+                    <div className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                      <Calendar className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{formatarData(documento.dataEntrega)}</span>
+                    </div>
+                  )}
                 </div>
-                
-                {isEditing ? (
-                  <div className="space-y-2">
-                    <div>
-                      <Label htmlFor={`link-${documento.key}`} className="text-xs font-medium">Link</Label>
-                      <Input id={`link-${documento.key}`} value={tempLink} onChange={(e) => setTempLink(e.target.value)} placeholder="https://..." disabled={isSaving} />
-                    </div>
-                    <div>
-                      <Label htmlFor={`obs-${documento.key}`} className="text-xs font-medium">Observações</Label>
-                      <Textarea id={`obs-${documento.key}`} value={tempObservacoes} onChange={(e) => setTempObservacoes(e.target.value)} placeholder="Observações..." disabled={isSaving} />
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" onClick={() => setEditingKey(null)} disabled={isSaving}>Cancelar</Button>
-                      <Button onClick={() => handleSave(documento)} disabled={isSaving}>
-                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {documento.linkExterno ? <Button variant="outline" size="sm" asChild><a href={documento.linkExterno} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-1" />Visualizar</a></Button> : <div className="text-xs text-muted-foreground italic">Nenhum link fornecido.</div>}
-                    {documento.observacoes && <p className="text-xs text-muted-foreground p-2 bg-muted rounded-md"><strong>Obs:</strong> {documento.observacoes}</p>}
-                  </div>
-                )}
               </div>
-            );
-          })}
+
+              {/* Campos compactos */}
+              <div className="space-y-2">
+                <div>
+                  <Label htmlFor={`url-${documento.key}`} className="text-xs text-gray-600 block mb-1">
+                    URL (opcional)
+                  </Label>
+                  <div className="flex gap-1">
+                    <Input
+                      id={`url-${documento.key}`}
+                      value={documento.urlDocumento}
+                      onChange={(e) => atualizarDocumento(documento.key, 'urlDocumento', e.target.value)}
+                      placeholder="https://..."
+                      className="text-xs h-8 flex-1"
+                    />
+                    {documento.urlDocumento && (
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0" asChild>
+                        <a 
+                          href={documento.urlDocumento} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor={`obs-${documento.key}`} className="text-xs text-gray-600 block mb-1">
+                    Observações (opcional)
+                  </Label>
+                  <Textarea
+                    id={`obs-${documento.key}`}
+                    value={documento.observacoes}
+                    onChange={(e) => atualizarDocumento(documento.key, 'observacoes', e.target.value)}
+                    placeholder="Observações..."
+                    className="text-xs h-16 resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {/* Botão de salvamento */}
+        <div className="flex justify-end pt-4 border-t">
+          <div className="flex items-center gap-3">
+            {hasUnsavedChanges && (
+              <span className="text-sm text-orange-600 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Há alterações não salvas
+              </span>
+            )}
+            <Button 
+              onClick={handleSalvarTodos}
+              disabled={updateMutation.isPending || !hasUnsavedChanges}
+              variant={hasUnsavedChanges ? "default" : "outline"}
+              className="flex items-center gap-2"
+            >
+              {updateMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Salvar Alterações
+            </Button>
+          </div>
+        </div>
+
+        {/* Dialog de confirmação para save completo */}
+        <Dialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Salvar Alterações</DialogTitle>
+              <DialogDescription>
+                Deseja salvar todas as alterações nos documentos? Isso incluirá status de entrega, URLs e observações.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSaveConfirm(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={confirmarSalvarTodos}
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Salvar Tudo
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

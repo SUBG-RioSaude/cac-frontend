@@ -8,7 +8,7 @@ import { getContratos, getContratoDetalhado, type ContratoParametros } from '@/m
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import { useErrorHandler } from '@/hooks/use-error-handler'
-import type { Contrato, ContratoDetalhado } from '@/modules/Contratos/types/contrato'
+import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 export function useContratos(
   filtros: ContratoParametros = {},
@@ -192,7 +192,17 @@ export function useContratoDetalhado(id: string, options?: { enabled?: boolean }
 
   return useQuery({
     queryKey: contratoKeys.detalhado(id),
-    queryFn: () => getContratoDetalhado(id),
+    queryFn: async () => {
+      console.log('🎯 Hook: Iniciando busca para ID:', id)
+      try {
+        const resultado = await getContratoDetalhado(id)
+        console.log('🎯 Hook: Resultado obtido:', resultado)
+        return resultado
+      } catch (error) {
+        console.error('🎯 Hook: Erro capturado:', error)
+        throw error
+      }
+    },
     
     enabled: options?.enabled ?? !!id,
     

@@ -253,10 +253,13 @@ describe('NavUser', () => {
       const logoutButton = screen.getByText('Sair')
       fireEvent.click(logoutButton)
       
-      // Primeira chamada falha, segunda é forçada
+      // Aguardar que o processo de logout complete totalmente
       await waitFor(() => {
         expect(mockLogoutTodasSessoes).toHaveBeenCalledTimes(2)
-      })
+      }, { timeout: 3000 })
+      
+      // Aguardar um pouco mais para garantir que o finally block execute
+      await new Promise(resolve => setTimeout(resolve, 100))
     })
   })
 

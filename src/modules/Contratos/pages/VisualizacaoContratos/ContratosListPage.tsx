@@ -216,7 +216,7 @@ export function ContratosPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-red-700 text-sm">
-                  {error?.message || 'Ocorreu um erro inesperado ao carregar os dados.'}
+                  {(error as Error)?.message || 'Ocorreu um erro inesperado ao carregar os dados.'}
                 </p>
                 <Button
                   variant="outline"

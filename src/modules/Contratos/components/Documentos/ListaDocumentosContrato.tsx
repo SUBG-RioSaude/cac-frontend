@@ -31,7 +31,7 @@ export function ListaDocumentosContrato({ contratoId }: ListaDocumentosContratoP
   const handleDelete = () => {
     if (documentoParaExcluir) {
       deleteMutation.mutate(
-        { contratoId, documentoId: documentoParaExcluir.id },
+        { contratoId, documentoId: documentoParaExcluir.id! },
         {
           onSuccess: () => {
             setDocumentoParaExcluir(null); // Fecha o dialog
@@ -91,7 +91,7 @@ export function ListaDocumentosContrato({ contratoId }: ListaDocumentosContratoP
                       {doc.nome}
                     </TableCell>
                     <TableCell>{doc.tipo}</TableCell>
-                    <TableCell>{new Date(doc.dataCadastro).toLocaleDateString('pt-BR')}</TableCell>
+                    <TableCell>{doc.dataCadastro ? new Date(doc.dataCadastro).toLocaleDateString('pt-BR') : '-'}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="icon" asChild>
                         <a href={doc.linkExterno || '#'} target="_blank" rel="noopener noreferrer">

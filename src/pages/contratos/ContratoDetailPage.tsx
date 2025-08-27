@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import LayoutPagina from '@/components/layout-pagina';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useContratoDetalhado } from '@/modules/Contratos/hooks';
+import { useContratoDetalhado } from '@/modules/Contratos/hooks/use-contratos';
 import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos';
 import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato';
 import { Separator } from '@/components/ui/separator';
@@ -9,16 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
-// Definição de um checklist vazio para fallback
-const checklistVazia = {
-  termoReferencia: { entregue: false },
-  homologacao: { entregue: false },
-  ataRegistroPrecos: { entregue: false },
-  garantiaContratual: { entregue: false },
-  contrato: { entregue: false },
-  publicacaoPncp: { entregue: false },
-  publicacaoExtrato: { entregue: false },
-};
 
 function ContratoDetailPage() {
   const { contratoId } = useParams<{ contratoId: string }>();
@@ -75,10 +65,7 @@ function ContratoDetailPage() {
         </TabsContent>
 
         <TabsContent value="documentos" className="space-y-6">
-          <TabDocumentos 
-            contratoId={contrato.id} 
-            checklistData={contrato.documentosChecklist || checklistVazia} 
-          />
+          <TabDocumentos contratoId={contrato.id} />
           <Separator />
           <ListaDocumentosContrato contratoId={contrato.id} />
         </TabsContent>

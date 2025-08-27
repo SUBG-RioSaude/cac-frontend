@@ -8,16 +8,15 @@ import {
   BreadcrumbSeparator,
 } from './ui/breadcrumb'
 import { SidebarTrigger } from './ui/sidebar'
-import { useLocation, useParams, Link } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { executeWithFallback } from '@/lib/axios'
 
 export default function PageBreadcrumb() {
   const location = useLocation()
-  const params = useParams()
 
   // Extrair ID do contrato manualmente da URL
-  const contratoId = location.pathname.match(/\/contratos\/([^\/]+)/)?.[1]
+  const contratoId = location.pathname.match(/\/contratos\/([^/]+)/)?.[1]
   const isContratoRoute = !!contratoId
   
   console.log('🍞 Breadcrumb Debug:', { 
@@ -26,16 +25,16 @@ export default function PageBreadcrumb() {
     isContratoRoute
   })
   
-  const { data: contratoData, isLoading: contratoLoading } = useQuery({
+  const { data: contratoData, isLoading: contratoLoading } = useQuery<{ numeroContrato?: string; id?: string }>({ 
     queryKey: ['contrato-breadcrumb', contratoId],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ numeroContrato?: string; id?: string }> => {
       console.log('🔍 Breadcrumb buscando contrato:', contratoId)
       const response = await executeWithFallback({
         method: 'get',
         url: `/contratos/${contratoId}`
       })
       console.log('✅ Breadcrumb dados recebidos:', response.data)
-      return response.data
+      return response.data as { numeroContrato?: string; id?: string }
     },
     enabled: !!isContratoRoute && !!contratoId,
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -71,8 +70,8 @@ export default function PageBreadcrumb() {
             label = 'Carregando...'
           } else if (contratoData?.numeroContrato) {
             label = `Contrato ${contratoData.numeroContrato}`
-          } else if (contratoData) {
-            label = `Contrato ${contratoData.id || segment}` // fallback
+          } else if (contratoData?.id) {
+            label = `Contrato ${contratoData.id}`
           }
           
           console.log('🏷️ Label final:', label)
