@@ -3,27 +3,24 @@
  * Facilita importação e manutenção
  */
 
-// Hooks de queries (busca de dados)
+// Hooks de Contratos
+export { useContratos, useContrato, useContratosVencendo, useContratosVencidos } from './use-contratos'
+export { useCreateContrato, useUpdateContrato, useDeleteContrato } from './use-contratos-mutations'
+
+// Hooks de Empresas/Fornecedores
 export { 
-  useContratos, 
-  useContrato, 
-  useContratosVencendo, 
-  useContratosVencidos 
-} from './use-contratos'
+  useConsultarEmpresaPorCNPJ, 
+  useCadastrarEmpresa, 
+  useEmpresa, 
+  useEmpresas 
+} from './use-empresas'
 export { useDocumentos } from './use-documentos'
 
-// Hooks de mutations (modificação de dados)
-export { 
-  useCreateContrato,
-  useUpdateContrato, 
-  useDeleteContrato,
-  useSuspendContrato,
-  useReactivateContrato,
-  useEncerrarContrato
-} from './use-contratos-mutations'
+// Hooks de Timeline
+export { useTimelineIntegration } from './useTimelineIntegration'
 export { useUploadDocumento, useDeleteDocumento, useUpdateDocumento, useCreateDocumento } from './use-documentos-mutations'
 
-// Hook de toast melhorado
+// Hooks de Toast
 export { useToast } from './useToast'
 
 // Query keys para invalidação manual quando necessário

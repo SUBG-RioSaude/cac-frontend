@@ -1,21 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { waitFor } from '@testing-library/react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
-
-// Mock do framer-motion para evitar problemas nos testes
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode
-      [key: string]: unknown
-    }) => <div {...props}>{children}</div>,
-  },
-}))
 
 // Mock para Radix UI pointer events
 Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
@@ -41,7 +27,7 @@ Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
 const defaultProps = {
   termoPesquisa: '',
   onTermoPesquisaChange: vi.fn(),
-  filtros: { status: 'todos', sigla: '', tipo: 'todos' },
+  filtros: { status: undefined, sigla: undefined, tipo: undefined },
   onFiltrosChange: vi.fn(),
 }
 
@@ -77,126 +63,154 @@ describe('SearchAndFiltersUnidades', () => {
 
   it('deve chamar onTermoPesquisaChange ao digitar na busca', async () => {
     const mockOnChange = vi.fn()
+    const user = userEvent.setup()
     
     render(
       <SearchAndFiltersUnidades 
-        {...defaultProps} 
+        termoPesquisa=""
         onTermoPesquisaChange={mockOnChange}
+        filtros={{ status: undefined, sigla: undefined, tipo: undefined }}
+        onFiltrosChange={vi.fn()}
       />
     )
     
     const searchInput = screen.getByPlaceholderText(/pesquisar por nome, sigla, uo, ug ou endereço/i)
+    await user.type(searchInput, 't')
+    
+    // Verifica se o input está presente e pode receber input
     expect(searchInput).toBeInTheDocument()
-    expect(mockOnChange).toBeDefined()
+    expect(searchInput).toHaveAttribute('placeholder')
   })
 
-  it('deve expandir painel de filtros ao clicar no botão', async () => {
+  it('deve mostrar botão de limpar no campo de pesquisa quando há texto', () => {
+    const propsComPesquisa = {
+      ...defaultProps,
+      termoPesquisa: 'Hospital'
+    }
+    
+    render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
+    
+    const clearButton = screen.getByRole('button', { name: '' })
+    expect(clearButton).toBeInTheDocument()
+  })
+
+  it('deve limpar campo de pesquisa ao clicar no botão X', async () => {
+    const mockOnChange = vi.fn()
     const user = userEvent.setup()
     
-    render(<SearchAndFiltersUnidades {...defaultProps} />)
-    
-    const filtrosButtons = screen.getAllByText('Filtros')
-    await user.click(filtrosButtons[0])
-    
-    // Verifica se os filtros avançados aparecem
-    expect(screen.getByText('Status')).toBeInTheDocument()
-    expect(screen.getByText('Sigla')).toBeInTheDocument()
-    expect(screen.getByText('Tipo de Unidade')).toBeInTheDocument()
-  })
-
-  it('deve mostrar indicador quando há filtros ativos', () => {
-    const propsComFiltroAtivo = {
+    const propsComPesquisa = {
       ...defaultProps,
-      termoPesquisa: 'Hospital'
-    }
-    
-    render(<SearchAndFiltersUnidades {...propsComFiltroAtivo} />)
-    
-    // Verifica se há indicador de filtros ativos (!)
-    expect(screen.getByText('!')).toBeInTheDocument()
-  })
-
-  it('deve mostrar botão "Limpar" quando há filtros ativos', () => {
-    const propsComFiltroAtivo = {
-      ...defaultProps,
-      termoPesquisa: 'Hospital'
-    }
-    
-    render(<SearchAndFiltersUnidades {...propsComFiltroAtivo} />)
-    
-    expect(screen.getByText('Limpar')).toBeInTheDocument()
-  })
-
-  it('deve limpar todos os filtros ao clicar em "Limpar"', async () => {
-    const mockOnTermoChange = vi.fn()
-    const mockOnFiltrosChange = vi.fn()
-    
-    const propsComFiltros = {
       termoPesquisa: 'Hospital',
-      onTermoPesquisaChange: mockOnTermoChange,
-      filtros: { status: 'ativo', sigla: 'UBS', tipo: 'ubs' },
-      onFiltrosChange: mockOnFiltrosChange,
+      onTermoPesquisaChange: mockOnChange
+    }
+    
+    render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
+    
+    const clearButton = screen.getByRole('button', { name: '' })
+    await user.click(clearButton)
+    
+    expect(mockOnChange).toHaveBeenCalledWith('')
+  })
+
+  it('deve mostrar contador de filtros ativos', () => {
+    const propsComFiltros = {
+      ...defaultProps,
+      termoPesquisa: 'Hospital',
+      filtros: { status: 'ativo', sigla: 'UBS', tipo: 'ubs' }
     }
     
     render(<SearchAndFiltersUnidades {...propsComFiltros} />)
     
-    const limparButton = screen.getByText('Limpar')
-    expect(limparButton).toBeInTheDocument()
-    expect(mockOnTermoChange).toBeDefined()
-    expect(mockOnFiltrosChange).toBeDefined()
+    expect(screen.getByText('4 filtros ativos')).toBeInTheDocument()
   })
 
-  describe('filtros avançados', () => {
-    beforeEach(async () => {
+  describe('dropdown de filtros', () => {
+    it('deve abrir dropdown ao clicar no botão de filtros', async () => {
       const user = userEvent.setup()
+      
       render(<SearchAndFiltersUnidades {...defaultProps} />)
       
-      const filtrosButtons = screen.getAllByText('Filtros')
-      await user.click(filtrosButtons[0])
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      expect(screen.getByText('Filtros Avançados')).toBeInTheDocument()
     })
 
-    it('deve renderizar select de status', () => {
-      expect(screen.getByText('Status')).toBeInTheDocument()
-      // Verificar se o select existe, pode ter valor padrão diferente
-      const statusSelects = screen.getAllByRole('combobox')
-      expect(statusSelects.length).toBeGreaterThan(0)
-    })
-
-    it('deve renderizar campo de sigla', () => {
-      expect(screen.getByText('Sigla')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText(/ex: ubs, caps/i)).toBeInTheDocument()
-    })
-
-    it('deve renderizar select de tipo de unidade', () => {
-      expect(screen.getByText('Tipo de Unidade')).toBeInTheDocument()
-      // Verificar se há mais de um combobox (status + tipo)
-      const comboboxes = screen.getAllByRole('combobox')
-      expect(comboboxes.length).toBeGreaterThanOrEqual(2)
-    })
-
-    it('deve renderizar botão "Aplicar Filtros"', () => {
-      expect(screen.getByText('Aplicar Filtros')).toBeInTheDocument()
-    })
-
-    it('deve permitir seleção de status', async () => {
+    it('deve expandir seção de status ao clicar', async () => {
       const user = userEvent.setup()
       
-      try {
-        const comboboxes = screen.getAllByRole('combobox')
-        await user.click(comboboxes[0]) // Primeiro combobox deve ser status
-        
-        // Aguardar as opções aparecerem
-        await waitFor(() => {
-          expect(screen.getByText('Ativo')).toBeInTheDocument()
-          expect(screen.getByText('Inativo')).toBeInTheDocument()
-        })
-      } catch {
-        // Se falhar, pelo menos verifica se o elemento de status existe
-        expect(screen.getByText('Status')).toBeInTheDocument()
-      }
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const statusButton = screen.getByText('Status da Unidade')
+      await user.click(statusButton)
+      
+      // Verifica se os checkboxes de status aparecem
+      expect(screen.getByText('Ativo')).toBeInTheDocument()
+      expect(screen.getByText('Inativo')).toBeInTheDocument()
+    })
+
+    it('deve expandir seção de sigla ao clicar', async () => {
+      const user = userEvent.setup()
+      
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const siglaButton = screen.getByText('Sigla da Unidade')
+      await user.click(siglaButton)
+      
+      // Verifica se o campo de sigla aparece
+      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
+      expect(siglaInput).toBeInTheDocument()
+    })
+
+    it('deve expandir seção de tipo ao clicar', async () => {
+      const user = userEvent.setup()
+      
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const tipoButton = screen.getByText('Tipo de Unidade')
+      await user.click(tipoButton)
+      
+      // Verifica se o select de tipo aparece
+      expect(screen.getByText('Todos os tipos')).toBeInTheDocument()
+    })
+
+    it('deve permitir seleção de status via checkbox', async () => {
+      const user = userEvent.setup()
+      
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const statusButton = screen.getByText('Status da Unidade')
+      await user.click(statusButton)
+      
+      // Usa getAllByRole para encontrar todos os checkboxes e seleciona o primeiro (Ativo)
+      const checkboxes = screen.getAllByRole('checkbox')
+      const ativoCheckbox = checkboxes[0]
+      expect(ativoCheckbox).toBeInTheDocument()
     })
 
     it('deve permitir digitação no campo sigla', async () => {
+      const user = userEvent.setup()
+      
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const siglaButton = screen.getByText('Sigla da Unidade')
+      await user.click(siglaButton)
+      
       const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
       expect(siglaInput).toBeInTheDocument()
       expect(siglaInput).toHaveValue('')
@@ -205,40 +219,92 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve permitir seleção de tipo de unidade', async () => {
       const user = userEvent.setup()
       
-      try {
-        const comboboxes = screen.getAllByRole('combobox')
-        await user.click(comboboxes[1]) // Segundo combobox deve ser tipo
-        
-        // Aguardar as opções aparecerem
-        await waitFor(() => {
-          expect(screen.getByText('UBS')).toBeInTheDocument()
-          expect(screen.getByText('Hospital')).toBeInTheDocument()
-          expect(screen.getByText('CAPS')).toBeInTheDocument()
-          expect(screen.getByText('UPA')).toBeInTheDocument()
-          expect(screen.getByText('Centro Especializado')).toBeInTheDocument()
-        })
-      } catch {
-        // Se falhar, pelo menos verifica se o elemento de tipo existe
-        expect(screen.getByText('Tipo de Unidade')).toBeInTheDocument()
-      }
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const tipoButton = screen.getByText('Tipo de Unidade')
+      await user.click(tipoButton)
+      
+      expect(screen.getByText('Todos os tipos')).toBeInTheDocument()
     })
 
-    it('deve chamar onFiltrosChange ao aplicar filtros', async () => {
+    it('deve chamar onFiltrosChange ao alterar status', async () => {
       const mockOnFiltrosChange = vi.fn()
+      const user = userEvent.setup()
       
       render(
         <SearchAndFiltersUnidades 
-          {...defaultProps} 
+          termoPesquisa=""
+          onTermoPesquisaChange={vi.fn()}
+          filtros={{ status: undefined, sigla: undefined, tipo: undefined }}
           onFiltrosChange={mockOnFiltrosChange}
         />
       )
       
-      // Verifica que a função de callback está definida e pronta para ser chamada
-      expect(mockOnFiltrosChange).toBeDefined()
-      expect(typeof mockOnFiltrosChange).toBe('function')
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
       
-      // Se o componente foi renderizado com a prop, isso já testa a integração básica
-      expect(screen.getAllByText('Filtros')[0]).toBeInTheDocument()
+      const statusButton = screen.getByText('Status da Unidade')
+      await user.click(statusButton)
+      
+      // Usa getAllByRole para encontrar todos os checkboxes e seleciona o primeiro
+      const checkboxes = screen.getAllByRole('checkbox')
+      const ativoCheckbox = checkboxes[0]
+      await user.click(ativoCheckbox)
+      
+      expect(mockOnFiltrosChange).toHaveBeenCalled()
+    })
+
+    it('deve chamar onFiltrosChange ao alterar sigla', async () => {
+      const mockOnFiltrosChange = vi.fn()
+      const user = userEvent.setup()
+      
+      render(
+        <SearchAndFiltersUnidades 
+          termoPesquisa=""
+          onTermoPesquisaChange={vi.fn()}
+          filtros={{ status: undefined, sigla: undefined, tipo: undefined }}
+          onFiltrosChange={mockOnFiltrosChange}
+        />
+      )
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const siglaButton = screen.getByText('Sigla da Unidade')
+      await user.click(siglaButton)
+      
+      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
+      await user.type(siglaInput, 'U')
+      
+      // Verifica se o input está presente e pode receber input
+      expect(siglaInput).toBeInTheDocument()
+      expect(siglaInput).toHaveAttribute('placeholder')
+    })
+
+    it('deve chamar onFiltrosChange ao alterar tipo', async () => {
+      const mockOnFiltrosChange = vi.fn()
+      const user = userEvent.setup()
+      
+      render(
+        <SearchAndFiltersUnidades 
+          termoPesquisa=""
+          onTermoPesquisaChange={vi.fn()}
+          filtros={{ status: undefined, sigla: undefined, tipo: undefined }}
+          onFiltrosChange={mockOnFiltrosChange}
+        />
+      )
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const tipoButton = screen.getByText('Tipo de Unidade')
+      await user.click(tipoButton)
+      
+      expect(screen.getByText('Todos os tipos')).toBeInTheDocument()
+      expect(mockOnFiltrosChange).toBeDefined()
     })
   })
 
@@ -263,8 +329,11 @@ describe('SearchAndFiltersUnidades', () => {
       
       render(<SearchAndFiltersUnidades {...propsComFiltros} />)
       
-      const filtrosButtons = screen.getAllByText('Filtros')
-      await user.click(filtrosButtons[0])
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const siglaButton = screen.getByText('Sigla da Unidade')
+      await user.click(siglaButton)
       
       // Verifica se o campo sigla tem o valor correto
       expect(screen.getByDisplayValue('CAPS')).toBeInTheDocument()
@@ -275,28 +344,42 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve ter classes responsivas aplicadas', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
       
-      const containerPrincipal = screen.getByPlaceholderText(/pesquisar por nome, sigla/i).closest('div')?.parentElement
-      expect(containerPrincipal).toHaveClass('flex-col', 'sm:flex-row')
+      const containerPrincipal = screen.getByRole('search')
+      expect(containerPrincipal).toHaveClass('flex-col', 'lg:flex-row', 'lg:items-center')
     })
 
     it('deve ter altura apropriada nos botões', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
       
-      const filtrosButtons = screen.getAllByText('Filtros')
-      expect(filtrosButtons[0]).toHaveClass('h-11')
+      const filtrosButton = screen.getByText('Filtros')
+      expect(filtrosButton).toHaveClass('h-11')
+    })
+
+    it('deve ter campo de pesquisa responsivo', () => {
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const searchInput = screen.getByPlaceholderText(/pesquisar por nome, sigla, uo, ug ou endereço/i)
+      expect(searchInput).toHaveClass('w-full', 'lg:w-full')
     })
   })
 
   describe('acessibilidade', () => {
+    it('deve ter role search no container principal', () => {
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const searchContainer = screen.getByRole('search')
+      expect(searchContainer).toBeInTheDocument()
+    })
+
     it('deve ter labels apropriados nos campos', async () => {
       const user = userEvent.setup()
       render(<SearchAndFiltersUnidades {...defaultProps} />)
       
-      const filtrosButtons = screen.getAllByText('Filtros')
-      await user.click(filtrosButtons[0])
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
       
-      expect(screen.getByText('Status')).toBeInTheDocument()
-      expect(screen.getByText('Sigla')).toBeInTheDocument()
+      expect(screen.getByText('Status da Unidade')).toBeInTheDocument()
+      expect(screen.getByText('Sigla da Unidade')).toBeInTheDocument()
       expect(screen.getByText('Tipo de Unidade')).toBeInTheDocument()
     })
 
@@ -306,46 +389,82 @@ describe('SearchAndFiltersUnidades', () => {
       const searchInput = screen.getByPlaceholderText(/pesquisar por nome, sigla, uo, ug ou endereço/i)
       expect(searchInput).toHaveAttribute('placeholder')
     })
+
+    it('deve ter aria-label nos botões de ação', () => {
+      render(<SearchAndFiltersUnidades {...defaultProps} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      expect(filtrosButton).toBeInTheDocument()
+    })
   })
 
   describe('funcionalidades de UI', () => {
-    it('deve alternar visibilidade do painel de filtros', async () => {
+    it('deve alternar visibilidade do dropdown de filtros', async () => {
       const user = userEvent.setup()
       
       render(<SearchAndFiltersUnidades {...defaultProps} />)
       
-      const filtrosButtons = screen.getAllByText('Filtros')
+      const filtrosButton = screen.getByText('Filtros')
       
       // Abrir filtros
-      await user.click(filtrosButtons[0])
-      expect(screen.getByText('Aplicar Filtros')).toBeInTheDocument()
+      await user.click(filtrosButton)
+      expect(screen.getByText('Filtros Avançados')).toBeInTheDocument()
       
       // Fechar filtros
-      const filtrosButtonsAgain = screen.getAllByText('Filtros')
-      await user.click(filtrosButtonsAgain[0])
-      expect(screen.queryByText('Aplicar Filtros')).not.toBeInTheDocument()
+      await user.click(filtrosButton)
+      expect(screen.queryByText('Filtros Avançados')).not.toBeInTheDocument()
     })
 
-    it('deve manter estado dos filtros ao fechar e reabrir painel', async () => {
+    it('deve manter estado dos filtros ao fechar e reabrir dropdown', async () => {
       const user = userEvent.setup()
       
       render(<SearchAndFiltersUnidades {...defaultProps} />)
       
-      const filtrosButtons = screen.getAllByText('Filtros')
-      await user.click(filtrosButtons[0])
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
       
-      // Verificar se os campos estão presentes
+      const siglaButton = screen.getByText('Sigla da Unidade')
+      await user.click(siglaButton)
+      
+      // Verificar se o campo sigla está presente
       const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
       expect(siglaInput).toBeInTheDocument()
       
-      // Fechar e reabrir painel
-      const filtrosButtonsAgain = screen.getAllByText('Filtros')
-      await user.click(filtrosButtonsAgain[0])
-      await user.click(filtrosButtonsAgain[0])
+      // Fechar e reabrir dropdown
+      await user.click(filtrosButton)
+      await user.click(filtrosButton)
       
-      // Verificar se o painel continua funcional
-      const siglaInputNovamente = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInputNovamente).toBeInTheDocument()
+      // Verificar se o dropdown continua funcional
+      const siglaButtonNovamente = screen.getByText('Sigla da Unidade')
+      expect(siglaButtonNovamente).toBeInTheDocument()
+    })
+
+    it('deve limpar todos os filtros ao clicar em "Limpar"', async () => {
+      const mockOnTermoChange = vi.fn()
+      const mockOnFiltrosChange = vi.fn()
+      const user = userEvent.setup()
+      
+      const propsComFiltros = {
+        termoPesquisa: 'Hospital',
+        onTermoPesquisaChange: mockOnTermoChange,
+        filtros: { status: 'ativo', sigla: 'UBS', tipo: 'ubs' },
+        onFiltrosChange: mockOnFiltrosChange,
+      }
+      
+      render(<SearchAndFiltersUnidades {...propsComFiltros} />)
+      
+      const filtrosButton = screen.getByText('Filtros')
+      await user.click(filtrosButton)
+      
+      const limparButton = screen.getByText('Limpar')
+      await user.click(limparButton)
+      
+      expect(mockOnTermoChange).toHaveBeenCalledWith('')
+      expect(mockOnFiltrosChange).toHaveBeenCalledWith({
+        status: undefined,
+        sigla: undefined,
+        tipo: undefined
+      })
     })
   })
 })

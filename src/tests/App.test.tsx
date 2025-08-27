@@ -5,18 +5,20 @@ import { BrowserRouter } from 'react-router-dom'
 import App from '@/App'
 
 describe('App', () => {
-  it('deve renderizar a sidebar', () => {
+  it('deve renderizar a página de login', () => {
     render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
     )
 
-    // Verifica se a sidebar está sendo renderizada
-    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    // Verifica se a página de login está sendo renderizada
+    expect(screen.getByText('Bem-Vindo(a)!')).toBeInTheDocument()
+    expect(screen.getByText('Insira suas credenciais')).toBeInTheDocument()
     
-    // Verifica se há pelo menos um item de menu (procura pelo primeiro)
-    const inicioElements = screen.getAllByText('Início')
-    expect(inicioElements.length).toBeGreaterThan(0)
+    // Verifica se os campos de login estão presentes
+    expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
+    expect(screen.getByLabelText('Senha')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument()
   })
 })

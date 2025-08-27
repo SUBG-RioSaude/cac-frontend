@@ -70,7 +70,7 @@ export function SearchAndFiltersFornecedores() {
   const filtrosAtivos = contarFiltrosAtivos()
 
   return (
-    <div className="flex items-center gap-4">
+    <div role="search" className="flex flex-col gap-4 lg:flex-row lg:items-center">
       {/* Search Bar */}
       <motion.div
         className="relative max-w-md flex-1"
@@ -81,10 +81,10 @@ export function SearchAndFiltersFornecedores() {
         <div className="relative">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
-            placeholder="Pesquisar fornecedores, CNPJ, razão social..."
+            placeholder="Pesquisar fornecedores..."
             value={termoPesquisa}
             onChange={(e) => setTermoPesquisa(e.target.value)}
-            className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200"
+            className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 w-full lg:w-full"
           />
           {termoPesquisa && (
             <Button
@@ -109,7 +109,7 @@ export function SearchAndFiltersFornecedores() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="hover:border-primary relative h-11 cursor-pointer border-2 bg-transparent px-4 shadow-sm transition-all duration-200"
+              className="h-11 cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 w-full lg:w-auto hover:bg-slate-600"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
@@ -121,7 +121,7 @@ export function SearchAndFiltersFornecedores() {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-96 p-0" align="end" sideOffset={8}>
+          <DropdownMenuContent className="w-96 p-0" align="start" sideOffset={8}>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -358,6 +358,8 @@ export function SearchAndFiltersFornecedores() {
           </DropdownMenuContent>
         </DropdownMenu>
       </motion.div>
+
+
 
       {/* Active Filters Display */}
       <AnimatePresence>

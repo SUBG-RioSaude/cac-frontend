@@ -479,7 +479,15 @@ export function VisualizarContrato() {
                 {isTabEnabled('documentos') && (
                   <TabsContent value="documentos" className="mt-0 w-full">
                     <TabDocumentos 
-                      checklistData={contrato.documentosChecklist}
+                      checklistData={{
+                        termoReferencia: { entregue: false },
+                        homologacao: { entregue: false },
+                        ataRegistroPrecos: { entregue: false },
+                        garantiaContratual: { entregue: false },
+                        contrato: { entregue: false },
+                        publicacaoPncp: { entregue: false },
+                        publicacaoExtrato: { entregue: false }
+                      }}
                       contratoId={contrato.id}
                       onChecklistChange={(novaChecklist) => {
                         console.log('Checklist atualizada:', novaChecklist)
