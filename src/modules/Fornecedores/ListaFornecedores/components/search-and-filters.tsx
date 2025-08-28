@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -26,48 +26,67 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { useFornecedoresStore } from '../store/fornecedores-store'
+import type { FiltrosFornecedorApi } from '../types/fornecedor'
+import { useDebounce } from '@/modules/Contratos/hooks/useDebounce'
 
-export function SearchAndFiltersFornecedores() {
+interface SearchAndFiltersFornecedoresProps {
+  onFiltrosChange: (filtros: FiltrosFornecedorApi) => void
+  filtrosAtivos: FiltrosFornecedorApi
+}
+
+export function SearchAndFiltersFornecedores({
+  onFiltrosChange,
+  filtrosAtivos
+}: SearchAndFiltersFornecedoresProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
-  // Estados para controlar o colapso de cada seção de filtros
+  // Estados locais para UI
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [contratosExpanded, setContratosExpanded] = useState(false)
+  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(filtrosAtivos.pesquisa || '')
+  const [filtrosLocais, setFiltrosLocais] = useState<FiltrosFornecedorApi>(filtrosAtivos)
 
-  const {
-    termoPesquisa,
-    filtros,
-    setTermoPesquisa,
-    setFiltros,
-    limparFiltros,
-  } = useFornecedoresStore()
+  // Debounce para pesquisa (500ms)
+  const termoPesquisaDebounced = useDebounce(termoPesquisaLocal, 500)
+
+  // Efeito para enviar pesquisa debounced
+  useEffect(() => {
+    onFiltrosChange({
+      ...filtrosLocais,
+      pesquisa: termoPesquisaDebounced || undefined
+    })
+  }, [termoPesquisaDebounced, filtrosLocais, onFiltrosChange])
 
   const statusOptions = [
-    { value: 'ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
-    { value: 'inativo', label: 'Inativo', color: 'bg-gray-100 text-gray-800' },
-    { value: 'suspenso', label: 'Suspenso', color: 'bg-red-100 text-red-800' },
+    { value: 'Ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
+    { value: 'Inativo', label: 'Inativo', color: 'bg-gray-100 text-gray-800' },
+    { value: 'Suspenso', label: 'Suspenso', color: 'bg-red-100 text-red-800' },
   ]
 
-  const handleStatusChange = (status: string, checked: boolean) => {
-    const currentStatus = filtros.status || []
-    const newStatus = checked
-      ? [...currentStatus, status]
-      : currentStatus.filter((s) => s !== status)
+  const handleStatusChange = useCallback((status: string, checked: boolean) => {
+    setFiltrosLocais(prev => ({
+      ...prev,
+      status: checked ? status : undefined
+    }))
+  }, [])
 
-    setFiltros({ ...filtros, status: newStatus })
-  }
-
-  const contarFiltrosAtivos = () => {
+  const contarFiltrosAtivos = useCallback(() => {
     let count = 0
-    if (filtros.status && filtros.status.length > 0) count++
-    if (filtros.valorMinimo || filtros.valorMaximo) count++
-    if (filtros.contratosAtivosMinimo || filtros.contratosAtivosMaximo) count++
+    if (filtrosLocais.status) count++
+    if (filtrosLocais.valorMinimo || filtrosLocais.valorMaximo) count++
+    if (filtrosLocais.contratosMinimo || filtrosLocais.contratosMaximo) count++
+    if (termoPesquisaLocal) count++
     return count
-  }
+  }, [filtrosLocais, termoPesquisaLocal])
 
-  const filtrosAtivos = contarFiltrosAtivos()
+  const filtrosAtivosCount = contarFiltrosAtivos()
+
+  const limparFiltros = useCallback(() => {
+    setTermoPesquisaLocal('')
+    setFiltrosLocais({})
+    onFiltrosChange({ pagina: 1, tamanhoPagina: 10 })
+  }, [onFiltrosChange])
 
   return (
     <div role="search" className="flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -82,15 +101,15 @@ export function SearchAndFiltersFornecedores() {
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
             placeholder="Pesquisar fornecedores..."
-            value={termoPesquisa}
-            onChange={(e) => setTermoPesquisa(e.target.value)}
+            value={termoPesquisaLocal}
+            onChange={(e) => setTermoPesquisaLocal(e.target.value)}
             className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 w-full lg:w-full"
           />
-          {termoPesquisa && (
+          {termoPesquisaLocal && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setTermoPesquisa('')}
+              onClick={() => setTermoPesquisaLocal('')}
               className="hover:bg-muted absolute top-1/2 right-2 h-6 w-6 -translate-y-1/2 transform p-0"
             >
               <X className="h-3 w-3" />
@@ -113,9 +132,9 @@ export function SearchAndFiltersFornecedores() {
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
-              {filtrosAtivos > 0 && (
+              {filtrosAtivosCount > 0 && (
                 <Badge className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-                  {filtrosAtivos}
+                  {filtrosAtivosCount}
                 </Badge>
               )}
             </Button>
@@ -134,7 +153,7 @@ export function SearchAndFiltersFornecedores() {
                   <Filter className="h-4 w-4" />
                   <h3 className="font-semibold">Filtros Avançados</h3>
                 </div>
-                {filtrosAtivos > 0 && (
+                {filtrosAtivosCount > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -181,9 +200,7 @@ export function SearchAndFiltersFornecedores() {
                       >
                         <Checkbox
                           id={`status-${option.value}`}
-                          checked={
-                            filtros.status?.includes(option.value) || false
-                          }
+                          checked={filtrosLocais.status === option.value}
                           onCheckedChange={(checked) =>
                             handleStatusChange(option.value, checked as boolean)
                           }
@@ -239,14 +256,14 @@ export function SearchAndFiltersFornecedores() {
                         id="valor-minimo"
                         type="number"
                         placeholder="0,00"
-                        value={filtros.valorMinimo || ''}
+                        value={filtrosLocais.valorMinimo || ''}
                         onChange={(e) =>
-                          setFiltros({
-                            ...filtros,
+                          setFiltrosLocais(prev => ({
+                            ...prev,
                             valorMinimo: e.target.value
                               ? Number(e.target.value)
                               : undefined,
-                          })
+                          }))
                         }
                         className="h-9"
                       />
@@ -262,14 +279,14 @@ export function SearchAndFiltersFornecedores() {
                         id="valor-maximo"
                         type="number"
                         placeholder="0,00"
-                        value={filtros.valorMaximo || ''}
+                        value={filtrosLocais.valorMaximo || ''}
                         onChange={(e) =>
-                          setFiltros({
-                            ...filtros,
+                          setFiltrosLocais(prev => ({
+                            ...prev,
                             valorMaximo: e.target.value
                               ? Number(e.target.value)
                               : undefined,
-                          })
+                          }))
                         }
                         className="h-9"
                       />
@@ -316,14 +333,14 @@ export function SearchAndFiltersFornecedores() {
                         id="contratos-minimo"
                         type="number"
                         placeholder="0"
-                        value={filtros.contratosAtivosMinimo || ''}
+                        value={filtrosLocais.contratosMinimo || ''}
                         onChange={(e) =>
-                          setFiltros({
-                            ...filtros,
-                            contratosAtivosMinimo: e.target.value
+                          setFiltrosLocais(prev => ({
+                            ...prev,
+                            contratosMinimo: e.target.value
                               ? Number(e.target.value)
                               : undefined,
-                          })
+                          }))
                         }
                         className="h-9"
                       />
@@ -339,14 +356,14 @@ export function SearchAndFiltersFornecedores() {
                         id="contratos-maximo"
                         type="number"
                         placeholder="0"
-                        value={filtros.contratosAtivosMaximo || ''}
+                        value={filtrosLocais.contratosMaximo || ''}
                         onChange={(e) =>
-                          setFiltros({
-                            ...filtros,
-                            contratosAtivosMaximo: e.target.value
+                          setFiltrosLocais(prev => ({
+                            ...prev,
+                            contratosMaximo: e.target.value
                               ? Number(e.target.value)
                               : undefined,
-                          })
+                          }))
                         }
                         className="h-9"
                       />
@@ -363,7 +380,7 @@ export function SearchAndFiltersFornecedores() {
 
       {/* Active Filters Display */}
       <AnimatePresence>
-        {filtrosAtivos > 0 && (
+        {filtrosAtivosCount > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -371,8 +388,8 @@ export function SearchAndFiltersFornecedores() {
             className="flex items-center gap-2"
           >
             <span className="text-muted-foreground text-sm">
-              {filtrosAtivos} filtro{filtrosAtivos > 1 ? 's' : ''} ativo
-              {filtrosAtivos > 1 ? 's' : ''}
+              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''} ativo
+              {filtrosAtivosCount > 1 ? 's' : ''}
             </span>
           </motion.div>
         )}

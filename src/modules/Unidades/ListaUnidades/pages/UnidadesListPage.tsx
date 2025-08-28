@@ -6,17 +6,16 @@ import { Plus, FileDown } from "lucide-react"
 import { SearchAndFiltersUnidades } from "@/modules/Unidades/ListaUnidades/components/search-and-filters-unidades"
 import { TabelaUnidades } from "@/modules/Unidades/ListaUnidades/components/tabela-unidades"
 import { UnidadesPageSkeleton } from "@/modules/Unidades/ListaUnidades/components/skeletons/unidades-page-skeleton"
+import { useDebounce } from "@/modules/Contratos/hooks/useDebounce"
+import { useUnidades } from "@/modules/Unidades/hooks/use-unidades"
+import { useUpdateUnidade, useDeleteUnidade } from "@/modules/Unidades/hooks/use-unidades-mutations"
+import { mapearUnidadeApi } from "@/modules/Unidades/types/unidade-api"
 import type { Unidade, OrdenacaoParams, ColunaOrdenacao } from "@/modules/Unidades/ListaUnidades/types/unidade"
-import unidadesData from "../data/unidades.json"
-
-// Usar dados diretamente do JSON (já contém todos os campos necessários)
-const unidades: Unidade[] = unidadesData as Unidade[]
+import type { FiltrosUnidadesApi } from "@/modules/Unidades/types/unidade-api"
 
 const UnidadesListPage = () => {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(true)
   const [termoPesquisa, setTermoPesquisa] = useState('')
-  const [termoPesquisaDebounced, setTermoPesquisaDebounced] = useState('')
   const [filtrosAvancados, setFiltrosAvancados] = useState<{
     status?: string
     sigla?: string
@@ -30,68 +29,38 @@ const UnidadesListPage = () => {
   const [paginacao, setPaginacao] = useState({
     pagina: 1,
     itensPorPagina: 10,
-    total: unidades.length
+    total: 0
   })
 
-  // Simular carregamento inicial
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500) // 1.5 segundos para simular API
+  // Debounce search - 500ms delay like other modules
+  const termoPesquisaDebounced = useDebounce(termoPesquisa, 500)
 
-    return () => clearTimeout(timer)
-  }, [])
+  // Prepare API filters
+  const filtrosApi: FiltrosUnidadesApi = useMemo(() => ({
+    pagina: paginacao.pagina,
+    tamanhoPagina: paginacao.itensPorPagina,
+    ordenarPor: ordenacao.coluna,
+    direcaoOrdenacao: ordenacao.direcao,
+    nome: termoPesquisaDebounced.trim() || undefined
+  }), [paginacao.pagina, paginacao.itensPorPagina, ordenacao, termoPesquisaDebounced])
 
-  // Debounce para pesquisa - aguarda 300ms após usuário parar de digitar
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTermoPesquisaDebounced(termoPesquisa)
-    }, 300)
+  // Fetch data with React Query
+  const { data: responseData, isLoading, error } = useUnidades(filtrosApi, {
+    keepPreviousData: true,
+    refetchOnMount: false
+  })
 
-    return () => clearTimeout(timer)
-  }, [termoPesquisa])
+  // Mutation hooks
+  const updateUnidadeMutation = useUpdateUnidade()
+  const deleteUnidadeMutation = useDeleteUnidade()
 
-  // Função para ordenar unidades
-  const ordenarUnidades = (unidades: Unidade[], ordenacao: OrdenacaoParams): Unidade[] => {
-    return [...unidades].sort((a, b) => {
-      let valorA: string | number | undefined = a[ordenacao.coluna]
-      let valorB: string | number | undefined = b[ordenacao.coluna]
-
-      // Tratar valores undefined/null
-      if (valorA == null) valorA = ''
-      if (valorB == null) valorB = ''
-
-      // Converter para string para comparação textual
-      if (typeof valorA === 'string' && typeof valorB === 'string') {
-        valorA = valorA.toLowerCase()
-        valorB = valorB.toLowerCase()
-      }
-
-      let resultado = 0
-      if (valorA < valorB) resultado = -1
-      else if (valorA > valorB) resultado = 1
-
-      return ordenacao.direcao === 'desc' ? resultado * -1 : resultado
-    })
-  }
-
-  // Filtrar e ordenar unidades
+  // Map API data to local format and apply client-side filters
   const unidadesFiltradas = useMemo(() => {
-    let resultado = unidades
+    if (!responseData?.dados) return []
 
-    // Aplicar filtro de pesquisa
-    if (termoPesquisaDebounced) {
-      const termo = termoPesquisaDebounced.toLowerCase()
-      resultado = resultado.filter(unidade =>
-        unidade.nome.toLowerCase().includes(termo) ||
-        unidade.sigla.toLowerCase().includes(termo) ||
-        unidade.UO.toLowerCase().includes(termo) ||
-        unidade.UG.toLowerCase().includes(termo) ||
-        unidade.endereco.toLowerCase().includes(termo)
-      )
-    }
+    let resultado = responseData.dados.map(mapearUnidadeApi)
 
-    // Aplicar filtros avançados
+    // Apply advanced filters (client-side for now)
     if (filtrosAvancados.status) {
       resultado = resultado.filter(unidade => 
         (unidade.status || 'ativo') === filtrosAvancados.status
@@ -120,14 +89,37 @@ const UnidadesListPage = () => {
       )
     }
 
-    // Aplicar ordenação
-    resultado = ordenarUnidades(resultado, ordenacao)
-
     return resultado
-  }, [termoPesquisaDebounced, filtrosAvancados, ordenacao])
+  }, [responseData?.dados, filtrosAvancados])
+
+  // Update pagination when data changes
+  useEffect(() => {
+    if (responseData) {
+      setPaginacao(prev => ({
+        ...prev,
+        total: responseData.totalRegistros
+      }))
+    }
+  }, [responseData])
 
   const handleVisualizarUnidade = (unidade: Unidade) => {
     navigate(`/unidades/${unidade.id}`)
+  }
+
+  const handleEditarUnidade = (unidade: Unidade) => {
+    // For now, navigate to edit page (to be implemented)
+    navigate(`/unidades/${unidade.id}/editar`)
+  }
+
+  const handleExcluirUnidade = async (unidade: Unidade) => {
+    if (window.confirm(`Tem certeza que deseja excluir a unidade "${unidade.nome}"?`)) {
+      try {
+        await deleteUnidadeMutation.mutateAsync(unidade.id.toString())
+      } catch (error) {
+        // Error handling is done in the mutation hook
+        console.error('Erro ao excluir unidade:', error)
+      }
+    }
   }
 
   const handleOrdenacao = (coluna: ColunaOrdenacao) => {
@@ -171,8 +163,23 @@ const UnidadesListPage = () => {
     ? `Exportar (${unidadesSelecionadas.length})`
     : 'Exportar Todas'
 
-  if (loading) {
+  // Show loading skeleton while data is loading
+  if (isLoading && !responseData) {
     return <UnidadesPageSkeleton />
+  }
+
+  // Show error state if needed
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-destructive">Erro ao carregar unidades</h2>
+          <p className="text-muted-foreground mt-2">
+            {error instanceof Error ? error.message : 'Erro desconhecido'}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -242,8 +249,11 @@ const UnidadesListPage = () => {
           paginacao={paginacao}
           onPaginacaoChange={setPaginacao}
           onVisualizarUnidade={handleVisualizarUnidade}
+          onEditarUnidade={handleEditarUnidade}
+          onExcluirUnidade={handleExcluirUnidade}
           ordenacao={ordenacao}
           onOrdenacao={handleOrdenacao}
+          isLoading={isLoading || updateUnidadeMutation.isPending || deleteUnidadeMutation.isPending}
         />
       </div>
     </div>

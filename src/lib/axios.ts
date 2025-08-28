@@ -51,15 +51,21 @@ export async function executeWithFallback<T>(
         data?: unknown
         params?: Record<string, unknown>
         headers?: Record<string, string>
+        baseURL?: string
     }
 ): Promise<AxiosResponse<T>> {
-    const { method, url, data, params, headers } = requestConfig
+    const { method, url, data, params, headers, baseURL } = requestConfig
     
     try {
         console.log(`[API] Tentando gateway: ${method.toUpperCase()} ${url}`)
         
-        // Primeira tentativa: Gateway
-        const response = await apiGateway.request<T>({
+        // Primeira tentativa: Gateway ou baseURL específica
+        const clientToUse = baseURL ? axios.create({ baseURL, timeout: 5000 }) : apiGateway
+        if (baseURL) {
+            clientToUse.interceptors.request.use(authInterceptor)
+        }
+        
+        const response = await clientToUse.request<T>({
             method,
             url,
             data,

@@ -10,7 +10,9 @@ import {
   Check,
   X,
   ChevronsUpDown,
+  Loader2,
 } from 'lucide-react'
+import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -20,18 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Separator } from '@/components/ui/separator'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import {
   Command,
   CommandEmpty,
@@ -45,6 +35,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useFormAsyncOperation } from '@/hooks/use-async-operation'
@@ -88,47 +90,6 @@ const validarPCA = (pca: string) => {
   return /^\d+$/.test(pca)
 }
 
-const unidadesMock = {
-  demandantes: [
-    'Secretaria de Obras',
-    'Secretaria de TI',
-    'Secretaria de Saúde',
-    'Procuradoria Geral',
-    'Secretaria de Administração',
-    'Secretaria de Segurança',
-    'Secretaria de Transporte',
-    'Secretaria de Educação',
-    'Secretaria de Cultura',
-    'Secretaria de Esporte',
-    'Secretaria de Meio Ambiente',
-    'Secretaria de Desenvolvimento Social',
-    'Hospital Central de São Paulo',
-    'Instituto do Coração',
-    'Hospital das Clínicas de Ribeirão Preto',
-    'Hospital Universitário de Brasília',
-    'Hospital de Clínicas de Porto Alegre',
-    'Hospital Universitário Walter Cantídio',
-    'Hospital Universitário João de Barros Barreto',
-    'Hospital Universitário de Santa Maria'
-  ],
-  gestoras: [
-    'Departamento de Compras',
-    'Departamento de Contratos',
-    'Departamento de Administração e Finanças',
-    'Departamento de Planejamento',
-    'Departamento de Recursos Humanos',
-    'Departamento de Tecnologia da Informação',
-    'Departamento de Engenharia',
-    'Departamento de Manutenção',
-    'Departamento de Logística',
-    'Departamento de Patrimônio',
-    'Coordenação de Contratos',
-    'Coordenação de Licitações',
-    'Coordenação de Gestão Contratual',
-    'Coordenação de Fiscalização',
-    'Coordenação de Pagamentos'
-  ]
-}
 
 export interface DadosContrato {
   numeroContrato: string
@@ -139,6 +100,8 @@ export interface DadosContrato {
   tipoContrato: 'Compra' | 'Prestacao_Servico' | 'Fornecimento' | 'Manutencao'
   unidadeDemandante: string
   unidadeGestora: string
+  unidadeDemandanteId?: string
+  unidadeGestoraId?: string
   contratacao: 'Centralizada' | 'Descentralizada'
   vigenciaInicial: string
   vigenciaFinal: string
@@ -178,6 +141,8 @@ const schemaContrato = z.object({
   ]),
   unidadeDemandante: z.string().min(1, 'Unidade demandante é obrigatória'),
   unidadeGestora: z.string().min(1, 'Unidade gestora é obrigatória'),
+  unidadeDemandanteId: z.string().optional(),
+  unidadeGestoraId: z.string().optional(),
   contratacao: z.enum(['Centralizada', 'Descentralizada']),
   vigenciaInicial: z
     .string()
@@ -307,12 +272,18 @@ export default function ContratoForm({
     carregarProcessoInstrutivo()
   }, [])
 
-  // Carregar dados das unidades
-  useEffect(() => {
-    // Em produção, isso viria de uma API
-    // Por enquanto, usamos os dados mock
-    setUnidades(unidadesMock)
-  }, [])
+  // Estados para comboboxes de unidades
+  const [openDemandante, setOpenDemandante] = useState(false)
+  const [openGestora, setOpenGestora] = useState(false)
+  
+  // Carregar unidades da API
+  const { 
+    data: unidadesData, 
+    isLoading: carregandoUnidades,
+    error: erroUnidades 
+  } = useUnidades({ 
+    tamanhoPagina: 100 
+  })
 
   const form = useForm<FormDataContrato>({
     resolver: zodResolver(schemaContrato),
@@ -345,6 +316,34 @@ export default function ContratoForm({
   const watchedValues = form.watch()
   const previousDataRef = useRef<string | null>(null)
   const previousValorRef = useRef<string | null>(null)
+
+  // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
+  useEffect(() => {
+    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
+      form.reset({
+        numeroContrato: dadosIniciais?.numeroContrato || '',
+        processoSei: dadosIniciais?.processoSei || '',
+        categoriaObjeto: dadosIniciais?.categoriaObjeto || '',
+        descricaoObjeto: dadosIniciais?.descricaoObjeto || '',
+        tipoContratacao: dadosIniciais?.tipoContratacao || 'Licitacao',
+        tipoContrato: dadosIniciais?.tipoContrato || 'Compra',
+        unidadeDemandante: dadosIniciais?.unidadeDemandante || '',
+        unidadeGestora: dadosIniciais?.unidadeGestora || '',
+        contratacao: dadosIniciais?.contratacao || 'Centralizada',
+        vigenciaInicial: dadosIniciais?.vigenciaInicial || '',
+        vigenciaFinal: dadosIniciais?.vigenciaFinal || '',
+        prazoInicialMeses: dadosIniciais?.prazoInicialMeses || 12,
+        prazoInicialDias: dadosIniciais?.prazoInicialDias || 0,
+        valorGlobal: dadosIniciais?.valorGlobal ? currencyUtils.aplicarMascara(dadosIniciais.valorGlobal) : '',
+        formaPagamento: dadosIniciais?.formaPagamento || 'Mensal',
+        formaPagamentoComplemento: dadosIniciais?.formaPagamentoComplemento || '',
+        tipoTermoReferencia: dadosIniciais?.tipoTermoReferencia || 'processo_rio',
+        termoReferencia: dadosIniciais?.termoReferencia || '',
+        vinculacaoPCA: dadosIniciais?.vinculacaoPCA || '',
+        ativo: dadosIniciais?.ativo ?? true,
+      })
+    }
+  }, [dadosIniciais, form])
 
   // Sincronizar processo selecionado com dados iniciais
   useEffect(() => {
@@ -380,15 +379,17 @@ export default function ContratoForm({
         tipoContratacao: watchedValues.tipoContratacao || '',
         tipoContrato: watchedValues.tipoContrato || '',
         unidadeDemandante: watchedValues.unidadeDemandante || '',
-        unidadeGestora: watchedValues.unidadeGestora || 'Centralizada',
+        unidadeGestora: watchedValues.unidadeGestora || '',
+        unidadeDemandanteId: '',
+        unidadeGestoraId: '',
         contratacao: watchedValues.contratacao || 'Centralizada',
         vigenciaInicial: watchedValues.vigenciaInicial || '',
         vigenciaFinal: watchedValues.vigenciaFinal || '',
         prazoInicialMeses: watchedValues.prazoInicialMeses || 0,
         prazoInicialDias: watchedValues.prazoInicialDias || 0,
-                 valorGlobal: watchedValues.valorGlobal || '',
-         formaPagamento: watchedValues.formaPagamento || 'Mensal',
-         formaPagamentoComplemento: watchedValues.formaPagamentoComplemento || '',
+        valorGlobal: watchedValues.valorGlobal || '',
+        formaPagamento: watchedValues.formaPagamento || 'Mensal',
+        formaPagamentoComplemento: watchedValues.formaPagamentoComplemento || '',
         tipoTermoReferencia:
           watchedValues.tipoTermoReferencia || 'processo_rio',
         termoReferencia: watchedValues.termoReferencia || '',
@@ -1103,20 +1104,76 @@ export default function ContratoForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel htmlFor="unidadeDemandante" className="mb-2">Unidade Demandante *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl className="w-full">
-                        <SelectTrigger id="unidadeDemandante">
-                          <SelectValue placeholder="Selecione a unidade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {unidades?.demandantes?.map((unidade: string) => (
-                          <SelectItem key={unidade} value={unidade}>
-                            {unidade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openDemandante} onOpenChange={setOpenDemandante}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openDemandante}
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value || "Busque por uma unidade demandante..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Busque por nome da unidade..." />
+                          <CommandList>
+                            {carregandoUnidades ? (
+                              <CommandEmpty>
+                                <div className="flex items-center gap-2 py-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Carregando unidades...
+                                </div>
+                              </CommandEmpty>
+                            ) : erroUnidades ? (
+                              <CommandEmpty>Erro ao carregar unidades</CommandEmpty>
+                            ) : (
+                              <>
+                                <CommandEmpty>Nenhuma unidade encontrada</CommandEmpty>
+                                <CommandGroup>
+                                  {unidadesData?.dados?.map((unidade) => (
+                                    <CommandItem
+                                      key={unidade.id}
+                                      value={unidade.nome}
+                                      onSelect={(currentValue) => {
+                                        const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
+                                        if (selectedUnit) {
+                                          field.onChange(currentValue === field.value ? "" : currentValue)
+                                          // Capturar o ID da unidade para uso posterior
+                                          const dadosAtuais = form.getValues()
+                                          onDataChange?.({
+                                            ...dadosAtuais,
+                                            unidadeDemandante: currentValue,
+                                            unidadeDemandanteId: selectedUnit.id
+                                          })
+                                        }
+                                        setOpenDemandante(false)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === unidade.nome ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {unidade.nome}
+                                      {unidade.sigla && <span className="ml-auto text-xs text-muted-foreground">({unidade.sigla})</span>}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </>
+                            )}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1131,20 +1188,76 @@ export default function ContratoForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel htmlFor="unidadeGestora" className="mb-2">Unidade Gestora *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl className="w-full">
-                        <SelectTrigger id="unidadeGestora">
-                          <SelectValue placeholder="Selecione a unidade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {unidades?.gestoras?.map((unidade: string) => (
-                          <SelectItem key={unidade} value={unidade}>
-                            {unidade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openGestora} onOpenChange={setOpenGestora}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openGestora}
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value || "Busque por uma unidade gestora..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Busque por nome da unidade..." />
+                          <CommandList>
+                            {carregandoUnidades ? (
+                              <CommandEmpty>
+                                <div className="flex items-center gap-2 py-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Carregando unidades...
+                                </div>
+                              </CommandEmpty>
+                            ) : erroUnidades ? (
+                              <CommandEmpty>Erro ao carregar unidades</CommandEmpty>
+                            ) : (
+                              <>
+                                <CommandEmpty>Nenhuma unidade encontrada</CommandEmpty>
+                                <CommandGroup>
+                                  {unidadesData?.dados?.map((unidade) => (
+                                    <CommandItem
+                                      key={unidade.id}
+                                      value={unidade.nome}
+                                      onSelect={(currentValue) => {
+                                        const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
+                                        if (selectedUnit) {
+                                          field.onChange(currentValue === field.value ? "" : currentValue)
+                                          // Capturar o ID da unidade para uso posterior
+                                          const dadosAtuais = form.getValues()
+                                          onDataChange?.({
+                                            ...dadosAtuais,
+                                            unidadeGestora: currentValue,
+                                            unidadeGestoraId: selectedUnit.id
+                                          })
+                                        }
+                                        setOpenGestora(false)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === unidade.nome ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {unidade.nome}
+                                      {unidade.sigla && <span className="ml-auto text-xs text-muted-foreground">({unidade.sigla})</span>}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </>
+                            )}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}

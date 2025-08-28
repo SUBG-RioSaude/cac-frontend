@@ -44,7 +44,7 @@ ARG BUILD_TIME
 ENV VITE_BUILD_TIME=${BUILD_TIME}
 
 # Definir variáveis de ambiente para a aplicação
-ENV VITE_API_URL="http://devcac:8080/api"
+ENV VITE_API_URL="http://devcac:7000/api"
 ENV VITE_API_URL_AUTH="http://devcac:7010"
 ENV VITE_API_URL_EMPRESA="http://devcac:7002"
 ENV SYSTEM_ID="7b8659bb-1aeb-4d74-92c1-110c1d27e576"
@@ -66,7 +66,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Definir variáveis de ambiente para runtime
-ENV VITE_API_URL="http://devcac:8080/api"
+ENV VITE_API_URL="http://devcac:7000/api"
 ENV VITE_API_URL_AUTH="http://devcac:7010"
 ENV VITE_API_URL_EMPRESA="http://devcac:7002"
 ENV SYSTEM_ID="7b8659bb-1aeb-4d74-92c1-110c1d27e576"

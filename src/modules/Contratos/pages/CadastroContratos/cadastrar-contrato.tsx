@@ -4,6 +4,7 @@ import LayoutPagina from "@/components/layout-pagina"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Steps } from "@/components/ui/steps"
 import { useState, Suspense } from "react"
+import { useNavigate } from "react-router-dom"
 import { FormErrorBoundary } from "@/components/error-boundary"
 import { FormLoadingFallback } from "@/components/ui/loading"
 import { Building2, FileText, Store, UserCheck } from "lucide-react"
@@ -15,6 +16,11 @@ import UnidadesFormMelhorado from "@/modules/Contratos/components/CadastroDeCont
 import type { DadosUnidades } from "@/modules/Contratos/types/unidades"
 import AtribuicaoFiscaisForm, { type DadosAtribuicao } from "@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form"
 import ConfirmarAvancoModal from "@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco"
+import { useCreateContrato, type CriarContratoData } from "@/modules/Contratos/hooks/use-contratos-mutations"
+import DebugPanel from "@/modules/Contratos/components/CadastroDeContratos/debug-panel"
+import { useDebugCadastro } from "@/modules/Contratos/hooks/use-debug-cadastro"
+import { toast } from "sonner"
+import { cnpjUtils } from "@/lib/utils"
 
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
@@ -24,6 +30,7 @@ interface DadosCompletos {
 }
 
 export default function CadastrarContrato() {
+  const navigate = useNavigate()
   const [passoAtual, setPassoAtual] = useState(1)
   const [dadosCompletos, setDadosCompletos] = useState<DadosCompletos>({})
 
@@ -33,6 +40,15 @@ export default function CadastrarContrato() {
     DadosFornecedor | DadosContrato | DadosUnidades | DadosAtribuicao | null
   >(null)
   const [isFinishing, setIsFinishing] = useState(false)
+  const [empresaCadastradaNaSessao, setEmpresaCadastradaNaSessao] = useState<{cnpj: string, razaoSocial: string} | null>(null)
+  const [isGeneratingMock, setIsGeneratingMock] = useState(false)
+
+  // React Query mutation hook
+  const createContratoMutation = useCreateContrato()
+
+  // Debug hook
+  const debug = useDebugCadastro()
+  const [payloadFinal, setPayloadFinal] = useState<CriarContratoData | null>(null)
 
   const passos = [
     { title: "Dados do Fornecedor" },
@@ -45,17 +61,43 @@ export default function CadastrarContrato() {
     setPassoAtual(novoStep)
   }
 
-  const handleConfirmarAvanco = () => {
+  const handleConfirmarAvanco = async () => {
+    // Fechar modal primeiro para evitar travamentos
+    setModalAberto(false)
+    
     if (isFinishing && dadosPendentes) {
+      // Atualizar dados completos primeiro
+      const dadosFinais = {
+        fornecedor: dadosCompletos.fornecedor,
+        contrato: dadosCompletos.contrato,
+        unidades: dadosCompletos.unidades,
+        atribuicao: dadosPendentes as DadosAtribuicao,
+      }
+      
       setDadosCompletos((prev) => ({
         ...prev,
         atribuicao: dadosPendentes as DadosAtribuicao,
       }))
-      console.log("Dados completos do cadastro:", {
-        ...dadosCompletos,
-        atribuicao: dadosPendentes,
-      })
-      alert("Contrato cadastrado com sucesso!")
+      
+      console.log("Dados completos do cadastro:", dadosFinais)
+
+      try {
+        // Mapear dados para API e criar contrato
+        const dadosAPI = mapearDadosParaAPI(dadosFinais)
+        console.log("Dados para API (modal confirmação):", dadosAPI)
+        
+        // Usar wrapper de debug para monitorar a chamada
+        await debug.wrapApiCall(
+          () => createContratoMutation.mutateAsync(dadosAPI),
+          'POST',
+          '/Contratos'
+        )
+        
+        // Sucesso será tratado pelo toast no hook
+      } catch (error) {
+        // Erro será tratado pelo toast no hook
+        console.error('Erro ao criar contrato (modal confirmação):', error)
+      }
     } else if (proximoPassoPendente && dadosPendentes) {
       if (proximoPassoPendente === 2) {
         setDadosCompletos((prev) => ({
@@ -76,13 +118,31 @@ export default function CadastrarContrato() {
       setPassoAtual(proximoPassoPendente)
     }
 
+    // Limpar estados pendentes
     setProximoPassoPendente(null)
     setDadosPendentes(null)
     setIsFinishing(false)
-    setModalAberto(false)
   }
 
   const handleCancelarAvanco = () => {
+    // Se uma empresa foi cadastrada nesta sessão, informar o usuário e redirecionar
+    if (empresaCadastradaNaSessao) {
+      const cnpjFormatado = cnpjUtils.formatar(empresaCadastradaNaSessao.cnpj)
+      
+      toast.success('Empresa salva com sucesso!', {
+        description: `Para continuar o cadastro do contrato, digite o CNPJ ${cnpjFormatado} novamente no formulário.`,
+        duration: 8000,
+      })
+      
+      // Redirecionar para listagem de empresas
+      setTimeout(() => {
+        navigate('/fornecedores')
+      }, 1000)
+    } else {
+      // Se não cadastrou empresa, apenas redirecionar
+      navigate('/fornecedores')
+    }
+    
     setProximoPassoPendente(null)
     setDadosPendentes(null)
     setIsFinishing(false)
@@ -144,16 +204,169 @@ export default function CadastrarContrato() {
     setPassoAtual(4)
   }
 
-  const handleAtribuicaoSubmit = (dados: DadosAtribuicao) => {
+  // Mapear dados do formulário para API
+  const mapearDadosParaAPI = (dadosCompletos: DadosCompletos): CriarContratoData => {
+    const { fornecedor, contrato, unidades, atribuicao } = dadosCompletos
+
+    if (!fornecedor || !contrato || !unidades) {
+      throw new Error('Dados incompletos para criação do contrato')
+    }
+
+    // Converter valor global para número
+    const valorGlobal = (() => {
+      const valor = contrato.valorGlobal
+      if (!valor) return 0
+      
+      // Se for string formatada (R$ 1.234,56), converter para número
+      if (typeof valor === 'string' && valor.includes('R$')) {
+        const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
+        const valorNum = parseFloat(valorLimpo)
+        return isNaN(valorNum) ? 0 : valorNum
+      }
+      
+      // Se for string numérica, converter para número
+      if (typeof valor === 'string') {
+        const valorNum = parseFloat(valor)
+        return isNaN(valorNum) ? 0 : valorNum
+      }
+      
+      // Se já for número, retornar como está
+      return typeof valor === 'number' ? valor : 0
+    })()
+
+    const payload: CriarContratoData = {
+      numeroContrato: contrato.numeroContrato || undefined,
+      processoSei: contrato.processoSei || undefined,
+      categoriaObjeto: contrato.categoriaObjeto || undefined,
+      descricaoObjeto: contrato.descricaoObjeto || undefined,
+      tipoContratacao: contrato.tipoContratacao || undefined,
+      tipoContrato: contrato.tipoContrato || undefined,
+      unidadeDemandanteId: contrato.unidadeDemandanteId || undefined,
+      unidadeGestoraId: contrato.unidadeGestoraId || undefined,
+      contratacao: contrato.contratacao || undefined,
+      vigenciaInicial: contrato.vigenciaInicial || '',
+      vigenciaFinal: contrato.vigenciaFinal || '',
+      prazoInicialMeses: contrato.prazoInicialMeses || 0,
+      valorGlobal: valorGlobal,
+      formaPagamento: contrato.formaPagamento === 'Outro' 
+        ? contrato.formaPagamentoComplemento || contrato.formaPagamento
+        : contrato.formaPagamento || undefined,
+      tipoTermoReferencia: contrato.tipoTermoReferencia || undefined,
+      termoReferencia: contrato.termoReferencia || undefined,
+      vinculacaoPCA: contrato.vinculacaoPCA || undefined,
+      empresaId: fornecedor.empresaId!, // Usar ID (UUID) da empresa
+      ativo: contrato.ativo || true,
+      // Nova estrutura de unidades vinculadas
+      unidadesVinculadas: unidades.unidades?.map(unidade => ({
+        unidadeSaudeId: unidade.unidadeHospitalar.id,
+        valorAtribuido: (() => {
+          const valor = unidade.valorAlocado
+          if (typeof valor === 'string' && valor.includes('R$')) {
+            const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
+            return parseFloat(valorLimpo) || 0
+          }
+          return parseFloat(valor?.toString() || '0') || 0
+        })(),
+        observacoes: unidade.observacoes || unidades.observacoes || undefined
+      })) || [],
+      // Nova estrutura de documentos (vazia por enquanto)
+      documentos: [],
+      // Nova estrutura de funcionários
+      funcionarios: atribuicao?.usuariosAtribuidos
+        ?.filter(usuario => usuario.tipo !== null) // Só incluir usuários com tipo definido
+        ?.map(usuario => ({
+          funcionarioId: usuario.id,
+          tipoGerencia: usuario.tipo === 'fiscal' ? 2 : 1, // 1=Gestor, 2=Fiscal
+          observacoes: usuario.observacoes || undefined
+        })) || []
+    }
+
+    // Debug: salvar payload final
+    setPayloadFinal(payload)
+    console.log('🚀 [DEBUG] Payload final gerado:', payload)
+    
+    return payload
+  }
+
+  const handleAtribuicaoSubmit = async (dados: DadosAtribuicao) => {
     setDadosCompletos((prev) => ({ ...prev, atribuicao: dados }))
     console.log("Dados da atribuição:", dados)
 
-    console.log("Dados completos do cadastro:", {
-      ...dadosCompletos,
+    const dadosFinais = {
+      fornecedor: dadosCompletos.fornecedor,
+      contrato: dadosCompletos.contrato,
+      unidades: dadosCompletos.unidades,
       atribuicao: dados,
-    })
+    }
 
-    alert("Contrato cadastrado com sucesso!")
+    console.log("Dados completos do cadastro:", dadosFinais)
+
+    try {
+      // Mapear dados para API e criar contrato
+      const dadosAPI = mapearDadosParaAPI(dadosFinais)
+      console.log("Dados para API:", dadosAPI)
+      
+      // Usar wrapper de debug para monitorar a chamada
+      await debug.wrapApiCall(
+        () => createContratoMutation.mutateAsync(dadosAPI),
+        'POST',
+        '/Contratos'
+      )
+      
+      // Sucesso será tratado pelo toast no hook
+    } catch (error) {
+      // Erro será tratado pelo toast no hook
+      console.error('Erro ao criar contrato:', error)
+    }
+  }
+
+  // Funções de debug
+  const handlePreencherDadosMock = async (step: number) => {
+    setIsGeneratingMock(true)
+    
+    try {
+      const mockData = await debug.preencherDadosMock(step)
+      
+      if (mockData) {
+        switch (step) {
+          case 1:
+            setDadosCompletos(prev => ({ ...prev, fornecedor: mockData as DadosFornecedor }))
+            break
+          case 2:
+            setDadosCompletos(prev => ({ ...prev, contrato: mockData as DadosContrato }))
+            break
+          case 3:
+            setDadosCompletos(prev => ({ ...prev, unidades: mockData as DadosUnidades }))
+            break
+          case 4:
+            setDadosCompletos(prev => ({ ...prev, atribuicao: mockData as DadosAtribuicao }))
+            break
+        }
+        
+        console.log(`🎭 [DEBUG] Dados mock preenchidos para step ${step}:`, mockData)
+        
+        if (step === 2) {
+          toast.success('Unidades carregadas da API com sucesso!')
+        }
+      }
+    } catch (error) {
+      console.error(`Erro ao gerar mock data para step ${step}:`, error)
+      toast.error(`Erro ao gerar dados mock para step ${step}`)
+    } finally {
+      setIsGeneratingMock(false)
+    }
+  }
+
+  const handleLimparDados = () => {
+    setDadosCompletos({})
+    setPayloadFinal(null)
+    setPassoAtual(1)
+    debug.clearLogs()
+    console.log('🧹 [DEBUG] Dados limpos e reset para step 1')
+  }
+
+  const handleExportarDados = () => {
+    debug.exportarDados(dadosCompletos)
   }
 
   // Função para obter informações do step atual
@@ -198,6 +411,13 @@ export default function CadastrarContrato() {
                 onSubmit={handleFornecedorSubmit}
                 onAdvanceRequest={handleFornecedorAdvanceRequest}
                 dadosIniciais={dadosCompletos.fornecedor}
+                onDataChange={(dados) => {
+                  setDadosCompletos(prev => ({
+                    ...prev,
+                    fornecedor: { ...prev.fornecedor, ...dados }
+                  }))
+                }}
+                onEmpresaCadastrada={setEmpresaCadastradaNaSessao}
               />
             </Suspense>
           </FormErrorBoundary>
@@ -211,6 +431,12 @@ export default function CadastrarContrato() {
                 onAdvanceRequest={handleContratoAdvanceRequest}
                 onPrevious={() => setPassoAtual(1)}
                 dadosIniciais={dadosCompletos.contrato}
+                onDataChange={(dados) => {
+                  setDadosCompletos(prev => ({
+                    ...prev,
+                    contrato: { ...prev.contrato, ...dados }
+                  }))
+                }}
                 onValorContratoChange={handleValorContratoChange}
               />
             </Suspense>
@@ -313,6 +539,18 @@ export default function CadastrarContrato() {
             : `Deseja avançar para a etapa "${proximoPassoPendente ? passos[proximoPassoPendente - 1]?.title : ""}"? Esta ação confirmará os dados preenchidos na etapa atual.`
         }
         textoConfirmar={isFinishing ? "Finalizar Cadastro" : "Confirmar"}
+      />
+
+      {/* Debug Panel */}
+      <DebugPanel
+        dadosCompletos={dadosCompletos}
+        passoAtual={passoAtual}
+        onPreencherDadosMock={handlePreencherDadosMock}
+        onLimparDados={handleLimparDados}
+        onExportarDados={handleExportarDados}
+        payloadFinal={payloadFinal}
+        apiLogs={debug.apiLogs}
+        isGeneratingMock={isGeneratingMock}
       />
     </LayoutPagina>
   )

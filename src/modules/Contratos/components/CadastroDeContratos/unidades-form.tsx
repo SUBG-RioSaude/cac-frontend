@@ -16,11 +16,19 @@ interface UnidadeContrato {
   unidadeHospitalar: UnidadeHospitalar
   valorAlocado: string
   percentualContrato: number
+  observacoes?: string
 }
 
 export interface DadosUnidades {
   unidades: UnidadeContrato[]
   observacoes: string
+}
+
+// Estrutura para envio para a API (nova estrutura)
+export interface UnidadeVinculadaAPI {
+  unidadeSaudeId: string
+  valorAtribuido: number
+  observacoes?: string
 }
 
 interface UnidadesFormMelhoradoProps {
@@ -45,6 +53,17 @@ export default function UnidadesFormMelhorado({
     observacoes: "",
     ...dadosIniciais,
   })
+
+  // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
+  useEffect(() => {
+    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
+      setDadosUnidades({
+        unidades: [],
+        observacoes: "",
+        ...dadosIniciais,
+      })
+    }
+  }, [dadosIniciais])
 
   const [unidadeSelecionada, setUnidadeSelecionada] = useState<UnidadeHospitalar | null>(null)
   const [valorAlocado, setValorAlocado] = useState("")
@@ -425,6 +444,7 @@ export default function UnidadesFormMelhorado({
       })
     }
   }
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

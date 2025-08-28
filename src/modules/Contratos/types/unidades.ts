@@ -20,6 +20,7 @@ export interface UnidadeContrato {
   unidadeHospitalar: UnidadeHospitalar
   valorAlocado: string
   percentualContrato: number
+  observacoes?: string
 }
 
 export interface DadosUnidades {

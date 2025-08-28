@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Eye,
-  Edit,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
@@ -34,16 +33,16 @@ interface TabelaFornecedoresProps {
   fornecedores: Fornecedor[]
   paginacao: PaginacaoParamsFornecedor
   onPaginacaoChange: (paginacao: PaginacaoParamsFornecedor) => void
-  onVisualizarFornecedor: (fornecedor: Fornecedor) => void
-  onEditarFornecedor: (fornecedor: Fornecedor) => void
+  onAbrirFornecedor: (fornecedor: Fornecedor) => void
+  isLoading?: boolean
 }
 
 export function TabelaFornecedores({
   fornecedores,
   paginacao,
   onPaginacaoChange,
-  onVisualizarFornecedor,
-  onEditarFornecedor,
+  onAbrirFornecedor,
+  isLoading = false,
 }: TabelaFornecedoresProps) {
   const {
     fornecedoresSelecionados,
@@ -132,7 +131,7 @@ export function TabelaFornecedores({
                 Lista de Fornecedores
               </CardTitle>
               <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-                {paginacao.total} fornecedores encontrados
+                {isLoading ? 'Carregando...' : `${paginacao.total} fornecedores encontrados`}
               </p>
             </div>
           </div>
@@ -210,20 +209,11 @@ export function TabelaFornecedores({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onVisualizarFornecedor(fornecedor)}
+                          onClick={() => onAbrirFornecedor(fornecedor)}
                           className="h-8 w-8 p-0"
-                          aria-label="Visualizar fornecedor"
+                          aria-label="Abrir fornecedor"
                         >
                           <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEditarFornecedor(fornecedor)}
-                          className="h-8 w-8 p-0"
-                          aria-label="Editar fornecedor"
-                        >
-                          <Edit className="h-4 w-4" />
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -238,16 +228,10 @@ export function TabelaFornecedores({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => onVisualizarFornecedor(fornecedor)}
+                              onClick={() => onAbrirFornecedor(fornecedor)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
-                              Visualizar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => onEditarFornecedor(fornecedor)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
+                              Abrir
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -340,20 +324,11 @@ export function TabelaFornecedores({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onVisualizarFornecedor(fornecedor)}
+                              onClick={() => onAbrirFornecedor(fornecedor)}
                               className="h-8 w-8 p-0 opacity-100"
-                              aria-label="Visualizar fornecedor"
+                              aria-label="Abrir fornecedor"
                             >
                               <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEditarFornecedor(fornecedor)}
-                              className="h-8 w-8 p-0 opacity-100"
-                              aria-label="Editar fornecedor"
-                            >
-                              <Edit className="h-4 w-4" />
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -369,17 +344,11 @@ export function TabelaFornecedores({
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    onVisualizarFornecedor(fornecedor)
+                                    onAbrirFornecedor(fornecedor)
                                   }
                                 >
                                   <Eye className="mr-2 h-4 w-4" />
-                                  Visualizar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => onEditarFornecedor(fornecedor)}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Editar
+                                  Abrir
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>

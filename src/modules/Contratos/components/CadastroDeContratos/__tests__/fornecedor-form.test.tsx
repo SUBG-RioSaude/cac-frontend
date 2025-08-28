@@ -6,10 +6,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import FornecedorForm, {
   type DadosFornecedor,
 } from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
-import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Contratos/hooks'
+import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 
 // Mock dos hooks de empresa
-vi.mock('@/modules/Contratos/hooks', () => ({
+vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   useConsultarEmpresaPorCNPJ: vi.fn(),
   useCadastrarEmpresa: vi.fn()
 }))
