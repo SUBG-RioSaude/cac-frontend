@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ContratoForm, {
   type DadosContrato,
 } from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
@@ -48,6 +49,34 @@ global.fetch = vi.fn().mockImplementation((url: string) => {
 })
 
 describe('ContratoForm', () => {
+  // Mock do hook useUnidades
+  vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
+    useUnidades: vi.fn(() => ({
+      data: {
+        dados: [],
+      },
+      isLoading: false,
+      error: null,
+    })),
+  }))
+
+  // Função helper para renderizar com QueryClient
+  const renderWithProviders = (ui: React.ReactElement) => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    })
+
+    return render(
+      <QueryClientProvider client={queryClient}>
+        {ui}
+      </QueryClientProvider>
+    )
+  }
+
   const mockOnSubmit = vi.fn()
   const mockOnCancel = vi.fn()
   const mockOnPrevious = vi.fn()
@@ -65,7 +94,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve renderizar todos os campos obrigatórios', () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     expect(screen.getByLabelText(/número do contrato/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/processo sei/i)).toBeInTheDocument()
@@ -75,8 +104,8 @@ describe('ContratoForm', () => {
     expect(screen.getByLabelText(/descrição do objeto/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/tipo de contratação/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/tipo de contrato/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/unidade demandante/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/unidade gestora/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/unidade demandante/i)[0]).toBeInTheDocument()
+    expect(screen.getAllByText(/unidade gestora/i)[0]).toBeInTheDocument()
     expect(screen.getByText('Contratação *')).toBeInTheDocument()
     expect(screen.getByLabelText('Centralizada')).toBeInTheDocument()
     expect(screen.getByLabelText('Descentralizada')).toBeInTheDocument()
@@ -92,7 +121,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve exibir botões de navegação', () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     expect(screen.getByText('Cancelar')).toBeInTheDocument()
     expect(screen.getByText('Anterior')).toBeInTheDocument()
@@ -100,7 +129,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve calcular vigência final automaticamente quando data inicial e prazo são preenchidos', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
     const vigenciaFinalInput = screen.getByLabelText(/vigência final/i)
@@ -115,7 +144,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve calcular vigência final com meses e dias', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
     const vigenciaFinalInput = screen.getByLabelText(/vigência final/i)
@@ -139,7 +168,7 @@ describe('ContratoForm', () => {
 
   it('deve exibir erros de validação para campos obrigatórios', async () => {
     const user = userEvent.setup()
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const submitButton = screen.getByText('Próximo')
     await user.click(submitButton)
@@ -176,7 +205,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve validar que pelo menos meses ou dias sejam informados', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
 
@@ -202,7 +231,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve chamar onAdvanceRequest quando formulário é válido e função está disponível', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     // Verifica se o botão próximo está presente
     const botaoProximo = screen.getByText('Próximo')
@@ -235,7 +264,7 @@ describe('ContratoForm', () => {
   // Removido teste de upload, pois o campo é dinâmico (URL/Texto) e não há input type="file"
 
   it('deve aceitar link do Processo.Rio no campo de termo de referência', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const linkInput = screen.getByLabelText(/link do processo\.rio/i)
     fireEvent.input(linkInput, { target: { value: 'https://processo.rio/processo/12345' } })
@@ -246,7 +275,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve alternar para Google Drive e aceitar URL', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     // Seleciona radio Google Drive
     fireEvent.click(screen.getByLabelText(/google drive/i))
@@ -269,21 +298,21 @@ describe('ContratoForm', () => {
       tipoContrato: 'Prestacao_Servico',
     }
 
-    render(<ContratoForm {...defaultProps} dadosIniciais={dadosIniciais} />)
+    renderWithProviders(<ContratoForm {...defaultProps} dadosIniciais={dadosIniciais} />)
 
     expect(screen.getByDisplayValue('CONT-2024-002')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Prestação de serviços')).toBeInTheDocument()
   })
 
   it('deve marcar checkbox de contrato ativo por padrão', () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const ativoCheckbox = screen.getByLabelText(/contrato ativo/i)
     expect(ativoCheckbox).toBeChecked()
   })
 
   it('deve validar prazo inicial entre 0 e 60 meses', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const prazoMesesInput = screen.getByDisplayValue('12')
 
@@ -299,7 +328,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve validar prazo inicial entre 0 e 30 dias', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const prazoDiasInput = screen.getByTestId('prazo-dias-input')
 
@@ -315,7 +344,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve exibir prazo total calculado', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     // Verifica se o prazo total é exibido
     expect(screen.getByText(/prazo total:/i)).toBeInTheDocument()
@@ -331,7 +360,7 @@ describe('ContratoForm', () => {
   })
 
   it('deve validar vigência final posterior à vigência inicial', async () => {
-    render(<ContratoForm {...defaultProps} />)
+    renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const vigenciaInicialInput = screen.getByLabelText(/vigência inicial/i)
     const vigenciaFinalInput = screen.getByLabelText(/vigência final/i)

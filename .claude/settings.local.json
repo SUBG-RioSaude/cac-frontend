@@ -8,6 +8,9 @@
       "Bash(timeout 10 pnpm dev)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\MATHEUS\\Documents"
+    ]
   }
 }

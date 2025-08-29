@@ -22,6 +22,16 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
+// Mock do DropdownMenu para garantir que o conteúdo seja renderizado
+vi.mock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
+    <div onClick={onClick} role="menuitem">{children}</div>
+  ),
+}))
+
 const mockFornecedores: Fornecedor[] = [
   {
     id: '1',
@@ -77,8 +87,6 @@ const mockPaginacao: PaginacaoParamsFornecedor = {
 
 const mockHandlers = {
   onPaginacaoChange: vi.fn(),
-  onVisualizarFornecedor: vi.fn(),
-  onEditarFornecedor: vi.fn(),
   onAbrirFornecedor: vi.fn(),
 }
 
@@ -206,7 +214,7 @@ describe('TabelaFornecedores', () => {
     expect(screen.getByText('Mostrando 1 a 2 de 2 fornecedores')).toBeInTheDocument()
   })
 
-  it('deve chamar onVisualizarFornecedor ao clicar no botão visualizar', async () => {
+  it('deve chamar onAbrirFornecedor ao clicar no botão abrir', async () => {
     render(
       <TabelaFornecedores
         fornecedores={mockFornecedores}
@@ -215,17 +223,17 @@ describe('TabelaFornecedores', () => {
       />
     )
 
-    const botoesVisualizar = screen.getAllByLabelText('Visualizar fornecedor')
-    expect(botoesVisualizar).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
+    const botoesAbrir = screen.getAllByLabelText('Abrir fornecedor')
+    expect(botoesAbrir).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
     
-    fireEvent.click(botoesVisualizar[0])
+    fireEvent.click(botoesAbrir[0])
 
     await waitFor(() => {
-      expect(mockHandlers.onVisualizarFornecedor).toHaveBeenCalledWith(mockFornecedores[0])
+      expect(mockHandlers.onAbrirFornecedor).toHaveBeenCalledWith(mockFornecedores[0])
     })
   })
 
-  it('deve chamar onEditarFornecedor ao clicar no botão editar', async () => {
+  it('deve chamar onAbrirFornecedor ao clicar no menu de ações', async () => {
     render(
       <TabelaFornecedores
         fornecedores={mockFornecedores}
@@ -234,13 +242,14 @@ describe('TabelaFornecedores', () => {
       />
     )
 
-    const botoesEditar = screen.getAllByLabelText('Editar fornecedor')
-    expect(botoesEditar).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
+    // Encontra e clica na opção "Abrir" do dropdown (com o mock, ela está sempre visível)
+    const opcoesAbrir = screen.getAllByText('Abrir')
+    expect(opcoesAbrir).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
     
-    fireEvent.click(botoesEditar[0])
+    fireEvent.click(opcoesAbrir[0])
 
     await waitFor(() => {
-      expect(mockHandlers.onEditarFornecedor).toHaveBeenCalledWith(mockFornecedores[0])
+      expect(mockHandlers.onAbrirFornecedor).toHaveBeenCalledWith(mockFornecedores[0])
     })
   })
 

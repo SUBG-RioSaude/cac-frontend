@@ -1,8 +1,87 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AtribuicaoFiscaisForm from '../atribuicao-fiscais-form'
 import { usuariosMock } from '@/modules/Contratos/data/usuarios-mock'
+
+const mockFuncionarios = usuariosMock.map(usuario => ({
+  id: usuario.id,
+  nome: usuario.nome,
+  matricula: usuario.matricula,
+  cargo: usuario.cargo,
+  departamento: usuario.departamento,
+  ativo: true,
+}))
+
+const mockUsuarios = usuariosMock.map(usuario => ({
+  id: usuario.id,
+  nome: usuario.nome,
+  matricula: usuario.matricula,
+  cargo: usuario.cargo,
+  departamento: usuario.departamento,
+}))
+
+// Mock dos hooks
+vi.mock('@/modules/Funcionarios', () => ({
+  useFuncionariosParaAtribuicao: vi.fn(() => ({
+    data: {
+      dados: mockFuncionarios,
+      paginaAtual: 1,
+      tamanhoPagina: 50,
+      totalRegistros: mockFuncionarios.length,
+      totalPaginas: 1,
+      temProximaPagina: false,
+      temPaginaAnterior: false,
+    },
+    isLoading: false,
+    error: null,
+  })),
+  useGetLotacoesAtivas: vi.fn(() => ({
+    data: {
+      dados: [
+        { id: '1', nome: 'TI', codigo: 'TI001', ativo: true },
+        { id: '2', nome: 'Administração', codigo: 'ADM001', ativo: true },
+      ],
+      paginaAtual: 1,
+      tamanhoPagina: 50,
+      totalRegistros: 2,
+      totalPaginas: 1,
+      temProximaPagina: false,
+      temPaginaAnterior: false,
+    },
+    isLoading: false,
+    error: null,
+  })),
+  mapearFuncionariosParaUsuarios: vi.fn((funcionarios) => {
+    if (!funcionarios) return []
+    if (funcionarios.dados) return mockUsuarios
+    return mockUsuarios
+  }),
+  filtrarFuncionariosParaFiscalizacao: vi.fn((funcionarios) => {
+    if (!funcionarios) return { dados: [] }
+    return funcionarios
+  }),
+  Usuario: vi.fn(),
+  UsuarioAtribuido: vi.fn(),
+}))
+
+// Função helper para renderizar com QueryClient
+const renderWithProviders = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>
+  )
+}
 
 // Mock das funções de callback
 const mockOnSubmit = vi.fn()
@@ -30,7 +109,7 @@ const setupComponent = (props = {}) => {
     ...props
   }
 
-  return render(<AtribuicaoFiscaisForm {...defaultProps} />)
+  return renderWithProviders(<AtribuicaoFiscaisForm {...defaultProps} />)
 }
 
 describe('AtribuicaoFiscaisForm', () => {
@@ -204,8 +283,10 @@ describe('AtribuicaoFiscaisForm', () => {
       const user = userEvent.setup()
       setupComponent({ dadosIniciais: mockDadosIniciais })
       
-      const select = screen.getByRole('combobox')
-      await user.click(select)
+      // Pega todos os comboboxes e usa o segundo (índice 1) que é o de tipo de usuário
+      const selects = screen.getAllByRole('combobox')
+      const tipoUsuarioSelect = selects[1] // O segundo select é o de tipo de usuário
+      await user.click(tipoUsuarioSelect)
       
       // Usa getAllByText e pega o primeiro elemento (opção do select)
       const opcoesFiscal = screen.getAllByText('Fiscal')
@@ -224,8 +305,10 @@ describe('AtribuicaoFiscaisForm', () => {
       const user = userEvent.setup()
       setupComponent({ dadosIniciais: mockDadosIniciais })
       
-      const select = screen.getByRole('combobox')
-      await user.click(select)
+      // Pega todos os comboboxes e usa o segundo (índice 1) que é o de tipo de usuário
+      const selects = screen.getAllByRole('combobox')
+      const tipoUsuarioSelect = selects[1] // O segundo select é o de tipo de usuário
+      await user.click(tipoUsuarioSelect)
       
       // Usa getAllByText e pega o primeiro elemento (opção do select)
       const opcoesGestor = screen.getAllByText('Gestor')
@@ -244,8 +327,10 @@ describe('AtribuicaoFiscaisForm', () => {
       const user = userEvent.setup()
       setupComponent({ dadosIniciais: mockDadosIniciais })
       
-      const select = screen.getByRole('combobox')
-      await user.click(select)
+      // Pega todos os comboboxes e usa o segundo (índice 1) que é o de tipo de usuário
+      const selects = screen.getAllByRole('combobox')
+      const tipoUsuarioSelect = selects[1] // O segundo select é o de tipo de usuário
+      await user.click(tipoUsuarioSelect)
       
       // Usa getAllByText e pega o primeiro elemento (opção do select)
       const opcoesGestor = screen.getAllByText('Gestor')
@@ -345,8 +430,10 @@ describe('AtribuicaoFiscaisForm', () => {
     it('deve ter select acessível para tipo de usuário', () => {
       setupComponent({ dadosIniciais: mockDadosIniciais })
       
-      const select = screen.getByRole('combobox')
-      expect(select).toBeInTheDocument()
+      // Verifica se existem pelo menos 2 comboboxes (lotação e tipo de usuário)
+      const selects = screen.getAllByRole('combobox')
+      expect(selects).toHaveLength(2)
+      expect(selects[1]).toBeInTheDocument() // O segundo é o de tipo de usuário
     })
   })
 })
