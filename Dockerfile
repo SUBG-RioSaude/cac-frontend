@@ -44,12 +44,12 @@ ARG BUILD_TIME
 ENV VITE_BUILD_TIME=${BUILD_TIME}
 
 # ARGs para variáveis de ambiente da aplicação (podem ser passados no build)
-ARG VITE_API_URL
-ARG VITE_API_URL_AUTH
-ARG VITE_API_URL_EMPRESA
-ARG VITE_API_URL_CONTRATOS
-ARG VITE_VIACEP_URL
-ARG SYSTEM_ID
+ARG VITE_API_URL=http://devcac:7000/api
+ARG VITE_API_URL_AUTH=http://devcac:7000
+ARG VITE_API_URL_EMPRESA=http://devcac:7000/api
+ARG VITE_API_URL_CONTRATOS=http://devcac:7000/api
+ARG VITE_VIACEP_URL=https://viacep.com.br/ws
+ARG SYSTEM_ID=7b8659bb-1aeb-4d74-92c1-110c1d27e576
 
 # Converter ARGs em ENVs para o Vite usar durante o build
 ENV VITE_API_URL=${VITE_API_URL}
