@@ -23,7 +23,7 @@ export {
 export { useDocumentos } from './use-documentos'
 
 // Hooks de Timeline
-export { useTimelineIntegration } from './useTimelineIntegration'
+// export { useTimelineIntegration } from './useTimelineIntegration' // Temporariamente removido
 export { useUploadDocumento, useDeleteDocumento, useUpdateDocumento, useCreateDocumento, useUpdateDocumentosMultiplos, useUpdateDocumentoStatus } from './use-documentos-mutations'
 
 // Hooks de Toast
