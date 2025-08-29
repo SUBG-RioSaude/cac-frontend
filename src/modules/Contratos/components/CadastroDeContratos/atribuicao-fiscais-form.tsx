@@ -1,18 +1,29 @@
-import { useState } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Search, UserPlus, X, Users, UserCheck, CheckCircle } from "lucide-react"
-import { usuariosMock, type Usuario } from "@/modules/Contratos/data/usuarios-mock"
+import { Search, UserPlus, X, Users, UserCheck, CheckCircle, Loader2 } from "lucide-react"
+import { 
+  useFuncionariosParaAtribuicao,
+  useGetLotacoesAtivas,
+  type Usuario,
+  type UsuarioAtribuido,
+  mapearFuncionariosParaUsuarios,
+  filtrarFuncionariosParaFiscalizacao
+} from "@/modules/Funcionarios"
 
-export interface UsuarioAtribuido extends Usuario {
-  tipo: "fiscal" | "gestor" | null
-}
 
 export interface DadosAtribuicao {
   usuariosAtribuidos: UsuarioAtribuido[]
+}
+
+// Estrutura para envio para a API (nova estrutura)
+export interface FuncionarioAPI {
+  funcionarioId: string
+  tipoGerencia: 'Gestor' | 'Fiscal'
+  observacoes?: string
 }
 
 interface AtribuicaoFiscaisFormProps {
@@ -28,22 +39,73 @@ export default function AtribuicaoFiscaisForm({
   dadosIniciais,
 }: AtribuicaoFiscaisFormProps) {
   const [busca, setBusca] = useState("")
+  const [lotacaoSelecionada, setLotacaoSelecionada] = useState<string>("")
   const [usuariosAtribuidos, setUsuariosAtribuidos] = useState<UsuarioAtribuido[]>(
     dadosIniciais?.usuariosAtribuidos || [],
   )
 
-  // Filtrar usuários disponíveis (que não estão atribuídos)
-  const usuariosDisponiveis = usuariosMock.filter(
-    (usuario) => !usuariosAtribuidos.find((atribuido) => atribuido.id === usuario.id),
-  )
+  // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
+  useEffect(() => {
+    if (dadosIniciais?.usuariosAtribuidos) {
+      setUsuariosAtribuidos(dadosIniciais.usuariosAtribuidos)
+    }
+  }, [dadosIniciais?.usuariosAtribuidos])
 
-  // Filtrar usuários por busca
-  const usuariosFiltrados = usuariosDisponiveis.filter(
-    (usuario) => usuario.nome.toLowerCase().includes(busca.toLowerCase()) || usuario.matricula.includes(busca),
-  )
+  // Buscar funcionários da API
+  const { 
+    data: funcionariosApi, 
+    isLoading: carregandoFuncionarios,
+    error: erroFuncionarios 
+  } = useFuncionariosParaAtribuicao({
+    nome: busca.length >= 2 ? busca : undefined,
+    lotacao: lotacaoSelecionada || undefined,
+    limit: 100
+  })
+
+  // Buscar lotações para o filtro
+  const { 
+    data: lotacoesResponse
+  } = useGetLotacoesAtivas({
+    tamanhoPagina: 50
+  })
+
+  // Memoizar conversão de funcionários API para usuários
+  const todosUsuarios = useMemo(() => {
+    if (!funcionariosApi) return []
+    
+    // Filtrar apenas funcionários aptos para fiscalização
+    const funcionariosAptos = filtrarFuncionariosParaFiscalizacao(funcionariosApi)
+    
+    // Converter para formato de usuário
+    return mapearFuncionariosParaUsuarios(funcionariosAptos)
+  }, [funcionariosApi])
+
+  // Filtrar usuários disponíveis (que não estão atribuídos)
+  const usuariosDisponiveis = useMemo(() => {
+    return todosUsuarios.filter(
+      (usuario) => !usuariosAtribuidos.find((atribuido) => atribuido.id === usuario.id),
+    )
+  }, [todosUsuarios, usuariosAtribuidos])
+
+  // Lista de lotações para o select (filtrando valores vazios)
+  const lotacoes = useMemo(() => {
+    const todasLotacoes = lotacoesResponse?.dados || []
+    return todasLotacoes.filter(lotacao => lotacao.nome && lotacao.nome.trim().length > 0)
+  }, [lotacoesResponse])
+
+  // Filtrar usuários por busca (já filtrado pela API, mas mantém compatibilidade)
+  const usuariosFiltrados = useMemo(() => {
+    if (!busca) return usuariosDisponiveis
+    
+    return usuariosDisponiveis.filter(
+      (usuario) => 
+        usuario.nome.toLowerCase().includes(busca.toLowerCase()) || 
+        usuario.matricula.includes(busca),
+    )
+  }, [usuariosDisponiveis, busca])
 
   const handleAtribuirUsuario = (usuario: Usuario) => {
-    const novoUsuario: UsuarioAtribuido = { ...usuario, tipo: null }
+    const novoUsuario: UsuarioAtribuido = { ...usuario, tipo: null, observacoes: '' }
     setUsuariosAtribuidos((prev) => [...prev, novoUsuario])
   }
 
@@ -54,6 +116,11 @@ export default function AtribuicaoFiscaisForm({
   const handleTipoChange = (usuarioId: string, tipo: "fiscal" | "gestor") => {
     setUsuariosAtribuidos((prev) => prev.map((usuario) => (usuario.id === usuarioId ? { ...usuario, tipo } : usuario)))
   }
+
+  const handleObservacoesChange = (usuarioId: string, observacoes: string) => {
+    setUsuariosAtribuidos((prev) => prev.map((usuario) => (usuario.id === usuarioId ? { ...usuario, observacoes } : usuario)))
+  }
+
 
   const handleSubmit = () => {
     const dados: DadosAtribuicao = {
@@ -86,19 +153,62 @@ export default function AtribuicaoFiscaisForm({
                 {usuariosFiltrados.length}
               </Badge>
             </CardTitle>
-            <div className="relative mt-3">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar por nome ou matrícula..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
+            <div className="space-y-3 mt-3">
+              {/* Busca por nome/matrícula */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar por nome ou matrícula..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Filtro por lotação */}
+              <Select
+                value={lotacaoSelecionada || 'all'}
+                onValueChange={(value) =>
+                  setLotacaoSelecionada(value === 'all' ? '' : value)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filtrar por lotação/departamento..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>Todas as lotações</SelectItem>
+                  {lotacoes.map((lotacao) => (
+                    <SelectItem key={lotacao.id} value={lotacao.nome}>
+                      {lotacao.nome} {lotacao.sigla && `(${lotacao.sigla})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="p-4">
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {usuariosFiltrados.map((usuario) => (
+              {/* Loading state */}
+              {carregandoFuncionarios && (
+                <div className="flex items-center justify-center py-8 text-gray-500">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span className="text-sm">Carregando funcionários...</span>
+                </div>
+              )}
+
+              {/* Error state */}
+              {erroFuncionarios && !carregandoFuncionarios && (
+                <div className="text-center py-8 text-red-500">
+                  <X className="h-12 w-12 mx-auto mb-3 text-red-300" />
+                  <p className="text-sm font-medium">Erro ao carregar funcionários</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Verifique sua conexão e tente novamente
+                  </p>
+                </div>
+              )}
+
+              {/* Lista de usuários */}
+              {!carregandoFuncionarios && !erroFuncionarios && usuariosFiltrados.map((usuario) => (
                 <div
                   key={usuario.id}
                   className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
@@ -124,11 +234,17 @@ export default function AtribuicaoFiscaisForm({
                   </Button>
                 </div>
               ))}
-              {usuariosFiltrados.length === 0 && (
+              {/* Empty state */}
+              {!carregandoFuncionarios && !erroFuncionarios && usuariosFiltrados.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm">Nenhum usuário encontrado</p>
-                  <p className="text-xs text-gray-400 mt-1">Tente ajustar os termos de busca</p>
+                  <p className="text-sm">Nenhum funcionário encontrado</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {busca || lotacaoSelecionada 
+                      ? "Tente ajustar os filtros de busca" 
+                      : "Carregue a lista de funcionários ativos"
+                    }
+                  </p>
                 </div>
               )}
             </div>
@@ -185,6 +301,16 @@ export default function AtribuicaoFiscaisForm({
                             {usuario.tipo === "fiscal" ? "Fiscal" : "Gestor"}
                           </Badge>
                         )}
+                      </div>
+                      {/* Campo de observações */}
+                      <div className="mt-2">
+                        <Input
+                          type="text"
+                          placeholder="Observações (opcional)..."
+                          value={usuario.observacoes || ''}
+                          onChange={(e) => handleObservacoesChange(usuario.id, e.target.value)}
+                          className="text-xs h-8"
+                        />
                       </div>
                     </div>
                     <Button

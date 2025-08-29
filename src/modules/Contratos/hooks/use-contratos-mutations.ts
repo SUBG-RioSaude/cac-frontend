@@ -13,15 +13,15 @@ import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 // Tipos para as mutations
 
-interface CriarContratoData {
+export interface CriarContratoData {
   numeroContrato?: string
   processoSei?: string
   categoriaObjeto?: string
   descricaoObjeto?: string
   tipoContratacao?: string
   tipoContrato?: string
-  unidadeDemandante?: string
-  unidadeGestora?: string
+  unidadeDemandanteId?: string
+  unidadeGestoraId?: string
   contratacao?: string
   vigenciaInicial: string
   vigenciaFinal: string
@@ -32,12 +32,21 @@ interface CriarContratoData {
   termoReferencia?: string
   vinculacaoPCA?: string
   empresaId: string
-  ativo: boolean
+  ativo?: boolean
   unidadesVinculadas?: Array<{
     unidadeSaudeId: string
     valorAtribuido: number
-    vigenciaInicialUnidade?: string
-    vigenciaFinalUnidade?: string
+    observacoes?: string
+  }>
+  documentos?: Array<{
+    tipoDocumento: string
+    urlDocumento: string
+    dataEntrega: string
+    observacoes?: string
+  }>
+  funcionarios?: Array<{
+    funcionarioId: string
+    tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
     observacoes?: string
   }>
 }

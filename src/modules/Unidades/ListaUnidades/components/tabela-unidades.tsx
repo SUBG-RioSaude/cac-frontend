@@ -37,6 +37,10 @@ interface TabelaUnidadesProps {
   onVisualizarUnidade: (unidade: Unidade) => void
   ordenacao: OrdenacaoParams
   onOrdenacao: (coluna: ColunaOrdenacao) => void
+  // Optional mutation handlers
+  onEditarUnidade?: (unidade: Unidade) => void
+  onExcluirUnidade?: (unidade: Unidade) => void
+  isLoading?: boolean
 }
 
 export function TabelaUnidades({
@@ -48,7 +52,14 @@ export function TabelaUnidades({
   onVisualizarUnidade,
   ordenacao,
   onOrdenacao,
+  onEditarUnidade,
+  onExcluirUnidade,
+  isLoading = false,
 }: TabelaUnidadesProps) {
+  // Supress unused variables warnings for future implementation
+  void onEditarUnidade
+  void onExcluirUnidade
+  void isLoading
   const getIconeOrdenacao = (coluna: ColunaOrdenacao) => {
     if (ordenacao.coluna !== coluna) {
       return <ArrowUpDown className="h-4 w-4" />

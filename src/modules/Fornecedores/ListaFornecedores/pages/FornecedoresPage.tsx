@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Plus, FileDown } from 'lucide-react'
@@ -6,29 +7,48 @@ import { SearchAndFiltersFornecedores } from '@/modules/Fornecedores/ListaFornec
 import { TabelaFornecedores } from '@/modules/Fornecedores/ListaFornecedores/components/tabela-fornecedores'
 import { ModalConfirmacaoExportacao } from '@/modules/Fornecedores/ListaFornecedores/components/modal-confirmacao-exportacao'
 import { useFornecedoresStore } from '@/modules/Fornecedores/ListaFornecedores/store/fornecedores-store'
-import type { Fornecedor } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
+import type { Fornecedor, FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
+import { mapearFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 import { ModalNovoFornecedor } from '@/modules/Fornecedores/ListaFornecedores/components/modal-novo-fornecedor'
+import { useFornecedoresResumo } from '@/modules/Empresas/hooks/use-empresas'
 
 export default function FornecedoresListPage() {
+  const navigate = useNavigate()
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
+  const [filtros, setFiltros] = useState<FiltrosFornecedorApi>({
+    pagina: 1,
+    tamanhoPagina: 10
+  })
 
+  // React Query para dados da API
+  const { data: apiResponse, isLoading } = useFornecedoresResumo(filtros, {
+    keepPreviousData: true
+  })
+
+  // Zustand apenas para seleção de itens
   const {
-    fornecedoresFiltrados,
     fornecedoresSelecionados,
-    paginacao,
-    setPaginacao,
   } = useFornecedoresStore()
 
-  const handleVisualizarFornecedor = (fornecedor: Fornecedor) => {
-    console.log('Visualizar fornecedor:', fornecedor)
+  // Mapear dados da API para interface Fornecedor
+  const fornecedores = useMemo(() => {
+    if (!apiResponse?.itens) return []
+    return apiResponse.itens.map(mapearFornecedorApi)
+  }, [apiResponse])
+
+  // Paginação baseada na resposta da API
+  const paginacao = useMemo(() => ({
+    pagina: apiResponse?.pagina || 1,
+    itensPorPagina: apiResponse?.tamanhoPagina || 10,
+    total: apiResponse?.totalItens || 0
+  }), [apiResponse])
+
+  const handleAbrirFornecedor = (fornecedor: Fornecedor) => {
+    navigate(`/fornecedores/${fornecedor.cnpj}`)
   }
 
-  const handleEditarFornecedor = (fornecedor: Fornecedor) => {
-    console.log('Editar fornecedor:', fornecedor)
-  }
-
-  const handleExportarSelecionados = (fornecedores: Fornecedor[]) => {
-    console.log('Exportar fornecedores:', fornecedores)
+  const handleExportarSelecionados = (fornecedoresSelecionadosData: Fornecedor[]) => {
+    console.log('Exportar fornecedores:', fornecedoresSelecionadosData)
 
     const csvContent = [
       [
@@ -38,7 +58,7 @@ export default function FornecedoresListPage() {
         'Status',
         'Valor Total',
       ],
-      ...fornecedores.map((f) => [
+      ...fornecedoresSelecionadosData.map((f) => [
         f.razaoSocial,
         f.cnpj,
         f.contratosAtivos.toString(),
@@ -69,7 +89,7 @@ export default function FornecedoresListPage() {
         'Status',
         'Valor Total',
       ],
-      ...fornecedoresFiltrados.map((f) => [
+      ...fornecedores.map((f) => [
         f.razaoSocial,
         f.cnpj,
         f.contratosAtivos.toString(),
@@ -95,7 +115,7 @@ export default function FornecedoresListPage() {
 
   const handleClickExportar = () => {
     if (fornecedoresSelecionados.length > 0) {
-      const fornecedoresSelecionadosData = fornecedoresFiltrados.filter((f) =>
+      const fornecedoresSelecionadosData = fornecedores.filter((f) =>
         fornecedoresSelecionados.includes(f.id),
       )
       handleExportarSelecionados(fornecedoresSelecionadosData)
@@ -166,16 +186,31 @@ export default function FornecedoresListPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <SearchAndFiltersFornecedores />
+          <SearchAndFiltersFornecedores 
+          onFiltrosChange={(novosFiltros) => {
+            setFiltros(prev => ({
+              ...prev,
+              ...novosFiltros,
+              pagina: 1 // Reset para primeira página ao filtrar
+            }))
+          }}
+          filtrosAtivos={filtros}
+        />
         </motion.div>
 
         {/* Tabela */}
         <TabelaFornecedores
-          fornecedores={fornecedoresFiltrados}
+          fornecedores={fornecedores}
           paginacao={paginacao}
-          onPaginacaoChange={setPaginacao}
-          onVisualizarFornecedor={handleVisualizarFornecedor}
-          onEditarFornecedor={handleEditarFornecedor}
+          onPaginacaoChange={(novaPaginacao) => {
+            setFiltros(prev => ({
+              ...prev,
+              pagina: novaPaginacao.pagina,
+              tamanhoPagina: novaPaginacao.itensPorPagina
+            }))
+          }}
+          onAbrirFornecedor={handleAbrirFornecedor}
+          isLoading={isLoading}
         />
       </div>
 
@@ -184,7 +219,7 @@ export default function FornecedoresListPage() {
         isOpen={modalExportacaoAberto}
         onClose={() => setModalExportacaoAberto(false)}
         onConfirm={handleExportarTodos}
-        totalFornecedores={fornecedoresFiltrados.length}
+        totalFornecedores={fornecedores.length}
       />
     </div>
   )

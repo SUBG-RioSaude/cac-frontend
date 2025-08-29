@@ -7,13 +7,19 @@
 export { useContratos, useContrato, useContratosVencendo, useContratosVencidos } from './use-contratos'
 export { useCreateContrato, useUpdateContrato, useDeleteContrato } from './use-contratos-mutations'
 
-// Hooks de Empresas/Fornecedores
+// Hooks de Empresas/Fornecedores (migrados para módulo próprio)
 export { 
   useConsultarEmpresaPorCNPJ, 
   useCadastrarEmpresa, 
   useEmpresa, 
-  useEmpresas 
-} from './use-empresas'
+  useEmpresas,
+  useUpdateEmpresa,
+  useDeleteEmpresa,
+  useEmpresasStatus,
+  useCreateContato,
+  useUpdateContato,
+  useDeleteContato
+} from '@/modules/Empresas/hooks/use-empresas'
 export { useDocumentos } from './use-documentos'
 
 // Hooks de Timeline

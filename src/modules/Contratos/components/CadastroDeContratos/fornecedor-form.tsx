@@ -37,21 +37,20 @@ import {
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Contratos/hooks'
-import type { EmpresaResponse } from '@/modules/Contratos/types/empresa'
+import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
 
 interface Contato {
   id: string
   nome: string
   valor: string
-  tipo: 'Email' | 'Fixo' | 'Celular'
+  tipo: 'Email' | 'Telefone' | 'Celular'
   ativo: boolean
 }
 
 export interface DadosFornecedor {
   cnpj: string
   razaoSocial: string
-  nomeFantasia: string
   estadoIE?: string
   inscricaoEstadual: string
   inscricaoMunicipal: string
@@ -64,6 +63,7 @@ export interface DadosFornecedor {
   cep: string
   ativo: boolean
   contatos: Contato[]
+  empresaId?: string
 }
 
 // Funções de validação para contatos
@@ -135,13 +135,13 @@ const fornecedorSchema = z.object({
           id: z.string(),
           nome: z.string().min(1, 'Nome do contato é obrigatório'),
           valor: z.string().min(1, 'Valor do contato é obrigatório'),
-          tipo: z.enum(['Email', 'Fixo', 'Celular']),
+          tipo: z.enum(['Email', 'Telefone', 'Celular']),
           ativo: z.boolean(),
         })
         .refine((contato: { tipo: string; valor: string }) => {
           if (contato.tipo === 'Email') {
             return validarEmail(contato.valor)
-          } else if (contato.tipo === 'Fixo') {
+          } else if (contato.tipo === 'Telefone') {
             return validarFormatoTelefoneFixo(contato.valor)
           } else if (contato.tipo === 'Celular') {
             return validarFormatoCelular(contato.valor)
@@ -152,6 +152,7 @@ const fornecedorSchema = z.object({
     .min(1, 'Pelo menos um contato é obrigatório')
     .max(3, 'Máximo de 3 contatos permitidos')
     .default([]),
+  empresaId: z.string().optional(),
 })
 
 interface FornecedorFormProps {
@@ -161,6 +162,7 @@ interface FornecedorFormProps {
   dadosIniciais?: Partial<DadosFornecedor>
   onAdvanceRequest?: (dados: DadosFornecedor) => void
   onDataChange?: (dados: Partial<DadosFornecedor>) => void
+  onEmpresaCadastrada?: (dados: {cnpj: string, razaoSocial: string}) => void
 }
 
 const estadosBrasileiros = [
@@ -200,6 +202,7 @@ export default function FornecedorForm({
   dadosIniciais = {},
   onAdvanceRequest,
   onDataChange,
+  onEmpresaCadastrada,
 }: FornecedorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
@@ -237,7 +240,7 @@ export default function FornecedorForm({
         id: (index + 1).toString(),
         nome: contato.nome,
         valor: contato.valor,
-        tipo: contato.tipo as 'Email' | 'Fixo' | 'Celular',
+        tipo: contato.tipo as 'Email' | 'Telefone' | 'Celular',
         ativo: true,
       })) || []
 
@@ -256,6 +259,7 @@ export default function FornecedorForm({
         cep: data.cep,
         ativo: data.ativo,
         contatos: contatosMapeados, // Preenche contatos diretamente no reset
+        empresaId: data.id, // Adiciona o ID da empresa para uso posterior
       })
 
       // Habilita campos de endereço
@@ -292,7 +296,7 @@ export default function FornecedorForm({
   }, [cnpjParaConsultar]) // Removido refetchConsultaCNPJ das dependências para evitar loops
 
   // Hook para cadastrar empresa
-  const { mutateAsync: cadastrarEmpresaAsync } = useCadastrarEmpresa()
+  const { mutateAsync: cadastrarEmpresaAsync, resetMutation } = useCadastrarEmpresa()
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {
@@ -380,6 +384,28 @@ export default function FornecedorForm({
     control: form.control,
     name: 'contatos',
   })
+
+  // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
+  useEffect(() => {
+    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
+      form.reset({
+        cnpj: dadosIniciais?.cnpj ? cnpjUtils.formatar(dadosIniciais.cnpj) : '',
+        razaoSocial: dadosIniciais?.razaoSocial || '',
+        estadoIE: dadosIniciais?.estadoIE || '',
+        inscricaoEstadual: dadosIniciais?.inscricaoEstadual || '',
+        inscricaoMunicipal: dadosIniciais?.inscricaoMunicipal || '',
+        endereco: dadosIniciais?.endereco || '',
+        numero: dadosIniciais?.numero || '',
+        complemento: dadosIniciais?.complemento || '',
+        bairro: dadosIniciais?.bairro || '',
+        cidade: dadosIniciais?.cidade || '',
+        estado: dadosIniciais?.estado || '',
+        cep: dadosIniciais?.cep || '',
+        ativo: dadosIniciais?.ativo ?? true,
+        contatos: dadosIniciais?.contatos || [],
+      })
+    }
+  }, [dadosIniciais, form])
 
   // Watch para mudanças em tempo real - usando watch específico para evitar loops
   const watchedValues = form.watch()
@@ -476,7 +502,32 @@ export default function FornecedorForm({
           })),
         }
 
-        await cadastrarEmpresaAsync(empresaRequest)
+        const empresaCriada = await cadastrarEmpresaAsync(empresaRequest)
+        
+        // Salvar o ID da empresa criada no formulário
+        if (empresaCriada?.id) {
+          const valoresAtuais = form.getValues()
+          form.setValue('empresaId', empresaCriada.id)
+          
+          // Atualizar os dados com o ID da empresa
+          const dadosAtualizados = {
+            ...valoresAtuais,
+            empresaId: empresaCriada.id
+          }
+          
+          // Propagar mudança se callback estiver disponível
+          if (onDataChange) {
+            onDataChange(dadosAtualizados)
+          }
+        }
+        
+        // Notificar componente pai que uma empresa foi cadastrada
+        if (onEmpresaCadastrada) {
+          onEmpresaCadastrada({
+            cnpj: dadosFornecedor.cnpj,
+            razaoSocial: dadosFornecedor.razaoSocial
+          })
+        }
         
         toast.success('Empresa cadastrada com sucesso!', {
           description: 'Nova empresa foi cadastrada no sistema.',
@@ -500,6 +551,9 @@ export default function FornecedorForm({
       toast.error('Erro ao processar formulário', {
         description: 'Tente novamente ou verifique os dados.',
       })
+      
+      // Reset da mutation para permitir nova tentativa
+      resetMutation()
     } finally {
       setIsSubmitting(false)
     }
@@ -1172,7 +1226,7 @@ export default function FornecedorForm({
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="Email">E-mail</SelectItem>
-                                <SelectItem value="Fixo">
+                                <SelectItem value="Telefone">
                                   Telefone Fixo
                                 </SelectItem>
                                 <SelectItem value="Celular">Celular</SelectItem>
@@ -1202,7 +1256,7 @@ export default function FornecedorForm({
                               <FormLabel className="mb-2">
                                 {tipoContato === 'Email'
                                   ? 'E-mail'
-                                  : tipoContato === 'Fixo'
+                                  : tipoContato === 'Telefone'
                                     ? 'Telefone Fixo'
                                     : tipoContato === 'Celular'
                                       ? 'Celular'
@@ -1222,7 +1276,7 @@ export default function FornecedorForm({
                                       let valorProcessado = e.target.value
 
                                       // Aplica máscara baseada no tipo
-                                      if (tipoContato === 'Fixo') {
+                                      if (tipoContato === 'Telefone') {
                                         valorProcessado =
                                           aplicarMascaraTelefoneFixo(
                                             e.target.value,
@@ -1239,7 +1293,7 @@ export default function FornecedorForm({
                                       if (valorProcessado.length > 0) {
                                         if (tipoContato === 'Email') {
                                           validarEmail(valorProcessado)
-                                        } else if (tipoContato === 'Fixo') {
+                                        } else if (tipoContato === 'Telefone') {
                                           validarFormatoTelefoneFixo(
                                             valorProcessado,
                                           )
