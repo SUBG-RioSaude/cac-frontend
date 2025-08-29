@@ -42,7 +42,7 @@ export default function VisualizacaoFornecedorPage() {
         <div className="space-y-6 lg:col-span-2">
           <InformacoesFornecedor
             razaoSocial={fornecedor.razaoSocial}
-            nomeFantasia={fornecedor.nomeFantasia}
+            nomeFantasia={fornecedor.razaoSocial}
             cnpj={fornecedor.cnpj}
             inscricaoEstadual={fornecedor.inscricaoEstadual}
             inscricaoMunicipal={fornecedor.inscricaoMunicipal}

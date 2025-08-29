@@ -13,6 +13,7 @@ import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
 import type { DadosAtribuicao } from '@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form'
 import { getUnidades } from '@/modules/Unidades/services/unidades-service'
 import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
+import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
 
 interface ApiLog {
   id: string
@@ -210,7 +211,7 @@ export function useDebugCadastro() {
       timestampGerado: timestamp,
       seedAleatorio: randomSeed
     }
-  }, [])
+  }, [gerarCepValido])
 
   // Mock data generators
   const getMockFornecedor = useCallback((): DadosFornecedor => {
@@ -243,7 +244,7 @@ export function useDebugCadastro() {
         id: '3',
         nome: 'Telefone Fixo',
         valor: telefoneFixo,
-        tipo: 'Telefone' as const,
+        tipo: 'Celular' as const,
         ativo: true,
       })
     }
@@ -264,7 +265,7 @@ export function useDebugCadastro() {
       ativo: true,
       contatos,
     }
-  }, [gerarCnpjValido, gerarDadosAleatorios, gerarCepValido])
+  }, [gerarCnpjValido, gerarDadosAleatorios])
 
   const getMockContrato = useCallback(async (): Promise<DadosContrato> => {
     const categorias = [
@@ -272,12 +273,8 @@ export function useDebugCadastro() {
       'Locação de Equipamentos', 'Manutenção Predial', 'Serviços de Limpeza',
       'Consultoria Técnica', 'Suporte de TI', 'Segurança Patrimonial'
     ]
-    const tipos = [
-      'Serviços', 'Materiais', 'Obras', 'Equipamentos', 'Manutenção',
-      'Limpeza', 'Consultoria', 'Tecnologia', 'Segurança'
-    ]
     // Função para mapear dados da API para UnidadeHospitalar
-    const mapearUnidadeSaudeParaHospitalar = (unidadeApi: any): UnidadeHospitalar => {
+    const mapearUnidadeSaudeParaHospitalar = (unidadeApi: UnidadeSaudeApi): UnidadeHospitalar => {
       return {
         id: unidadeApi.id,
         nome: unidadeApi.nome,
@@ -340,7 +337,6 @@ export function useDebugCadastro() {
       unidadeDemandanteIdSelecionado = `550e8400-e29b-41d4-a716-${String(Math.floor(Math.random() * 999999999999)).padStart(12, '4')}`
       unidadeGestoraIdSelecionado = `550e8400-e29b-41d4-a716-${String(Math.floor(Math.random() * 999999999999)).padStart(12, '4')}`
     }
-    const formasPagamento = ['Mensal', 'Quinzenal', 'À vista', 'Trimestral', 'Semestral']
     const prazos = [6, 12, 18, 24, 36, 48]
     
     // Timestamp para unicidade
@@ -424,12 +420,18 @@ export function useDebugCadastro() {
         unidadeHospitalar: {
           id: `unidade-hospitalar-${i + 1}`,
           nome: `${tiposUnidade[tipoIndex]} ${regioes[regiaoIndex]}`,
-          sigla,
+          codigo: `${sigla}-${(i + 1).toString().padStart(3, '0')}`,
           ug: (i + 1).toString().padStart(3, '0'),
+          sigla,
+          cnpj: `${Math.floor(Math.random() * 99999999999999)}.000001/0001-${Math.floor(Math.random() * 99).toString().padStart(2, '0')}`,
+          cep: `${Math.floor(Math.random() * 99999).toString().padStart(5, '0')}-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`,
+          endereco: `Rua ${regioes[regiaoIndex]}, ${Math.floor(Math.random() * 9999) + 1}`,
           cidade: cidades[cidadeIndex],
           estado: estados[cidadeIndex],
-          endereco: `Rua ${regioes[regiaoIndex]}, ${Math.floor(Math.random() * 9999) + 1}`,
-          ativo: true
+          responsavel: `Responsável ${tiposUnidade[tipoIndex]}`,
+          telefone: `(${10 + Math.floor(Math.random() * 89)}) ${Math.floor(Math.random() * 8999) + 1000}-${Math.floor(Math.random() * 8999) + 1000}`,
+          email: `contato@${sigla.toLowerCase()}.gov.br`,
+          ativa: true
         },
         valorAlocado: valor,
         percentualContrato: percentual

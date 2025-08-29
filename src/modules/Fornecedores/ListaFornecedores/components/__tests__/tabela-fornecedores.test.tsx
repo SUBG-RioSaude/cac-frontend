@@ -79,6 +79,7 @@ const mockHandlers = {
   onPaginacaoChange: vi.fn(),
   onVisualizarFornecedor: vi.fn(),
   onEditarFornecedor: vi.fn(),
+  onAbrirFornecedor: vi.fn(),
 }
 
 describe('TabelaFornecedores', () => {

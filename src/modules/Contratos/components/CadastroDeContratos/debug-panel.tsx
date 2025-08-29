@@ -26,7 +26,6 @@ import {
   Database,
   Send,
   CheckCircle,
-  XCircle,
   Clock,
   Loader2
 } from "lucide-react"

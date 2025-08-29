@@ -26,7 +26,7 @@ import type {
 export async function getFuncionarios(
   filtros: FuncionarioParametros = {}
 ): Promise<FuncionariosPaginacaoResponse> {
-  const response = await executeWithFallback<any>({ 
+  const response = await executeWithFallback<FuncionariosPaginacaoResponse>({ 
     method: 'get',
     url: '/Funcionarios', // Seguir padrão Pascal case da API
     params: filtros
@@ -35,10 +35,10 @@ export async function getFuncionarios(
   const responseData = response.data;
 
   // Prioridade 1: Checar a estrutura { sucesso: true, dados: { ... } }
-  if (responseData && responseData.sucesso && responseData.dados) {
+  if (responseData && 'sucesso' in responseData && responseData.sucesso && 'dados' in responseData) {
     // Se 'dados' dentro do wrapper tiver a estrutura de paginação, retorna direto
-    if ('dados' in responseData.dados && Array.isArray(responseData.dados.dados)) {
-      return responseData.dados as FuncionariosPaginacaoResponse;
+    if (responseData.dados && 'dados' in responseData.dados && Array.isArray((responseData.dados as Record<string, unknown>).dados)) {
+      return responseData.dados as unknown as FuncionariosPaginacaoResponse;
     }
   }
 
@@ -48,7 +48,7 @@ export async function getFuncionarios(
       return responseData as FuncionariosPaginacaoResponse;
     }
     // Se for um array de dados sem paginação, monta a estrutura
-    const dados = responseData.dados as FuncionarioApi[];
+    const dados = (responseData as Record<string, unknown>).dados as FuncionarioApi[];
     return {
       dados,
       paginaAtual: filtros.pagina || 1,

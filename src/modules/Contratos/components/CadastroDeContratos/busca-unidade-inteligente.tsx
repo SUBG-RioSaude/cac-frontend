@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Search, Building2, MapPin, Phone, Mail, Check, X, Loader2 } from "lucide-react"
+import { Search, Building2, MapPin, Check, X, Loader2 } from "lucide-react"
 import type { UnidadeHospitalar } from "@/modules/Contratos/types/unidades"
 import { cn } from "@/lib/utils"
 import { useUnidades, useBuscarUnidades } from '@/modules/Unidades/hooks/use-unidades'
@@ -89,9 +89,9 @@ export default function BuscaUnidadeInteligente({
   useEffect(() => {
     let unidadesParaFiltrar: UnidadeSaudeApi[] = []
     
-    if (debouncedTermoBusca.length >= 2 && unidadesBusca?.dados) {
+    if (debouncedTermoBusca.length >= 2 && unidadesBusca) {
       // Usar dados da busca específica
-      unidadesParaFiltrar = unidadesBusca.dados
+      unidadesParaFiltrar = unidadesBusca
     } else if (debouncedTermoBusca.length === 0 && unidadesData?.dados) {
       // Lista completa quando não há busca
       unidadesParaFiltrar = unidadesData.dados

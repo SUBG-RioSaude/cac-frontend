@@ -59,7 +59,7 @@ export function isFuncionarioAtivo(funcionario: FuncionarioApi): boolean {
 /**
  * Verifica se funcionário pode ser atribuído como fiscal
  */
-export function podeSerFiscal(funcionario: any): boolean {
+export function podeSerFiscal(funcionario: FuncionarioApi): boolean {
   // Simplificado para contornar tipagem incorreta da API.
   // A query para /Funcionarios já inclui `ativo=true`.
   // Assumimos que a API já retorna apenas funcionários aptos.

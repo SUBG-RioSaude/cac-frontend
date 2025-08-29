@@ -414,7 +414,7 @@ export default function CadastrarContrato() {
                 onDataChange={(dados) => {
                   setDadosCompletos(prev => ({
                     ...prev,
-                    fornecedor: { ...prev.fornecedor, ...dados }
+                    fornecedor: { ...prev.fornecedor, ...dados } as DadosFornecedor
                   }))
                 }}
                 onEmpresaCadastrada={setEmpresaCadastradaNaSessao}
@@ -434,7 +434,7 @@ export default function CadastrarContrato() {
                 onDataChange={(dados) => {
                   setDadosCompletos(prev => ({
                     ...prev,
-                    contrato: { ...prev.contrato, ...dados }
+                    contrato: { ...prev.contrato, ...dados } as DadosContrato
                   }))
                 }}
                 onValorContratoChange={handleValorContratoChange}

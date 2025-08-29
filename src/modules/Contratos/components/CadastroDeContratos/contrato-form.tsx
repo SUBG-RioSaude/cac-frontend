@@ -230,10 +230,6 @@ interface ProcessoInstrutivo {
   sufixos: string[]
 }
 
-interface Unidades {
-  demandantes: string[]
-  gestoras: string[]
-}
 
 export default function ContratoForm({
   onSubmit,
@@ -250,7 +246,6 @@ export default function ContratoForm({
   >('processo_rio')
   const [processoInstrutivo, setProcessoInstrutivo] =
     useState<ProcessoInstrutivo | null>(null)
-  const [unidades, setUnidades] = useState<Unidades | null>(null)
   const [openProcesso, setOpenProcesso] = useState(false)
   const [processoSelecionado, setProcessoSelecionado] = useState('')
   const [pesquisaProcesso, setPesquisaProcesso] = useState('')
