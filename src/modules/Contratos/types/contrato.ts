@@ -173,6 +173,10 @@ export interface Contrato {
   vinculacaoPCA?: string | null
   status?: string | null
   empresaId: string
+  // Novos campos da API
+  empresaRazaoSocial?: string | null
+  empresaCnpj?: string | null
+  unidadeGestoraNomeCompleto?: string | null
   // Added for compatibility
   contratada?: {
     razaoSocial: string

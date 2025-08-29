@@ -97,7 +97,7 @@ describe('ContratoForm', () => {
     renderWithProviders(<ContratoForm {...defaultProps} />)
 
     expect(screen.getByLabelText(/número do contrato/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/processo sei/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/processos/i)).toBeInTheDocument()
     expect(
       screen.getByLabelText(/categoria do objeto do contrato/i),
     ).toBeInTheDocument()
@@ -178,7 +178,7 @@ describe('ContratoForm', () => {
         screen.getByText(/número do contrato é obrigatório/i),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/processo sei é obrigatório/i),
+        screen.getByText(/pelo menos um processo deve ser informado/i),
       ).toBeInTheDocument()
       expect(
         screen.getByText(/categoria do objeto é obrigatória/i),
@@ -250,7 +250,7 @@ describe('ContratoForm', () => {
 
     // Aguarda o preenchimento
     await waitFor(() => {
-      expect(screen.getByLabelText(/número do contrato/i)).toHaveValue('CONT-2024-0001')
+      expect(screen.getByLabelText(/número do contrato/i)).toHaveValue('20240001')
     })
 
     // Aguarda um pouco para garantir que todos os campos foram preenchidos
@@ -290,8 +290,8 @@ describe('ContratoForm', () => {
 
   it('deve preencher formulário com dados iniciais quando fornecidos', () => {
     const dadosIniciais: Partial<DadosContrato> = {
-      numeroContrato: 'CONT-2024-002',
-      processoSei: '98765432109876543210',
+      numeroContrato: '20240002',
+      processos: [{ tipo: 'sei' as const, valor: 'SEI-123456-2024' }],
       categoriaObjeto: 'prestacao_servico_com_mao_obra',
       descricaoObjeto: 'Prestação de serviços',
       tipoContratacao: 'Pregao',
@@ -300,7 +300,7 @@ describe('ContratoForm', () => {
 
     renderWithProviders(<ContratoForm {...defaultProps} dadosIniciais={dadosIniciais} />)
 
-    expect(screen.getByDisplayValue('CONT-2024-002')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('20240002')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Prestação de serviços')).toBeInTheDocument()
   })
 
@@ -378,6 +378,131 @@ describe('ContratoForm', () => {
       expect(
         screen.getByText(/a vigência final deve ser posterior à vigência inicial/i),
       ).toBeInTheDocument()
+    })
+  })
+
+  describe('Funcionalidades de Processos', () => {
+    it('deve permitir adicionar processos SEI, RIO e Físico', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Verificar se os botões de adicionar processos existem
+      expect(screen.getByText('Processo SEI')).toBeInTheDocument()
+      expect(screen.getByText('Processo RIO')).toBeInTheDocument()
+      expect(screen.getByText('Processo Físico')).toBeInTheDocument()
+
+      // Adicionar um processo SEI
+      await user.click(screen.getByText('Processo SEI'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+      })
+    })
+
+    it('deve permitir remover processos adicionados', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Adicionar um processo
+      await user.click(screen.getByText('Processo SEI'))
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+      })
+
+      // Remover o processo
+      const removeButton = screen.getByRole('button', { name: '' }) // Botão com ícone de lixeira
+      await user.click(removeButton)
+
+      await waitFor(() => {
+        expect(screen.queryByPlaceholderText('SEI-123456-2024')).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Funcionalidades de Etapas de Pagamento', () => {
+    it('deve mostrar campos de etapas quando forma de pagamento é "Etapas"', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Selecionar forma de pagamento "Etapas"
+      const selectTrigger = screen.getByRole('combobox', { name: /forma de pagamento/i })
+      await user.click(selectTrigger)
+
+      const etapasOption = screen.getByText('Etapas')
+      await user.click(etapasOption)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/quantidade de etapas/i)).toBeInTheDocument()
+      })
+    })
+
+    it('deve criar etapas quando quantidade é informada', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Selecionar forma de pagamento "Etapas"
+      const selectTrigger = screen.getByRole('combobox', { name: /forma de pagamento/i })
+      await user.click(selectTrigger)
+      await user.click(screen.getByText('Etapas'))
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/quantidade de etapas/i)).toBeInTheDocument()
+      })
+
+      // Definir quantidade de etapas
+      const quantidadeInput = screen.getByLabelText(/quantidade de etapas/i)
+      await user.clear(quantidadeInput)
+      await user.type(quantidadeInput, '2')
+
+      await waitFor(() => {
+        expect(screen.getByText('Etapa 1')).toBeInTheDocument()
+        expect(screen.getByText('Etapa 2')).toBeInTheDocument()
+      })
+    })
+
+    it('deve limitar quantidade de etapas a 10', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Selecionar forma de pagamento "Etapas"
+      const selectTrigger = screen.getByRole('combobox', { name: /forma de pagamento/i })
+      await user.click(selectTrigger)
+      await user.click(screen.getByText('Etapas'))
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/quantidade de etapas/i)).toBeInTheDocument()
+      })
+
+      // Tentar definir quantidade maior que 10
+      const quantidadeInput = screen.getByLabelText(/quantidade de etapas/i)
+      await user.clear(quantidadeInput)
+      await user.type(quantidadeInput, '15')
+
+      // O input deve ter max="10", então o valor não deve ser aceito
+      expect(quantidadeInput).toHaveAttribute('max', '10')
+    })
+  })
+
+  describe('Validação de Número do Contrato', () => {
+    it('deve aceitar apenas números no campo número do contrato', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      const numeroInput = screen.getByLabelText(/número do contrato/i)
+      
+      // Tentar digitar letras e números
+      await user.type(numeroInput, 'ABC123XYZ456')
+
+      // Deve conter apenas os números
+      expect(numeroInput).toHaveValue('123456')
+    })
+
+    it('deve mostrar placeholder atualizado', () => {
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      const numeroInput = screen.getByLabelText(/número do contrato/i)
+      expect(numeroInput).toHaveAttribute('placeholder', 'Ex: 20240001')
     })
   })
 })

@@ -11,6 +11,10 @@ import {
   X,
   ChevronsUpDown,
   Loader2,
+  Plus,
+  Trash2,
+  Calendar,
+  DollarSign,
 } from 'lucide-react'
 import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
 import { Input } from '@/components/ui/input'
@@ -58,12 +62,8 @@ import { toast } from 'sonner'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {
-  const regex = /^CONT-\d{4}-\d{4}$/
-  if (!regex.test(numero)) return false
-
-  const [, ano] = numero.split('-')
-  const anoAtual = new Date().getFullYear()
-  return parseInt(ano) <= anoAtual
+  // Agora aceita apenas números
+  return /^\d+$/.test(numero) && numero.length > 0
 }
 
 const validarData = (data: string) => {
@@ -90,10 +90,38 @@ const validarPCA = (pca: string) => {
   return /^\d+$/.test(pca)
 }
 
+// Validações para processos
+const validarProcessoSEI = (processo: string) => {
+  // Formato: SEI-XXXXXX-ANO (ex: SEI-123456-2024)
+  const regex = /^SEI-\d{6}-\d{4}$/
+  return regex.test(processo)
+}
+
+const validarProcessoFisico = (processo: string) => {
+  // Formato: xx/xxx.xxx/ano (ex: 01/123.456/2024)
+  const regex = /^\d{2}\/\d{3}\.\d{3}\/\d{4}$/
+  return regex.test(processo)
+}
+
+
+// Interfaces para etapas de pagamento
+export interface EtapaPagamento {
+  id: string
+  numero: number
+  dataInicio: string
+  dataFim: string
+  valor: string
+}
+
+// Interfaces para processos
+export interface ProcessoSelecionado {
+  tipo: 'sei' | 'rio' | 'fisico'
+  valor: string
+}
 
 export interface DadosContrato {
   numeroContrato: string
-  processoSei: string
+  processos: ProcessoSelecionado[]
   categoriaObjeto: string
   descricaoObjeto: string
   tipoContratacao: 'Licitacao' | 'Pregao' | 'Dispensa' | 'Inexigibilidade'
@@ -110,6 +138,8 @@ export interface DadosContrato {
   valorGlobal: string
   formaPagamento: 'Mensal' | 'Etapas' | 'Outro'
   formaPagamentoComplemento?: string
+  quantidadeEtapas?: number
+  etapasPagamento?: EtapaPagamento[]
   tipoTermoReferencia: 'processo_rio' | 'google_drive' | 'texto_livre'
   termoReferencia: string
   vinculacaoPCA: string
@@ -122,9 +152,16 @@ const schemaContrato = z.object({
     .min(1, 'Número do contrato é obrigatório')
     .refine(
       validarNumeroContrato,
-      'Formato inválido. Use: CONT-ANO-NUMERO (ex: CONT-2024-0003)',
+      'Número do contrato deve conter apenas números',
     ),
-  processoSei: z.string().min(1, 'Processo SEI é obrigatório'),
+  processos: z
+    .array(
+      z.object({
+        tipo: z.enum(['sei', 'rio', 'fisico']),
+        valor: z.string().min(1, 'Valor do processo é obrigatório'),
+      })
+    )
+    .min(1, 'Pelo menos um processo deve ser informado'),
   categoriaObjeto: z.string().min(1, 'Categoria do objeto é obrigatória'),
   descricaoObjeto: z.string().min(1, 'Descrição do objeto é obrigatória'),
   tipoContratacao: z.enum([
@@ -169,6 +206,18 @@ const schemaContrato = z.object({
     }, 'Valor mínimo é R$ 100,00'),
   formaPagamento: z.enum(['Mensal', 'Etapas', 'Outro']),
   formaPagamentoComplemento: z.string().optional(),
+  quantidadeEtapas: z.number().min(1).max(10).optional(),
+  etapasPagamento: z
+    .array(
+      z.object({
+        id: z.string(),
+        numero: z.number(),
+        dataInicio: z.string().min(1, 'Data de início é obrigatória'),
+        dataFim: z.string().min(1, 'Data de fim é obrigatória'),
+        valor: z.string().min(1, 'Valor da etapa é obrigatório'),
+      })
+    )
+    .optional(),
   tipoTermoReferencia: z.enum(['processo_rio', 'google_drive', 'texto_livre']),
   termoReferencia: z.string().min(1, 'Termo de referência é obrigatório'),
   vinculacaoPCA: z
@@ -211,6 +260,28 @@ const schemaContrato = z.object({
 }, {
   message: 'Detalhamento da forma de pagamento é obrigatório quando "Outro" é selecionado',
   path: ['formaPagamentoComplemento']
+}).refine((data) => {
+  // Validação: se forma de pagamento é "Etapas", quantidade e etapas são obrigatórias
+  if (data.formaPagamento === 'Etapas') {
+    return data.quantidadeEtapas && data.quantidadeEtapas > 0 && data.quantidadeEtapas <= 10
+  }
+  return true
+}, {
+  message: 'Quantidade de etapas deve ser entre 1 e 10 quando "Etapas" é selecionado',
+  path: ['quantidadeEtapas']
+}).refine((data) => {
+  // Validação: se há etapas, verificar se as datas são válidas
+  if (data.etapasPagamento && data.etapasPagamento.length > 0) {
+    return data.etapasPagamento.every(etapa => {
+      const dataInicio = new Date(etapa.dataInicio)
+      const dataFim = new Date(etapa.dataFim)
+      return dataFim > dataInicio
+    })
+  }
+  return true
+}, {
+  message: 'Data de fim deve ser posterior à data de início em todas as etapas',
+  path: ['etapasPagamento']
 })
 
 type FormDataContrato = z.infer<typeof schemaContrato>
@@ -250,6 +321,9 @@ export default function ContratoForm({
   const [processoSelecionado, setProcessoSelecionado] = useState('')
   const [pesquisaProcesso, setPesquisaProcesso] = useState('')
   const [vigenciaFinalEditadaManualmente, setVigenciaFinalEditadaManualmente] = useState(false)
+  const [processosSelecionados, setProcessosSelecionados] = useState<ProcessoSelecionado[]>([])
+  const [etapasPagamento, setEtapasPagamento] = useState<EtapaPagamento[]>([])
+  const [quantidadeEtapas, setQuantidadeEtapas] = useState<number>(0)
 
   // Carregar dados do processo instrutivo
   useEffect(() => {
@@ -284,7 +358,7 @@ export default function ContratoForm({
     resolver: zodResolver(schemaContrato),
     defaultValues: {
       numeroContrato: '',
-      processoSei: '',
+      processos: [],
       categoriaObjeto: '',
       descricaoObjeto: '',
       tipoContratacao: 'Licitacao',
@@ -297,8 +371,10 @@ export default function ContratoForm({
       prazoInicialMeses: 12,
       prazoInicialDias: 0,
       valorGlobal: '',
-             formaPagamento: 'Mensal' as const,
-       formaPagamentoComplemento: '',
+      formaPagamento: 'Mensal' as const,
+      formaPagamentoComplemento: '',
+      quantidadeEtapas: 0,
+      etapasPagamento: [],
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: '',
       vinculacaoPCA: '',
@@ -575,22 +651,99 @@ export default function ContratoForm({
     return partes.join(' e ')
   }
 
-  const aplicarMascaraNumeroContrato = (valor: string) => {
-    const apenasNumeros = valor.replace(/\D/g, '')
-    if (apenasNumeros.length <= 4) {
-      return `CONT-${apenasNumeros}`
-    } else if (apenasNumeros.length <= 8) {
-      return `CONT-${apenasNumeros.slice(0, 4)}-${apenasNumeros.slice(4)}`
+  // Funções para gerenciar etapas de pagamento
+  const criarEtapasVazias = (quantidade: number): EtapaPagamento[] => {
+    return Array.from({ length: quantidade }, (_, index) => ({
+      id: `etapa-${Date.now()}-${index}`,
+      numero: index + 1,
+      dataInicio: '',
+      dataFim: '',
+      valor: '',
+    }))
+  }
+
+  const handleQuantidadeEtapasChange = (quantidade: number) => {
+    setQuantidadeEtapas(quantidade)
+    form.setValue('quantidadeEtapas', quantidade)
+    
+    if (quantidade > 0) {
+      const novasEtapas = criarEtapasVazias(quantidade)
+      setEtapasPagamento(novasEtapas)
+      form.setValue('etapasPagamento', novasEtapas)
     } else {
-      return `CONT-${apenasNumeros.slice(0, 4)}-${apenasNumeros.slice(4, 8)}`
+      setEtapasPagamento([])
+      form.setValue('etapasPagamento', [])
+    }
+  }
+
+  const atualizarEtapa = (index: number, campo: keyof EtapaPagamento, valor: string) => {
+    const etapasAtualizadas = [...etapasPagamento]
+    etapasAtualizadas[index] = {
+      ...etapasAtualizadas[index],
+      [campo]: valor,
+    }
+    setEtapasPagamento(etapasAtualizadas)
+    form.setValue('etapasPagamento', etapasAtualizadas)
+  }
+
+  // Funções para gerenciar processos
+  const adicionarProcesso = (tipo: 'sei' | 'rio' | 'fisico') => {
+    const novoProcesso: ProcessoSelecionado = { tipo, valor: '' }
+    const novosProcessos = [...processosSelecionados, novoProcesso]
+    setProcessosSelecionados(novosProcessos)
+    form.setValue('processos', novosProcessos)
+  }
+
+  const removerProcesso = (index: number) => {
+    const novosProcessos = processosSelecionados.filter((_, i) => i !== index)
+    setProcessosSelecionados(novosProcessos)
+    form.setValue('processos', novosProcessos)
+  }
+
+  const atualizarProcesso = (index: number, valor: string) => {
+    const processosAtualizados = [...processosSelecionados]
+    processosAtualizados[index] = {
+      ...processosAtualizados[index],
+      valor,
+    }
+    setProcessosSelecionados(processosAtualizados)
+    form.setValue('processos', processosAtualizados)
+  }
+
+  // Funções de máscara para processos
+  const aplicarMascaraSEI = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 6) {
+      return `SEI-${apenasNumeros}`
+    } else if (apenasNumeros.length <= 10) {
+      return `SEI-${apenasNumeros.slice(0, 6)}-${apenasNumeros.slice(6)}`
+    } else {
+      return `SEI-${apenasNumeros.slice(0, 6)}-${apenasNumeros.slice(6, 10)}`
+    }
+  }
+
+  const aplicarMascaraFisico = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 2) {
+      return apenasNumeros
+    } else if (apenasNumeros.length <= 5) {
+      return `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2)}`
+    } else if (apenasNumeros.length <= 8) {
+      return `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2, 5)}.${apenasNumeros.slice(5)}`
+    } else {
+      return `${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2, 5)}.${apenasNumeros.slice(5, 8)}/${apenasNumeros.slice(8, 12)}`
     }
   }
 
   const preencherDadosTeste = () => {
-    const processoTeste = 'SMS-PRO-2024/001'
+    const processosTesteData: ProcessoSelecionado[] = [
+      { tipo: 'sei', valor: 'SEI-123456-2024' },
+      { tipo: 'rio', valor: 'SMS-PRO-2024/001' }
+    ]
+    
     form.reset({
-      numeroContrato: 'CONT-2024-0001',
-      processoSei: processoTeste,
+      numeroContrato: '20240001',
+      processos: processosTesteData,
       categoriaObjeto: 'prestacao_servico_com_mao_obra',
       descricaoObjeto:
         'Prestação de serviços de limpeza e conservação para unidades de saúde, incluindo fornecimento de materiais e equipamentos necessários.',
@@ -604,13 +757,19 @@ export default function ContratoForm({
       prazoInicialMeses: 12,
       prazoInicialDias: 0,
       valorGlobal: currencyUtils.formatar(1500000),
-             formaPagamento: 'Mensal',
+      formaPagamento: 'Mensal',
+      quantidadeEtapas: 0,
+      etapasPagamento: [],
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: 'https://processo.rio/processo/12345',
       vinculacaoPCA: '2024',
       ativo: true,
     })
-    setProcessoSelecionado(processoTeste)
+    
+    setProcessosSelecionados(processosTesteData)
+    setQuantidadeEtapas(0)
+    setEtapasPagamento([])
+    setProcessoSelecionado('SMS-PRO-2024/001')
   }
 
   // Função para filtrar opções baseado na pesquisa
@@ -736,22 +895,19 @@ export default function ContratoForm({
                         <div className="relative">
                           <Input
                             id="numeroContrato"
-                            placeholder="CONT-2024-0001"
+                            placeholder="Ex: 20240001"
                             {...field}
                             onChange={(e) => {
-                              const valorMascarado =
-                                aplicarMascaraNumeroContrato(e.target.value)
-                              field.onChange(valorMascarado)
+                              // Remove tudo que não é número
+                              const apenasNumeros = e.target.value.replace(/\D/g, '')
+                              field.onChange(apenasNumeros)
 
-                              if (valorMascarado.length >= 13) {
-                                const isValid =
-                                  validarNumeroContrato(valorMascarado)
+                              if (apenasNumeros.length > 0) {
+                                const isValid = validarNumeroContrato(apenasNumeros)
                                 if (isValid) {
                                   toast.success('Número do contrato válido!')
                                 } else {
-                                  toast.error(
-                                    'Formato inválido. Use: CONT-ANO-NUMERO',
-                                  )
+                                  toast.error('Número do contrato deve conter apenas números')
                                 }
                               }
                             }}
@@ -780,131 +936,154 @@ export default function ContratoForm({
               />
             </div>
 
-            {/* Container para Processo SEI */}
+            {/* Container para Processos */}
             <div className="space-y-2">
               <FormField
                 control={form.control}
-                name="processoSei"
+                name="processos"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="processoSei" className="mb-2">
-                      Processo SEI / Processo.rio *
+                    <FormLabel className="mb-2">
+                      Processos *
                     </FormLabel>
-                    <FormControl>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Popover
-                          open={openProcesso}
-                          onOpenChange={setOpenProcesso}
+                    <div className="space-y-3">
+                      {/* Botões para adicionar processos */}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => adicionarProcesso('sei')}
+                          className="text-xs"
                         >
-                          <PopoverTrigger asChild>
-                            <div
-                              id="processoSei"
-                              role="combobox"
-                              aria-expanded={openProcesso}
-                              className="flex w-full cursor-pointer items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
-                              onClick={() => setOpenProcesso(true)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  setOpenProcesso(true)
-                                }
-                              }}
-                              tabIndex={0}
-                              aria-label="Selecionar processo SEI"
-                            >
-                              <span className="text-sm text-gray-900">
-                                {prefixoSufixoSelecionado ||
-                                  'Selecione o processo...'}
-                              </span>
-                              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-2" align="start">
-                            <Command>
-                              <CommandInput
-                                placeholder="Buscar processo (ex: SMS, CGM, FOM)..."
-                                value={pesquisaProcesso}
-                                onValueChange={setPesquisaProcesso}
-                              />
-                              <CommandList>
-                                <CommandEmpty>
-                                  Digite para buscar um processo...
-                                </CommandEmpty>
-                                <CommandGroup>
-                                  {opcoesFiltradas.map((opcao) => (
-                                    <CommandItem
-                                      key={opcao}
-                                      value={opcao}
-                                      onSelect={(currentValue) => {
-                                        const processoCompleto =
-                                          handleSelecaoProcesso(currentValue)
-                                        field.onChange(processoCompleto)
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          'mr-2 h-4 w-4',
-                                          obterPrefixoSufixo(
-                                            processoSelecionado,
-                                          ) === opcao
-                                            ? 'opacity-100'
-                                            : 'opacity-0',
-                                        )}
-                                      />
-                                      {opcao}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-
-                        <Input
-                          placeholder="ANO/NUMERO"
-                          className={cn(
-                            'w-full',
-                            prefixoSufixoSelecionado
-                              ? 'cursor-text border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-500'
-                              : 'cursor-not-allowed border-gray-300 bg-gray-50 text-gray-600',
-                          )}
-                          value={obterAnoNumero(field.value)}
-                          onChange={(e) => {
-                            const prefixoSufixo = obterPrefixoSufixo(
-                              field.value,
-                            )
-                            const valorMascarado = aplicarMascaraAnoNumero(
-                              e.target.value,
-                            )
-                            const processoCompleto =
-                              prefixoSufixo && valorMascarado
-                                ? `${prefixoSufixo}-${valorMascarado}`
-                                : prefixoSufixo
-
-                            field.onChange(processoCompleto)
-                            setProcessoSelecionado(processoCompleto)
-                          }}
-                          onKeyDown={(e) => {
-                            // Permite números, ponto e algumas teclas de navegação
-                            if (
-                              !/[\d.]/.test(e.key) &&
-                              ![
-                                'Backspace',
-                                'Delete',
-                                'Tab',
-                                'ArrowLeft',
-                                'ArrowRight',
-                                'Home',
-                                'End',
-                              ].includes(e.key)
-                            ) {
-                              e.preventDefault()
-                            }
-                          }}
-                          disabled={!prefixoSufixoSelecionado}
-                        />
+                          <Plus className="h-3 w-3 mr-1" />
+                          Processo SEI
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => adicionarProcesso('rio')}
+                          className="text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Processo RIO
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => adicionarProcesso('fisico')}
+                          className="text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Processo Físico
+                        </Button>
                       </div>
-                    </FormControl>
+
+                      {/* Lista de processos adicionados */}
+                      {processosSelecionados.length > 0 && (
+                        <div className="space-y-2">
+                          {processosSelecionados.map((processo, index) => (
+                            <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-xs font-medium text-gray-500 uppercase">
+                                    {processo.tipo === 'sei' ? 'Processo SEI' : 
+                                     processo.tipo === 'rio' ? 'Processo RIO' : 
+                                     'Processo Físico'}
+                                  </span>
+                                </div>
+                                
+                                {processo.tipo === 'sei' && (
+                                  <Input
+                                    placeholder="SEI-123456-2024"
+                                    value={processo.valor}
+                                    onChange={(e) => {
+                                      const valorMascarado = aplicarMascaraSEI(e.target.value)
+                                      atualizarProcesso(index, valorMascarado)
+                                    }}
+                                    className="text-sm"
+                                  />
+                                )}
+                                
+                                {processo.tipo === 'rio' && (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button variant="outline" className="justify-between text-xs">
+                                          {obterPrefixoSufixo(processo.valor) || 'Selecione...'}
+                                          <ChevronsUpDown className="h-3 w-3" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-48 p-2">
+                                        <Command>
+                                          <CommandInput placeholder="Buscar..." />
+                                          <CommandList>
+                                            <CommandEmpty>Nenhum resultado</CommandEmpty>
+                                            <CommandGroup>
+                                              {opcoesFiltradas.map((opcao) => (
+                                                <CommandItem
+                                                  key={opcao}
+                                                  value={opcao}
+                                                  onSelect={(currentValue) => {
+                                                    const anoNumero = obterAnoNumero(processo.valor)
+                                                    const processoCompleto = anoNumero
+                                                      ? `${currentValue}-${anoNumero}`
+                                                      : currentValue
+                                                    atualizarProcesso(index, processoCompleto)
+                                                  }}
+                                                >
+                                                  {opcao}
+                                                </CommandItem>
+                                              ))}
+                                            </CommandGroup>
+                                          </CommandList>
+                                        </Command>
+                                      </PopoverContent>
+                                    </Popover>
+                                    <Input
+                                      placeholder="2024/001"
+                                      value={obterAnoNumero(processo.valor)}
+                                      onChange={(e) => {
+                                        const prefixo = obterPrefixoSufixo(processo.valor)
+                                        const valorMascarado = aplicarMascaraAnoNumero(e.target.value)
+                                        const processoCompleto = prefixo && valorMascarado
+                                          ? `${prefixo}-${valorMascarado}`
+                                          : prefixo
+                                        atualizarProcesso(index, processoCompleto)
+                                      }}
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                )}
+                                
+                                {processo.tipo === 'fisico' && (
+                                  <Input
+                                    placeholder="01/123.456/2024"
+                                    value={processo.valor}
+                                    onChange={(e) => {
+                                      const valorMascarado = aplicarMascaraFisico(e.target.value)
+                                      atualizarProcesso(index, valorMascarado)
+                                    }}
+                                    className="text-sm"
+                                  />
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removerProcesso(index)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -934,9 +1113,6 @@ export default function ContratoForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="cessao_com_insumo">
-                          Cessão com insumo
-                        </SelectItem>
                         <SelectItem value="manutencao_corretiva_preventiva_equipamentos_medicos">
                           Manutenção corretiva e preventiva equipamentos médicos
                         </SelectItem>
@@ -949,11 +1125,14 @@ export default function ContratoForm({
                         <SelectItem value="prestacao_servico_sem_mao_obra">
                           Prestação de serviço SEM mão de obra
                         </SelectItem>
-                        <SelectItem value="servico_com_fornecimento">
-                          Serviço com fornecimento
+                        <SelectItem value="servico_com_fornecimento_cessao_insumo">
+                          Serviço com fornecimento e Cessão com insumo
                         </SelectItem>
                         <SelectItem value="servico_locacao_veiculos">
                           Serviço de locação veículos
+                        </SelectItem>
+                        <SelectItem value="informatica">
+                          Informática
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -1655,7 +1834,19 @@ export default function ContratoForm({
                  render={({ field }) => (
                    <FormItem>
                      <FormLabel htmlFor="formaPagamento" className="mb-2">Forma de Pagamento *</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
+                     <Select 
+                       onValueChange={(value) => {
+                         field.onChange(value)
+                         // Limpar etapas quando não for "Etapas"
+                         if (value !== 'Etapas') {
+                           setQuantidadeEtapas(0)
+                           setEtapasPagamento([])
+                           form.setValue('quantidadeEtapas', 0)
+                           form.setValue('etapasPagamento', [])
+                         }
+                       }} 
+                       value={field.value}
+                     >
                        <FormControl className="w-full">
                          <SelectTrigger id="formaPagamento">
                            <SelectValue placeholder="Selecione a forma" />
@@ -1667,6 +1858,103 @@ export default function ContratoForm({
                          <SelectItem value="Outro">Outro</SelectItem>
                        </SelectContent>
                      </Select>
+
+                     {/* Campo para quantidade de etapas quando "Etapas" for selecionado */}
+                     {field.value === 'Etapas' && (
+                       <div className="mt-3 space-y-3">
+                         <FormField
+                           control={form.control}
+                           name="quantidadeEtapas"
+                           render={({ field: quantidadeField }) => (
+                             <FormItem>
+                               <FormLabel htmlFor="quantidadeEtapas" className="text-sm">
+                                 Quantidade de Etapas (máx. 10) *
+                               </FormLabel>
+                               <FormControl>
+                                 <Input
+                                   id="quantidadeEtapas"
+                                   type="number"
+                                   min="1"
+                                   max="10"
+                                   placeholder="Ex: 3"
+                                   value={quantidadeEtapas || ''}
+                                   onChange={(e) => {
+                                     const valor = parseInt(e.target.value) || 0
+                                     if (valor >= 0 && valor <= 10) {
+                                       handleQuantidadeEtapasChange(valor)
+                                     }
+                                   }}
+                                   className="w-32"
+                                 />
+                               </FormControl>
+                               <div className="text-xs text-muted-foreground">
+                                 Defina quantas etapas de pagamento o contrato terá
+                               </div>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+
+                         {/* Etapas de pagamento */}
+                         {etapasPagamento.length > 0 && (
+                           <div className="space-y-4">
+                             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                               <DollarSign className="h-4 w-4" />
+                               Etapas de Pagamento
+                             </div>
+                             
+                             {etapasPagamento.map((etapa, index) => (
+                               <div key={etapa.id} className="border rounded-lg p-4 space-y-3">
+                                 <div className="flex items-center justify-between">
+                                   <h4 className="font-medium text-sm">Etapa {etapa.numero}</h4>
+                                 </div>
+                                 
+                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                   <div>
+                                     <Label className="text-xs font-medium text-gray-600">
+                                       Data de Início *
+                                     </Label>
+                                     <Input
+                                       type="date"
+                                       value={etapa.dataInicio}
+                                       onChange={(e) => atualizarEtapa(index, 'dataInicio', e.target.value)}
+                                       className="mt-1"
+                                     />
+                                   </div>
+                                   
+                                   <div>
+                                     <Label className="text-xs font-medium text-gray-600">
+                                       Data de Fim *
+                                     </Label>
+                                     <Input
+                                       type="date"
+                                       value={etapa.dataFim}
+                                       onChange={(e) => atualizarEtapa(index, 'dataFim', e.target.value)}
+                                       className="mt-1"
+                                     />
+                                   </div>
+                                   
+                                   <div>
+                                     <Label className="text-xs font-medium text-gray-600">
+                                       Valor da Etapa *
+                                     </Label>
+                                     <Input
+                                       placeholder="R$ 0,00"
+                                       value={etapa.valor}
+                                       onChange={(e) => {
+                                         const valorMascarado = currencyUtils.aplicarMascara(e.target.value)
+                                         atualizarEtapa(index, 'valor', valorMascarado)
+                                       }}
+                                       className="mt-1"
+                                     />
+                                   </div>
+                                 </div>
+                               </div>
+                             ))}
+                           </div>
+                         )}
+                       </div>
+                     )}
 
                      {/* Campo complementar para "Outro" */}
                      {field.value === 'Outro' && (
