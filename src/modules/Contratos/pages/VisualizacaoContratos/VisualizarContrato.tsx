@@ -21,12 +21,13 @@ import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/in
 
 // import type { ContratoDetalhado } from '../../types/contrato' // removido pois não está sendo usado
 import { useContratoDetalhado } from '../../hooks/use-contratos'
-import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
+import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
+import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
 import { currencyUtils } from '@/lib/utils'
-import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
+import { AlteracoesContratuais } from '../../components/AlteracoesContratuais'
 import { ContractChat } from '../../components/Timeline/contract-chat'
 import { TabDocumentos } from '../../components/Documentos/tab-documentos'
-import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
+// import { useTimelineIntegration } from '../../hooks/useTimelineIntegration' // Hook temporariamente removido
 import type { TimelineEntry } from '../../types/timeline'
 import type { ChatMessage } from '../../types/timeline'
 import { 
@@ -52,6 +53,11 @@ export function VisualizarContrato() {
     refetch
   } = useContratoDetalhado(id || '', { enabled: !!id })
 
+  // Hook para buscar histórico de alterações contratuais
+  const { 
+    data: historicoAlteracoes = []
+  } = useHistoricoAlteracoes(id || '', !!id)
+
   console.log('🔍 VisualizarContrato Debug:', { 
     id, 
     contrato, 
@@ -61,15 +67,15 @@ export function VisualizarContrato() {
   })
 
   
-  // Integração com timeline
-  const { criarEntradaAlteracao, criarMarcosAlteracao, atualizarStatusAlteracao } = useTimelineIntegration({
-    contratoId: contrato?.id || '',
-    onAdicionarEntrada: (entrada) => {
-      console.log('Nova entrada adicionada à timeline:', entrada)
-      // Atualizar estado local das entradas
-      setEntradasTimeline(prev => [entrada, ...prev])
-    }
-  })
+  // Integração com timeline - temporariamente comentado
+  // const { criarEntradaAlteracao, criarMarcosAlteracao, atualizarStatusAlteracao } = useTimelineIntegration({
+  //   contratoId: contrato?.id || '',
+  //   onAdicionarEntrada: (entrada) => {
+  //     console.log('Nova entrada adicionada à timeline:', entrada)
+  //     // Atualizar estado local das entradas
+  //     setEntradasTimeline(prev => [entrada, ...prev])
+  //   }
+  // })
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -119,41 +125,41 @@ export function VisualizarContrato() {
 
   // Handlers para integração com alterações contratuais
 
-  const handleSalvarAlteracao = useCallback(async (alteracao: AlteracaoContratualForm) => {
+  const handleSalvarAlteracao = useCallback(async (alteracao: AlteracaoContratualResponse) => {
     try {
       // Simular usuário atual
-      const autor = {
-        id: '1',
-        nome: 'João Silva',
-        tipo: 'usuario' as const
-      }
+      // const autor = {
+      //   id: '1',
+      //   nome: 'João Silva',
+      //   tipo: 'usuario' as const
+      // }
       
-      // Criar entrada na timeline
-      criarEntradaAlteracao(alteracao, autor)
+      // TODO: Criar entrada na timeline
+      // criarEntradaAlteracao(alteracao, autor)
       
-      // Criar marcos relacionados se necessário
-      criarMarcosAlteracao(alteracao)
+      // TODO: Criar marcos relacionados se necessário  
+      // criarMarcosAlteracao(alteracao)
       
       console.log('Alteração salva e integrada à timeline:', alteracao)
     } catch (error) {
       console.error('Erro ao salvar alteração:', error)
     }
-  }, [criarEntradaAlteracao, criarMarcosAlteracao])
+  }, [])
 
-  const handleSubmeterAlteracao = useCallback(async (alteracao: AlteracaoContratualForm) => {
+  const _handleSubmeterAlteracao = useCallback(async (alteracao: AlteracaoContratualResponse) => {
     try {
       await handleSalvarAlteracao(alteracao)
       
-      // Atualizar status para submetida
+      // TODO: Atualizar status para submetida
       if (alteracao.id) {
-        atualizarStatusAlteracao(alteracao.id, 'submetida')
+        // atualizarStatusAlteracao(alteracao.id, 'submetida')
       }
       
       console.log('Alteração submetida:', alteracao)
     } catch (error) {
       console.error('Erro ao submeter alteração:', error)
     }
-  }, [handleSalvarAlteracao, atualizarStatusAlteracao])
+  }, [handleSalvarAlteracao])
 
   const handleMarcarChatComoAlteracao = useCallback((mensagem: ChatMessage) => {
     // Converter mensagem do chat em entrada do registro de alterações
@@ -454,7 +460,7 @@ export function VisualizarContrato() {
                 {isTabEnabled('alteracoes') && (
                   <TabsContent value="alteracoes" className="mt-0 w-full">
                     <RegistroAlteracoes 
-                      alteracoes={contrato.alteracoes} 
+                      alteracoes={historicoAlteracoes} 
                       entradasTimeline={entradasTimeline}
                       onAdicionarObservacao={() => handleTabChange('timeline')}
                     />
@@ -477,8 +483,8 @@ export function VisualizarContrato() {
                       contratoId={contrato.id} 
                       numeroContrato={contrato.numeroContrato}
                       valorOriginal={contrato.valorTotal}
-                      onSalvar={handleSalvarAlteracao}
-                      onSubmeter={handleSubmeterAlteracao}
+                      onSaved={handleSalvarAlteracao}
+                      onSubmitted={_handleSubmeterAlteracao}
                       key={contrato.id}
                     />
                   </TabsContent>

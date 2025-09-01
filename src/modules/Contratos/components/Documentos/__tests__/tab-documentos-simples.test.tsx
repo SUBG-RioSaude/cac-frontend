@@ -87,7 +87,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
       expect(screen.getByText('Checklist de Documentos')).toBeInTheDocument()
     })
 
-    it('deve renderizar todos os 7 documentos', () => {
+    it('deve renderizar todos os 8 documentos', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
 
       expect(screen.getByText('Termo de Referência/Edital')).toBeInTheDocument()
@@ -97,13 +97,14 @@ describe('TabDocumentos - Testes Essenciais', () => {
       expect(screen.getByText('Contrato')).toBeInTheDocument()
       expect(screen.getByText('Publicação PNCP')).toBeInTheDocument()
       expect(screen.getByText('Publicação de Extrato Contratual')).toBeInTheDocument()
+      expect(screen.getByText('Proposta')).toBeInTheDocument()
     })
 
     it('deve mostrar progresso corretamente', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
       
-      expect(screen.getByText('1 de 7 entregues')).toBeInTheDocument()
-      expect(screen.getByText('14%')).toBeInTheDocument()
+      expect(screen.getByText('1 de 8 entregues')).toBeInTheDocument()
+      expect(screen.getByText('13%')).toBeInTheDocument()
     })
   })
 
@@ -146,11 +147,11 @@ describe('TabDocumentos - Testes Essenciais', () => {
   })
 
   describe('Interação com Checkboxes', () => {
-    it('deve ter 7 checkboxes renderizados', () => {
+    it('deve ter 8 checkboxes renderizados', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
       
       const checkboxes = screen.getAllByRole('checkbox')
-      expect(checkboxes).toHaveLength(7)
+      expect(checkboxes).toHaveLength(8)
     })
 
     it('deve marcar checkbox baseado na API', () => {
@@ -255,7 +256,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
 
       // Deve renderizar normalmente sem erros
       expect(screen.getByText('Contrato')).toBeInTheDocument()
-      expect(screen.getByText('1 de 7 entregues')).toBeInTheDocument()
+      expect(screen.getByText('1 de 8 entregues')).toBeInTheDocument()
     })
   })
 })

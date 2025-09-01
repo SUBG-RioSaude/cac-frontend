@@ -235,10 +235,63 @@ export interface AlteracaoContrato {
     | 'alteracao_valor'
     | 'prorrogacao'
     | 'documento_entregue'
+    | 'alteracao_contratual'
+    | 'qualitativo'
+    | 'prazo_aditivo'
+    | 'repactuacao'
+    | 'quantidade'
+    | 'reajuste'
   descricao: string
   dataHora: string
   responsavel: string
   detalhes?: unknown
+  
+  // Campos estendidos da nova API
+  resumoAlteracao?: string
+  tiposAlteracao?: number[]
+  status?: number
+  versaoContrato?: number
+  dataEfeito?: string
+  requerConfirmacaoLimiteLegal?: boolean
+  alertaLimiteLegal?: string
+  
+  // Dados dos blocos estruturados
+  vigencia?: {
+    operacao: number
+    tipoUnidade?: number
+    valorTempo?: number
+    novaDataFinal?: string | null
+    isIndeterminado?: boolean
+    observacoes?: string
+  }
+  
+  valor?: {
+    operacao: number
+    valorAjuste?: number
+    percentualAjuste?: number | null
+    novoValorGlobal?: number | null
+    observacoes?: string
+    valorCalculadoAutomaticamente?: boolean
+  }
+  
+  fornecedores?: {
+    fornecedoresVinculados?: string[]
+    fornecedoresDesvinculados?: string[]
+    novoFornecedorPrincipal?: string | null
+    observacoes?: string | null
+  }
+  
+  unidades?: {
+    unidadesVinculadas?: string[]
+    unidadesDesvinculadas?: string[]
+    observacoes?: string | null
+  }
+  
+  clausulas?: {
+    clausulasExcluidas?: string
+    clausulasIncluidas?: string
+    clausulasAlteradas?: string
+  }
 }
 
 export interface PeriodoVigencia {

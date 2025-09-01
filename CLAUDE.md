@@ -10,3 +10,6 @@ Este projeto utiliza **pnpm exclusivamente**.
 - `pnpm test` - Executar testes
 - `pnpm format` - Formatar código
 - `pnpm format:check` - Verificar formatação
+## Sessions System Behaviors
+
+@CLAUDE.sessions.md

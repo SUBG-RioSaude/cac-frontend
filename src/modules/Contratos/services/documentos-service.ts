@@ -17,6 +17,7 @@ const TIPO_DOCUMENTO_NOME_PARA_NUMERO: Record<string, number> = {
   'Contrato': 5,
   'PublicacaoPNCP': 6,
   'PublicacaoExtrato': 7,
+  'Proposta': 8,
 }
 
 // Função para mapear resposta da API para DTO do frontend

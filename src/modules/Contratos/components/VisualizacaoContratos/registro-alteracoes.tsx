@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import {
   Clock,
   FileText,
@@ -23,8 +24,15 @@ import {
   Calculator,
   FileEdit,
   Bookmark,
+  AlertTriangle,
+  Building2,
+  ArrowUp,
+  ArrowDown,
+  RotateCcw,
+  ChevronDown,
 } from 'lucide-react'
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
+import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
 
@@ -61,9 +69,338 @@ interface EntradaUnificada {
   dataHora: string
   responsavel: string
   origem: 'contrato' | 'timeline' | 'chat'
-  dados?: DadosAlteracaoContratual | DadosMilestone
+  dados?: DadosAlteracaoContratual | DadosMilestone | AlteracaoContrato
   prioridade?: 'baixa' | 'media' | 'alta' | 'critica'
   tags?: string[]
+}
+
+// Função para criar resumo limpo baseado nos dados estruturados
+function criarResumoLimpo(alteracao: AlteracaoContrato): string {
+  // Se a API já fornece um resumo pronto, usar ele (dados mais ricos)
+  if (alteracao.resumoAlteracao) {
+    return alteracao.resumoAlteracao
+  }
+  
+  // Fallback: criar resumo baseado nos dados estruturados
+  const tipoMap: Record<string, string> = {
+    'prazo_aditivo': 'Aditivo de Prazo',
+    'qualitativo': 'Aditivo Qualitativo', 
+    'alteracao_valor': 'Alteração de Valor',
+    'repactuacao': 'Repactuação',
+    'reajuste': 'Reajuste',
+    'quantidade': 'Aditivo de Quantidade'
+  }
+  
+  const tipoTexto = tipoMap[alteracao.tipo] || 'Alteração Contratual'
+  
+  // Identificar o resumo mais relevante baseado no conteúdo
+  const detalhes: string[] = []
+  
+  // Vigência (prioritária para resumo)
+  if (alteracao.vigencia) {
+    const operacao = alteracao.vigencia.operacao === 1 ? 'Acrescentar' : 
+                    alteracao.vigencia.operacao === 2 ? 'Diminuir' : 'Alterar'
+    const unidade = alteracao.vigencia.tipoUnidade === 1 ? 'dia(s)' :
+                   alteracao.vigencia.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'
+    detalhes.push(`${operacao} ${alteracao.vigencia.valorTempo} ${unidade}`)
+  }
+  
+  // Valor (segundo mais importante)
+  if (alteracao.valor?.valorAjuste) {
+    const operacao = alteracao.valor.operacao === 1 ? '+' : 
+                    alteracao.valor.operacao === 2 ? '-' : '='
+    const valor = new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(alteracao.valor.valorAjuste)
+    detalhes.push(`${operacao}${valor}`)
+  }
+  
+  // Outros blocos (resumir quantidade)
+  const outrosBlocos = []
+  if (alteracao.fornecedores) outrosBlocos.push('Fornecedores')
+  if (alteracao.unidades) outrosBlocos.push('Unidades')  
+  if (alteracao.clausulas && (alteracao.clausulas.clausulasExcluidas || alteracao.clausulas.clausulasIncluidas || alteracao.clausulas.clausulasAlteradas)) {
+    outrosBlocos.push('Cláusulas')
+  }
+  
+  if (outrosBlocos.length > 0) {
+    detalhes.push(outrosBlocos.join(', '))
+  }
+  
+  // Montar resumo final conciso
+  if (detalhes.length > 0) {
+    return `${tipoTexto} - ${detalhes.join(' | ')}`
+  } else {
+    return tipoTexto
+  }
+}
+
+// Componente helper para blocos collapsible
+interface CollapsibleBlockProps {
+  icon: React.ElementType
+  title: string
+  summary: string
+  bgColor: string
+  borderColor: string
+  titleColor: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}
+
+function CollapsibleBlock({ 
+  icon: Icon, 
+  title, 
+  summary, 
+  bgColor, 
+  borderColor, 
+  titleColor, 
+  children, 
+  defaultOpen = false 
+}: CollapsibleBlockProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mb-3">
+      <CollapsibleTrigger className={`w-full ${bgColor} border ${borderColor} rounded-lg p-3 hover:opacity-80 transition-opacity`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon className={`h-4 w-4 ${titleColor.replace('text-', 'text-')}`} />
+            <div className="text-left">
+              <h4 className={`font-medium text-sm ${titleColor}`}>{title}</h4>
+              <p className="text-xs text-gray-600 mt-0.5">{summary}</p>
+            </div>
+          </div>
+          <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent className={`${bgColor} border-x border-b ${borderColor} rounded-b-lg px-3 pb-3`}>
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+// Helper function para renderizar detalhes da alteração
+function renderDetalhesAlteracao(entrada: EntradaUnificada) {
+  // Se for uma entrada da timeline antiga ou de outro tipo, usar o formato antigo
+  if (entrada.origem === 'timeline' || entrada.origem === 'chat') {
+    if (entrada.dados && 'valorOriginal' in entrada.dados && entrada.dados.valorOriginal) {
+      return (
+        <div className="bg-muted/30 rounded-lg p-3 mb-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <span className="text-muted-foreground">Valor Original:</span>
+              <p className="font-medium">{currencyUtils.formatar(entrada.dados.valorOriginal)}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Novo Valor:</span>
+              <p className="font-medium">{currencyUtils.formatar(entrada.dados.valorNovo)}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Diferença:</span>
+              <p className={cn(
+                "font-medium",
+                entrada.dados.diferenca > 0 ? "text-green-600" : "text-red-600"
+              )}>
+                {entrada.dados.diferenca > 0 ? "+" : ""}{currencyUtils.formatar(entrada.dados.diferenca)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    return null
+  }
+
+  // Para entradas da nova API, usar os dados estruturados
+  const alteracao = entrada.dados as unknown as AlteracaoContrato
+  if (!alteracao) return null
+
+  const sections = []
+
+  // Alerta de Limite Legal
+  if (alteracao.alertaLimiteLegal) {
+    sections.push(
+      <div key="alerta" className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium text-red-800 mb-1">Limite Legal Excedido</p>
+            <p className="text-red-700">{alteracao.alertaLimiteLegal}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Detalhes de Vigência
+  if (alteracao.vigencia) {
+    const operacaoTexto = alteracao.vigencia.operacao === 1 ? 'Acrescentar' : 
+                         alteracao.vigencia.operacao === 2 ? 'Diminuir' : 'Substituir'
+    const unidadeTexto = alteracao.vigencia.tipoUnidade === 1 ? 'dia(s)' :
+                        alteracao.vigencia.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'
+    
+    const summary = `${operacaoTexto} ${alteracao.vigencia.valorTempo} ${unidadeTexto}`
+    
+    sections.push(
+      <CollapsibleBlock
+        key="vigencia"
+        icon={Calendar}
+        title="Alteração de Vigência"
+        summary={summary}
+        bgColor="bg-blue-50"
+        borderColor="border-blue-200"
+        titleColor="text-blue-800"
+      >
+        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+          <li><span className="font-medium">Operação:</span> {operacaoTexto} {alteracao.vigencia.valorTempo} {unidadeTexto}</li>
+          {alteracao.vigencia.observacoes && (
+            <li><span className="font-medium">Observações:</span> {alteracao.vigencia.observacoes}</li>
+          )}
+        </ol>
+      </CollapsibleBlock>
+    )
+  }
+
+  // Detalhes de Valor
+  if (alteracao.valor) {
+    const operacaoTexto = alteracao.valor.operacao === 1 ? 'Acrescentar' : 
+                         alteracao.valor.operacao === 2 ? 'Diminuir' : 'Substituir'
+    const operacaoIcon = alteracao.valor.operacao === 1 ? ArrowUp : 
+                        alteracao.valor.operacao === 2 ? ArrowDown : RotateCcw
+    const OperacaoIcon = operacaoIcon
+    
+    const valorTexto = alteracao.valor.valorAjuste ? currencyUtils.formatar(alteracao.valor.valorAjuste) : ''
+    const summary = `${operacaoTexto}${valorTexto ? ' ' + valorTexto : ''}`
+    
+    sections.push(
+      <CollapsibleBlock
+        key="valor"
+        icon={DollarSign}
+        title="Alteração de Valor"
+        summary={summary}
+        bgColor="bg-green-50"
+        borderColor="border-green-200"
+        titleColor="text-green-800"
+      >
+        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+          <li className="flex items-center gap-2">
+            <OperacaoIcon className="h-3 w-3" />
+            <span><span className="font-medium">Operação:</span> {operacaoTexto}</span>
+          </li>
+          {alteracao.valor.valorAjuste && (
+            <li><span className="font-medium">Valor do Ajuste:</span> {currencyUtils.formatar(alteracao.valor.valorAjuste)}</li>
+          )}
+          {alteracao.valor.percentualAjuste && (
+            <li><span className="font-medium">Percentual:</span> {alteracao.valor.percentualAjuste}%</li>
+          )}
+          {alteracao.valor.observacoes && (
+            <li><span className="font-medium">Observações:</span> {alteracao.valor.observacoes}</li>
+          )}
+        </ol>
+      </CollapsibleBlock>
+    )
+  }
+
+  // Detalhes de Fornecedores
+  if (alteracao.fornecedores) {
+    const vinculados = alteracao.fornecedores.fornecedoresVinculados?.length || 0
+    const desvinculados = alteracao.fornecedores.fornecedoresDesvinculados?.length || 0
+    const summary = `${vinculados > 0 ? `+${vinculados} vinculados` : ''}${vinculados > 0 && desvinculados > 0 ? ', ' : ''}${desvinculados > 0 ? `-${desvinculados} desvinculados` : ''}`.trim() || 'Alterações nos fornecedores'
+    
+    sections.push(
+      <CollapsibleBlock
+        key="fornecedores"
+        icon={Users}
+        title="Alteração de Fornecedores"
+        summary={summary}
+        bgColor="bg-orange-50"
+        borderColor="border-orange-200"
+        titleColor="text-orange-800"
+      >
+        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+          {(alteracao.fornecedores.fornecedoresVinculados?.length || 0) > 0 && (
+            <li><span className="font-medium">Vinculados:</span> {alteracao.fornecedores.fornecedoresVinculados?.length || 0} fornecedor(es)</li>
+          )}
+          {(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) > 0 && (
+            <li><span className="font-medium">Desvinculados:</span> {alteracao.fornecedores.fornecedoresDesvinculados?.length || 0} fornecedor(es)</li>
+          )}
+          {alteracao.fornecedores.observacoes && (
+            <li><span className="font-medium">Observações:</span> {alteracao.fornecedores.observacoes}</li>
+          )}
+        </ol>
+      </CollapsibleBlock>
+    )
+  }
+
+  // Detalhes de Unidades
+  if (alteracao.unidades) {
+    const vinculadas = alteracao.unidades.unidadesVinculadas?.length || 0
+    const desvinculadas = alteracao.unidades.unidadesDesvinculadas?.length || 0
+    const summary = `${vinculadas > 0 ? `+${vinculadas} vinculadas` : ''}${vinculadas > 0 && desvinculadas > 0 ? ', ' : ''}${desvinculadas > 0 ? `-${desvinculadas} desvinculadas` : ''}`.trim() || 'Alterações nas unidades'
+    
+    sections.push(
+      <CollapsibleBlock
+        key="unidades"
+        icon={Building2}
+        title="Alteração de Unidades"
+        summary={summary}
+        bgColor="bg-teal-50"
+        borderColor="border-teal-200"
+        titleColor="text-teal-800"
+      >
+        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+          {(alteracao.unidades.unidadesVinculadas?.length || 0) > 0 && (
+            <li><span className="font-medium">Vinculadas:</span> {alteracao.unidades.unidadesVinculadas?.length || 0} unidade(s)</li>
+          )}
+          {(alteracao.unidades.unidadesDesvinculadas?.length || 0) > 0 && (
+            <li><span className="font-medium">Desvinculadas:</span> {alteracao.unidades.unidadesDesvinculadas?.length || 0} unidade(s)</li>
+          )}
+          {alteracao.unidades.observacoes && (
+            <li><span className="font-medium">Observações:</span> {alteracao.unidades.observacoes}</li>
+          )}
+        </ol>
+      </CollapsibleBlock>
+    )
+  }
+
+  // Detalhes de Cláusulas
+  if (alteracao.clausulas && (alteracao.clausulas.clausulasExcluidas || alteracao.clausulas.clausulasIncluidas || alteracao.clausulas.clausulasAlteradas)) {
+    const tiposClausulas = []
+    if (alteracao.clausulas.clausulasExcluidas) tiposClausulas.push('excluídas')
+    if (alteracao.clausulas.clausulasIncluidas) tiposClausulas.push('incluídas')  
+    if (alteracao.clausulas.clausulasAlteradas) tiposClausulas.push('alteradas')
+    const summary = `Cláusulas ${tiposClausulas.join(', ')}`
+    
+    sections.push(
+      <CollapsibleBlock
+        key="clausulas"
+        icon={FileText}
+        title="Alteração de Cláusulas"
+        summary={summary}
+        bgColor="bg-purple-50"
+        borderColor="border-purple-200"
+        titleColor="text-purple-800"
+      >
+        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+          {alteracao.clausulas.clausulasExcluidas && (
+            <li><span className="font-medium">Excluídas:</span> {alteracao.clausulas.clausulasExcluidas}</li>
+          )}
+          {alteracao.clausulas.clausulasIncluidas && (
+            <li><span className="font-medium">Incluídas:</span> {alteracao.clausulas.clausulasIncluidas}</li>
+          )}
+          {alteracao.clausulas.clausulasAlteradas && (
+            <li><span className="font-medium">Alteradas:</span> {alteracao.clausulas.clausulasAlteradas}</li>
+          )}
+        </ol>
+      </CollapsibleBlock>
+    )
+  }
+
+  return sections.length > 0 ? <div className="space-y-2">{sections}</div> : null
 }
 
 export function RegistroAlteracoes({ 
@@ -97,7 +434,7 @@ export function RegistroAlteracoes({
       documento: 'Documento',
       prazo: 'Prazo',
       
-      // Tipos específicos de aditivos
+      // Tipos específicos de aditivos da nova API
       prazo_aditivo: 'Aditivo de Prazo',
       qualitativo: 'Aditivo Qualitativo',
       repactuacao: 'Repactuação',
@@ -106,7 +443,7 @@ export function RegistroAlteracoes({
       repactuacao_reequilibrio: 'Repactuação e Reequilíbrio',
     }
 
-    return titulos[tipo as keyof typeof titulos] || 'Alteração'
+    return titulos[tipo as keyof typeof titulos] || 'Alteração Contratual'
   }
 
   // Converter alterações do contrato para formato unificado
@@ -114,10 +451,11 @@ export function RegistroAlteracoes({
     id: alt.id,
     tipo: alt.tipo,
     titulo: getTituloAlteracao(alt.tipo),
-    descricao: alt.descricao,
+    descricao: criarResumoLimpo(alt),
     dataHora: alt.dataHora,
     responsavel: alt.responsavel,
-    origem: 'contrato' as const
+    origem: 'contrato' as const,
+    dados: alt // Incluir todos os dados da alteração para o renderDetalhesAlteracao
   }))
 
   // Converter entradas da timeline para formato unificado  
@@ -183,7 +521,7 @@ export function RegistroAlteracoes({
       documento: FileText,
       prazo: Calendar,
       
-      // Tipos específicos de aditivos
+      // Tipos específicos de aditivos da nova API
       prazo_aditivo: Calendar,
       qualitativo: Settings,
       repactuacao: TrendingUp,
@@ -226,7 +564,7 @@ export function RegistroAlteracoes({
       documento: 'bg-blue-100 text-blue-600',
       prazo: 'bg-orange-100 text-orange-600',
       
-      // Tipos específicos de aditivos  
+      // Tipos específicos de aditivos da nova API
       prazo_aditivo: 'bg-orange-100 text-orange-600',
       qualitativo: 'bg-purple-100 text-purple-600',
       repactuacao: 'bg-red-100 text-red-600',
@@ -367,6 +705,17 @@ export function RegistroAlteracoes({
                                   {entrada.prioridade}
                                 </Badge>
                               )}
+                              {(entrada.dados as unknown as AlteracaoContrato)?.requerConfirmacaoLimiteLegal && (
+                                <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Limite Legal
+                                </Badge>
+                              )}
+                              {entrada.origem === 'contrato' && (entrada.dados as unknown as AlteracaoContratualResponse)?.podeSerEditada && (
+                                <Badge variant="outline" className="text-xs border-green-200 text-green-700">
+                                  Editável
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -376,29 +725,7 @@ export function RegistroAlteracoes({
                         </p>
 
                         {/* Dados específicos da alteração contratual */}
-                        {entrada.dados && 'valorOriginal' in entrada.dados && entrada.dados.valorOriginal && (
-                          <div className="bg-muted/30 rounded-lg p-3 mb-3 text-sm">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <div>
-                                <span className="text-muted-foreground">Valor Original:</span>
-                                <p className="font-medium">{currencyUtils.formatar(entrada.dados.valorOriginal)}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Novo Valor:</span>
-                                <p className="font-medium">{currencyUtils.formatar(entrada.dados.valorNovo)}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Diferença:</span>
-                                <p className={cn(
-                                  "font-medium",
-                                  entrada.dados.diferenca > 0 ? "text-green-600" : "text-red-600"
-                                )}>
-                                  {entrada.dados.diferenca > 0 ? "+" : ""}{currencyUtils.formatar(entrada.dados.diferenca)}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                        {renderDetalhesAlteracao(entrada)}
 
                         {/* Tags */}
                         {entrada.tags && entrada.tags.length > 0 && (
