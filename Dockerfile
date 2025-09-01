@@ -43,11 +43,23 @@ ENV NODE_ENV=production
 ARG BUILD_TIME
 ENV VITE_BUILD_TIME=${BUILD_TIME}
 
-# Definir variáveis de ambiente para a aplicação
-ENV VITE_API_URL="http://devcac:7000/api"
-ENV VITE_API_URL_AUTH="http://devcac:7010"
-ENV VITE_API_URL_EMPRESA="http://devcac:7002"
-ENV SYSTEM_ID="7b8659bb-1aeb-4d74-92c1-110c1d27e576"
+# ARGs para variáveis de ambiente da aplicação (podem ser passados no build)
+ARG VITE_API_URL=http://devcac:7000/api
+ARG VITE_API_URL_AUTH=http://devcac:7000
+ARG VITE_API_URL_EMPRESA=http://devcac:7000/api
+ARG VITE_API_URL_CONTRATOS=http://devcac:7000/api
+ARG VITE_VIACEP_URL=https://viacep.com.br/ws
+ARG SYSTEM_ID=7b8659bb-1aeb-4d74-92c1-110c1d27e576
+
+# Converter ARGs em ENVs para o Vite usar durante o build
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_API_URL_AUTH=${VITE_API_URL_AUTH}
+ENV VITE_API_URL_EMPRESA=${VITE_API_URL_EMPRESA}
+ENV VITE_API_URL_CONTRATOS=${VITE_API_URL_CONTRATOS}
+ENV VITE_VIACEP_URL=${VITE_VIACEP_URL}
+ENV SYSTEM_ID=${SYSTEM_ID}
+
+
 
 # Executar build de produção
 RUN echo "🏗️ Building production..." && \
@@ -65,11 +77,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copiar arquivos buildados
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Definir variáveis de ambiente para runtime
-ENV VITE_API_URL="http://devcac:7000/api"
-ENV VITE_API_URL_AUTH="http://devcac:7010"
-ENV VITE_API_URL_EMPRESA="http://devcac:7002"
-ENV SYSTEM_ID="7b8659bb-1aeb-4d74-92c1-110c1d27e576"
+
 
 # Expor porta
 EXPOSE 80
