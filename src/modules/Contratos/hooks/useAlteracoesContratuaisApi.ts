@@ -29,7 +29,8 @@ import {
   getTiposAlteracaoConfig,
   getDocumentosAlteracao,
   getAlteracoesPendentes,
-  getAlteracoesAtivas
+  getAlteracoesAtivas,
+  type PaginacaoResponse
 } from '../services/alteracoes-contratuais-service'
 
 import type {
@@ -68,7 +69,7 @@ export const alteracoesContratuaisKeys = {
 export function useAlteracoesContratuaisList(
   contratoId: string,
   filtros?: FiltrosAlteracoesContratuais,
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<PaginacaoResponse<AlteracaoContratualResponse>>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: alteracoesContratuaisKeys.list(contratoId, filtros),
@@ -116,7 +117,7 @@ export function useWorkflowStatus(
  */
 export function useDocumentosAlteracao(
   id: string,
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<unknown>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: alteracoesContratuaisKeys.documentos(id),

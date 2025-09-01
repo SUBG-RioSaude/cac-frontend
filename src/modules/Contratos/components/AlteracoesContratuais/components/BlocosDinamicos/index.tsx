@@ -19,15 +19,34 @@ import { BlocoFornecedores } from './BlocoFornecedores'
 import { BlocoUnidades } from './BlocoUnidades'
 
 import type {
-  AlteracaoContratualForm
+  AlteracaoContratualForm,
+  TipoAlteracao
 } from '../../../../types/alteracoes-contratuais'
 import {
   getBlocosObrigatorios,
   getBlocosOpcionais
 } from '../../../../types/alteracoes-contratuais'
+import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+
+interface TransformedUnidade {
+  id: string
+  codigo: string
+  nome: string
+  tipo: string
+  endereco: string
+  ativo: boolean
+}
+
+interface ContractInfo {
+  numeroContrato?: string
+  objeto?: string
+  valorTotal?: number
+  dataInicio?: string
+  dataTermino?: string
+}
 
 interface ContractContextData {
-  contract: any
+  contract: ContractInfo | undefined
   financials: {
     totalValue: number
     currentBalance: number
@@ -39,19 +58,19 @@ interface ContractContextData {
     isActive: boolean
   }
   suppliers: {
-    suppliers: any[]
-    mainSupplier: any
+    suppliers: FornecedorResumoApi[]
+    mainSupplier: FornecedorResumoApi
   }
   units: {
     demandingUnit: string | null
     managingUnit: string | null
-    linkedUnits: any[]
+    linkedUnits: TransformedUnidade[]
   }
   isLoading: boolean
 }
 
 interface BlocosDinamicosProps {
-  tiposSelecionados: number[]
+  tiposSelecionados: TipoAlteracao[]
   dados: Partial<AlteracaoContratualForm>
   onChange: (dados: Partial<AlteracaoContratualForm>) => void
   contractContext?: ContractContextData
@@ -118,8 +137,8 @@ export function BlocosDinamicos({
   const blocosInfo = useMemo(() => {
     if (tiposSelecionados.length === 0) return []
 
-    const blocosObrigatorios = getBlocosObrigatorios(tiposSelecionados as any)
-    const blocosOpcionais = getBlocosOpcionais(tiposSelecionados as any)
+    const blocosObrigatorios = getBlocosObrigatorios(tiposSelecionados)
+    const blocosOpcionais = getBlocosOpcionais(tiposSelecionados)
     const todosBlocos = new Set([...blocosObrigatorios, ...blocosOpcionais])
 
     return Array.from(todosBlocos).map(blocoId => ({
@@ -137,7 +156,7 @@ export function BlocosDinamicos({
         ...dados.blocos, 
         clausulas 
       } 
-    } as any)
+    } as Partial<AlteracaoContratualForm>)
   }
 
   const handleVigenciaChange = (vigencia: unknown) => {
@@ -148,7 +167,7 @@ export function BlocosDinamicos({
         ...dados.blocos, 
         vigencia 
       } 
-    } as any)
+    } as Partial<AlteracaoContratualForm>)
   }
 
   const handleValorChange = (valor: unknown) => {
@@ -159,7 +178,7 @@ export function BlocosDinamicos({
         ...dados.blocos, 
         valor 
       } 
-    } as any)
+    } as Partial<AlteracaoContratualForm>)
   }
 
   const handleFornecedoresChange = (fornecedores: unknown) => {
@@ -170,7 +189,7 @@ export function BlocosDinamicos({
         ...dados.blocos, 
         fornecedores 
       } 
-    } as any)
+    } as Partial<AlteracaoContratualForm>)
   }
 
   const handleUnidadesChange = (unidades: unknown) => {
@@ -181,7 +200,7 @@ export function BlocosDinamicos({
         ...dados.blocos, 
         unidades 
       } 
-    } as any)
+    } as Partial<AlteracaoContratualForm>)
   }
 
   // Função para renderizar cada bloco
@@ -191,7 +210,7 @@ export function BlocosDinamicos({
     console.log(`   - dados.blocos.${bloco.id}:`, dados.blocos?.[bloco.id as keyof typeof dados.blocos])
     
     const blocoProps = {
-      dados: (dados.blocos?.[bloco.id as keyof typeof dados.blocos] || {}) as any,
+      dados: (dados.blocos?.[bloco.id as keyof typeof dados.blocos] || {}) as Record<string, unknown>,
       onChange: () => {},
       errors: Object.keys(errors).reduce((acc, key) => {
         if (key.startsWith(`blocos.${bloco.id}.`)) {

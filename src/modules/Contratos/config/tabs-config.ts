@@ -35,7 +35,7 @@ export const TABS_CONFIG: Record<string, TabConfig> = {
   alteracoes: {
     id: 'alteracoes', 
     label: 'Registro de Alterações',
-    enabled: false, // DESABILITADA - será implementada em versão futura
+    enabled: true, // HABILITADA - usando novo endpoint de histórico
     icon: {
       color: 'bg-orange-500',
       bgColor: 'data-[state=active]:bg-orange-700',

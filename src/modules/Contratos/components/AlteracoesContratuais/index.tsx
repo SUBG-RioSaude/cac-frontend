@@ -14,10 +14,15 @@ import {
   FileText,
   AlertTriangle,
   CheckCircle,
-  Save,
+  Send,
+  Loader2,
   MessageSquare,
   Eye,
   AlertCircle,
+  Clock,
+  DollarSign,
+  Users,
+  Building2,
 } from 'lucide-react'
 
 import { TipoAlteracaoSelector } from './components/TipoAlteracaoSelector'
@@ -31,7 +36,25 @@ import {
   useContractSuppliers,
   useContractUnits
 } from '../../hooks/use-contract-context'
-import type { AlteracaoContratualForm, AlertaLimiteLegal } from '../../types/alteracoes-contratuais'
+import type { AlteracaoContratualForm, AlteracaoContratualResponse, AlertaLimiteLegal, FornecedorAlteracao, TipoAlteracao } from '../../types/alteracoes-contratuais'
+import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+
+interface ContractInfo {
+  numeroContrato?: string
+  objeto?: string
+  valorTotal?: number
+  dataInicio?: string
+  dataTermino?: string
+}
+
+interface TransformedUnidade {
+  id: string
+  codigo: string
+  nome: string
+  tipo: string
+  endereco: string
+  ativo: boolean
+}
 
 interface AlteracoesContratuaisProps {
   contratoId: string
@@ -43,8 +66,8 @@ interface AlteracoesContratuaisProps {
   }
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
-  onSaved?: (alteracao: any) => void
-  onSubmitted?: (alteracao: any) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
   onCancelled?: () => void
   className?: string
 }
@@ -129,8 +152,7 @@ export function AlteracoesContratuais({
     // resumo, - REMOVIDO: endpoint não implementado
     atualizarDados,
     validarCamposObrigatorios,
-    salvarRascunho,
-    // submeterParaAprovacao, - REMOVIDO: workflow não implementado
+    submeterParaAprovacao,
     confirmarLimiteLegal,
   } = useAlteracoesContratuais({
     contratoId,
@@ -201,7 +223,7 @@ export function AlteracoesContratuais({
 
   // Handlers
   const handleTiposChange = useCallback((tipos: number[]) => {
-    atualizarDados({ tiposAlteracao: tipos as any })
+    atualizarDados({ tiposAlteracao: tipos as TipoAlteracao[] })
   }, [atualizarDados])
 
   const handleDadosBasicosChange = useCallback((campo: string, value: string) => {
@@ -216,26 +238,28 @@ export function AlteracoesContratuais({
     })
   }, [atualizarDados, dados.dadosBasicos])
 
-  const handleSalvarRascunho = useCallback(async () => {
+  const handleSubmeter = useCallback(async () => {
     try {
-      await salvarRascunho()
-      // Pode mostrar toast de sucesso aqui
+      console.log('🚀 Submetendo alteração para aprovação...')
+      await submeterParaAprovacao()
+      
+      console.log('✅ Alteração submetida com sucesso!')
+      
+      // Mostrar mensagem de sucesso
+      alert('✅ Alteração contratual submetida com sucesso!\n\nVocê será redirecionado para a visualização do contrato.')
+      
+      // Callback de sucesso ao submeter (se disponível)
+      // Note: onSubmitted será chamado pelo hook quando a operação for bem-sucedida
+      
+      // Pequeno delay antes do redirecionamento para permitir que o usuário veja a mensagem
+      setTimeout(() => {
+        window.location.href = `/contratos/${contratoId}`
+      }, 500)
     } catch (error) {
-      // Pode mostrar toast de erro aqui
-      console.error('Erro ao salvar:', error)
+      console.error('❌ Erro ao submeter alteração:', error)
+      alert('❌ Erro ao submeter alteração contratual.\n\nPor favor, tente novamente.')
     }
-  }, [salvarRascunho])
-
-  // WORKFLOW DESABILITADO: handleSubmeter removido
-  // const handleSubmeter = useCallback(async () => {
-  //   try {
-  //     await submeterParaAprovacao()
-  //     // Pode mostrar toast de sucesso e redirecionar
-  //   } catch (error) {
-  //     // Pode mostrar toast de erro aqui
-  //     console.error('Erro ao submeter:', error)
-  //   }
-  // }, [submeterParaAprovacao])
+  }, [submeterParaAprovacao, contratoId])
 
   // Renderizar conteúdo da etapa
   const renderizarEtapa = useMemo(() => {
@@ -288,11 +312,10 @@ export function AlteracoesContratuais({
                 </div>
               </div>
 
-              {/* Fundamento Legal */}
+              {/* Documento */}
               <div className="space-y-2">
                 <Label htmlFor="fundamento-legal">
-                  Fundamento Legal
-                  <span className="text-sm text-gray-500 ml-2">(opcional)</span>
+                  Documento
                 </Label>
                 <Textarea
                   id="fundamento-legal"
@@ -304,13 +327,10 @@ export function AlteracoesContratuais({
                 />
               </div>
 
-              {/* Data de Efeito */}
+              {/* Data da Publicação */}
               <div className="space-y-2">
                 <Label htmlFor="dataEfeito">
-                  Data de Efeito *
-                  <span className="text-sm text-gray-500 ml-2">
-                    (quando a alteração deve entrar em vigor)
-                  </span>
+                  Data da Publicação *
                 </Label>
                 <Input
                   id="dataEfeito"
@@ -354,7 +374,7 @@ export function AlteracoesContratuais({
             dados={dados}
             onChange={atualizarDados}
             contractContext={{
-              contract: contractContext.data,
+              contract: contractContext.data as ContractInfo,
               financials: {
                 totalValue: contractFinancials.totalValue,
                 currentBalance: contractFinancials.currentBalance,
@@ -366,13 +386,13 @@ export function AlteracoesContratuais({
                 isActive: contractTerms.isActive
               },
               suppliers: {
-                suppliers: contractSuppliers.suppliers,
-                mainSupplier: contractSuppliers.mainSupplier
+                suppliers: contractSuppliers.suppliers as unknown as FornecedorResumoApi[],
+                mainSupplier: contractSuppliers.mainSupplier as unknown as FornecedorResumoApi
               },
               units: {
                 demandingUnit: contractUnits.demandingUnit,
                 managingUnit: contractUnits.managingUnit,
-                linkedUnits: contractUnits.linkedUnits
+                linkedUnits: contractUnits.linkedUnits as unknown as TransformedUnidade[]
               },
               isLoading: contractContext.isLoading || contractFinancials.isLoading || contractTerms.isLoading || contractSuppliers.isLoading || contractUnits.isLoading
             }}
@@ -381,7 +401,37 @@ export function AlteracoesContratuais({
           />
         )
 
-      case 3: // Revisão
+      case 3: { // Revisão
+        // Helper functions to get names from IDs
+        const getCompanyName = (companyId: string) => {
+          // Check if it's the main supplier
+          if (contractSuppliers.mainSupplier?.cnpj === companyId) {
+            return contractSuppliers.mainSupplier.razaoSocial || companyId
+          }
+          // Check in suppliers array
+          const supplier = contractSuppliers.suppliers?.find((s) => s.cnpj === companyId)
+          if (supplier) {
+            return supplier.razaoSocial || companyId
+          }
+          return companyId
+        }
+
+        const getUnitName = (unitId: string) => {
+          // Check in linked units (array of objects with nome property)
+          const unit = contractUnits.linkedUnits?.find((u) => u.nome === unitId)
+          if (unit) {
+            return unit.nome || unitId
+          }
+          // Check if it's the demanding unit (stored as string)
+          if (contractUnits.demandingUnit === unitId) {
+            return contractUnits.demandingUnit
+          }
+          // Check if it's the managing unit (stored as string)
+          if (contractUnits.managingUnit === unitId) {
+            return contractUnits.managingUnit
+          }
+          return unitId
+        }
         return (
           <div className="space-y-6">
             {/* Resumo geral */}
@@ -426,7 +476,7 @@ export function AlteracoesContratuais({
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Data de Efeito</Label>
+                  <Label className="text-sm font-medium text-gray-700">Data da Publicação</Label>
                   <p className="text-sm text-gray-600">
                     {dados.dataEfeito ? new Date(dados.dataEfeito).toLocaleDateString('pt-BR') : '-'}
                   </p>
@@ -434,7 +484,7 @@ export function AlteracoesContratuais({
 
                 {dados.dadosBasicos?.fundamentoLegal && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Fundamento Legal</Label>
+                    <Label className="text-sm font-medium text-gray-700">Documento</Label>
                     <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
                       {dados.dadosBasicos.fundamentoLegal}
                     </p>
@@ -450,41 +500,236 @@ export function AlteracoesContratuais({
                   </div>
                 )}
 
-                {/* RESUMO DA API DESABILITADO: endpoint não implementado
-                {resumo && (
-                  <div className="border-t pt-4">
-                    <Label className="text-sm font-medium text-gray-700">Impacto Previsto</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                      {resumo.impactoValor && (
-                        <div className="bg-green-50 p-3 rounded-md">
-                          <p className="text-xs text-green-600 font-medium">Impacto no Valor</p>
-                          <p className="text-sm text-green-800">
-                            {resumo.impactoValor.percentual > 0 ? '+' : ''}{resumo.impactoValor.percentual.toFixed(2)}%
-                          </p>
-                        </div>
-                      )}
-                      
-                      {resumo.impactoPrazo && (
-                        <div className="bg-blue-50 p-3 rounded-md">
-                          <p className="text-xs text-blue-600 font-medium">Impacto no Prazo</p>
-                          <p className="text-sm text-blue-800">
-                            {resumo.impactoPrazo.diasAlterados > 0 ? '+' : ''}{resumo.impactoPrazo.diasAlterados} dias
-                          </p>
-                        </div>
-                      )}
-                      
-                      {resumo.status && (
-                        <div className="bg-gray-50 p-3 rounded-md">
-                          <p className="text-xs text-gray-600 font-medium">Status</p>
-                          <p className="text-sm text-gray-800">{resumo.status}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                */}
               </CardContent>
             </Card>
+
+            {/* Detalhes dos Blocos Alterados */}
+            {Object.keys(dados.blocos || {}).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Alterações Detalhadas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Bloco Vigência */}
+                  {dados.blocos?.vigencia && (
+                    <div className="border rounded-lg p-4 bg-green-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4 text-green-600" />
+                        <h4 className="font-medium text-green-800">Alteração de Vigência</h4>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Operação:</span>
+                          <p className="text-gray-600">
+                            {dados.blocos.vigencia.operacao === 1 && 'Substituir vigência'}
+                            {dados.blocos.vigencia.operacao === 2 && 'Suspender por período determinado'}
+                            {dados.blocos.vigencia.operacao === 3 && 'Suspender por período indeterminado'}
+                          </p>
+                        </div>
+                        {dados.blocos.vigencia.novaDataFinal && (
+                          <div>
+                            <span className="font-medium text-gray-700">Nova Data Final:</span>
+                            <p className="text-gray-600">
+                              {new Date(dados.blocos.vigencia.novaDataFinal).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.vigencia.valorTempo && dados.blocos.vigencia.tipoUnidade && (
+                          <div>
+                            <span className="font-medium text-gray-700">Período:</span>
+                            <p className="text-gray-600">
+                              {dados.blocos.vigencia.valorTempo} {dados.blocos.vigencia.tipoUnidade === 1 ? 'dia(s)' : dados.blocos.vigencia.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'}
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.vigencia.observacoes && (
+                          <div className="md:col-span-2">
+                            <span className="font-medium text-gray-700">Observações:</span>
+                            <p className="text-gray-600 bg-white p-2 rounded border">
+                              {dados.blocos.vigencia.observacoes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bloco Valor */}
+                  {dados.blocos?.valor && (
+                    <div className="border rounded-lg p-4 bg-purple-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <DollarSign className="h-4 w-4 text-purple-600" />
+                        <h4 className="font-medium text-purple-800">Alteração de Valor</h4>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Operação:</span>
+                          <p className="text-gray-600">
+                            {dados.blocos.valor.operacao === 1 && 'Acrescentar valor'}
+                            {dados.blocos.valor.operacao === 2 && 'Diminuir valor'}
+                            {dados.blocos.valor.operacao === 3 && 'Substituir valor'}
+                          </p>
+                        </div>
+                        {dados.blocos.valor.valorAjuste && (
+                          <div>
+                            <span className="font-medium text-gray-700">Valor de Ajuste:</span>
+                            <p className="text-gray-600 font-mono">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(dados.blocos.valor.valorAjuste)}
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.valor.percentualAjuste && (
+                          <div>
+                            <span className="font-medium text-gray-700">Percentual de Ajuste:</span>
+                            <p className="text-gray-600 font-mono">
+                              {dados.blocos.valor.percentualAjuste}%
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.valor.novoValorGlobal && (
+                          <div>
+                            <span className="font-medium text-gray-700">Novo Valor Global:</span>
+                            <p className="text-gray-600 font-mono">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(dados.blocos.valor.novoValorGlobal)}
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.valor.observacoes && (
+                          <div className="md:col-span-2">
+                            <span className="font-medium text-gray-700">Observações:</span>
+                            <p className="text-gray-600 bg-white p-2 rounded border">
+                              {dados.blocos.valor.observacoes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bloco Fornecedores */}
+                  {dados.blocos?.fornecedores && (
+                    <div className="border rounded-lg p-4 bg-orange-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Users className="h-4 w-4 text-orange-600" />
+                        <h4 className="font-medium text-orange-800">Alteração de Fornecedores</h4>
+                      </div>
+                      <div className="space-y-4 text-sm">
+                        {dados.blocos.fornecedores.fornecedoresVinculados && dados.blocos.fornecedores.fornecedoresVinculados.length > 0 && (
+                          <div>
+                            <span className="font-medium text-gray-700">Fornecedores Vinculados:</span>
+                            <div className="mt-1 space-y-1">
+                              {dados.blocos.fornecedores.fornecedoresVinculados.map((fornecedor: FornecedorAlteracao, index: number) => (
+                                <div key={index} className="bg-white p-2 rounded border text-xs">
+                                  <span className="font-medium">Empresa:</span> {getCompanyName(fornecedor.empresaId)}
+                                  {fornecedor.percentualParticipacao && (
+                                    <span className="ml-2"><span className="font-medium">Participação:</span> {fornecedor.percentualParticipacao}%</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {dados.blocos.fornecedores.fornecedoresDesvinculados && dados.blocos.fornecedores.fornecedoresDesvinculados.length > 0 && (
+                          <div>
+                            <span className="font-medium text-gray-700">Fornecedores Desvinculados:</span>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {dados.blocos.fornecedores.fornecedoresDesvinculados.map((id: string, index: number) => (
+                                <Badge key={index} variant="destructive" className="text-xs">
+                                  {getCompanyName(id)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {dados.blocos.fornecedores.novoFornecedorPrincipal && (
+                          <div>
+                            <span className="font-medium text-gray-700">Novo Fornecedor Principal:</span>
+                            <Badge variant="default" className="ml-2">
+                              {getCompanyName(dados.blocos.fornecedores.novoFornecedorPrincipal)}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bloco Unidades */}
+                  {dados.blocos?.unidades && (
+                    <div className="border rounded-lg p-4 bg-teal-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Building2 className="h-4 w-4 text-teal-600" />
+                        <h4 className="font-medium text-teal-800">Alteração de Unidades</h4>
+                      </div>
+                      <div className="space-y-4 text-sm">
+                        {dados.blocos.unidades.unidadesVinculadas && dados.blocos.unidades.unidadesVinculadas.length > 0 && (
+                          <div>
+                            <span className="font-medium text-gray-700">Unidades Vinculadas:</span>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {dados.blocos.unidades.unidadesVinculadas.map((id: string, index: number) => (
+                                <Badge key={index} variant="default" className="text-xs">
+                                  {getUnitName(id)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {dados.blocos.unidades.unidadesDesvinculadas && dados.blocos.unidades.unidadesDesvinculadas.length > 0 && (
+                          <div>
+                            <span className="font-medium text-gray-700">Unidades Desvinculadas:</span>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {dados.blocos.unidades.unidadesDesvinculadas.map((id: string, index: number) => (
+                                <Badge key={index} variant="destructive" className="text-xs">
+                                  {getUnitName(id)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bloco Cláusulas */}
+                  {dados.blocos?.clausulas && (
+                    <div className="border rounded-lg p-4 bg-blue-50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-medium text-blue-800">Alteração de Cláusulas</h4>
+                      </div>
+                      <div className="space-y-4 text-sm">
+                        {dados.blocos.clausulas.clausulasExcluidas && (
+                          <div>
+                            <span className="font-medium text-red-700">Cláusulas Excluídas:</span>
+                            <p className="text-gray-600 bg-white p-2 rounded border mt-1">
+                              {dados.blocos.clausulas.clausulasExcluidas}
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.clausulas.clausulasIncluidas && (
+                          <div>
+                            <span className="font-medium text-green-700">Cláusulas Incluídas:</span>
+                            <p className="text-gray-600 bg-white p-2 rounded border mt-1">
+                              {dados.blocos.clausulas.clausulasIncluidas}
+                            </p>
+                          </div>
+                        )}
+                        {dados.blocos.clausulas.clausulasAlteradas && (
+                          <div>
+                            <span className="font-medium text-yellow-700">Cláusulas Alteradas:</span>
+                            <p className="text-gray-600 bg-white p-2 rounded border mt-1">
+                              {dados.blocos.clausulas.clausulasAlteradas}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Alerta de limite legal */}
             {alertaLimiteLegal && (
@@ -526,33 +771,35 @@ export function AlteracoesContratuais({
               </Card>
             )}
 
-            {/* Ações finais */}
+            {/* Ação de envio */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center">
                   <Button
-                    onClick={handleSalvarRascunho}
-                    disabled={isLoading}
-                    className="flex items-center gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    {alteracaoId ? 'Salvar Alterações' : 'Salvar Alteração'}
-                  </Button>
-                  {/* WORKFLOW DESABILITADO: não implementado no processo atual
-                  <Button
                     onClick={handleSubmeter}
                     disabled={!podeSubmeter || isLoading}
                     className="flex items-center gap-2"
+                    variant="default"
+                    size="lg"
                   >
-                    <Send className="h-4 w-4" />
-                    Submeter para Aprovação
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Enviar Alteração
+                      </>
+                    )}
                   </Button>
-                  */}
                 </div>
               </CardContent>
             </Card>
           </div>
         )
+      }
 
       default:
         return null
@@ -571,8 +818,25 @@ export function AlteracoesContratuais({
     alertaLimiteLegal, 
     confirmacaoLimiteLegal, 
     confirmarLimiteLegal, 
-    handleSalvarRascunho
-    // handleSubmeter, podeSubmeter, resumo - REMOVIDOS: workflow não implementado
+    handleSubmeter,
+    podeSubmeter,
+    contractContext.data,
+    contractContext.isLoading,
+    contractFinancials.currentBalance,
+    contractFinancials.executedPercentage,
+    contractFinancials.isLoading,
+    contractFinancials.totalValue,
+    contractSuppliers.isLoading,
+    contractSuppliers.mainSupplier,
+    contractSuppliers.suppliers,
+    contractTerms.endDate,
+    contractTerms.isActive,
+    contractTerms.isLoading,
+    contractTerms.startDate,
+    contractUnits.demandingUnit,
+    contractUnits.isLoading,
+    contractUnits.linkedUnits,
+    contractUnits.managingUnit
   ])
 
   return (
@@ -674,16 +938,6 @@ export function AlteracoesContratuais({
               </Button>
 
               <div className="flex items-center gap-3">
-                {etapaAtual > 0 && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleSalvarRascunho}
-                    disabled={isLoading}
-                  >
-                    Salvar Rascunho
-                  </Button>
-                )}
-
                 <Button
                   onClick={proximaEtapa}
                   disabled={isLoading}
@@ -733,7 +987,7 @@ export function AlteracoesContratuais({
           alerta={modalLimiteLegal.alerta}
           onConfirmed={() => {
             setModalLimiteLegal({ open: false })
-            onSubmitted?.(modalLimiteLegal.alteracaoId)
+            // Alteração já foi confirmada pelo modal, não precisamos chamar onSubmitted novamente
           }}
           onCancelled={() => {
             setModalLimiteLegal({ open: false })

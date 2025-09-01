@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo } from 'react'
 import type {
   AlteracaoContratualForm,
-  AlertaLimiteLegal
+  AlteracaoContratualResponse,
+  AlertaLimiteLegal,
+  BlocoValor
 } from '../../../types/alteracoes-contratuais'
 import {
   StatusAlteracao,
@@ -21,8 +23,8 @@ interface UseAlteracoesContratuaisProps {
   valorOriginal?: number
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
-  onSaved?: (alteracao: any) => void
-  onSubmitted?: (alteracao: any) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
   onLimiteLegalAlert?: (alerta: AlertaLimiteLegal, alteracaoId: string) => void
 }
 
@@ -197,7 +199,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.valor.operacao'] = 'Bloco Valor é obrigatório para os tipos selecionados'
           console.log('❌ Bloco valor ausente')
         } else {
-          const valor = dados.blocos.valor as any
+          const valor = dados.blocos.valor as BlocoValor
           console.log('🔧 Dados do bloco valor:', valor)
           
           if (valor.operacao === undefined) {
@@ -246,15 +248,16 @@ export function useAlteracoesContratuais({
       // Validar bloco fornecedores
       if (blocosObrigatorios.has('fornecedores')) {
         if (!dados.blocos?.fornecedores) {
-          novosErrors['blocos.fornecedores.operacao'] = 'Bloco Fornecedores é obrigatório para os tipos selecionados'
+          novosErrors['blocos.fornecedores'] = 'Bloco Fornecedores é obrigatório para os tipos selecionados'
         } else {
           const fornecedores = dados.blocos.fornecedores
-          if (fornecedores.operacao === undefined) {
-            novosErrors['blocos.fornecedores.operacao'] = 'Operação de fornecedores é obrigatória'
-          }
+          // Check if we have any fornecedor operations
+          const hasVinculados = fornecedores.fornecedoresVinculados && fornecedores.fornecedoresVinculados.length > 0
+          const hasDesvinculados = fornecedores.fornecedoresDesvinculados && fornecedores.fornecedoresDesvinculados.length > 0
+          const hasNovoFornecedor = fornecedores.novoFornecedorPrincipal && fornecedores.novoFornecedorPrincipal.trim() !== ''
 
-          if (!fornecedores.fornecedoresAfetados || fornecedores.fornecedoresAfetados.length === 0) {
-            novosErrors['blocos.fornecedores.fornecedoresAfetados'] = 'Deve haver pelo menos um fornecedor selecionado'
+          if (!hasVinculados && !hasDesvinculados && !hasNovoFornecedor) {
+            novosErrors['blocos.fornecedores'] = 'Deve especificar pelo menos uma alteração em fornecedores'
           }
         }
       }
@@ -262,15 +265,16 @@ export function useAlteracoesContratuais({
       // Validar bloco unidades
       if (blocosObrigatorios.has('unidades')) {
         if (!dados.blocos?.unidades) {
-          novosErrors['blocos.unidades.operacao'] = 'Bloco Unidades é obrigatório para os tipos selecionados'
+          novosErrors['blocos.unidades'] = 'Bloco Unidades é obrigatório para os tipos selecionados'
         } else {
           const unidades = dados.blocos.unidades
-          if (unidades.operacao === undefined) {
-            novosErrors['blocos.unidades.operacao'] = 'Operação de unidades é obrigatória'
-          }
 
-          if (!unidades.unidadesAfetadas || unidades.unidadesAfetadas.length === 0) {
-            novosErrors['blocos.unidades.unidadesAfetadas'] = 'Deve haver pelo menos uma unidade selecionada'
+          // Check if we have any unidades operations
+          const hasVinculadas = unidades.unidadesVinculadas && unidades.unidadesVinculadas.length > 0
+          const hasDesvinculadas = unidades.unidadesDesvinculadas && unidades.unidadesDesvinculadas.length > 0
+
+          if (!hasVinculadas && !hasDesvinculadas) {
+            novosErrors['blocos.unidades'] = 'Deve especificar pelo menos uma alteração em unidades'
           }
         }
       }
@@ -361,7 +365,7 @@ export function useAlteracoesContratuais({
         if (!dados.blocos?.valor) {
           novosErrors['blocos.valor.operacao'] = 'Bloco Valor é obrigatório para os tipos selecionados'
         } else {
-          const valor = dados.blocos.valor as any
+          const valor = dados.blocos.valor as BlocoValor
           
           if (valor.operacao === undefined) {
             novosErrors['blocos.valor.operacao'] = 'Operação de valor é obrigatória'
@@ -387,15 +391,16 @@ export function useAlteracoesContratuais({
       // Validar bloco fornecedores
       if (blocosObrigatorios.has('fornecedores')) {
         if (!dados.blocos?.fornecedores) {
-          novosErrors['blocos.fornecedores.operacao'] = 'Bloco Fornecedores é obrigatório para os tipos selecionados'
+          novosErrors['blocos.fornecedores'] = 'Bloco Fornecedores é obrigatório para os tipos selecionados'
         } else {
           const fornecedores = dados.blocos.fornecedores
-          if (fornecedores.operacao === undefined) {
-            novosErrors['blocos.fornecedores.operacao'] = 'Operação de fornecedores é obrigatória'
-          }
+          // Check if we have any fornecedor operations
+          const hasVinculados = fornecedores.fornecedoresVinculados && fornecedores.fornecedoresVinculados.length > 0
+          const hasDesvinculados = fornecedores.fornecedoresDesvinculados && fornecedores.fornecedoresDesvinculados.length > 0
+          const hasNovoFornecedor = fornecedores.novoFornecedorPrincipal && fornecedores.novoFornecedorPrincipal.trim() !== ''
 
-          if (!fornecedores.fornecedoresAfetados || fornecedores.fornecedoresAfetados.length === 0) {
-            novosErrors['blocos.fornecedores.fornecedoresAfetados'] = 'Deve haver pelo menos um fornecedor selecionado'
+          if (!hasVinculados && !hasDesvinculados && !hasNovoFornecedor) {
+            novosErrors['blocos.fornecedores'] = 'Deve especificar pelo menos uma alteração em fornecedores'
           }
         }
       }
@@ -403,15 +408,16 @@ export function useAlteracoesContratuais({
       // Validar bloco unidades
       if (blocosObrigatorios.has('unidades')) {
         if (!dados.blocos?.unidades) {
-          novosErrors['blocos.unidades.operacao'] = 'Bloco Unidades é obrigatório para os tipos selecionados'
+          novosErrors['blocos.unidades'] = 'Bloco Unidades é obrigatório para os tipos selecionados'
         } else {
           const unidades = dados.blocos.unidades
-          if (unidades.operacao === undefined) {
-            novosErrors['blocos.unidades.operacao'] = 'Operação de unidades é obrigatória'
-          }
 
-          if (!unidades.unidadesAfetadas || unidades.unidadesAfetadas.length === 0) {
-            novosErrors['blocos.unidades.unidadesAfetadas'] = 'Deve haver pelo menos uma unidade selecionada'
+          // Check if we have any unidades operations
+          const hasVinculadas = unidades.unidadesVinculadas && unidades.unidadesVinculadas.length > 0
+          const hasDesvinculadas = unidades.unidadesDesvinculadas && unidades.unidadesDesvinculadas.length > 0
+
+          if (!hasVinculadas && !hasDesvinculadas) {
+            novosErrors['blocos.unidades'] = 'Deve especificar pelo menos uma alteração em unidades'
           }
         }
       }

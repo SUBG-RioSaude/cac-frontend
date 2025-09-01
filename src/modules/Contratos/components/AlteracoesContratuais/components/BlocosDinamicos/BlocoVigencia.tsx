@@ -149,7 +149,7 @@ export function BlocoVigencia({
         onChange({ ...dados, novaDataFinal: dataCalculada } as IBlocoVigencia)
       }
     }
-  }, [dados.valorTempo, dados.tipoUnidade, dados.operacao, dados.novaDataFinal, calculoAutomatico, calcularNovaData])
+  }, [dados, onChange, calculoAutomatico, calcularNovaData])
 
   const handleFieldChange = useCallback((field: keyof IBlocoVigencia, value: unknown) => {
     const novosDados = {

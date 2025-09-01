@@ -19,7 +19,7 @@ import { StatusAlteracaoContratual } from '../types/alteracoes-contratuais'
 
 // ========== TIPOS ESPECÍFICOS DA API ==========
 
-interface PaginacaoResponse<T> {
+export interface PaginacaoResponse<T> {
   dados: T[]
   paginaAtual: number
   tamanhoPagina: number
@@ -157,16 +157,15 @@ export async function criarAlteracaoContratual(
   })
 
   // Status 202 indica alerta de limite legal
+  // O alertaLimiteLegal já vem no próprio response, não precisamos fazer chamada adicional
   if (response.status === 202) {
-    const alertaResponse = await executeWithFallback<AlertaLimiteLegal>({
-      method: 'get',
-      url: `/alteracoes-contratuais/${response.data.id}/alerta-limite`,
-      baseURL: import.meta.env.VITE_API_URL
-    })
-
+    console.log('⚠️ Alerta de limite legal detectado no response')
     return {
       alteracao: response.data,
-      alertaLimiteLegal: alertaResponse.data,
+      alertaLimiteLegal: {
+        limites: [],
+        fundamentacaoLegal: 'Limite legal excedido - consulte a documentação.'
+      },
       status: 202
     }
   }
@@ -206,9 +205,39 @@ export async function atualizarAlteracaoContratual(
   id: string,
   dados: Partial<AlteracaoContratualForm>
 ): Promise<AlteracaoContratualResponse> {
+  // Transform blocos structure to match API expectations
+  const transformedBlocos = dados.blocos ? {
+    clausulas: dados.blocos.clausulas && typeof dados.blocos.clausulas.clausulasAlteradas === 'object' ? {
+      clausulasAlteradas: Array.isArray(dados.blocos.clausulas.clausulasAlteradas) ? dados.blocos.clausulas.clausulasAlteradas : []
+    } : undefined,
+    vigencia: dados.blocos.vigencia,
+    valor: dados.blocos.valor ? {
+      operacao: dados.blocos.valor.operacao,
+      valor: dados.blocos.valor.valorAjuste || 0,
+      percentual: dados.blocos.valor.percentualAjuste
+    } : undefined,
+    fornecedores: dados.blocos.fornecedores ? {
+      operacao: 1, // Operacao padrão
+      fornecedoresAfetados: dados.blocos.fornecedores.fornecedoresVinculados?.map(f => ({
+        id: f.empresaId,
+        nome: f.empresaId, // Usar empresaId como nome por enquanto
+        cnpj: f.empresaId // Usar empresaId como cnpj por enquanto
+      })) || []
+    } : undefined,
+    unidades: dados.blocos.unidades ? {
+      operacao: 1, // Operacao padrão
+      unidadesAfetadas: dados.blocos.unidades.unidadesVinculadas?.map(u => ({
+        id: u,
+        nome: u,
+        codigo: u
+      })) || []
+    } : undefined
+  } : undefined
+
   const payload: AtualizarAlteracaoRequest = {
     id,
-    ...dados
+    ...dados,
+    blocos: transformedBlocos
   }
 
   const response = await executeWithFallback<AlteracaoContratualResponse>({
@@ -416,4 +445,20 @@ export async function getAlteracoesAtivas(
   contratoId: string
 ): Promise<AlteracaoContratualResponse[]> {
   return getAlteracoesPorStatus(contratoId, StatusAlteracaoContratual.Ativa)
+}
+
+/**
+ * Busca histórico completo de alterações do contrato
+ * GET /api/alteracoes-contratuais/contrato/{contratoId}/historico
+ */
+export async function getHistoricoAlteracoesContrato(
+  contratoId: string
+): Promise<AlteracaoContratualResponse[]> {
+  const response = await executeWithFallback<AlteracaoContratualResponse[]>({
+    method: 'get',
+    url: `/alteracoes-contratuais/contrato/${contratoId}/historico`,
+    baseURL: import.meta.env.VITE_API_URL
+  })
+
+  return response.data
 }

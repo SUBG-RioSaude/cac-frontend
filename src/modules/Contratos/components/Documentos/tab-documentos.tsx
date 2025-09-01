@@ -34,7 +34,7 @@ interface TabDocumentosProps {
   contratoId: string;
 }
 
-// Tipos de documento obrigatórios (1-7 conforme API)
+// Tipos de documento obrigatórios (1-8 conforme API)
 const tiposDeDocumento = [
   { tipo: 1, nome: 'Termo de Referência/Edital', key: 'termo_referencia', apiName: 'TermoReferencia' },
   { tipo: 2, nome: 'Homologação', key: 'homologacao', apiName: 'Homologacao' },
@@ -43,6 +43,7 @@ const tiposDeDocumento = [
   { tipo: 5, nome: 'Contrato', key: 'contrato', apiName: 'Contrato' },
   { tipo: 6, nome: 'Publicação PNCP', key: 'publicacao_pncp', apiName: 'PublicacaoPNCP' },
   { tipo: 7, nome: 'Publicação de Extrato Contratual', key: 'publicacao_extrato', apiName: 'PublicacaoExtrato' },
+  { tipo: 8, nome: 'Proposta', key: 'proposta', apiName: 'Proposta' },
 ]
 
 interface DocumentoLocal {

@@ -22,6 +22,14 @@ import { Separator } from '@/components/ui/separator'
 import type { AlertaLimiteLegal } from '@/modules/Contratos/types/alteracoes-contratuais'
 import { useConfirmarLimiteLegal } from '@/modules/Contratos/hooks/useAlteracoesContratuaisApi'
 
+type LimiteLegal = {
+  tipo: 'acrescimo' | 'prazo' | 'objeto'
+  limiteLegal: number
+  valorAtual: number
+  severidade: 'alerta' | 'critico'
+  observacoes?: string
+}
+
 interface ModalAlertaLimiteLegalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -130,7 +138,7 @@ export function ModalAlertaLimiteLegal({
               <CardTitle className="text-lg">Resumo dos Limites Excedidos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {alerta.limites.map((limite: any, index: number) => (
+              {alerta.limites.map((limite: LimiteLegal, index: number) => (
                 <div key={index} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

@@ -152,57 +152,54 @@ export interface AlteracaoContratualPayload {
   contratoId: string
   tiposAlteracao: number[]
   justificativa: string
-  dataEfeito: string // ISO string: "2024-01-01"
+  status: number // StatusAlteracao
+  dataEfeito: string // ISO string: "2024-01-01T00:00:00.000Z"
   
   // Campos opcionais básicos
-  fundamentoLegal?: string
-  observacoes?: string
+  dataAssinatura?: string // ISO string
+  requerConfirmacaoLimiteLegal?: boolean
+  alertaLimiteLegal?: string
   
-  // Blocos dinâmicos (flat structure)
+  // Blocos dinâmicos (flat structure - formato exato da API)
+  // Bloco Clausulas
+  clausulas?: {
+    clausulasExcluidas?: string
+    clausulasIncluidas?: string
+    clausulasAlteradas?: string
+  }
+  
+  // Bloco Vigência
+  vigencia?: {
+    operacao: number // OperacaoVigencia
+    tipoUnidade?: number // TipoUnidadeTempo
+    valorTempo?: number
+    novaDataFinal?: string // ISO string
+    isIndeterminado?: boolean
+    observacoes?: string
+  }
+  
   // Bloco Valor
   valor?: {
     operacao: number // OperacaoValor  
     valorAjuste?: number
     percentualAjuste?: number
     novoValorGlobal?: number
+    observacoes?: string
     valorCalculadoAutomaticamente?: boolean
-    observacoes?: string
   }
   
-  // Bloco Vigência
-  vigencia?: {
-    operacao: number // OperacaoVigencia
-    valorTempo?: number
-    tipoUnidade?: number // TipoUnidadeTempo
-    novaDataFinal?: string
-    isIndeterminado?: boolean
-    observacoes?: string
-  }
-  
-  // Bloco Cláusulas
-  clausulas?: {
-    clausulasExcluidas?: string
-    clausulasIncluidas?: string  
-    clausulasAlteradas?: string
-  }
-  
-  // Bloco Fornecedores
+  // Bloco Fornecedores - NOVO FORMATO
   fornecedores?: {
-    fornecedoresVinculados?: Array<{
-      empresaId: string
-      percentualParticipacao?: number
-      valorAtribuido?: number
-      observacoes?: string
-    }>
-    fornecedoresDesvinculados?: string[]
-    novoFornecedorPrincipal?: string
+    fornecedoresVinculados?: string[] // Array de IDs
+    fornecedoresDesvinculados?: string[] // Array de IDs
+    novoFornecedorPrincipal?: string // ID do fornecedor principal
     observacoes?: string
   }
   
-  // Bloco Unidades
+  // Bloco Unidades - NOVO FORMATO
   unidades?: {
-    unidadesVinculadas?: string[]
-    unidadesDesvinculadas?: string[]
+    unidadesVinculadas?: string[] // Array de IDs
+    unidadesDesvinculadas?: string[] // Array de IDs
     observacoes?: string
   }
 }
@@ -278,7 +275,9 @@ export interface AlteracaoContratualForm {
   id?: string
   versaoContrato?: number
   status?: StatusAlteracao
+  dataAssinatura?: string // Data de assinatura (ISO string)
   requerConfirmacaoLimiteLegal?: boolean
+  alertaLimiteLegal?: string // Mensagem de alerta se houver
   criadoEm?: string
   atualizadoEm?: string
   criadoPor?: string
@@ -289,12 +288,55 @@ export interface AlteracaoContratualResponse {
   id: string
   contratoId: string
   tiposAlteracao: TipoAlteracao[]
-  dadosBasicos: DadosBasicos
-  blocos: BlocosDinamicos
+  justificativa: string
+  versaoContrato: number
   status: StatusAlteracaoContratual
-  criadoEm: string
-  atualizadoEm: string
-  criadoPor: string
+  dataEfeito: string
+  dataAssinatura?: string | null
+  
+  // Blocos estruturados (diretamente na raiz como nos dados reais)
+  clausulas?: {
+    clausulasExcluidas?: string
+    clausulasIncluidas?: string
+    clausulasAlteradas?: string
+  } | null
+  
+  vigencia?: {
+    operacao: number
+    tipoUnidade?: number
+    valorTempo?: number
+    novaDataFinal?: string | null
+    isIndeterminado?: boolean
+    observacoes?: string
+  } | null
+  
+  valor?: {
+    operacao: number
+    valorAjuste?: number
+    percentualAjuste?: number
+    novoValorGlobal?: number
+    observacoes?: string
+    valorCalculadoAutomaticamente?: boolean
+  } | null
+  
+  fornecedores?: object | null // Para compatibilidade futura
+  unidades?: object | null // Para compatibilidade futura
+  
+  // Campos específicos da API
+  requerConfirmacaoLimiteLegal: boolean
+  alertaLimiteLegal?: string | null
+  estadoAnteriorJson?: string | null
+  estadoPosteriorJson?: string | null
+  resumoAlteracao?: string
+  podeSerEditada: boolean
+  
+  // Campos de auditoria
+  usuarioCadastroId: string
+  usuarioAtualizacaoId: string
+  dataCadastro: string
+  dataAtualizacao: string
+  ativo: boolean
+  contrato?: object | null
 }
 
 // Interface para alerta de limite legal
@@ -422,6 +464,16 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
     blocosObrigatorios: ['vigencia'],
     blocosOpcionais: ['clausulas', 'valor']
   },
+  [TipoAlteracao.Valor]: {
+    tipo: TipoAlteracao.Valor,
+    label: 'Alteração de Valor (Removido)',
+    descricao: 'Tipo removido',
+    icone: 'DollarSign',
+    cor: 'gray',
+    exemplos: [],
+    blocosObrigatorios: [],
+    blocosOpcionais: []
+  },
   [TipoAlteracao.AditivoQualitativo]: {
     tipo: TipoAlteracao.AditivoQualitativo,
     label: 'Aditivo - Qualitativo',
@@ -443,6 +495,16 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
     limiteLegal: 25
+  },
+  [TipoAlteracao.PrazoEValor]: {
+    tipo: TipoAlteracao.PrazoEValor,
+    label: 'Prazo e Valor (Removido)',
+    descricao: 'Tipo removido',
+    icone: 'Clock',
+    cor: 'gray',
+    exemplos: [],
+    blocosObrigatorios: [],
+    blocosOpcionais: []
   },
   [TipoAlteracao.Apostilamento]: {
     tipo: TipoAlteracao.Apostilamento,
@@ -487,6 +549,16 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
     blocosOpcionais: ['clausulas'],
     limiteLegal: 50
   },
+  [TipoAlteracao.RepactuacaoEReequilibrio]: {
+    tipo: TipoAlteracao.RepactuacaoEReequilibrio,
+    label: 'Repactuação e Reequilíbrio (Removido)',
+    descricao: 'Tipo removido',
+    icone: 'Scale',
+    cor: 'gray',
+    exemplos: [],
+    blocosObrigatorios: [],
+    blocosOpcionais: []
+  },
   [TipoAlteracao.Rescisao]: {
     tipo: TipoAlteracao.Rescisao,
     label: 'Rescisão',
@@ -528,39 +600,6 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
     blocosObrigatorios: ['vigencia'],
     blocosOpcionais: ['clausulas']
   },
-  [TipoAlteracao.Valor]: {
-    tipo: TipoAlteracao.Valor,
-    label: 'Alteração de Valor',
-    descricao: 'Alteração de valor global',
-    icone: 'DollarSign',
-    cor: 'green',
-    exemplos: ['Aumento de valor', 'Redução de valor'],
-    blocosObrigatorios: ['valor'],
-    blocosOpcionais: ['clausulas'],
-    limiteLegal: 25
-  },
-  [TipoAlteracao.PrazoEValor]: {
-    tipo: TipoAlteracao.PrazoEValor,
-    label: 'Prazo e Valor',
-    descricao: 'Combinação prazo + valor',
-    icone: 'Clock',
-    cor: 'blue',
-    exemplos: ['Prorrogação com reajuste', 'Extensão com aumento'],
-    blocosObrigatorios: ['vigencia', 'valor'],
-    blocosOpcionais: ['clausulas'],
-    limiteLegal: 25
-  },
-  [TipoAlteracao.RepactuacaoEReequilibrio]: {
-    tipo: TipoAlteracao.RepactuacaoEReequilibrio,
-    label: 'Repactuação e Reequilíbrio',
-    descricao: 'Combinação repactuação + reequilíbrio',
-    icone: 'Scale',
-    cor: 'red',
-    exemplos: ['Revisão completa', 'Ajuste por múltiplos fatores'],
-    blocosObrigatorios: ['valor'],
-    blocosOpcionais: ['clausulas'],
-    limiteLegal: 50
-  }
 }
 
 // Função helper para verificar blocos obrigatórios
@@ -606,73 +645,119 @@ export function getLimiteLegal(tipos: TipoAlteracao[]): number {
 export function transformToApiPayload(
   dados: AlteracaoContratualForm
 ): AlteracaoContratualPayload {
+  console.log('🔧 Transformando dados para API:', dados)
+  
   const payload: AlteracaoContratualPayload = {
     contratoId: dados.contratoId,
     tiposAlteracao: dados.tiposAlteracao,
     justificativa: dados.dadosBasicos.justificativa,
+    status: dados.status || StatusAlteracao.Rascunho,
     dataEfeito: dados.dataEfeito
   }
 
   // Campos opcionais básicos
-  if (dados.dadosBasicos.fundamentoLegal) {
-    payload.fundamentoLegal = dados.dadosBasicos.fundamentoLegal
+  if (dados.dadosBasicos?.fundamentoLegal) {
+    // Note: fundamentoLegal não existe no novo formato, vai no justificativa ou observacoes
+    console.log('   ⚠️ fundamentoLegal será ignorado (não existe no novo formato da API)')
   }
-  if (dados.dadosBasicos.observacoes) {
-    payload.observacoes = dados.dadosBasicos.observacoes
+  
+  // Adicionar data de assinatura se disponível (pode vir do contrato ou ser definida pelo usuário)
+  if (dados.dataAssinatura) {
+    payload.dataAssinatura = dados.dataAssinatura
+  }
+  
+  // Configurar flags de limite legal se necessário
+  if (dados.requerConfirmacaoLimiteLegal !== undefined) {
+    payload.requerConfirmacaoLimiteLegal = dados.requerConfirmacaoLimiteLegal
+  }
+  
+  if (dados.alertaLimiteLegal) {
+    payload.alertaLimiteLegal = dados.alertaLimiteLegal
   }
 
   // Transformar blocos dinâmicos
-  if (dados.blocos.valor) {
-    const valor = dados.blocos.valor as BlocoValor
-    payload.valor = {
-      operacao: valor.operacao,
-      valorAjuste: valor.valorAjuste,
-      percentualAjuste: valor.percentualAjuste,
-      novoValorGlobal: valor.novoValorGlobal,
-      valorCalculadoAutomaticamente: valor.valorCalculadoAutomaticamente,
-      observacoes: valor.observacoes
-    }
-  }
-
-  if (dados.blocos.vigencia) {
-    const vigencia = dados.blocos.vigencia as BlocoVigencia
-    payload.vigencia = {
-      operacao: vigencia.operacao,
-      valorTempo: vigencia.valorTempo,
-      tipoUnidade: vigencia.tipoUnidade,
-      novaDataFinal: vigencia.novaDataFinal,
-      isIndeterminado: vigencia.isIndeterminado,
-      observacoes: vigencia.observacoes
-    }
-  }
-
-  if (dados.blocos.clausulas) {
+  if (dados.blocos?.clausulas) {
     const clausulas = dados.blocos.clausulas as BlocoClausulas
     payload.clausulas = {
       clausulasExcluidas: clausulas.clausulasExcluidas,
       clausulasIncluidas: clausulas.clausulasIncluidas,
       clausulasAlteradas: clausulas.clausulasAlteradas
     }
+    console.log('   ✅ Bloco clausulas transformado')
   }
 
-  if (dados.blocos.fornecedores) {
+  if (dados.blocos?.vigencia) {
+    const vigencia = dados.blocos.vigencia as BlocoVigencia
+    payload.vigencia = {
+      operacao: vigencia.operacao,
+      tipoUnidade: vigencia.tipoUnidade,
+      valorTempo: vigencia.valorTempo,
+      novaDataFinal: vigencia.novaDataFinal,
+      isIndeterminado: vigencia.isIndeterminado,
+      observacoes: vigencia.observacoes
+    }
+    console.log('   ✅ Bloco vigencia transformado')
+  }
+
+  if (dados.blocos?.valor) {
+    const valor = dados.blocos.valor as BlocoValor
+    payload.valor = {
+      operacao: valor.operacao,
+      valorAjuste: valor.valorAjuste,
+      percentualAjuste: valor.percentualAjuste,
+      novoValorGlobal: valor.novoValorGlobal,
+      observacoes: valor.observacoes,
+      valorCalculadoAutomaticamente: valor.valorCalculadoAutomaticamente
+    }
+    console.log('   ✅ Bloco valor transformado')
+  }
+
+  // NOVO: Transformar bloco fornecedores
+  if (dados.blocos?.fornecedores) {
     const fornecedores = dados.blocos.fornecedores as BlocoFornecedores
+    console.log('   🔧 Transformando fornecedores:', fornecedores)
+    
     payload.fornecedores = {
-      fornecedoresVinculados: fornecedores.fornecedoresVinculados,
-      fornecedoresDesvinculados: fornecedores.fornecedoresDesvinculados,
-      novoFornecedorPrincipal: fornecedores.novoFornecedorPrincipal,
       observacoes: fornecedores.observacoes
     }
+
+    // Analisar operação e mapear fornecedores afetados
+    if (fornecedores.fornecedoresVinculados && fornecedores.fornecedoresVinculados.length > 0) {
+      payload.fornecedores.fornecedoresVinculados = fornecedores.fornecedoresVinculados.map(f => f.empresaId)
+    }
+    
+    if (fornecedores.fornecedoresDesvinculados && fornecedores.fornecedoresDesvinculados.length > 0) {
+      payload.fornecedores.fornecedoresDesvinculados = fornecedores.fornecedoresDesvinculados
+    }
+    
+    if (fornecedores.novoFornecedorPrincipal) {
+      payload.fornecedores.novoFornecedorPrincipal = fornecedores.novoFornecedorPrincipal
+    }
+    
+    console.log('   ✅ Bloco fornecedores transformado:', payload.fornecedores)
   }
 
-  if (dados.blocos.unidades) {
+  // NOVO: Transformar bloco unidades  
+  if (dados.blocos?.unidades) {
     const unidades = dados.blocos.unidades as BlocoUnidades
+    console.log('   🔧 Transformando unidades:', unidades)
+    
     payload.unidades = {
-      unidadesVinculadas: unidades.unidadesVinculadas,
-      unidadesDesvinculadas: unidades.unidadesDesvinculadas,
       observacoes: unidades.observacoes
     }
+
+    // Analisar operação e mapear unidades afetadas  
+    if (unidades.unidadesVinculadas && unidades.unidadesVinculadas.length > 0) {
+      payload.unidades.unidadesVinculadas = unidades.unidadesVinculadas // Já são IDs de string
+    }
+    
+    if (unidades.unidadesDesvinculadas && unidades.unidadesDesvinculadas.length > 0) {
+      payload.unidades.unidadesDesvinculadas = unidades.unidadesDesvinculadas // Já são IDs de string
+    }
+    
+    console.log('   ✅ Bloco unidades transformado:', payload.unidades)
   }
 
+  console.log('🎯 Payload final para API:', payload)
   return payload
 }

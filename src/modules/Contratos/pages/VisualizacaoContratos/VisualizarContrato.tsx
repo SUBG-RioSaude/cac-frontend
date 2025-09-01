@@ -21,7 +21,8 @@ import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/in
 
 // import type { ContratoDetalhado } from '../../types/contrato' // removido pois não está sendo usado
 import { useContratoDetalhado } from '../../hooks/use-contratos'
-import type { AlteracaoContratualForm } from '../../types/alteracoes-contratuais'
+import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
+import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
 import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais'
 import { ContractChat } from '../../components/Timeline/contract-chat'
@@ -51,6 +52,11 @@ export function VisualizarContrato() {
     error,
     refetch
   } = useContratoDetalhado(id || '', { enabled: !!id })
+
+  // Hook para buscar histórico de alterações contratuais
+  const { 
+    data: historicoAlteracoes = []
+  } = useHistoricoAlteracoes(id || '', !!id)
 
   console.log('🔍 VisualizarContrato Debug:', { 
     id, 
@@ -119,7 +125,7 @@ export function VisualizarContrato() {
 
   // Handlers para integração com alterações contratuais
 
-  const handleSalvarAlteracao = useCallback(async (alteracao: AlteracaoContratualForm) => {
+  const handleSalvarAlteracao = useCallback(async (alteracao: AlteracaoContratualResponse) => {
     try {
       // Simular usuário atual
       // const autor = {
@@ -140,7 +146,7 @@ export function VisualizarContrato() {
     }
   }, [])
 
-  const _handleSubmeterAlteracao = useCallback(async (alteracao: AlteracaoContratualForm) => {
+  const _handleSubmeterAlteracao = useCallback(async (alteracao: AlteracaoContratualResponse) => {
     try {
       await handleSalvarAlteracao(alteracao)
       
@@ -454,7 +460,7 @@ export function VisualizarContrato() {
                 {isTabEnabled('alteracoes') && (
                   <TabsContent value="alteracoes" className="mt-0 w-full">
                     <RegistroAlteracoes 
-                      alteracoes={contrato.alteracoes} 
+                      alteracoes={historicoAlteracoes} 
                       entradasTimeline={entradasTimeline}
                       onAdicionarObservacao={() => handleTabChange('timeline')}
                     />

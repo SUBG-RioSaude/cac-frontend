@@ -29,7 +29,8 @@ import {
   TIPOS_ALTERACAO_CONFIG,
   getBlocosObrigatorios,
   getBlocosOpcionais,
-  getLimiteLegal
+  getLimiteLegal,
+  type TipoAlteracaoConfig
 } from '../../../../types/alteracoes-contratuais'
 
 interface TipoAlteracaoSelectorProps {
@@ -102,12 +103,13 @@ export function TipoAlteracaoSelector({
       }
     }
 
-    const blocosObrigatorios = getBlocosObrigatorios(tiposSelecionados as any)
-    const blocosOpcionais = getBlocosOpcionais(tiposSelecionados as any)
-    const limiteLegal = getLimiteLegal(tiposSelecionados as any)
-    const temAlertaLegal = tiposSelecionados.some(tipo => 
-      (TIPOS_ALTERACAO_CONFIG as any)[tipo].limiteLegal && (TIPOS_ALTERACAO_CONFIG as any)[tipo].limiteLegal! > 0
-    )
+    const blocosObrigatorios = getBlocosObrigatorios(tiposSelecionados as TipoAlteracao[])
+    const blocosOpcionais = getBlocosOpcionais(tiposSelecionados as TipoAlteracao[])
+    const limiteLegal = getLimiteLegal(tiposSelecionados as TipoAlteracao[])
+    const temAlertaLegal = tiposSelecionados.some(tipo => {
+      const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracao]
+      return config.limiteLegal && config.limiteLegal > 0
+    })
 
     return {
       blocosObrigatorios,
@@ -117,9 +119,11 @@ export function TipoAlteracaoSelector({
     }
   }, [tiposSelecionados])
 
-  // Ordenar tipos conforme especificação (ordem fixa)
+  // Ordenar tipos alfabeticamente por label
   const tiposOrdenados = useMemo(() => {
-    return Object.values(TIPOS_ALTERACAO_CONFIG).sort((a: any, b: any) => a.tipo - b.tipo)
+    return Object.values(TIPOS_ALTERACAO_CONFIG).sort((a, b) => 
+      a.label.localeCompare(b.label, 'pt-BR')
+    )
   }, [])
 
   return (
@@ -169,7 +173,7 @@ export function TipoAlteracaoSelector({
         <CardContent className="space-y-4">
           {/* Lista de tipos ordenada */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {tiposOrdenados.map((config: any) => {
+            {tiposOrdenados.map((config: TipoAlteracaoConfig) => {
               const Icon = ICONES_MAP[config.icone as keyof typeof ICONES_MAP] || FileText
               const isSelected = tiposSelecionados.includes(config.tipo)
               const corClasse = CORES_MAP[config.cor as keyof typeof CORES_MAP] || CORES_MAP.gray
@@ -255,7 +259,7 @@ export function TipoAlteracaoSelector({
                         <div>
                           <span className="font-medium text-gray-700">Blocos obrigatórios:</span>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {Array.from(infoSelecao.blocosObrigatorios).map((bloco: any) => (
+                            {Array.from(infoSelecao.blocosObrigatorios).map((bloco: string) => (
                               <Badge key={String(bloco)} variant="destructive" className="text-xs">
                                 {bloco.charAt(0).toUpperCase() + bloco.slice(1)}
                               </Badge>
@@ -269,7 +273,7 @@ export function TipoAlteracaoSelector({
                         <div>
                           <span className="font-medium text-gray-700">Blocos opcionais:</span>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {Array.from(infoSelecao.blocosOpcionais).map((bloco: any) => (
+                            {Array.from(infoSelecao.blocosOpcionais).map((bloco: string) => (
                               <Badge key={String(bloco)} variant="secondary" className="text-xs">
                                 {bloco.charAt(0).toUpperCase() + bloco.slice(1)}
                               </Badge>
@@ -304,12 +308,12 @@ export function TipoAlteracaoSelector({
                     <h4 className="font-medium text-gray-700">Exemplos de cada tipo:</h4>
                     <div className="grid grid-cols-1 gap-2 text-sm">
                       {tiposOrdenados
-                        .filter((config: any) => tiposSelecionados.length === 0 || tiposSelecionados.includes(config.tipo))
-                        .map((config: any) => (
+                        .filter((config: TipoAlteracaoConfig) => tiposSelecionados.length === 0 || tiposSelecionados.includes(config.tipo))
+                        .map((config: TipoAlteracaoConfig) => (
                           <div key={config.tipo} className="p-3 bg-gray-50 rounded-md">
                             <span className="font-medium text-gray-700">{config.label}:</span>
                             <ul className="list-disc list-inside text-gray-600 mt-1 ml-2">
-                              {config.exemplos.map((exemplo: any, index: number) => (
+                              {config.exemplos.map((exemplo: string, index: number) => (
                                 <li key={index} className="text-xs">{exemplo}</li>
                               ))}
                             </ul>

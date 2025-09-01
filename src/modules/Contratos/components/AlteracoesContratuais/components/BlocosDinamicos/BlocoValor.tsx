@@ -222,13 +222,6 @@ export function BlocoValor({
     }).format(valor)
   }, [])
 
-  // Formatação de input monetário (sem símbolo de moeda)
-  const formatarInputMonetario = useCallback((valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(valor)
-  }, [])
 
   // Converter string formatada para número
   const parseValorMonetario = useCallback((valorFormatado: string) => {
