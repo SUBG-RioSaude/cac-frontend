@@ -26,13 +26,19 @@ export default function ConfirmarAvancoModal({
     // Previne scroll da página quando modal estiver aberto
     if (aberto) {
       document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
     } else {
       document.body.style.overflow = 'unset'
+      document.body.style.position = ''
+      document.body.style.width = ''
     }
 
     // Cleanup
     return () => {
       document.body.style.overflow = 'unset'
+      document.body.style.position = ''
+      document.body.style.width = ''
     }
   }, [aberto])
 
@@ -41,7 +47,7 @@ export default function ConfirmarAvancoModal({
   const isFinalizacao = textoConfirmar.toLowerCase().includes('finalizar')
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Overlay com blur */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -49,7 +55,7 @@ export default function ConfirmarAvancoModal({
       />
       
       {/* Modal */}
-      <div className="absolute top-1/2 left-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-gray-200 bg-white shadow-xl">
+      <div className="relative w-full max-w-md rounded-lg border border-gray-200 bg-white shadow-xl">
         {/* Header */}
         <div className="border-b border-gray-100 px-6 py-4">
           <div className="flex items-center space-x-3">

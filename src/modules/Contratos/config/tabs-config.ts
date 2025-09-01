@@ -88,6 +88,20 @@ export const TABS_CONFIG: Record<string, TabConfig> = {
     description: 'Checklist de documentos obrigatórios'
   },
 
+  empenhos: {
+    id: 'empenhos',
+    label: 'Empenhos',
+    enabled: true, // ATIVA - nova funcionalidade implementada
+    icon: {
+      color: 'bg-emerald-500',
+      bgColor: 'data-[state=active]:bg-emerald-700',
+      activeBorder: 'data-[state=active]:border-emerald-200',
+      activeText: 'data-[state=active]:text-emerald-700',
+      activeBg: 'data-[state=active]:bg-white'
+    },
+    description: 'Registro e gestão de empenhos do contrato'
+  },
+
   timeline: {
     id: 'timeline',
     label: 'Chat',

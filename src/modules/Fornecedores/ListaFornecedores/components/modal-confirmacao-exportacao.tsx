@@ -24,12 +24,12 @@ export function ModalConfirmacaoExportacao({
       {/* Overlay com data-testid para testes */}
       <div
         data-testid="modal-overlay"
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div 
           role="dialog"
           className="w-full max-w-md rounded-lg border bg-white p-6 shadow-xl animate-in fade-in-0 zoom-in-95 z-50"

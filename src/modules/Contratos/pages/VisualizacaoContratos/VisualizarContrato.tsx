@@ -26,6 +26,7 @@ import { currencyUtils } from '@/lib/utils'
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais/alteracoes-contratuais'
 import { ContractChat } from '../../components/Timeline/contract-chat'
 import { TabDocumentos } from '../../components/Documentos/tab-documentos'
+import { TabEmpenhos } from '../../components/VisualizacaoContratos/tab-empenhos'
 import { useTimelineIntegration } from '../../hooks/useTimelineIntegration'
 import type { TimelineEntry } from '../../types/timeline'
 import type { ChatMessage } from '../../types/timeline'
@@ -487,6 +488,16 @@ export function VisualizarContrato() {
                 {isTabEnabled('documentos') && (
                   <TabsContent value="documentos" className="mt-0 w-full">
                     <TabDocumentos contratoId={contrato.id} />
+                  </TabsContent>
+                )}
+
+                {isTabEnabled('empenhos') && (
+                  <TabsContent value="empenhos" className="mt-0 w-full">
+                    <TabEmpenhos 
+                      contratoId={contrato.id} 
+                      valorTotalContrato={contrato.valorTotal}
+                      unidadesVinculadas={contrato.unidadesVinculadas || []}
+                    />
                   </TabsContent>
                 )}
 

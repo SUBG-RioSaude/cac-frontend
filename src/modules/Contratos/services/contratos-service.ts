@@ -1,5 +1,9 @@
 import { executeWithFallback } from '@/lib/axios'
-import type { Contrato, ContratoDetalhado } from '@/modules/Contratos/types/contrato'
+import type { 
+  Contrato, 
+  ContratoDetalhado,
+  CriarContratoPayload
+} from '@/modules/Contratos/types/contrato'
 
 
 export type ContratoParametros = {
@@ -151,4 +155,113 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
   console.log('📦 Contrato simplificado criado:', contratoSimples)
   
   return contratoSimples as unknown as ContratoDetalhado
+}
+
+/**
+ * Criar novo contrato
+ */
+export async function criarContrato(payload: CriarContratoPayload): Promise<Contrato> {
+  console.log('🚀 [SERVIÇO] Criando contrato com payload:', payload)
+  
+  try {
+    const response = await executeWithFallback<Contrato>({
+      method: 'post',
+      url: '/Contratos', // Endpoint da API para criação
+      data: payload
+    })
+
+    console.log('✅ [SERVIÇO] Contrato criado com sucesso:', response.data)
+    return response.data
+  } catch (error: unknown) {
+    console.error('❌ [SERVIÇO] Erro ao criar contrato:', error)
+    console.error('❌ [SERVIÇO] Detalhes do erro:', {
+      status: (error as { response?: { status?: number } })?.response?.status,
+      statusText: (error as { response?: { statusText?: string } })?.response?.statusText,
+      data: (error as { response?: { data?: unknown } })?.response?.data,
+      message: (error as { message?: string })?.message
+    })
+    
+    // Extrair mensagem específica do backend se disponível
+    let errorMessage = 'Erro ao criar contrato'
+    
+    const errorResponse = error as { response?: { data?: { message?: string; erros?: string[]; errors?: string[]; title?: string }; status?: number } }
+    
+    if (errorResponse?.response?.data?.message) {
+      errorMessage = errorResponse.response.data.message
+    } else if (errorResponse?.response?.data?.erros && Array.isArray(errorResponse.response.data.erros)) {
+      errorMessage = errorResponse.response.data.erros.join(', ')
+    } else if (errorResponse?.response?.data?.errors && Array.isArray(errorResponse.response.data.errors)) {
+      errorMessage = errorResponse.response.data.errors.join(', ')
+    } else if (errorResponse?.response?.data?.title) {
+      errorMessage = errorResponse.response.data.title
+    } else if (errorResponse?.response?.status === 409) {
+      errorMessage = 'Já existe um contrato com este número ou dados duplicados'
+    } else if (errorResponse?.response?.status === 400) {
+      errorMessage = 'Dados inválidos fornecidos. Verifique se todos os campos obrigatórios estão preenchidos corretamente.'
+    } else if (errorResponse?.response?.status === 422) {
+      errorMessage = 'Dados não processáveis. Verifique a validação dos campos.'
+    }
+    
+    // Criar erro customizado com mensagem específica
+    const customError = new Error(errorMessage)
+    customError.name = 'ContratoCreationError'
+    ;(customError as Record<string, unknown>).status = errorResponse?.response?.status
+    ;(customError as Record<string, unknown>).originalError = error
+    
+    throw customError
+  }
+}
+
+/**
+ * Função helper para calcular prazo em meses entre duas datas
+ */
+export function calcularPrazoMeses(vigenciaInicial: string, vigenciaFinal: string): number {
+  const dataInicial = new Date(vigenciaInicial)
+  const dataFinal = new Date(vigenciaFinal)
+  
+  if (isNaN(dataInicial.getTime()) || isNaN(dataFinal.getTime())) {
+    throw new Error('Datas inválidas fornecidas para cálculo de prazo')
+  }
+  
+  const diferencaMs = dataFinal.getTime() - dataInicial.getTime()
+  const diferencaDias = Math.floor(diferencaMs / (1000 * 60 * 60 * 24))
+  
+  // Converter para meses (aproximação)
+  return Math.ceil(diferencaDias / 30)
+}
+
+/**
+ * Função helper para converter data para ISO string
+ */
+export function converterDataParaISO(data: string | undefined): string {
+  // Se data é undefined ou null, retorna string vazia
+  if (!data) {
+    return ''
+  }
+  
+  // Se já é ISO string, retorna como está
+  if (data.includes('T')) {
+    return data
+  }
+  
+  // Se é apenas data (YYYY-MM-DD), converte para ISO
+  const dataObj = new Date(data)
+  if (isNaN(dataObj.getTime())) {
+    throw new Error(`Data inválida: ${data}`)
+  }
+  
+  return dataObj.toISOString()
+}
+
+/**
+ * Função helper para gerar número de contrato único
+ */
+export function gerarNumeroContratoUnico(): string {
+  const agora = new Date()
+  const ano = agora.getFullYear()
+  const mes = String(agora.getMonth() + 1).padStart(2, '0')
+  const dia = String(agora.getDate()).padStart(2, '0')
+  const timestamp = agora.getTime().toString().slice(-6) // Últimos 6 dígitos do timestamp
+  
+  return `CONTRATO-${ano}${mes}${dia}-${timestamp}`
 }

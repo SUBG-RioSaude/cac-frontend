@@ -565,19 +565,23 @@ export default function FornecedorForm({
           description: 'Nova empresa foi cadastrada no sistema.',
           icon: <Check className="h-4 w-4" />,
         })
-      } else {
-        // Empresa já existe - apenas informa
-        toast.info('Empresa já cadastrada', {
-          description: 'Utilizando dados da empresa existente.',
-          icon: <Check className="h-4 w-4" />,
-        })
       }
 
       // Avança para o próximo step
       if (onAdvanceRequest) {
-        await onAdvanceRequest(dadosFornecedor)
+        // Incluir o empresaId nos dados se disponível
+        const dadosCompletos = {
+          ...dadosFornecedor,
+          empresaId: form.getValues('empresaId') || empresaEncontrada?.id
+        }
+        await onAdvanceRequest(dadosCompletos)
       } else {
-        await onSubmit?.(dadosFornecedor)
+        // Incluir o empresaId nos dados se disponível
+        const dadosCompletos = {
+          ...dadosFornecedor,
+          empresaId: form.getValues('empresaId') || empresaEncontrada?.id
+        }
+        await onSubmit?.(dadosCompletos)
       }
     } catch (error) {
       toast.error('Erro ao processar formulário', {
