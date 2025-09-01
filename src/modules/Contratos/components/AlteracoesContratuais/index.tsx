@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import {
   ChevronRight,
@@ -123,6 +124,8 @@ export function AlteracoesContratuais({
     alerta?: AlertaLimiteLegal
     alteracaoId?: string
   }>({ open: false })
+  const [modalSucesso, setModalSucesso] = useState(false)
+  const [modalErro, setModalErro] = useState<{ open: boolean; mensagem: string }>({ open: false, mensagem: '' })
 
   // Handler para alertas de limite legal
   const handleLimiteLegalAlert = useCallback((alerta: AlertaLimiteLegal, alteracaoIdAlert: string) => {
@@ -245,21 +248,32 @@ export function AlteracoesContratuais({
       
       console.log('✅ Alteração submetida com sucesso!')
       
-      // Mostrar mensagem de sucesso
-      alert('✅ Alteração contratual submetida com sucesso!\n\nVocê será redirecionado para a visualização do contrato.')
+      // Mostrar modal de sucesso
+      setModalSucesso(true)
       
       // Callback de sucesso ao submeter (se disponível)
       // Note: onSubmitted será chamado pelo hook quando a operação for bem-sucedida
       
-      // Pequeno delay antes do redirecionamento para permitir que o usuário veja a mensagem
-      setTimeout(() => {
-        window.location.href = `/contratos/${contratoId}`
-      }, 500)
     } catch (error) {
       console.error('❌ Erro ao submeter alteração:', error)
-      alert('❌ Erro ao submeter alteração contratual.\n\nPor favor, tente novamente.')
+      setModalErro({ 
+        open: true, 
+        mensagem: error instanceof Error ? error.message : 'Erro desconhecido ao submeter alteração contratual.' 
+      })
     }
-  }, [submeterParaAprovacao, contratoId])
+  }, [submeterParaAprovacao])
+
+  // Handler para confirmar sucesso e redirecionar
+  const handleConfirmarSucesso = useCallback(() => {
+    setModalSucesso(false)
+    // Redirecionar para visualização do contrato
+    window.location.href = `/contratos/${contratoId}`
+  }, [contratoId])
+
+  // Handler para fechar modal de erro
+  const handleFecharModalErro = useCallback(() => {
+    setModalErro({ open: false, mensagem: '' })
+  }, [])
 
   // Renderizar conteúdo da etapa
   const renderizarEtapa = useMemo(() => {
@@ -995,6 +1009,52 @@ export function AlteracoesContratuais({
           }}
         />
       )}
+
+      {/* Modal de Sucesso */}
+      <Dialog open={modalSucesso} onOpenChange={setModalSucesso}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-6 w-6" />
+              Alteração Submetida com Sucesso!
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Sua alteração contratual foi submetida para aprovação com sucesso.
+              <br />
+              <br />
+              Você será redirecionado para a visualização do contrato.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={handleConfirmarSucesso} className="w-full">
+              Continuar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Erro */}
+      <Dialog open={modalErro.open} onOpenChange={(open) => !open && handleFecharModalErro()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-6 w-6" />
+              Erro ao Submeter Alteração
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              {modalErro.mensagem}
+              <br />
+              <br />
+              Por favor, tente novamente ou entre em contato com o suporte.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleFecharModalErro} className="w-full">
+              Tentar Novamente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
