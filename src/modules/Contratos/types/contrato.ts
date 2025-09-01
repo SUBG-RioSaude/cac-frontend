@@ -151,6 +151,9 @@ export interface Contrato {
   numeroContrato?: string | null
   numeroCCon?: string | null // Added for compatibility
   processoSei?: string | null
+  processoRio?: string | null // New API field
+  processoLegado?: string | null // New API field
+  numeroProcesso?: string | null // New API field
   categoriaObjeto?: string | null
   descricaoObjeto?: string | null
   objeto?: string | null // Added for compatibility (mapped from descricaoObjeto)
@@ -162,10 +165,14 @@ export interface Contrato {
   contratacao?: string | null
   vigenciaInicial: string // ISO date-time
   vigenciaFinal: string // ISO date-time
+  vigenciaOriginalInicial?: string // ISO date-time - Original contract start date
+  vigenciaOriginalFinal?: string // ISO date-time - Original contract end date
   dataInicial?: string | null // Added for compatibility (mapped from vigenciaInicial)
   dataFinal?: string | null // Added for compatibility (mapped from vigenciaFinal)
   prazoInicialMeses: number
+  prazoOriginalMeses?: number // Original contract duration in months
   valorGlobal: number
+  valorGlobalOriginal?: number // New API field for value versioning
   valor?: number | null // Added for compatibility (mapped from valorGlobal)
   formaPagamento?: string | null
   tipoTermoReferencia?: string | null
@@ -305,7 +312,6 @@ export interface PeriodoVigencia {
 export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   // Campos legado para compatibilidade
   numeroContrato: string // override para obrigatório
-  processoSEI?: string
   objeto: string // mapeado de descricaoObjeto
   dataInicio: string // mapeado de vigenciaInicial
   dataTermino: string // mapeado de vigenciaFinal

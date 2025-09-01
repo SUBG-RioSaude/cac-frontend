@@ -30,7 +30,7 @@ describe('DetalhesContrato', () => {
 
     // Verifica se as informações básicas do contrato estão sendo exibidas na aba padrão
     expect(screen.getByText('CONT-2023/0042')).toBeInTheDocument()
-    expect(screen.getByText('23280.000123/2023-45')).toBeInTheDocument()
+    expect(screen.getByText('SMS-PRO-2024/001')).toBeInTheDocument()
     expect(
       screen.getByText(/Contratação de empresa especializada/),
     ).toBeInTheDocument()

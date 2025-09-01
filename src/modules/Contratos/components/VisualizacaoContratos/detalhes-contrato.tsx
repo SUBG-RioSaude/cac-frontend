@@ -49,6 +49,10 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     return cep.replace(/^(\d{5})(\d{3})/, '$1-$2')
   }
 
+  const isValidOriginalDate = (dateString?: string) => {
+    return dateString && !dateString.startsWith('0001-01-01')
+  }
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       ativo: {
@@ -137,7 +141,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
                       <div>
                         <p className="text-muted-foreground text-sm">
                           Número do Contrato
@@ -146,19 +150,43 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           {contrato.numeroContrato}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Processo SEI
-                        </p>
-                        <p className="font-semibold">
-                          {contrato.processoSEI || 'Não informado'}
-                        </p>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Processo Rio
+                          </p>
+                          <p className="font-semibold">
+                            {contrato.processoRio || 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Processo SEI
+                          </p>
+                          <p className="font-semibold">
+                            {contrato.processoSei || 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Processo Legado
+                          </p>
+                          <p className="font-semibold">
+                            {contrato.processoLegado || 'N/A'}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
                     <div>
                       <p className="text-muted-foreground text-sm">
-                        Objeto do Contrato
+                        Categoria do Objeto
+                      </p>
+                      <p className="font-medium">{contrato.categoriaObjeto}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        Descrição do Objeto
                       </p>
                       <p className="font-medium">{contrato.objeto}</p>
                     </div>
@@ -204,17 +232,31 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <p className="text-muted-foreground text-sm">
                           Data de Início
                         </p>
-                        <p className="font-semibold">
-                          {formatarData(contrato.dataInicio)}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="font-semibold">
+                            {formatarData(contrato.dataInicio)}
+                          </p>
+                          {isValidOriginalDate(contrato.vigenciaOriginalInicial) && (
+                            <p className="text-sm text-gray-500">
+                              Original: {formatarData(contrato.vigenciaOriginalInicial!)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <p className="text-muted-foreground text-sm">
                           Data de Término
                         </p>
-                        <p className="font-semibold">
-                          {formatarData(contrato.dataTermino)}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="font-semibold">
+                            {formatarData(contrato.dataTermino)}
+                          </p>
+                          {isValidOriginalDate(contrato.vigenciaOriginalFinal) && (
+                            <p className="text-sm text-gray-500">
+                              Original: {formatarData(contrato.vigenciaOriginalFinal!)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -222,18 +264,34 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <p className="text-muted-foreground text-sm">
                         Prazo Inicial
                       </p>
-                      <p className="font-semibold">
-                        Não informado
-                      </p>
+                      <div className="space-y-1">
+                        <p className="font-semibold">
+                          {contrato.prazoInicialMeses} meses
+                        </p>
+                        {contrato.prazoOriginalMeses && 
+                         contrato.prazoOriginalMeses > 0 && 
+                         contrato.prazoOriginalMeses !== contrato.prazoInicialMeses && (
+                          <p className="text-sm text-gray-500">
+                            Original: {contrato.prazoOriginalMeses} meses
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <div>
                       <p className="text-muted-foreground text-sm">
                         Valor Total do Contrato
                       </p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {formatarMoeda(contrato.valorTotal)}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-2xl font-bold text-green-600">
+                          {formatarMoeda(contrato.valorTotal)}
+                        </p>
+                        {contrato.valorGlobalOriginal && (
+                          <p className="text-sm text-gray-500">
+                            Original: {formatarMoeda(contrato.valorGlobalOriginal)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
