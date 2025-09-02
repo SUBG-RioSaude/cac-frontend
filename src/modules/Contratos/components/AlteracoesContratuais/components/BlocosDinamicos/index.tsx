@@ -108,17 +108,17 @@ interface BlocoInfo {
 const BLOCOS_CONFIG: Record<string, Omit<BlocoInfo, 'obrigatorio'>> = {
   clausulas: {
     id: 'clausulas',
-    label: 'ClÃ¡usulas',
+    label: 'Cláusulas',
     icone: FileText,
     cor: 'blue',
-    descricao: 'Especificar clÃ¡usulas excluÃ­das, incluÃ­das ou alteradas'
+    descricao: 'Especificar cláusulas excluídas, incluídas ou alteradas'
   },
   vigencia: {
     id: 'vigencia',
-    label: 'VigÃªncia',
+    label: 'Vigência',
     icone: Clock,
     cor: 'green',
-    descricao: 'Alterar prazos e datas de vigÃªncia do contrato'
+    descricao: 'Alterar prazos e datas de vigência do contrato'
   },
   valor: {
     id: 'valor',
@@ -139,7 +139,7 @@ const BLOCOS_CONFIG: Record<string, Omit<BlocoInfo, 'obrigatorio'>> = {
     label: 'Unidades',
     icone: Building2,
     cor: 'teal',
-    descricao: 'Vincular ou desvincular unidades de saÃºde'
+    descricao: 'Vincular ou desvincular unidades de saúde'
   }
 }
 
@@ -151,10 +151,10 @@ export function BlocosDinamicos({
   errors = {},
   disabled = false
 }: BlocosDinamicosProps) {
-  // Estado para controlar quais blocos estÃ£o expandidos
+  // Estado para controlar quais blocos estão expandidos
   const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set())
 
-  // FunÃ§Ã£o para calcular resumo e progresso de cada bloco
+  // Função para calcular resumo e progresso de cada bloco
   const calculateBlockInfo = useCallback((blocoId: string, dadosBloco: IBlocoClausulas | IBlocoVigencia | IBlocoValor | IBlocoFornecedores | IBlocoUnidades | undefined) => {
     if (!dadosBloco) return { progresso: { atual: 0, total: 0 }, resumo: 'Clique para configurar', completo: false }
 
@@ -182,7 +182,7 @@ export function BlocosDinamicos({
         const campos = ['operacao', 'valorTempo']
         const preenchidos = (db.operacao !== undefined ? 1 : 0) + (db.valorTempo !== undefined ? 1 : 0)
         const tempo = db.valorTempo || 0
-        const unidade = db.tipoUnidade === 1 ? 'dia(s)' : db.tipoUnidade === 2 ? 'mǦs(es)' : 'ano(s)'
+        const unidade = db.tipoUnidade === 1 ? 'dia(s)' : db.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'
         const operacao = db.operacao === 1 ? 'Prorrogar' : db.operacao === 2 ? 'Diminuir' : 'Alterar'
         return {
           progresso: { atual: preenchidos, total: campos.length },
@@ -217,8 +217,8 @@ export function BlocosDinamicos({
         const keys: Array<keyof IBlocoClausulas> = ['clausulasExcluidas','clausulasIncluidas','clausulasAlteradas']
         const campos = keys.filter(key => { const v = db[key]; return typeof v === 'string' && v.trim().length > 0 })
         return {
-          progresso: { atual: campos.length, total: 3 }, // excluÃ­das, incluÃ­das, alteradas
-          resumo: campos.length > 0 ? `${campos.length} tipo(s) de clÃ¡usula` : 'Clique para configurar',
+          progresso: { atual: campos.length, total: 3 }, // excluídas, incluídas, alteradas
+          resumo: campos.length > 0 ? `${campos.length} tipo(s) de cláusula` : 'Clique para configurar',
           completo: campos.length > 0
         }
       }
@@ -227,7 +227,7 @@ export function BlocosDinamicos({
     }
   }, [contractContext])
 
-  // FunÃ§Ã£o para toggle de expand/collapse
+  // Função para toggle de expand/collapse
   const toggleBlock = useCallback((blocoId: string) => {
     setExpandedBlocks(prev => {
       const newSet = new Set(prev)
@@ -259,7 +259,7 @@ export function BlocosDinamicos({
     })
   }, [tiposSelecionados, dados, calculateBlockInfo])
 
-  // Inicializar blocos obrigatÃ³rios como expandidos
+  // Inicializar blocos obrigatórios como expandidos
   const initializeExpandedBlocks = useCallback(() => {
     const obrigatorios = blocosInfo
       .filter(bloco => bloco.obrigatorio)
@@ -407,7 +407,7 @@ export function BlocosDinamicos({
             <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <h3 className="font-medium mb-1">Nenhum tipo selecionado</h3>
             <p className="text-sm">
-              Selecione um ou mais tipos de alteraÃ§Ã£o para ver os blocos disponÃ­veis
+              Selecione um ou mais tipos de alteração para ver os blocos disponíveis
             </p>
           </div>
         </CardContent>
@@ -421,10 +421,13 @@ export function BlocosDinamicos({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span>Blocos de AlteraÃ§Ã£o</span>
+            <span>Blocos de Alteração</span>
             <Badge variant="secondary">
-              {blocosInfo.length} bloco{blocosInfo.length !== 1 ? 's' : ''} disponÃ­vel
-              {blocosInfo.length !== 1 ? 'is' : ''}
+              {(() => {
+                const plural = blocosInfo.length !== 1
+                const rotulo = plural ? 'disponíveis' : 'disponível'
+                return `${blocosInfo.length} bloco${plural ? 's' : ''} ${rotulo}`
+              })()}
             </Badge>
           </CardTitle>
           
@@ -467,7 +470,7 @@ export function BlocosDinamicos({
         </CardHeader>
       </Card>
 
-      {/* Blocos dinÃ¢micos */}
+      {/* Blocos dinâmicos */}
       <AnimatePresence>
         {blocosInfo.map((bloco, index) => {
           const isExpanded = expandedBlocks.has(bloco.id)
@@ -522,7 +525,7 @@ export function BlocosDinamicos({
                                   className="text-xs"
                                 >
                                   <AlertTriangle className="h-3 w-3 mr-1" />
-                                  ObrigatÃ³rio
+                                  Obrigatório
                                 </Badge>
                               ) : (
                                 <Badge variant="secondary" className="text-xs">
@@ -582,11 +585,11 @@ export function BlocosDinamicos({
             <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
             <div>
               <h4 className="font-medium text-amber-800 mb-1">
-                Blocos obrigatÃ³rios identificados
+                Blocos obrigatórios identificados
               </h4>
               <p className="text-sm text-amber-700">
-                Os tipos de alteraÃ§Ã£o selecionados tornam alguns blocos obrigatÃ³rios. 
-                Todos os campos obrigatÃ³rios devem ser preenchidos para continuar.
+                Os tipos de alteração selecionados tornam alguns blocos obrigatórios. 
+                Todos os campos obrigatórios devem ser preenchidos para continuar.
               </p>
             </div>
           </div>

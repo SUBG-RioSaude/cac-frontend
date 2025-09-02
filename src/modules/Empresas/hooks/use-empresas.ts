@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { empresaKeys } from '../lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
@@ -534,4 +534,36 @@ export function useFornecedoresResumo(
       return false
     }
   })
+}
+
+/**
+ * Hook para buscar múltiplas empresas por ID e retornar um mapa id->empresa
+ */
+export function useEmpresasByIds(
+  ids: string[],
+  options?: { enabled?: boolean }
+) {
+  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
+  const queries = useQueries({
+    queries: uniqueIds.map((id) => ({
+      queryKey: empresaKeys.detail(id),
+      queryFn: async () => await getEmpresaById(id),
+      enabled: (options?.enabled ?? true) && !!id,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    }))
+  })
+
+  const map = uniqueIds.reduce<Record<string, EmpresaResponse>>((acc, id, idx) => {
+    const q = queries[idx]
+    if (q?.data) acc[id] = q.data as EmpresaResponse
+    return acc
+  }, {})
+
+  const isLoading = queries.some(q => q.isLoading)
+  const isFetching = queries.some(q => q.isFetching)
+  const error = queries.find(q => q.error)?.error
+
+  return { data: map, isLoading, isFetching, error }
 }

@@ -78,15 +78,18 @@ export function TipoAlteracaoSelector({
 }: TipoAlteracaoSelectorProps) {
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false)
 
+  // Tipos habilitados - apenas os 3 solicitados pelo usuário
+  const tiposHabilitados = useMemo(() => new Set([1, 3, 4]), []) // AditivoPrazo, AditivoQualitativo, AditivoQuantidade
+
   const handleTipoToggle = useCallback((tipo: TipoAlteracao) => {
-    if (disabled) return
+    if (disabled || !tiposHabilitados.has(tipo)) return
     
     const novosTipos = tiposSelecionados.includes(tipo)
       ? tiposSelecionados.filter(t => t !== tipo)
       : [...tiposSelecionados, tipo]
     
     onChange(novosTipos)
-  }, [tiposSelecionados, onChange, disabled])
+  }, [tiposSelecionados, onChange, disabled, tiposHabilitados])
 
   const handleLimparSelecao = useCallback(() => {
     if (disabled) return
@@ -181,51 +184,74 @@ export function TipoAlteracaoSelector({
             {tiposOrdenados.map((config: TipoAlteracaoConfig) => {
               const Icon = ICONES_MAP[config.icone as keyof typeof ICONES_MAP] || FileText
               const isSelected = tiposSelecionados.includes(config.tipo)
+              const isEnabled = tiposHabilitados.has(config.tipo)
               const corClasse = CORES_MAP[config.cor as keyof typeof CORES_MAP] || CORES_MAP.gray
               
               return (
                 <motion.button
                   key={config.tipo}
                   onClick={() => handleTipoToggle(config.tipo)}
-                  disabled={disabled}
-                  whileHover={{ scale: disabled ? 1 : 1.02 }}
-                  whileTap={{ scale: disabled ? 1 : 0.98 }}
+                  disabled={disabled || !isEnabled}
+                  whileHover={{ scale: (disabled || !isEnabled) ? 1 : 1.02 }}
+                  whileTap={{ scale: (disabled || !isEnabled) ? 1 : 0.98 }}
                   className={cn(
                     'relative p-3 rounded-lg border-2 text-left transition-all group',
                     isSelected
                       ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 bg-white',
-                    disabled && 'opacity-50 cursor-not-allowed',
+                      : isEnabled
+                        ? 'border-gray-200 hover:border-gray-300 bg-white'
+                        : 'border-gray-200 bg-gray-50',
+                    (disabled || !isEnabled) && 'opacity-75 cursor-not-allowed',
                     'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                   )}
                 >
-                  {/* Checkbox visual */}
-                  <div className="absolute top-2 right-2">
-                    <div className={cn(
-                      'w-5 h-5 rounded border-2 flex items-center justify-center',
-                      isSelected 
-                        ? 'bg-blue-500 border-blue-500' 
-                        : 'border-gray-300 group-hover:border-gray-400'
-                    )}>
-                      {isSelected && <Check className="h-3 w-3 text-white" />}
+                  {/* Badge "Em Breve" para tipos desabilitados */}
+                  {!isEnabled && (
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="secondary" className="text-xs bg-gray-200 text-gray-600">
+                        Em Breve
+                      </Badge>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Checkbox visual para tipos habilitados */}
+                  {isEnabled && (
+                    <div className="absolute top-2 right-2">
+                      <div className={cn(
+                        'w-5 h-5 rounded border-2 flex items-center justify-center',
+                        isSelected 
+                          ? 'bg-blue-500 border-blue-500' 
+                          : 'border-gray-300 group-hover:border-gray-400'
+                      )}>
+                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-start gap-3 pr-8">
-                    <div className={cn('p-2 rounded-md', corClasse)}>
+                    <div className={cn(
+                      'p-2 rounded-md', 
+                      isEnabled ? corClasse : 'bg-gray-200 text-gray-500'
+                    )}>
                       <Icon className="h-4 w-4" />
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm text-gray-900 mb-1">
+                      <h3 className={cn(
+                        'font-medium text-sm mb-1',
+                        isEnabled ? 'text-gray-900' : 'text-gray-500'
+                      )}>
                         {config.label}
                       </h3>
-                      <p className="text-xs text-gray-600 leading-relaxed">
+                      <p className={cn(
+                        'text-xs leading-relaxed',
+                        isEnabled ? 'text-gray-600' : 'text-gray-400'
+                      )}>
                         {config.descricao}
                       </p>
                       
-                      {/* Limite legal */}
-                      {config.limiteLegal && (
+                      {/* Limite legal apenas para tipos habilitados */}
+                      {config.limiteLegal && isEnabled && (
                         <Badge 
                           variant="outline" 
                           className="mt-2 text-xs"

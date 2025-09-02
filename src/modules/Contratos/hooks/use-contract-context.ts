@@ -6,6 +6,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getContratoDetalhado } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
+import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 
 interface UseContractContextOptions {
   enabled?: boolean
@@ -37,11 +38,29 @@ export function useContractContext(
  */
 export function useContractSuppliers(contratoId: string, options?: UseContractContextOptions) {
   const { data: contract, ...queryResult } = useContractContext(contratoId, options)
+  const empresaId = (contract as any)?.empresaId as string | undefined
+  const empresaQuery = useEmpresa(empresaId || '', { enabled: !!empresaId })
+  
+  const mappedMain = empresaQuery.data
+    ? {
+        id: empresaQuery.data.id,
+        cnpj: empresaQuery.data.cnpj,
+        razaoSocial: empresaQuery.data.razaoSocial,
+        status: empresaQuery.data.ativo ? 'Ativo' as const : 'Inativo' as const,
+        contratosAtivos: 0,
+        valorTotal: contract?.valorTotal || 0,
+        cidade: (empresaQuery.data as any).cidade || '',
+        estado: (empresaQuery.data as any).estado || ''
+      }
+    : null
   
   return {
     ...queryResult,
-    suppliers: contract?.fornecedor ? [contract.fornecedor] : [],
-    mainSupplier: contract?.fornecedor || null
+    isLoading: queryResult.isLoading || empresaQuery.isLoading,
+    isFetching: queryResult.isFetching || empresaQuery.isFetching,
+    error: queryResult.error || empresaQuery.error,
+    suppliers: mappedMain ? [mappedMain] : [],
+    mainSupplier: mappedMain
   }
 }
 

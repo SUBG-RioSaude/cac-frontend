@@ -106,6 +106,7 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
     dataInicio: response.data.vigenciaInicial,
     dataTermino: response.data.vigenciaFinal,
     valorTotal: response.data.valorGlobal,
+    empresaId: (response.data as any).empresaId || (response.data as any)?.contratada?.id || '',
     // Mapeamento dos novos campos da API
     processoSei: response.data.processoSei,
     processoRio: response.data.processoRio,

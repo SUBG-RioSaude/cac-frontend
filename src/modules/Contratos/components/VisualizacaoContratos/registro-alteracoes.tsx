@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -34,6 +34,8 @@ import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
+import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface RegistroAlteracoesProps {
   alteracoes: AlteracaoContrato[]
@@ -341,17 +343,48 @@ function renderDetalhesAlteracao(entrada: EntradaUnificada) {
         borderColor="border-orange-200"
         titleColor="text-orange-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+        <div className="text-sm space-y-2 mt-2">
           {(alteracao.fornecedores.fornecedoresVinculados?.length || 0) > 0 && (
-            <li><span className="font-medium">Vinculados:</span> {alteracao.fornecedores.fornecedoresVinculados?.length || 0} fornecedor(es)</li>
+            <div>
+              <span className="font-medium">Vinculados:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.fornecedores.fornecedoresVinculados?.map((id: string, idx: number) => (
+                  <Badge key={`vinc-${idx}`} variant="default" className="text-xs font-mono">
+                    {getEmpresaNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
           {(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) > 0 && (
-            <li><span className="font-medium">Desvinculados:</span> {alteracao.fornecedores.fornecedoresDesvinculados?.length || 0} fornecedor(es)</li>
+            <div>
+              <span className="font-medium">Desvinculados:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.fornecedores.fornecedoresDesvinculados?.map((id: string, idx: number) => (
+                  <Badge key={`desv-${idx}`} variant="destructive" className="text-xs font-mono">
+                    {getEmpresaNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
+          {alteracao.fornecedores.novoFornecedorPrincipal && (
+            <div>
+              <span className="font-medium">Novo Principal:</span>
+              <Badge variant="secondary" className="ml-2 text-xs font-mono">
+                {getEmpresaNome(alteracao.fornecedores.novoFornecedorPrincipal)}
+              </Badge>
+            </div>
+          )}
+          {!(alteracao.fornecedores.fornecedoresVinculados?.length || 0) &&
+            !(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) &&
+            !alteracao.fornecedores.novoFornecedorPrincipal && (
+              <div className="text-xs text-gray-600">Sem alterações detalhadas.</div>
+            )}
           {alteracao.fornecedores.observacoes && (
-            <li><span className="font-medium">Observações:</span> {alteracao.fornecedores.observacoes}</li>
+            <div><span className="font-medium">Observações:</span> {alteracao.fornecedores.observacoes}</div>
           )}
-        </ol>
+        </div>
       </CollapsibleBlock>
     )
   }
@@ -372,17 +405,39 @@ function renderDetalhesAlteracao(entrada: EntradaUnificada) {
         borderColor="border-teal-200"
         titleColor="text-teal-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+        <div className="text-sm space-y-2 mt-2">
           {(alteracao.unidades.unidadesVinculadas?.length || 0) > 0 && (
-            <li><span className="font-medium">Vinculadas:</span> {alteracao.unidades.unidadesVinculadas?.length || 0} unidade(s)</li>
+            <div>
+              <span className="font-medium">Vinculadas:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.unidades.unidadesVinculadas?.map((id: string, idx: number) => (
+                  <Badge key={`uv-${idx}`} variant="default" className="text-xs font-mono">
+                    {getUnidadeNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
           {(alteracao.unidades.unidadesDesvinculadas?.length || 0) > 0 && (
-            <li><span className="font-medium">Desvinculadas:</span> {alteracao.unidades.unidadesDesvinculadas?.length || 0} unidade(s)</li>
+            <div>
+              <span className="font-medium">Desvinculadas:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.unidades.unidadesDesvinculadas?.map((id: string, idx: number) => (
+                  <Badge key={`ud-${idx}`} variant="destructive" className="text-xs font-mono">
+                    {getUnidadeNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
+          {!(alteracao.unidades.unidadesVinculadas?.length || 0) &&
+            !(alteracao.unidades.unidadesDesvinculadas?.length || 0) && (
+              <div className="text-xs text-gray-600">Sem alterações detalhadas.</div>
+            )}
           {alteracao.unidades.observacoes && (
-            <li><span className="font-medium">Observações:</span> {alteracao.unidades.observacoes}</li>
+            <div><span className="font-medium">Observações:</span> {alteracao.unidades.observacoes}</div>
           )}
-        </ol>
+        </div>
       </CollapsibleBlock>
     )
   }
@@ -431,6 +486,39 @@ export function RegistroAlteracoes({
 }: RegistroAlteracoesProps) {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [termoPesquisa, setTermoPesquisa] = useState('')
+  
+  // Build lookup of empresa IDs -> razão social to enrich fornecedores section
+  const fornecedoresIds = useMemo(() => {
+    const ids: string[] = []
+    for (const alt of alteracoes || []) {
+      if (alt.fornecedores) {
+        if (alt.fornecedores.fornecedoresVinculados) ids.push(...alt.fornecedores.fornecedoresVinculados)
+        if (alt.fornecedores.fornecedoresDesvinculados) ids.push(...alt.fornecedores.fornecedoresDesvinculados)
+        if (alt.fornecedores.novoFornecedorPrincipal) ids.push(alt.fornecedores.novoFornecedorPrincipal)
+      }
+    }
+    return Array.from(new Set(ids.filter(Boolean)))
+  }, [alteracoes])
+  const empresasLookup = useEmpresasByIds(fornecedoresIds, { enabled: fornecedoresIds.length > 0 })
+  const getEmpresaNome = useCallback((id: string) => {
+    return empresasLookup.data?.[id]?.razaoSocial || id
+  }, [empresasLookup.data])
+  
+  // Build lookup of unidades IDs -> nome to enrich unidades section
+  const unidadesIds = useMemo(() => {
+    const ids: string[] = []
+    for (const alt of alteracoes || []) {
+      if (alt.unidades) {
+        if (alt.unidades.unidadesVinculadas) ids.push(...alt.unidades.unidadesVinculadas)
+        if (alt.unidades.unidadesDesvinculadas) ids.push(...alt.unidades.unidadesDesvinculadas)
+      }
+    }
+    return Array.from(new Set(ids.filter(Boolean)))
+  }, [alteracoes])
+  const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+  const getUnidadeNome = useCallback((id: string) => {
+    return unidadesLookup.data?.[id]?.nomeUnidade || id
+  }, [unidadesLookup.data])
   
   const formatarDataHora = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR')

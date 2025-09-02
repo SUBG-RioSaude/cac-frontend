@@ -483,6 +483,7 @@ export function VisualizarContrato() {
                       contratoId={contrato.id} 
                       numeroContrato={contrato.numeroContrato}
                       valorOriginal={contrato.valorTotal}
+                      vigenciaFinal={contrato.dataTermino}
                       onSaved={handleSalvarAlteracao}
                       onSubmitted={_handleSubmeterAlteracao}
                       key={contrato.id}

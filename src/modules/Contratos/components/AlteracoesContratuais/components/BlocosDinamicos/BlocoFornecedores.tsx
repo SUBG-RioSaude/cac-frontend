@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { cn, cnpjUtils } from '@/lib/utils'
+import { useDebounce } from '@/hooks/use-debounce'
 import {
   Users,
   Search,
@@ -69,6 +70,15 @@ export function BlocoFornecedores({
   required = false
 }: BlocoFornecedoresProps) {
   const [busca, setBusca] = useState('')
+  const simplifiedMode = Boolean(contractSuppliers?.mainSupplier)
+  const debouncedBusca = useDebounce(busca, 800)
+  const fornecedoresQueryFiltros = useMemo(
+    () => ({
+      pesquisa: debouncedBusca.length >= 3 ? debouncedBusca : undefined,
+      tamanhoPagina: 50,
+    }),
+    [debouncedBusca]
+  )
 
   // Carregar fornecedores disponíveis via API
   const {
@@ -76,12 +86,14 @@ export function BlocoFornecedores({
     isLoading: loadingFornecedores,
     error: errorFornecedores
   } = useFornecedoresResumo(
+    fornecedoresQueryFiltros,
     {
-      pesquisa: busca.length >= 2 ? busca : undefined,
-      tamanhoPagina: 50
-    },
-    {
-      enabled: !disabled
+      enabled: !disabled && debouncedBusca.length >= 3,
+      keepPreviousData: true,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      staleTime: 5 * 60 * 1000, // 5 minutos - aumentar cache
     }
   )
 
@@ -95,14 +107,14 @@ export function BlocoFornecedores({
 
   // Filtrar fornecedores disponíveis (excluir já vinculados/desvinculados)
   const fornecedoresDisponiveis = useMemo(() => {
+    const currentId = simplifiedMode ? contractSuppliers?.mainSupplier?.id : undefined
     return fornecedoresApi.filter(f => {
-      return (
-        !dados.fornecedoresVinculados?.some(
-          (v: FornecedorAlteracao) => v.empresaId === f.id
-        ) && !dados.fornecedoresDesvinculados?.includes(f.id)
-      )
+      const notVinculado = !dados.fornecedoresVinculados?.some((v: FornecedorAlteracao) => v.empresaId === f.id)
+      const notDesvinculado = !dados.fornecedoresDesvinculados?.includes(f.id)
+      const notCurrent = currentId ? f.id !== currentId : true
+      return notVinculado && notDesvinculado && notCurrent
     })
-  }, [fornecedoresApi, dados])
+  }, [fornecedoresApi, dados, simplifiedMode, contractSuppliers?.mainSupplier?.id])
 
   // Fornecedores vinculados com dados completos
   const fornecedoresVinculadosCompletos = useMemo(() => {
@@ -143,21 +155,39 @@ export function BlocoFornecedores({
         valorAtribuido: 0
       }
 
-      const vinculados = [...(dados.fornecedoresVinculados || []), novoVinculado]
-      handleFieldChange('fornecedoresVinculados', vinculados)
+      if (simplifiedMode) {
+        const currentId = contractSuppliers?.mainSupplier?.id
+        if (currentId && fornecedorId === currentId) return
+
+        onChange({
+          ...(dados as IBlocoFornecedores),
+          fornecedoresVinculados: [novoVinculado],
+          fornecedoresDesvinculados: currentId ? [currentId] : [],
+          novoFornecedorPrincipal: fornecedorId
+        } as IBlocoFornecedores)
+      } else {
+        const vinculados = [...(dados.fornecedoresVinculados || []), novoVinculado]
+        handleFieldChange('fornecedoresVinculados', vinculados)
+      }
     },
-    [dados.fornecedoresVinculados, handleFieldChange]
+    [dados, onChange, handleFieldChange, simplifiedMode, contractSuppliers?.mainSupplier?.id]
   )
 
   const handleDesvincularFornecedor = useCallback(
     (fornecedorId: string) => {
-      const desvinculados = [
-        ...(dados.fornecedoresDesvinculados || []),
-        fornecedorId
-      ]
-      handleFieldChange('fornecedoresDesvinculados', desvinculados)
+      if (simplifiedMode) {
+        // Em modo simplificado, mantemos exatamente 1 desvinculado (o atual)
+        const currentId = contractSuppliers?.mainSupplier?.id
+        handleFieldChange('fornecedoresDesvinculados', currentId ? [currentId] : [])
+      } else {
+        const desvinculados = [
+          ...(dados.fornecedoresDesvinculados || []),
+          fornecedorId
+        ]
+        handleFieldChange('fornecedoresDesvinculados', desvinculados)
+      }
     },
-    [dados.fornecedoresDesvinculados, handleFieldChange]
+    [dados.fornecedoresDesvinculados, handleFieldChange, simplifiedMode, contractSuppliers?.mainSupplier?.id]
   )
 
   const handleRemoverVinculado = useCallback(
@@ -199,6 +229,7 @@ export function BlocoFornecedores({
 
   const handleDefinirPrincipal = useCallback(
     (fornecedorId: string) => {
+      // Em modo simplificado, sempre define automaticamente o selecionado como principal
       handleFieldChange('novoFornecedorPrincipal', fornecedorId)
     },
     [handleFieldChange]
@@ -211,6 +242,12 @@ export function BlocoFornecedores({
       (dados.fornecedoresDesvinculados?.length || 0) > 0
     )
   }, [dados])
+  const invalidSimplified = useMemo(() => {
+    if (!simplifiedMode || !temAlteracoes) return false
+    const cV = dados.fornecedoresVinculados?.length || 0
+    const cD = dados.fornecedoresDesvinculados?.length || 0
+    return cV !== 1 || cD !== 1
+  }, [simplifiedMode, temAlteracoes, dados.fornecedoresVinculados, dados.fornecedoresDesvinculados])
 
   return (
     <div className="space-y-6">
@@ -224,6 +261,13 @@ export function BlocoFornecedores({
             <Badge variant="destructive" className="text-xs">
               <AlertCircle className="h-3 w-3 mr-1" />
               Obrigatório
+            </Badge>
+          )}
+
+          {invalidSimplified && (
+            <Badge variant="destructive" className="text-xs">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Configuração inválida
             </Badge>
           )}
 
@@ -256,7 +300,7 @@ export function BlocoFornecedores({
               <div>
                 <Label className="text-xs text-orange-600">CNPJ</Label>
                 <p className="font-medium text-orange-900 font-mono">
-                  {contractSuppliers.mainSupplier.cnpj || 'Não informado'}
+                  {contractSuppliers.mainSupplier.cnpj ? cnpjUtils.formatar(contractSuppliers.mainSupplier.cnpj) : 'Não informado'}
                 </p>
               </div>
               <div>
@@ -288,7 +332,7 @@ export function BlocoFornecedores({
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Fornecedores Disponíveis
+            {simplifiedMode ? 'Substituir por' : 'Fornecedores Disponíveis'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -332,11 +376,15 @@ export function BlocoFornecedores({
                         <p className="font-medium text-sm truncate">
                           {fornecedor.razaoSocial}
                         </p>
-                        <p className="text-xs text-gray-600">
-                          {fornecedor.cnpj}
+                        <p className="text-xs text-gray-600 font-mono">
+                          {cnpjUtils.formatar(fornecedor.cnpj)}
                         </p>
                       </div>
-                      {!fornecedor.ativo && (
+                      {fornecedor.ativo ? (
+                        <Badge variant="secondary" className="text-xs text-green-700 border-green-200">
+                          Ativo
+                        </Badge>
+                      ) : (
                         <Badge variant="secondary" className="text-xs">
                           Inativo
                         </Badge>
@@ -345,28 +393,41 @@ export function BlocoFornecedores({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleVincularFornecedor(fornecedor.id)}
-                      disabled={disabled}
-                      className="text-green-600 hover:text-green-700 hover:border-green-300"
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                      Vincular
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        handleDesvincularFornecedor(fornecedor.id)
-                      }
-                      disabled={disabled}
-                      className="text-red-600 hover:text-red-700 hover:border-red-300"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                      Desvincular
-                    </Button>
+                    {simplifiedMode ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleVincularFornecedor(fornecedor.id)}
+                        disabled={disabled}
+                        className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                        Substituir
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleVincularFornecedor(fornecedor.id)}
+                          disabled={disabled}
+                          className="text-green-600 hover:text-green-700 hover:border-green-300"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                          Vincular
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDesvincularFornecedor(fornecedor.id)}
+                          disabled={disabled}
+                          className="text-red-600 hover:text-red-700 hover:border-red-300"
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                          Desvincular
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -377,9 +438,9 @@ export function BlocoFornecedores({
                 <div className="text-center py-8 text-gray-500">
                   <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">
-                    {busca.length >= 2
+                    {busca.length >= 3
                       ? 'Nenhum fornecedor encontrado para sua busca'
-                      : 'Digite pelo menos 2 caracteres para buscar fornecedores'}
+                      : 'Digite pelo menos 3 caracteres para buscar fornecedores'}
                   </p>
                 </div>
               )}
@@ -387,13 +448,27 @@ export function BlocoFornecedores({
         </CardContent>
       </Card>
 
-      {/* Fornecedores vinculados */}
+      {simplifiedMode && contractSuppliers?.mainSupplier && fornecedoresVinculadosCompletos.length > 0 && (
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+          <span className="font-medium">De:</span>
+          <span className="truncate max-w-[240px]" title={contractSuppliers.mainSupplier.razaoSocial}>
+            {contractSuppliers.mainSupplier.razaoSocial}
+          </span>
+          <ArrowRight className="h-4 w-4" />
+          <span className="font-medium">Para:</span>
+          <span className="truncate max-w-[240px]" title={fornecedoresVinculadosCompletos[0]?.empresa?.razaoSocial}>
+            {fornecedoresVinculadosCompletos[0]?.empresa?.razaoSocial}
+          </span>
+        </div>
+      )}
+
+      {/* Fornecedor vinculado (novo principal) */}
       {fornecedoresVinculadosCompletos.length > 0 && (
         <Card className="border-green-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-green-700">
               <Plus className="h-4 w-4" />
-              Fornecedores Vinculados ({fornecedoresVinculadosCompletos.length})
+              {simplifiedMode ? 'Novo Fornecedor (Principal)' : `Fornecedores Vinculados (${fornecedoresVinculadosCompletos.length})`}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -410,96 +485,98 @@ export function BlocoFornecedores({
                         <p className="font-medium text-sm">
                           {fv.empresa?.razaoSocial}
                         </p>
-                        <p className="text-xs text-gray-600">
-                          {fv.empresa?.cnpj}
+                        <p className="text-xs text-gray-600 font-mono">
+                          {fv.empresa?.cnpj ? cnpjUtils.formatar(fv.empresa.cnpj) : ''}
                         </p>
                       </div>
-                      {dados.novoFornecedorPrincipal === fv.empresaId && (
+                      {(dados.novoFornecedorPrincipal === fv.empresaId || simplifiedMode) && (
                         <Badge variant="default" className="text-xs">
                           Principal
                         </Badge>
                       )}
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDefinirPrincipal(fv.empresaId)}
-                        disabled={disabled}
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        Principal
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemoverVinculado(fv.empresaId)}
-                        disabled={disabled}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {!simplifiedMode && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDefinirPrincipal(fv.empresaId)}
+                          disabled={disabled}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          Principal
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRemoverVinculado(fv.empresaId)}
+                          disabled={disabled}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
+                  {!simplifiedMode && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Participação (%)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={fv.percentualParticipacao || ''}
+                          onChange={e =>
+                            handleAtualizarFornecedorVinculado(
+                              fv.empresaId,
+                              'percentualParticipacao',
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
+                          disabled={disabled}
+                          className="text-xs"
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Participação (%)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={fv.percentualParticipacao || ''}
-                        onChange={e =>
-                          handleAtualizarFornecedorVinculado(
-                            fv.empresaId,
-                            'percentualParticipacao',
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        disabled={disabled}
-                        className="text-xs"
-                      />
-                    </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Valor Atribuído (R$)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={fv.valorAtribuido || ''}
+                          onChange={e =>
+                            handleAtualizarFornecedorVinculado(
+                              fv.empresaId,
+                              'valorAtribuido',
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
+                          disabled={disabled}
+                          className="text-xs"
+                        />
+                      </div>
 
-                    <div className="space-y-1">
-                      <Label className="text-xs">Valor Atribuído (R$)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={fv.valorAtribuido || ''}
-                        onChange={e =>
-                          handleAtualizarFornecedorVinculado(
-                            fv.empresaId,
-                            'valorAtribuido',
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        disabled={disabled}
-                        className="text-xs"
-                      />
+                      <div className="space-y-1">
+                        <Label className="text-xs">Observações</Label>
+                        <Input
+                          value={fv.observacoes || ''}
+                          onChange={e =>
+                            handleAtualizarFornecedorVinculado(
+                              fv.empresaId,
+                              'observacoes',
+                              e.target.value
+                            )
+                          }
+                          disabled={disabled}
+                          className="text-xs"
+                          placeholder="Ex: Empresa substituta"
+                        />
+                      </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-xs">Observações</Label>
-                      <Input
-                        value={fv.observacoes || ''}
-                        onChange={e =>
-                          handleAtualizarFornecedorVinculado(
-                            fv.empresaId,
-                            'observacoes',
-                            e.target.value
-                          )
-                        }
-                        disabled={disabled}
-                        className="text-xs"
-                        placeholder="Ex: Empresa substituta"
-                      />
-                    </div>
-                  </div>
+                  )}
                 </div>
               )
             )}
@@ -507,14 +584,13 @@ export function BlocoFornecedores({
         </Card>
       )}
 
-      {/* Fornecedores desvinculados */}
+      {/* Fornecedor desvinculado (anterior) */}
       {fornecedoresDesvinculadosCompletos.length > 0 && (
         <Card className="border-red-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-red-700">
               <X className="h-4 w-4" />
-              Fornecedores Desvinculados (
-              {fornecedoresDesvinculadosCompletos.length})
+              {simplifiedMode ? 'Fornecedor Anterior (Desvinculado)' : `Fornecedores Desvinculados (${fornecedoresDesvinculadosCompletos.length})`}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -530,21 +606,22 @@ export function BlocoFornecedores({
                       <p className="font-medium text-sm">
                         {fornecedor.razaoSocial}
                       </p>
-                      <p className="text-xs text-gray-600">
-                        {fornecedor.cnpj}
+                      <p className="text-xs text-gray-600 font-mono">
+                        {cnpjUtils.formatar(fornecedor.cnpj)}
                       </p>
                     </div>
                   </div>
-
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemoverDesvinculado(fornecedor.id)}
-                    disabled={disabled}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  {!simplifiedMode && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleRemoverDesvinculado(fornecedor.id)}
+                      disabled={disabled}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               )
             )}
