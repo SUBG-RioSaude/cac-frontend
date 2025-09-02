@@ -20,7 +20,6 @@ import {
   Settings,
   TrendingUp,
   Package,
-  Scale,
   Calculator,
   FileEdit,
   Bookmark,
@@ -82,13 +81,34 @@ function criarResumoLimpo(alteracao: AlteracaoContrato): string {
   }
   
   // Fallback: criar resumo baseado nos dados estruturados
-  const tipoMap: Record<string, string> = {
+  // Mapear tanto strings antigas quanto IDs numéricos da API para classificação precisa
+  const tipoMap: Record<string | number, string> = {
+    // Strings antigas (manter compatibilidade)
     'prazo_aditivo': 'Aditivo de Prazo',
     'qualitativo': 'Aditivo Qualitativo', 
-    'alteracao_valor': 'Alteração de Valor',
+    'alteracao_valor': 'Aditivo de Quantidade',
     'repactuacao': 'Repactuação',
     'reajuste': 'Reajuste',
-    'quantidade': 'Aditivo de Quantidade'
+    'quantidade': 'Aditivo de Quantidade',
+    'reequilibrio': 'Reequilíbrio',
+    'rescisao': 'Rescisão',
+    'supressao': 'Supressão',
+    'suspensao': 'Suspensão',
+    'apostilamento': 'Apostilamento',
+    'sub_rogacao': 'Sub-rogação',
+    
+    // IDs numéricos da API (baseado no curl /api/alteracoes-contratuais/tipos)
+    1: 'Aditivo - Prazo',
+    3: 'Aditivo - Qualitativo',
+    4: 'Aditivo - Quantidade', // Este é o que estava aparecendo como repactuação
+    7: 'Reajuste',
+    8: 'Repactuação',
+    9: 'Reequilíbrio',
+    11: 'Rescisão',
+    12: 'Supressão',
+    13: 'Suspensão',
+    0: 'Apostilamento',
+    6: 'Sub-rogação'
   }
   
   const tipoTexto = tipoMap[alteracao.tipo] || 'Alteração Contratual'
@@ -416,14 +436,14 @@ export function RegistroAlteracoes({
     return new Date(dataHora).toLocaleString('pt-BR')
   }
 
-  const getTituloAlteracao = (tipo: string) => {
-    const titulos = {
+  const getTituloAlteracao = (tipo: string | number) => {
+    const titulos: Record<string | number, string> = {
       // Tipos originais do contrato
       criacao: 'Criação do Contrato',
       designacao_fiscais: 'Designação de Fiscais', 
       primeiro_pagamento: 'Primeiro Pagamento',
       atualizacao_documentos: 'Atualização de Documentos',
-      alteracao_valor: 'Alteração de Valor',
+      alteracao_valor: 'Aditivo de Quantidade',
       prorrogacao: 'Prorrogação de Prazo',
       
       // Novos tipos da timeline
@@ -434,16 +454,34 @@ export function RegistroAlteracoes({
       documento: 'Documento',
       prazo: 'Prazo',
       
-      // Tipos específicos de aditivos da nova API
+      // Tipos específicos de aditivos da nova API (strings)
       prazo_aditivo: 'Aditivo de Prazo',
       qualitativo: 'Aditivo Qualitativo',
       repactuacao: 'Repactuação',
       quantidade: 'Aditivo de Quantidade',
       reajuste: 'Reajuste',
-      repactuacao_reequilibrio: 'Repactuação e Reequilíbrio',
+      reequilibrio: 'Reequilíbrio',
+      rescisao: 'Rescisão',
+      supressao: 'Supressão',
+      suspensao: 'Suspensão',
+      apostilamento: 'Apostilamento',
+      sub_rogacao: 'Sub-rogação',
+      
+      // IDs numéricos da API (baseado no curl /api/alteracoes-contratuais/tipos)
+      1: 'Aditivo - Prazo',
+      3: 'Aditivo - Qualitativo',
+      4: 'Aditivo - Quantidade', // Este é o correto para aditivo de quantidade
+      7: 'Reajuste',
+      8: 'Repactuação', // Este é o ID 8, não deve aparecer para aditivo de quantidade
+      9: 'Reequilíbrio',
+      11: 'Rescisão',
+      12: 'Supressão',
+      13: 'Suspensão',
+      0: 'Apostilamento',
+      6: 'Sub-rogação'
     }
 
-    return titulos[tipo as keyof typeof titulos] || 'Alteração Contratual'
+    return titulos[tipo] || 'Alteração Contratual'
   }
 
   // Converter alterações do contrato para formato unificado
@@ -527,7 +565,6 @@ export function RegistroAlteracoes({
       repactuacao: TrendingUp,
       quantidade: Package,
       reajuste: Calculator,
-      repactuacao_reequilibrio: Scale,
     }
 
     const Icone = icones[tipo as keyof typeof icones] || Info
@@ -570,7 +607,6 @@ export function RegistroAlteracoes({
       repactuacao: 'bg-red-100 text-red-600',
       quantidade: 'bg-blue-100 text-blue-600',
       reajuste: 'bg-green-100 text-green-600',
-      repactuacao_reequilibrio: 'bg-red-100 text-red-600',
     }
 
     return cores[tipo as keyof typeof cores] || 'bg-gray-100 text-gray-600'

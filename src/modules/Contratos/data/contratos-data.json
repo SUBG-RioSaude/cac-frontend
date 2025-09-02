@@ -124,6 +124,7 @@
   "contratoDetalhado": {
     "id": "1",
     "numeroContrato": "CONT-2023/0042",
+    "processoRio": "SMS-PRO-2024/001",
     "processoSEI": "23280.000123/2023-45",
     "objeto": "Contratação de empresa especializada para prestação de serviços de manutenção predial preventiva e corretiva dos prédios públicos municipais",
     "tipoContratacao": "centralizado",

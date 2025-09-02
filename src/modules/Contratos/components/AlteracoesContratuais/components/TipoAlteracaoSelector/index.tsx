@@ -30,7 +30,8 @@ import {
   getBlocosObrigatorios,
   getBlocosOpcionais,
   getLimiteLegal,
-  type TipoAlteracaoConfig
+  type TipoAlteracaoConfig,
+  type TipoAlteracaoValido
 } from '../../../../types/alteracoes-contratuais'
 
 interface TipoAlteracaoSelectorProps {
@@ -107,8 +108,12 @@ export function TipoAlteracaoSelector({
     const blocosOpcionais = getBlocosOpcionais(tiposSelecionados as TipoAlteracao[])
     const limiteLegal = getLimiteLegal(tiposSelecionados as TipoAlteracao[])
     const temAlertaLegal = tiposSelecionados.some(tipo => {
-      const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracao]
-      return config.limiteLegal && config.limiteLegal > 0
+      // Verificar se o tipo existe no config antes de acessar
+      if (tipo in TIPOS_ALTERACAO_CONFIG) {
+        const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
+        return config.limiteLegal && config.limiteLegal > 0
+      }
+      return false
     })
 
     return {
