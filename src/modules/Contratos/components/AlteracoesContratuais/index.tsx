@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,7 @@ import {
   DollarSign,
   Users,
   Building2,
+  Lock,
 } from 'lucide-react'
 
 import { TipoAlteracaoSelector } from './components/TipoAlteracaoSelector'
@@ -39,6 +40,7 @@ import {
 } from '../../hooks/use-contract-context'
 import type { AlteracaoContratualForm, AlteracaoContratualResponse, AlertaLimiteLegal, FornecedorAlteracao, TipoAlteracao } from '../../types/alteracoes-contratuais'
 import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
 
 interface ContractInfo {
   numeroContrato?: string
@@ -65,6 +67,7 @@ interface AlteracoesContratuaisProps {
     dataInicio: string
     dataFim: string
   }
+  vigenciaFinal?: string // Data final do contrato para travar campo de publicação
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
   onSaved?: (alteracao: AlteracaoContratualResponse) => void
@@ -111,6 +114,7 @@ export function AlteracoesContratuais({
   contratoId,
   numeroContrato,
   valorOriginal = 0,
+  vigenciaFinal,
   alteracaoId,
   initialData,
   onSaved,
@@ -166,6 +170,15 @@ export function AlteracoesContratuais({
     onSubmitted,
     onLimiteLegalAlert: handleLimiteLegalAlert
   })
+
+  // Inicializar dataEfeito automaticamente com vigenciaFinal quando disponível
+  useEffect(() => {
+    if (vigenciaFinal && !dados.dataEfeito) {
+      // Converter vigenciaFinal para formato yyyy-mm-dd
+      const dataFormatada = vigenciaFinal.split('T')[0] // Remove parte de tempo se presente
+      atualizarDados({ dataEfeito: dataFormatada })
+    }
+  }, [vigenciaFinal, dados.dataEfeito, atualizarDados])
 
   // Navegação entre etapas
   const proximaEtapa = useCallback(() => {
@@ -275,6 +288,40 @@ export function AlteracoesContratuais({
     setModalErro({ open: false, mensagem: '' })
   }, [])
 
+  // IDs de empresas usados nos blocos de fornecedores (para revisão)
+  const fornecedoresIds = useMemo(() => {
+    const idsVinculados = (dados.blocos?.fornecedores?.fornecedoresVinculados || []).map(f => f.empresaId)
+    const idsDesvinculados = (dados.blocos?.fornecedores?.fornecedoresDesvinculados || [])
+    const idNovoPrincipal = dados.blocos?.fornecedores?.novoFornecedorPrincipal
+    const ids = [
+      ...idsVinculados,
+      ...idsDesvinculados,
+      ...(idNovoPrincipal ? [idNovoPrincipal] : []),
+      ...(contractSuppliers.mainSupplier?.id ? [contractSuppliers.mainSupplier.id] : [])
+    ].filter(Boolean) as string[]
+    return Array.from(new Set(ids))
+  }, [
+    dados.blocos?.fornecedores?.fornecedoresVinculados,
+    dados.blocos?.fornecedores?.fornecedoresDesvinculados,
+    dados.blocos?.fornecedores?.novoFornecedorPrincipal,
+    contractSuppliers.mainSupplier?.id
+  ])
+
+  const empresasLookup = useEmpresasByIds(fornecedoresIds, { enabled: fornecedoresIds.length > 0 })
+
+  const getCompanyName = useCallback((empresaId: string) => {
+    if (!empresaId) return '-'
+    if (contractSuppliers.mainSupplier && contractSuppliers.mainSupplier.id === empresaId) {
+      return contractSuppliers.mainSupplier.razaoSocial || empresaId
+    }
+    const fromList = contractSuppliers.suppliers?.find(s => s.id === empresaId)
+    if (fromList) return fromList.razaoSocial || empresaId
+    const fetched = empresasLookup.data?.[empresaId as string]
+    if (fetched) return fetched.razaoSocial || empresaId
+    return empresaId
+  }, [contractSuppliers.mainSupplier, contractSuppliers.suppliers, empresasLookup.data])
+
+
   // Renderizar conteúdo da etapa
   const renderizarEtapa = useMemo(() => {
     switch (etapaAtual) {
@@ -343,17 +390,33 @@ export function AlteracoesContratuais({
 
               {/* Data da Publicação */}
               <div className="space-y-2">
-                <Label htmlFor="dataEfeito">
+                <Label htmlFor="dataEfeito" className="flex items-center gap-2">
                   Data da Publicação *
+                  {vigenciaFinal && (
+                    <div className="flex items-center gap-1 text-xs text-blue-600 font-normal">
+                      <Lock className="h-3 w-3" />
+                      Travada
+                    </div>
+                  )}
                 </Label>
                 <Input
                   id="dataEfeito"
                   type="date"
                   value={dados.dataEfeito || ''}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => atualizarDados({ dataEfeito: e.target.value })}
-                  disabled={isLoading}
-                  className={cn(errors['dataEfeito'] && 'border-red-500')}
+                  disabled={isLoading || !!vigenciaFinal} // Desabilita se vigenciaFinal estiver presente
+                  className={cn(
+                    errors['dataEfeito'] && 'border-red-500',
+                    vigenciaFinal && 'bg-gray-50 text-gray-700 cursor-not-allowed'
+                  )}
+                  title={vigenciaFinal ? 'Data definida automaticamente com base na vigência final do contrato' : undefined}
                 />
+                {vigenciaFinal && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <AlertCircle className="h-4 w-4" />
+                    Data definida automaticamente pela vigência final do contrato
+                  </div>
+                )}
                 {errors['dataEfeito'] && (
                   <div className="flex items-center gap-2 text-sm text-red-600">
                     <AlertCircle className="h-4 w-4" />
@@ -416,19 +479,6 @@ export function AlteracoesContratuais({
         )
 
       case 3: { // Revisão
-        // Helper functions to get names from IDs
-        const getCompanyName = (companyId: string) => {
-          // Check if it's the main supplier
-          if (contractSuppliers.mainSupplier?.cnpj === companyId) {
-            return contractSuppliers.mainSupplier.razaoSocial || companyId
-          }
-          // Check in suppliers array
-          const supplier = contractSuppliers.suppliers?.find((s) => s.cnpj === companyId)
-          if (supplier) {
-            return supplier.razaoSocial || companyId
-          }
-          return companyId
-        }
 
         const getUnitName = (unitId: string) => {
           // Check in linked units (array of objects with nome property)
@@ -834,6 +884,7 @@ export function AlteracoesContratuais({
     confirmarLimiteLegal, 
     handleSubmeter,
     podeSubmeter,
+    vigenciaFinal,
     contractContext.data,
     contractContext.isLoading,
     contractFinancials.currentBalance,
@@ -850,7 +901,8 @@ export function AlteracoesContratuais({
     contractUnits.demandingUnit,
     contractUnits.isLoading,
     contractUnits.linkedUnits,
-    contractUnits.managingUnit
+    contractUnits.managingUnit,
+    getCompanyName
   ])
 
   return (

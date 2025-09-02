@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { ProtectedRoute, AuthFlowRoute } from '@/lib/middleware'
@@ -37,7 +37,7 @@ const renderWithRouter = (component: React.ReactElement, initialEntries = ['/'])
 describe('ProtectedRoute', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Mock padrão
+    // Mock padrÃ£o
     mockUseAuthStore.mockReturnValue({
       usuario: null,
       estaAutenticado: false,
@@ -46,7 +46,7 @@ describe('ProtectedRoute', () => {
   })
 
   describe('Estado de Carregamento', () => {
-    it('deve mostrar loading quando está carregando', () => {
+    it('deve mostrar loading quando estÃ¡ carregando', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: null,
         estaAutenticado: false,
@@ -55,17 +55,17 @@ describe('ProtectedRoute', () => {
 
       renderWithRouter(
         <ProtectedRoute requireAuth={true}>
-          <div>Conteúdo Protegido</div>
+          <div>ConteÃºdo Protegido</div>
         </ProtectedRoute>
       )
 
-      expect(screen.getByText('Verificando autenticação...')).toBeInTheDocument()
-      expect(screen.queryByText('Conteúdo Protegido')).not.toBeInTheDocument()
+      expect(screen.getByText(/Verificando/i)).toBeInTheDocument()
+      expect(screen.queryByText('ConteÃºdo Protegido')).not.toBeInTheDocument()
     })
   })
 
-  describe('Rotas que Requerem Autenticação', () => {
-    it('deve redirecionar para login quando não autenticado', () => {
+  describe('Rotas que Requerem AutenticaÃ§Ã£o', () => {
+    it('deve redirecionar para login quando nÃ£o autenticado', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: null,
         estaAutenticado: false,
@@ -74,15 +74,15 @@ describe('ProtectedRoute', () => {
 
       const { container } = renderWithRouter(
         <ProtectedRoute requireAuth={true}>
-          <div>Conteúdo Protegido</div>
+          <div>ConteÃºdo Protegido</div>
         </ProtectedRoute>
       )
 
-      // Deve redirecionar (não mostrar conteúdo)
+      // Deve redirecionar (nÃ£o mostrar conteÃºdo)
       expect(container.firstChild).toBeNull()
     })
 
-    it('deve mostrar conteúdo quando autenticado', () => {
+    it('deve mostrar conteÃºdo quando autenticado', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: mockUsuario,
         estaAutenticado: true,
@@ -91,14 +91,14 @@ describe('ProtectedRoute', () => {
 
       renderWithRouter(
         <ProtectedRoute requireAuth={true}>
-          <div>Conteúdo Protegido</div>
+          <div>ConteÃºdo Protegido</div>
         </ProtectedRoute>
       )
 
-      expect(screen.getByText('Conteúdo Protegido')).toBeInTheDocument()
+      expect(screen.getByText('ConteÃºdo Protegido')).toBeInTheDocument()
     })
 
-    it('deve redirecionar para troca de senha quando necessário', () => {
+    it('deve redirecionar para troca de senha quando necessÃ¡rio', () => {
       const usuarioPrecisaTrocarSenha = {
         ...mockUsuario,
         precisaTrocarSenha: true
@@ -112,7 +112,7 @@ describe('ProtectedRoute', () => {
 
       const { container } = renderWithRouter(
         <ProtectedRoute requireAuth={true}>
-          <div>Conteúdo Protegido</div>
+          <div>ConteÃºdo Protegido</div>
         </ProtectedRoute>
       )
 
@@ -121,8 +121,8 @@ describe('ProtectedRoute', () => {
     })
   })
 
-  describe('Rotas que Requerem Usuário Não Autenticado', () => {
-    it('deve redirecionar usuário autenticado para página principal', () => {
+  describe('Rotas que Requerem UsuÃ¡rio NÃ£o Autenticado', () => {
+    it('deve redirecionar usuÃ¡rio autenticado para pÃ¡gina principal', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: mockUsuario,
         estaAutenticado: true,
@@ -130,16 +130,16 @@ describe('ProtectedRoute', () => {
       } as ReturnType<typeof useAuthStore>)
 
       const { container } = renderWithRouter(
-        <ProtectedRoute requireGuest={true}>
-          <div>Página de Login</div>
+        <ProtectedRoute requireGuest={true} requireAuth={false}>
+          <div>PÃ¡gina de Login</div>
         </ProtectedRoute>
       )
 
-      // Deve redirecionar usuário autenticado
+      // Deve redirecionar usuÃ¡rio autenticado
       expect(container.firstChild).toBeNull()
     })
 
-    it('deve mostrar conteúdo para usuário não autenticado', () => {
+  it('deve mostrar conteÃºdo para usuÃ¡rio nÃ£o autenticado', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: null,
         estaAutenticado: false,
@@ -147,24 +147,18 @@ describe('ProtectedRoute', () => {
       } as ReturnType<typeof useAuthStore>)
 
       renderWithRouter(
-        <ProtectedRoute requireGuest={true}>
-          <div>Página de Login</div>
+        <ProtectedRoute requireGuest={true} requireAuth={false}>
+          <div>PÃ¡gina de Login</div>
         </ProtectedRoute>
       )
 
-      // Como o componente está redirecionando, não deve mostrar o conteúdo
-      // Vamos verificar se o container está vazio (redirecionamento)
-      const { container } = renderWithRouter(
-        <ProtectedRoute requireGuest={true}>
-          <div>Página de Login</div>
-        </ProtectedRoute>
-      )
-      expect(container.firstChild).toBeNull()
+      // Para rotas de convidado (requireGuest), quando nÃ£o autenticado o conteÃºdo deve ser renderizado
+      expect(screen.getByText('PÃ¡gina de Login')).toBeInTheDocument()
     })
   })
 
   describe('Rotas que Requerem Troca de Senha', () => {
-    it('deve redirecionar para troca de senha quando necessário', () => {
+    it('deve redirecionar para troca de senha quando necessÃ¡rio', () => {
       const usuarioPrecisaTrocarSenha = {
         ...mockUsuario,
         precisaTrocarSenha: true
@@ -178,7 +172,7 @@ describe('ProtectedRoute', () => {
 
       const { container } = renderWithRouter(
         <ProtectedRoute requirePasswordChange={true}>
-          <div>Conteúdo que Requer Troca de Senha</div>
+          <div>ConteÃºdo que Requer Troca de Senha</div>
         </ProtectedRoute>
       )
 
@@ -186,7 +180,7 @@ describe('ProtectedRoute', () => {
       expect(container.firstChild).toBeNull()
     })
 
-    it('deve mostrar conteúdo quando não precisa trocar senha', () => {
+    it('deve mostrar conteÃºdo quando nÃ£o precisa trocar senha', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: mockUsuario,
         estaAutenticado: true,
@@ -195,16 +189,16 @@ describe('ProtectedRoute', () => {
 
       renderWithRouter(
         <ProtectedRoute requirePasswordChange={true}>
-          <div>Conteúdo que Requer Troca de Senha</div>
+          <div>ConteÃºdo que Requer Troca de Senha</div>
         </ProtectedRoute>
       )
 
-      expect(screen.getByText('Conteúdo que Requer Troca de Senha')).toBeInTheDocument()
+      expect(screen.getByText('ConteÃºdo que Requer Troca de Senha')).toBeInTheDocument()
     })
   })
 
   describe('Rotas que Requerem 2FA', () => {
-    it('deve redirecionar para verificação 2FA quando necessário', () => {
+    it('deve redirecionar para verificaÃ§Ã£o 2FA quando necessÃ¡rio', () => {
       const usuarioSem2FA = {
         ...mockUsuario,
         emailConfirmado: false
@@ -218,15 +212,15 @@ describe('ProtectedRoute', () => {
 
       const { container } = renderWithRouter(
         <ProtectedRoute require2FA={true}>
-          <div>Conteúdo que Requer 2FA</div>
+          <div>ConteÃºdo que Requer 2FA</div>
         </ProtectedRoute>
       )
 
-      // Deve redirecionar para verificação 2FA
+      // Deve redirecionar para verificaÃ§Ã£o 2FA
       expect(container.firstChild).toBeNull()
     })
 
-    it('deve mostrar conteúdo quando 2FA está confirmado', () => {
+    it('deve mostrar conteÃºdo quando 2FA estÃ¡ confirmado', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: mockUsuario,
         estaAutenticado: true,
@@ -235,15 +229,15 @@ describe('ProtectedRoute', () => {
 
       renderWithRouter(
         <ProtectedRoute require2FA={true}>
-          <div>Conteúdo que Requer 2FA</div>
+          <div>ConteÃºdo que Requer 2FA</div>
         </ProtectedRoute>
       )
 
-      expect(screen.getByText('Conteúdo que Requer 2FA')).toBeInTheDocument()
+      expect(screen.getByText('ConteÃºdo que Requer 2FA')).toBeInTheDocument()
     })
   })
 
-  describe('Renderização de Children vs Outlet', () => {
+  describe('RenderizaÃ§Ã£o de Children vs Outlet', () => {
     it('deve renderizar children quando fornecidos', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: mockUsuario,
@@ -253,14 +247,14 @@ describe('ProtectedRoute', () => {
 
       renderWithRouter(
         <ProtectedRoute requireAuth={true}>
-          <div>Conteúdo Customizado</div>
+          <div>ConteÃºdo Customizado</div>
         </ProtectedRoute>
       )
 
-      expect(screen.getByText('Conteúdo Customizado')).toBeInTheDocument()
+      expect(screen.getByText('ConteÃºdo Customizado')).toBeInTheDocument()
     })
 
-    it('deve usar Outlet quando não há children', () => {
+    it('deve usar Outlet quando nÃ£o hÃ¡ children', () => {
       mockUseAuthStore.mockReturnValue({
         usuario: mockUsuario,
         estaAutenticado: true,
@@ -272,7 +266,7 @@ describe('ProtectedRoute', () => {
       )
 
       // Deve renderizar sem erro (usa Outlet)
-      expect(screen.queryByText('Verificando autenticação...')).not.toBeInTheDocument()
+      expect(screen.queryByText('Verificando autenticaÃ§Ã£o...')).not.toBeInTheDocument()
     })
   })
 })
@@ -287,16 +281,16 @@ describe('AuthFlowRoute', () => {
     } as ReturnType<typeof useAuthStore>)
   })
 
-  it('deve renderizar Outlet para rotas de autenticação', () => {
+  it('deve renderizar Outlet para rotas de autenticaÃ§Ã£o', () => {
     renderWithRouter(
       <AuthFlowRoute />
     )
 
     // Deve renderizar sem erro
-    expect(screen.queryByText('Verificando autenticação...')).not.toBeInTheDocument()
+    expect(screen.queryByText('Verificando autenticaÃ§Ã£o...')).not.toBeInTheDocument()
   })
 
-  it('deve redirecionar usuário autenticado', () => {
+  it('deve redirecionar usuÃ¡rio autenticado', () => {
     mockUseAuthStore.mockReturnValue({
       usuario: mockUsuario,
       estaAutenticado: true,
@@ -307,12 +301,12 @@ describe('AuthFlowRoute', () => {
       <AuthFlowRoute />
     )
 
-    // Deve redirecionar usuário autenticado
+    // Deve redirecionar usuÃ¡rio autenticado
     expect(container.firstChild).toBeNull()
   })
 })
 
-describe('Integração com SessionStorage', () => {
+describe('IntegraÃ§Ã£o com SessionStorage', () => {
   beforeEach(() => {
     sessionStorage.clear()
     vi.clearAllMocks()
@@ -331,17 +325,17 @@ describe('Integração com SessionStorage', () => {
 
     renderWithRouter(
       <ProtectedRoute requireAuth={true}>
-        <div>Conteúdo Protegido</div>
+        <div>ConteÃºdo Protegido</div>
       </ProtectedRoute>,
       ['/pagina-protegida']
     )
 
-    // Deve salvar a rota atual para redirecionamento após login
+    // Deve salvar a rota atual para redirecionamento apÃ³s login
     // Como o mock do useLocation retorna '/test', esperamos esse valor
     expect(sessionStorage.getItem('redirectAfterLogin')).toBe('/test')
   })
 
-  it('deve limpar redirectAfterLogin após redirecionamento', () => {
+  it('deve limpar redirectAfterLogin apÃ³s redirecionamento', () => {
     sessionStorage.setItem('redirectAfterLogin', '/pagina-anterior')
     
     mockUseAuthStore.mockReturnValue({
@@ -352,14 +346,14 @@ describe('Integração com SessionStorage', () => {
 
     renderWithRouter(
       <ProtectedRoute requireAuth={true}>
-        <div>Conteúdo Protegido</div>
+        <div>ConteÃºdo Protegido</div>
       </ProtectedRoute>
     )
 
-    // Como o usuário está autenticado, o componente deve renderizar
-    // e não deve limpar o redirectAfterLogin automaticamente
-    // Vamos verificar se o conteúdo foi renderizado
-    expect(screen.getByText('Conteúdo Protegido')).toBeInTheDocument()
+    // Como o usuÃ¡rio estÃ¡ autenticado, o componente deve renderizar
+    // e nÃ£o deve limpar o redirectAfterLogin automaticamente
+    // Vamos verificar se o conteÃºdo foi renderizado
+    expect(screen.getByText('ConteÃºdo Protegido')).toBeInTheDocument()
     
     // O redirectAfterLogin deve permanecer no sessionStorage
     expect(sessionStorage.getItem('redirectAfterLogin')).toBe('/pagina-anterior')

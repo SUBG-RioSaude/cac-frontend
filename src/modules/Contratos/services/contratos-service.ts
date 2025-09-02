@@ -110,6 +110,17 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
     dataInicio: response.data.vigenciaInicial,
     dataTermino: response.data.vigenciaFinal,
     valorTotal: response.data.valorGlobal,
+    empresaId: (response.data as { empresaId?: string; contratada?: { id: string } }).empresaId || 
+               (response.data as { empresaId?: string; contratada?: { id: string } })?.contratada?.id || '',
+    // Mapeamento dos novos campos da API
+    processoSei: response.data.processoSei,
+    processoRio: response.data.processoRio,
+    processoLegado: response.data.processoLegado,
+    numeroProcesso: response.data.numeroProcesso,
+    valorGlobalOriginal: response.data.valorGlobalOriginal || 0,
+    vigenciaOriginalInicial: response.data.vigenciaOriginalInicial,
+    vigenciaOriginalFinal: response.data.vigenciaOriginalFinal,
+    prazoOriginalMeses: response.data.prazoOriginalMeses,
     
     // Campos obrigatórios com defaults seguros
     responsaveis: {

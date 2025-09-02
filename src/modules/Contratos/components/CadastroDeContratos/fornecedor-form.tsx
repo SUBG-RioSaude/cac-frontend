@@ -419,15 +419,16 @@ export default function FornecedorForm({
   })
 
   // Watch apenas para os tipos de contatos para reatividade
-  const watchedContatos = useWatch({
+  const watchedContatosRaw = useWatch({
     control: form.control,
     name: 'contatos',
-  }) || []
+  })
 
   // Memoiza os tipos para evitar re-renders desnecessários
   const tiposContatosMemo = useMemo(() => {
+    const watchedContatos = watchedContatosRaw || []
     return watchedContatos.map(contato => contato?.tipo || 'Email')
-  }, [watchedContatos])
+  }, [watchedContatosRaw])
 
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {

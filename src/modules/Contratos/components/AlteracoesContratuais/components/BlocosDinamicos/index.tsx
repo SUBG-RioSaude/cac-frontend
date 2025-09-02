@@ -1,7 +1,9 @@
-import { useMemo } from 'react'
+﻿import { useMemo, useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import {
   FileText,
@@ -9,7 +11,11 @@ import {
   DollarSign,
   Users,
   Building2,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  CheckCircle2,
+  Info,
+  Circle
 } from 'lucide-react'
 
 import { BlocoClausulas } from './BlocoClausulas'
@@ -20,7 +26,12 @@ import { BlocoUnidades } from './BlocoUnidades'
 
 import type {
   AlteracaoContratualForm,
-  TipoAlteracao
+  TipoAlteracao,
+  BlocoClausulas as IBlocoClausulas,
+  BlocoVigencia as IBlocoVigencia,
+  BlocoValor as IBlocoValor,
+  BlocoFornecedores as IBlocoFornecedores,
+  BlocoUnidades as IBlocoUnidades
 } from '../../../../types/alteracoes-contratuais'
 import {
   getBlocosObrigatorios,
@@ -85,6 +96,12 @@ interface BlocoInfo {
   cor: string
   descricao: string
   obrigatorio: boolean
+  progresso?: {
+    atual: number
+    total: number
+  }
+  resumo?: string
+  completo?: boolean
 }
 
 const BLOCOS_CONFIG: Record<string, Omit<BlocoInfo, 'obrigatorio'>> = {
@@ -133,6 +150,95 @@ export function BlocosDinamicos({
   errors = {},
   disabled = false
 }: BlocosDinamicosProps) {
+  // Estado para controlar quais blocos estão expandidos
+  const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set())
+
+  // Função para calcular resumo e progresso de cada bloco
+  const calculateBlockInfo = useCallback((blocoId: string, dadosBloco: IBlocoClausulas | IBlocoVigencia | IBlocoValor | IBlocoFornecedores | IBlocoUnidades | undefined) => {
+    if (!dadosBloco) return { progresso: { atual: 0, total: 0 }, resumo: 'Clique para configurar', completo: false }
+
+    switch (blocoId) {
+      case 'valor': {
+        const campos = ['operacao', 'valorAjuste']
+        const dadosValor = dadosBloco as any // Type assertion for bloco valor
+        const preenchidos = campos.filter(campo => dadosValor[campo] !== undefined && dadosValor[campo] !== '').length
+        const valor = dadosValor.valorAjuste || 0
+        const operacao = dadosValor.operacao === 1 ? '+' : dadosValor.operacao === 2 ? '-' : '='
+        const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+        
+        // Calcular percentual para o resumo
+        const valorOriginalContrato = contractContext?.financials?.totalValue || contractContext?.contract?.valorTotal || 0
+        const percentual = valorOriginalContrato > 0 ? (valor / valorOriginalContrato) * 100 : 0
+        const percentualTexto = percentual > 0 ? ` (${percentual.toFixed(1)}%)` : ''
+        
+        return {
+          progresso: { atual: preenchidos, total: campos.length },
+          resumo: valor > 0 ? `${operacao}${valorFormatado}${percentualTexto}` : 'Clique para configurar',
+          completo: preenchidos === campos.length
+        }
+      }
+      case 'vigencia': {
+        const db = dadosBloco as IBlocoVigencia
+        const campos = ['operacao', 'valorTempo']
+        const preenchidos = (db.operacao !== undefined ? 1 : 0) + (db.valorTempo !== undefined ? 1 : 0)
+        const tempo = db.valorTempo || 0
+        const unidade = db.tipoUnidade === 1 ? 'dia(s)' : db.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'
+        const operacao = db.operacao === 1 ? 'Prorrogar' : db.operacao === 2 ? 'Diminuir' : 'Alterar'
+        return {
+          progresso: { atual: preenchidos, total: campos.length },
+          resumo: tempo > 0 ? `${operacao} por ${tempo} ${unidade}` : 'Clique para configurar',
+          completo: preenchidos === campos.length
+        }
+      }
+      case 'fornecedores': {
+        const db = dadosBloco as IBlocoFornecedores
+        const vinculados = db.fornecedoresVinculados?.length || 0
+        const desvinculados = db.fornecedoresDesvinculados?.length || 0
+        const total = vinculados + desvinculados
+        return {
+          progresso: { atual: total > 0 ? 1 : 0, total: 1 },
+          resumo: total > 0 ? `${vinculados} vinculados, ${desvinculados} desvinculados` : 'Clique para configurar',
+          completo: total > 0
+        }
+      }
+      case 'unidades': {
+        const db = dadosBloco as IBlocoUnidades
+        const vinculadas = db.unidadesVinculadas?.length || 0
+        const desvinculadas = db.unidadesDesvinculadas?.length || 0
+        const total = vinculadas + desvinculadas
+        return {
+          progresso: { atual: total > 0 ? 1 : 0, total: 1 },
+          resumo: total > 0 ? `${vinculadas} vinculadas, ${desvinculadas} desvinculadas` : 'Clique para configurar',
+          completo: total > 0
+        }
+      }
+      case 'clausulas': {
+        const db = dadosBloco as IBlocoClausulas
+        const keys: Array<keyof IBlocoClausulas> = ['clausulasExcluidas','clausulasIncluidas','clausulasAlteradas']
+        const campos = keys.filter(key => { const v = db[key]; return typeof v === 'string' && v.trim().length > 0 })
+        return {
+          progresso: { atual: campos.length, total: 3 }, // excluídas, incluídas, alteradas
+          resumo: campos.length > 0 ? `${campos.length} tipo(s) de cláusula` : 'Clique para configurar',
+          completo: campos.length > 0
+        }
+      }
+      default:
+        return { progresso: { atual: 0, total: 1 }, resumo: 'Clique para configurar', completo: false }
+    }
+  }, [contractContext])
+
+  // Função para toggle de expand/collapse
+  const toggleBlock = useCallback((blocoId: string) => {
+    setExpandedBlocks(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(blocoId)) {
+        newSet.delete(blocoId)
+      } else {
+        newSet.add(blocoId)
+      }
+      return newSet
+    })
+  }, [])
   // Calcular quais blocos devem ser exibidos
   const blocosInfo = useMemo(() => {
     if (tiposSelecionados.length === 0) return []
@@ -141,15 +247,37 @@ export function BlocosDinamicos({
     const blocosOpcionais = getBlocosOpcionais(tiposSelecionados)
     const todosBlocos = new Set([...blocosObrigatorios, ...blocosOpcionais])
 
-    return Array.from(todosBlocos).map(blocoId => ({
-      ...BLOCOS_CONFIG[blocoId],
-      obrigatorio: blocosObrigatorios.has(blocoId)
-    }))
-  }, [tiposSelecionados])
+    return Array.from(todosBlocos).map(blocoId => {
+      const dadosBloco = dados.blocos?.[blocoId as keyof typeof dados.blocos]
+      const blockInfo = calculateBlockInfo(blocoId, dadosBloco)
+      
+      return {
+        ...BLOCOS_CONFIG[blocoId],
+        obrigatorio: blocosObrigatorios.has(blocoId),
+        ...blockInfo
+      }
+    })
+  }, [tiposSelecionados, dados, calculateBlockInfo])
+
+  // Inicializar blocos obrigatórios como expandidos
+  const initializeExpandedBlocks = useCallback(() => {
+    const obrigatorios = blocosInfo
+      .filter(bloco => bloco.obrigatorio)
+      .map(bloco => bloco.id)
+    
+    setExpandedBlocks(new Set(obrigatorios))
+  }, [blocosInfo])
+
+  // Inicializar quando blocosInfo muda
+  useEffect(() => {
+    if (expandedBlocks.size === 0 && blocosInfo.length > 0) {
+      initializeExpandedBlocks()
+    }
+  }, [blocosInfo, expandedBlocks.size, initializeExpandedBlocks])
 
   // Handlers para cada bloco
   const handleClausulasChange = (clausulas: unknown) => {
-    console.log('🔧 handleClausulasChange:', clausulas)
+    console.log('ðŸ”§ handleClausulasChange:', clausulas)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -160,7 +288,7 @@ export function BlocosDinamicos({
   }
 
   const handleVigenciaChange = (vigencia: unknown) => {
-    console.log('🔧 handleVigenciaChange:', vigencia)
+    console.log('ðŸ”§ handleVigenciaChange:', vigencia)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -171,7 +299,7 @@ export function BlocosDinamicos({
   }
 
   const handleValorChange = (valor: unknown) => {
-    console.log('🔧 handleValorChange:', valor)
+    console.log('ðŸ”§ handleValorChange:', valor)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -182,7 +310,7 @@ export function BlocosDinamicos({
   }
 
   const handleFornecedoresChange = (fornecedores: unknown) => {
-    console.log('🔧 handleFornecedoresChange:', fornecedores)
+    console.log('ðŸ”§ handleFornecedoresChange:', fornecedores)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -193,7 +321,7 @@ export function BlocosDinamicos({
   }
 
   const handleUnidadesChange = (unidades: unknown) => {
-    console.log('🔧 handleUnidadesChange:', unidades)
+    console.log('ðŸ”§ handleUnidadesChange:', unidades)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -203,9 +331,9 @@ export function BlocosDinamicos({
     } as Partial<AlteracaoContratualForm>)
   }
 
-  // Função para renderizar cada bloco
+  // FunÃ§Ã£o para renderizar cada bloco
   const renderBloco = (bloco: BlocoInfo) => {
-    console.log(`🔧 Renderizando bloco ${bloco.id}:`)
+    console.log(`ðŸ”§ Renderizando bloco ${bloco.id}:`)
     console.log('   - dados.blocos:', dados.blocos)
     console.log(`   - dados.blocos.${bloco.id}:`, dados.blocos?.[bloco.id as keyof typeof dados.blocos])
     
@@ -246,6 +374,7 @@ export function BlocosDinamicos({
           <BlocoValor
             {...blocoProps}
             contractFinancials={contractContext?.financials}
+            valorOriginal={contractContext?.financials?.totalValue || contractContext?.contract?.valorTotal || 0}
             onChange={handleValorChange}
           />
         )
@@ -294,8 +423,11 @@ export function BlocosDinamicos({
           <CardTitle className="flex items-center gap-2">
             <span>Blocos de Alteração</span>
             <Badge variant="secondary">
-              {blocosInfo.length} bloco{blocosInfo.length !== 1 ? 's' : ''} disponível
-              {blocosInfo.length !== 1 ? 'is' : ''}
+              {(() => {
+                const plural = blocosInfo.length !== 1
+                const rotulo = plural ? 'disponíveis' : 'disponível'
+                return `${blocosInfo.length} bloco${plural ? 's' : ''} ${rotulo}`
+              })()}
             </Badge>
           </CardTitle>
           
@@ -303,26 +435,33 @@ export function BlocosDinamicos({
           <div className="flex flex-wrap gap-2">
             {blocosInfo.map(bloco => {
               const Icon = bloco.icone
-              const temDados = dados.blocos?.[bloco.id as keyof typeof dados.blocos]
+              const StatusIcon = bloco.completo ? CheckCircle2 : bloco.progresso?.atual > 0 ? Info : Circle
               
               return (
                 <div
                   key={bloco.id}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-1 rounded-full text-sm border',
+                    'flex items-center gap-2 px-3 py-1 rounded-full text-sm border cursor-pointer transition-colors',
                     bloco.obrigatorio
-                      ? temDados 
-                        ? 'bg-green-100 text-green-700 border-green-200'
-                        : 'bg-red-100 text-red-700 border-red-200'
-                      : temDados
-                        ? 'bg-blue-100 text-blue-700 border-blue-200'
-                        : 'bg-gray-100 text-gray-600 border-gray-200'
+                      ? bloco.completo 
+                        ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
+                        : 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                      : bloco.completo
+                        ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200'
+                        : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                   )}
+                  onClick={() => toggleBlock(bloco.id)}
                 >
                   <Icon className="h-3 w-3" />
                   <span className="font-medium">{bloco.label}</span>
-                  {bloco.obrigatorio && (
-                    <AlertTriangle className="h-3 w-3" />
+                  {bloco.progresso && bloco.progresso.total > 0 && (
+                    <span className="text-xs opacity-75">
+                      {bloco.progresso.atual}/{bloco.progresso.total}
+                    </span>
+                  )}
+                  <StatusIcon className="h-3 w-3" />
+                  {bloco.obrigatorio && !bloco.completo && (
+                    <AlertTriangle className="h-3 w-3 text-red-500" />
                   )}
                 </div>
               )
@@ -333,53 +472,106 @@ export function BlocosDinamicos({
 
       {/* Blocos dinâmicos */}
       <AnimatePresence>
-        {blocosInfo.map((bloco, index) => (
-          <motion.div
-            key={bloco.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className={cn(
-              'border-l-4',
-              bloco.obrigatorio ? 'border-l-red-500' : 'border-l-blue-500'
-            )}>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'p-2 rounded-md',
-                      bloco.obrigatorio 
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-blue-100 text-blue-700'
+        {blocosInfo.map((bloco, index) => {
+          const isExpanded = expandedBlocks.has(bloco.id)
+          const StatusIcon = bloco.completo ? CheckCircle2 : bloco.progresso?.atual > 0 ? Info : Circle
+          
+          return (
+            <motion.div
+              key={bloco.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Collapsible open={isExpanded} onOpenChange={() => toggleBlock(bloco.id)}>
+                <Card className={cn(
+                  'border-l-4',
+                  bloco.obrigatorio 
+                    ? bloco.completo 
+                      ? 'border-l-green-500' 
+                      : 'border-l-red-500'
+                    : bloco.completo
+                      ? 'border-l-blue-500'
+                      : 'border-l-gray-300'
+                )}>
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className={cn(
+                      'pb-4 cursor-pointer hover:bg-gray-50 transition-colors',
+                      isExpanded && 'border-b'
                     )}>
-                      <bloco.icone className="h-5 w-5" />
-                    </div>
-                    
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span>{bloco.label}</span>
-                        {bloco.obrigatorio && (
-                          <Badge variant="destructive" className="text-xs">
-                            Obrigatório
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 font-normal">
-                        {bloco.descricao}
-                      </p>
-                    </div>
-                  </div>
-                </CardTitle>
-              </CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'p-2 rounded-md',
+                            bloco.obrigatorio 
+                              ? bloco.completo
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                              : bloco.completo
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-gray-100 text-gray-600'
+                          )}>
+                            <bloco.icone className="h-5 w-5" />
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold">{bloco.label}</span>
+                              <StatusIcon className="h-4 w-4" />
+                              {bloco.obrigatorio ? (
+                                <Badge 
+                                  variant={bloco.completo ? "default" : "destructive"} 
+                                  className="text-xs"
+                                >
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  Obrigatório
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Info className="h-3 w-3 mr-1" />
+                                  Opcional
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                              <p className="text-sm text-gray-600 font-normal">
+                                {bloco.resumo}
+                              </p>
+                              {bloco.progresso && bloco.progresso.total > 0 && (
+                                <div className="flex items-center gap-2 min-w-32">
+                                  <Progress 
+                                    value={(bloco.progresso.atual / bloco.progresso.total) * 100} 
+                                    className="h-2 flex-1"
+                                  />
+                                  <span className="text-xs text-gray-500 font-medium">
+                                    {bloco.progresso.atual}/{bloco.progresso.total}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <ChevronDown className={cn(
+                          "h-4 w-4 transition-transform duration-200",
+                          isExpanded && "rotate-180"
+                        )} />
+                      </CardTitle>
+                    </CardHeader>
+                  </CollapsibleTrigger>
 
-              <CardContent>
-                {renderBloco(bloco)}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                  <CollapsibleContent>
+                    <CardContent className="pt-4">
+                      {renderBloco(bloco)}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            </motion.div>
+          )
+        })}
       </AnimatePresence>
 
       {/* Avisos importantes */}

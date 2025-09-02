@@ -11,14 +11,19 @@ import type { AlteracaoContratualResponse } from '../types/alteracoes-contratuai
  * Transforma dados da nova API para o formato esperado pelo componente RegistroAlteracoes
  */
 function transformAlteracaoContratual(alteracao: AlteracaoContratualResponse): AlteracaoContrato {
-  // Mapeamento melhorado dos tipos de alteração
+  // Mapeamento correto baseado no JSON da API (/api/alteracoes-contratuais/tipos)
   const tipoMap: Record<number, string> = {
-    1: 'prazo_aditivo',      // Prazo
-    2: 'alteracao_valor',    // Valor 
-    3: 'qualitativo',        // Qualitativo
-    4: 'repactuacao',        // Repactuação  
-    5: 'reajuste',           // Reajuste
-    6: 'quantidade'          // Quantidade
+    1: 'prazo_aditivo',      // Aditivo - Prazo
+    3: 'qualitativo',        // Aditivo - Qualitativo  
+    4: 'quantidade',         // Aditivo - Quantidade (CORRIGIDO: era 'repactuacao')
+    7: 'reajuste',           // Reajuste
+    8: 'repactuacao',        // Repactuação (CORRIGIDO: agora está no ID correto)
+    9: 'reequilibrio',       // Reequilíbrio
+    11: 'rescisao',          // Rescisão
+    12: 'supressao',         // Supressão
+    13: 'suspensao',         // Suspensão
+    0: 'apostilamento',      // Apostilamento
+    6: 'sub_rogacao'         // Sub-rogação
   }
   
   const primeiroTipo = alteracao.tiposAlteracao?.[0] || 3

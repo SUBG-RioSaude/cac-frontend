@@ -3,7 +3,7 @@
  * Operações de leitura com cache e estado reativo
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueries } from '@tanstack/react-query'
 import {
   getUnidades,
   getUnidadeById,
@@ -15,7 +15,7 @@ import {
   getTiposAdministracao
 } from '@/modules/Unidades/services/unidades-service'
 import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
-import type { FiltrosUnidadesApi } from '@/modules/Unidades/types/unidade-api'
+import type { FiltrosUnidadesApi, UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
 
 // ========== QUERIES PRINCIPAIS - UNIDADES ==========
 
@@ -137,4 +137,43 @@ export function useTiposAdministracao(options?: { enabled?: boolean }) {
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })
+}
+
+// ========== HOOK PARA MÚLTIPLAS UNIDADES ==========
+
+/**
+ * Hook para buscar múltiplas unidades por ID e retornar um mapa id->unidade
+ */
+export function useUnidadesByIds(
+  ids: string[],
+  options?: { enabled?: boolean }
+) {
+  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
+  const queries = useQueries({
+    queries: uniqueIds.map((id) => ({
+      queryKey: unidadeKeys.detail(id),
+      queryFn: async () => await getUnidadeById(id),
+      enabled: (options?.enabled ?? true) && !!id,
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    }))
+  })
+
+  const map = uniqueIds.reduce<Record<string, UnidadeSaudeApi>>((acc, id, idx) => {
+    const q = queries[idx]
+    if (q?.data) acc[id] = q.data as UnidadeSaudeApi
+    return acc
+  }, {})
+
+  const isLoading = queries.some(q => q.isLoading)
+  const isFetching = queries.some(q => q.isFetching)
+  const error = queries.find(q => q.error)?.error
+
+  return {
+    data: map,
+    isLoading,
+    isFetching,
+    error
+  }
 }

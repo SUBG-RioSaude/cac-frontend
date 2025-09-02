@@ -452,8 +452,11 @@ export interface ResumoAlteracao {
   diasTotais?: number
 }
 
+// Tipos válidos de alteração (excluindo os removidos)
+export type TipoAlteracaoValido = Exclude<TipoAlteracao, 2 | 5 | 10>; // Excluir Valor, PrazoEValor, RepactuacaoEReequilibrio
+
 // Configuração dos tipos de alteração conforme EGC-174
-export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> = {
+export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoConfig> = {
   [TipoAlteracao.AditivoPrazo]: {
     tipo: TipoAlteracao.AditivoPrazo,
     label: 'Aditivo - Prazo',
@@ -463,16 +466,6 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
     exemplos: ['Prorrogação por 12 meses', 'Extensão de prazo'],
     blocosObrigatorios: ['vigencia'],
     blocosOpcionais: ['clausulas', 'valor']
-  },
-  [TipoAlteracao.Valor]: {
-    tipo: TipoAlteracao.Valor,
-    label: 'Alteração de Valor (Removido)',
-    descricao: 'Tipo removido',
-    icone: 'DollarSign',
-    cor: 'gray',
-    exemplos: [],
-    blocosObrigatorios: [],
-    blocosOpcionais: []
   },
   [TipoAlteracao.AditivoQualitativo]: {
     tipo: TipoAlteracao.AditivoQualitativo,
@@ -488,23 +481,13 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
   [TipoAlteracao.AditivoQuantidade]: {
     tipo: TipoAlteracao.AditivoQuantidade,
     label: 'Aditivo - Quantidade',
-    descricao: 'Quantidades de itens/serviços',
+    descricao: 'Quantidades de itens',
     icone: 'Package',
     cor: 'purple',
     exemplos: ['Acréscimo de 25% no quantitativo', 'Redução de itens'],
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
     limiteLegal: 25
-  },
-  [TipoAlteracao.PrazoEValor]: {
-    tipo: TipoAlteracao.PrazoEValor,
-    label: 'Prazo e Valor (Removido)',
-    descricao: 'Tipo removido',
-    icone: 'Clock',
-    cor: 'gray',
-    exemplos: [],
-    blocosObrigatorios: [],
-    blocosOpcionais: []
   },
   [TipoAlteracao.Apostilamento]: {
     tipo: TipoAlteracao.Apostilamento,
@@ -548,16 +531,6 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
     limiteLegal: 50
-  },
-  [TipoAlteracao.RepactuacaoEReequilibrio]: {
-    tipo: TipoAlteracao.RepactuacaoEReequilibrio,
-    label: 'Repactuação e Reequilíbrio (Removido)',
-    descricao: 'Tipo removido',
-    icone: 'Scale',
-    cor: 'gray',
-    exemplos: [],
-    blocosObrigatorios: [],
-    blocosOpcionais: []
   },
   [TipoAlteracao.Rescisao]: {
     tipo: TipoAlteracao.Rescisao,
@@ -606,9 +579,13 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracao, TipoAlteracaoConfig> 
 export function getBlocosObrigatorios(tipos: TipoAlteracao[]): Set<string> {
   const blocos = new Set<string>()
   tipos.forEach(tipo => {
-    TIPOS_ALTERACAO_CONFIG[tipo].blocosObrigatorios.forEach(bloco => {
-      blocos.add(bloco)
-    })
+    // Verificar se o tipo existe no config antes de acessar
+    if (tipo in TIPOS_ALTERACAO_CONFIG) {
+      const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
+      config.blocosObrigatorios.forEach((bloco: string) => {
+        blocos.add(bloco)
+      })
+    }
   })
   return blocos
 }
@@ -617,9 +594,13 @@ export function getBlocosObrigatorios(tipos: TipoAlteracao[]): Set<string> {
 export function getBlocosOpcionais(tipos: TipoAlteracao[]): Set<string> {
   const blocos = new Set<string>()
   tipos.forEach(tipo => {
-    TIPOS_ALTERACAO_CONFIG[tipo].blocosOpcionais.forEach(bloco => {
-      blocos.add(bloco)
-    })
+    // Verificar se o tipo existe no config antes de acessar
+    if (tipo in TIPOS_ALTERACAO_CONFIG) {
+      const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
+      config.blocosOpcionais.forEach((bloco: string) => {
+        blocos.add(bloco)
+      })
+    }
   })
   return blocos
 }
@@ -628,9 +609,13 @@ export function getBlocosOpcionais(tipos: TipoAlteracao[]): Set<string> {
 export function getLimiteLegal(tipos: TipoAlteracao[]): number {
   let maiorLimite = 0
   tipos.forEach(tipo => {
-    const limite = TIPOS_ALTERACAO_CONFIG[tipo].limiteLegal || 0
-    if (limite > maiorLimite) {
-      maiorLimite = limite
+    // Verificar se o tipo existe no config antes de acessar
+    if (tipo in TIPOS_ALTERACAO_CONFIG) {
+      const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
+      const limite = config.limiteLegal || 0
+      if (limite > maiorLimite) {
+        maiorLimite = limite
+      }
     }
   })
   return maiorLimite

@@ -4,6 +4,23 @@ import { RegistroAlteracoes } from '../registro-alteracoes'
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 
+// Mock dos hooks de React Query
+vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
+  useEmpresasByIds: vi.fn(() => ({
+    data: {},
+    isLoading: false,
+    error: null
+  }))
+}))
+
+vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
+  useUnidadesByIds: vi.fn(() => ({
+    data: {},
+    isLoading: false,
+    error: null
+  }))
+}))
+
 // Mock framer-motion para simplificar testes
 vi.mock('framer-motion', () => ({
   motion: {
@@ -23,7 +40,7 @@ const mockAlteracoes: AlteracaoContrato[] = [
   {
     id: '2',
     tipo: 'alteracao_valor',
-    descricao: 'Alteração de valor contratual aprovada',
+    descricao: 'Aditivo de quantidade aprovado', // Corrigido para refletir o tipo correto
     dataHora: '2024-01-15T14:30:00Z',
     responsavel: 'João Silva'
   }
@@ -98,7 +115,7 @@ describe('RegistroAlteracoes', () => {
       render(<RegistroAlteracoes {...mockProps} />)
       
       expect(screen.getByText('Aditivo de Quantidade - Acréscimo 15%')).toBeInTheDocument()
-      expect(screen.getAllByText('Alteração de Valor')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal)
+      expect(screen.getAllByText('Aditivo de Quantidade')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal) - corrigido
       expect(screen.getAllByText('Criação do Contrato')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal)
     })
 

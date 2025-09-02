@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   FileText,
   Building,
@@ -16,8 +18,11 @@ import {
   Hash,
   User,
   Edit,
+  AlertTriangle,
 } from 'lucide-react'
 import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
+import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -26,6 +31,40 @@ interface DetalhesContratoProps {
 export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
   const [editandoCampo, setEditandoCampo] = useState<string | null>(null)
+
+  // Buscar dados completos da empresa
+  const { 
+    data: empresaData, 
+    isLoading: empresaLoading, 
+    error: empresaError 
+  } = useEmpresa(contrato.empresaId, { enabled: !!contrato.empresaId })
+
+  // Coletar IDs das unidades para busca
+  const unidadesIds = [
+    contrato.unidadeDemandante, 
+    contrato.unidadeGestora,
+    ...(contrato.unidadesVinculadas?.map(u => u.unidadeSaudeId) || [])
+  ].filter((id): id is string => Boolean(id))
+
+  // Buscar dados completos das unidades
+  const { 
+    data: unidadesData, 
+    isLoading: unidadesLoading, 
+    error: unidadesError 
+  } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+
+  // Helper para obter nome da unidade
+  const getUnidadeNome = (unidadeId: string | null | undefined) => {
+    if (!unidadeId) return 'Não informado'
+    if (unidadesLoading) return 'Carregando...'
+    return unidadesData?.[unidadeId]?.nome || unidadeId
+  }
+
+  // Helper para obter endereco de fornecedor
+  const getEnderecoField = (field: string) => {
+    if (typeof contrato.fornecedor.endereco === 'string') return ''
+    return (contrato.fornecedor.endereco as any)[field] || ''
+  }
 
   const formatarMoeda = (valor: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -47,6 +86,10 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
 
   const formatarCEP = (cep: string) => {
     return cep.replace(/^(\d{5})(\d{3})/, '$1-$2')
+  }
+
+  const isValidOriginalDate = (dateString?: string) => {
+    return dateString && !dateString.startsWith('0001-01-01')
   }
 
   const getStatusBadge = (status: string) => {
@@ -137,7 +180,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
                       <div>
                         <p className="text-muted-foreground text-sm">
                           Número do Contrato
@@ -146,19 +189,43 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           {contrato.numeroContrato}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Processo SEI
-                        </p>
-                        <p className="font-semibold">
-                          {contrato.processoSEI || 'Não informado'}
-                        </p>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Processo Rio
+                          </p>
+                          <p className="font-semibold">
+                            {contrato.processoRio || 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Processo SEI
+                          </p>
+                          <p className="font-semibold">
+                            {contrato.processoSei || 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Processo Legado
+                          </p>
+                          <p className="font-semibold">
+                            {contrato.processoLegado || 'N/A'}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
                     <div>
                       <p className="text-muted-foreground text-sm">
-                        Objeto do Contrato
+                        Categoria do Objeto
+                      </p>
+                      <p className="font-medium">{contrato.categoriaObjeto}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        Descrição do Objeto
                       </p>
                       <p className="font-medium">{contrato.objeto}</p>
                     </div>
@@ -204,17 +271,31 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <p className="text-muted-foreground text-sm">
                           Data de Início
                         </p>
-                        <p className="font-semibold">
-                          {formatarData(contrato.dataInicio)}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="font-semibold">
+                            {formatarData(contrato.dataInicio)}
+                          </p>
+                          {isValidOriginalDate(contrato.vigenciaOriginalInicial) && (
+                            <p className="text-sm text-gray-500">
+                              Original: {formatarData(contrato.vigenciaOriginalInicial!)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <p className="text-muted-foreground text-sm">
                           Data de Término
                         </p>
-                        <p className="font-semibold">
-                          {formatarData(contrato.dataTermino)}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="font-semibold">
+                            {formatarData(contrato.dataTermino)}
+                          </p>
+                          {isValidOriginalDate(contrato.vigenciaOriginalFinal) && (
+                            <p className="text-sm text-gray-500">
+                              Original: {formatarData(contrato.vigenciaOriginalFinal!)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -222,18 +303,34 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <p className="text-muted-foreground text-sm">
                         Prazo Inicial
                       </p>
-                      <p className="font-semibold">
-                        Não informado
-                      </p>
+                      <div className="space-y-1">
+                        <p className="font-semibold">
+                          {contrato.prazoInicialMeses} meses
+                        </p>
+                        {contrato.prazoOriginalMeses && 
+                         contrato.prazoOriginalMeses > 0 && 
+                         contrato.prazoOriginalMeses !== contrato.prazoInicialMeses && (
+                          <p className="text-sm text-gray-500">
+                            Original: {contrato.prazoOriginalMeses} meses
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <div>
                       <p className="text-muted-foreground text-sm">
                         Valor Total do Contrato
                       </p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {formatarMoeda(contrato.valorTotal)}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-2xl font-bold text-green-600">
+                          {formatarMoeda(contrato.valorTotal)}
+                        </p>
+                        {contrato.valorGlobalOriginal && (
+                          <p className="text-sm text-gray-500">
+                            Original: {formatarMoeda(contrato.valorGlobalOriginal)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -414,42 +511,67 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {!!empresaError && (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          Erro ao carregar dados da empresa. Mostrando dados básicos do contrato.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
                     <div>
                       <p className="text-muted-foreground text-sm">
                         Razão Social
                       </p>
-                      <p className="text-lg font-semibold">
-                        {contrato.fornecedor.razaoSocial}
-                      </p>
+                      {empresaLoading ? (
+                        <Skeleton className="h-7 w-3/4 mt-1" />
+                      ) : (
+                        <p className="text-lg font-semibold">
+                          {empresaData?.razaoSocial || contrato.fornecedor.razaoSocial}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <p className="text-muted-foreground text-sm">CNPJ</p>
-                        <p className="font-semibold">
-                          {formatarCNPJ(contrato.fornecedor.cnpj)}
-                        </p>
+                        {empresaLoading ? (
+                          <Skeleton className="h-6 w-full mt-1" />
+                        ) : (
+                          <p className="font-semibold">
+                            {formatarCNPJ(empresaData?.cnpj || contrato.fornecedor.cnpj)}
+                          </p>
+                        )}
                       </div>
-                      {contrato.fornecedor.inscricaoEstadual && (
+                      {(empresaData?.inscricaoEstadual || contrato.fornecedor.inscricaoEstadual || empresaLoading) && (
                         <div>
                           <p className="text-muted-foreground text-sm">
                             Inscrição Estadual
                           </p>
-                          <p className="font-semibold">
-                            {contrato.fornecedor.inscricaoEstadual}
-                          </p>
+                          {empresaLoading ? (
+                            <Skeleton className="h-6 w-full mt-1" />
+                          ) : (
+                            <p className="font-semibold">
+                              {empresaData?.inscricaoEstadual || contrato.fornecedor.inscricaoEstadual}
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
 
-                    {contrato.fornecedor.inscricaoMunicipal && (
+                    {(empresaData?.inscricaoMunicipal || contrato.fornecedor.inscricaoMunicipal || empresaLoading) && (
                       <div>
                         <p className="text-muted-foreground text-sm">
                           Inscrição Municipal
                         </p>
-                        <p className="font-semibold">
-                          {contrato.fornecedor.inscricaoMunicipal}
-                        </p>
+                        {empresaLoading ? (
+                          <Skeleton className="h-6 w-3/4 mt-1" />
+                        ) : (
+                          <p className="font-semibold">
+                            {empresaData?.inscricaoMunicipal || contrato.fornecedor.inscricaoMunicipal}
+                          </p>
+                        )}
                       </div>
                     )}
                   </CardContent>
@@ -472,27 +594,78 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {contrato.fornecedor.contatos.map((contato, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 rounded-lg border p-3"
-                      >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-                          {contato.tipo === 'email' ? (
-                            <Mail className="h-4 w-4 text-blue-600" />
-                          ) : (
-                            <Phone className="h-4 w-4 text-blue-600" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{contato.valor}</p>
-                          <p className="text-muted-foreground text-sm capitalize">
-                            {contato.tipo}
-                            {contato.principal && ' (Principal)'}
-                          </p>
-                        </div>
+                    {empresaLoading ? (
+                      <div className="space-y-3">
+                        {[...Array(2)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <div className="flex-1 space-y-1">
+                              <Skeleton className="h-4 w-3/4" />
+                              <Skeleton className="h-3 w-1/2" />
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : (empresaData?.contatos && empresaData.contatos.length > 0) ? (
+                      empresaData.contatos.map((contato, index) => {
+                        // Detectar se é email ou telefone baseado no tipo ou valor
+                        const isEmail = contato.tipo?.toLowerCase().includes('email') || 
+                                       contato.valor?.includes('@')
+                        
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center gap-3 rounded-lg border p-3"
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                              {isEmail ? (
+                                <Mail className="h-4 w-4 text-blue-600" />
+                              ) : (
+                                <Phone className="h-4 w-4 text-blue-600" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">{contato.valor}</p>
+                              <p className="text-muted-foreground text-sm">
+                                {contato.nome && (
+                                  <span className="capitalize">{contato.nome}</span>
+                                )}
+                                {contato.nome && contato.tipo && ' - '}
+                                {contato.tipo && (
+                                  <span className="capitalize">{contato.tipo}</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })
+                    ) : contrato.fornecedor.contatos.length > 0 ? (
+                      contrato.fornecedor.contatos.map((contato, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 rounded-lg border p-3"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                            {contato.tipo === 'email' ? (
+                              <Mail className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <Phone className="h-4 w-4 text-blue-600" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{contato.valor}</p>
+                            <p className="text-muted-foreground text-sm capitalize">
+                              {contato.tipo}
+                              {contato.principal && ' (Principal)'}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        Nenhum contato cadastrado
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -513,52 +686,63 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                      <div>
-                        <p className="text-muted-foreground text-sm">CEP</p>
-                        <p className="font-semibold">
-                          {formatarCEP(contrato.fornecedor.endereco.cep)}
-                        </p>
+                    {empresaLoading ? (
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className={i === 1 ? "sm:col-span-2" : ""}>
+                            <Skeleton className="h-4 w-16 mb-1" />
+                            <Skeleton className="h-6 w-full" />
+                          </div>
+                        ))}
                       </div>
-                      <div className="sm:col-span-2">
-                        <p className="text-muted-foreground text-sm">
-                          Logradouro
-                        </p>
-                        <p className="font-semibold">
-                          {contrato.fornecedor.endereco.logradouro}
-                          {contrato.fornecedor.endereco.numero &&
-                            `, ${contrato.fornecedor.endereco.numero}`}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">Bairro</p>
-                        <p className="font-semibold">
-                          {contrato.fornecedor.endereco.bairro}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">Cidade</p>
-                        <p className="font-semibold">
-                          {contrato.fornecedor.endereco.cidade}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">UF</p>
-                        <p className="font-semibold">
-                          {contrato.fornecedor.endereco.uf}
-                        </p>
-                      </div>
-                      {contrato.fornecedor.endereco.complemento && (
-                        <div className="sm:col-span-2">
-                          <p className="text-muted-foreground text-sm">
-                            Complemento
-                          </p>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                          <p className="text-muted-foreground text-sm">CEP</p>
                           <p className="font-semibold">
-                            {contrato.fornecedor.endereco.complemento}
+                            {formatarCEP((empresaData?.endereco as any)?.cep || getEnderecoField('cep'))}
                           </p>
                         </div>
-                      )}
-                    </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-muted-foreground text-sm">
+                            Logradouro
+                          </p>
+                          <p className="font-semibold">
+                            {(empresaData?.endereco as any)?.logradouro || getEnderecoField('logradouro')}
+                            {((empresaData?.endereco as any)?.numero || getEnderecoField('numero')) &&
+                              `, ${(empresaData?.endereco as any)?.numero || getEnderecoField('numero')}`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">Bairro</p>
+                          <p className="font-semibold">
+                            {(empresaData?.endereco as any)?.bairro || getEnderecoField('bairro')}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">Cidade</p>
+                          <p className="font-semibold">
+                            {(empresaData?.endereco as any)?.cidade || getEnderecoField('cidade')}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">UF</p>
+                          <p className="font-semibold">
+                            {(empresaData?.endereco as any)?.uf || getEnderecoField('uf')}
+                          </p>
+                        </div>
+                        {((empresaData?.endereco as any)?.complemento || getEnderecoField('complemento')) && (
+                          <div className="sm:col-span-2">
+                            <p className="text-muted-foreground text-sm">
+                              Complemento
+                            </p>
+                            <p className="font-semibold">
+                              {(empresaData?.endereco as any)?.complemento || getEnderecoField('complemento')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -567,6 +751,15 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
             {/* Unidades */}
             <TabsContent value="unidades" className="mt-0">
               <div className="space-y-6">
+                {unidadesError && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Erro ao carregar dados das unidades. Mostrando informações básicas disponíveis.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 {/* Unidades Principais */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <Card>
@@ -585,12 +778,21 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       </Button>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-lg font-semibold">
-                        {contrato.unidades.demandante}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        Responsável pela demanda do contrato
-                      </p>
+                      {unidadesLoading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-7 w-3/4" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-lg font-semibold">
+                            {getUnidadeNome(contrato.unidadeDemandante)}
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            Responsável pela demanda do contrato
+                          </p>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -610,12 +812,21 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       </Button>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-lg font-semibold">
-                        {contrato.unidades.gestora}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        Responsável pela gestão do contrato
-                      </p>
+                      {unidadesLoading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-7 w-3/4" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-lg font-semibold">
+                            {getUnidadeNome(contrato.unidadeGestora)}
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            Responsável pela gestão do contrato
+                          </p>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -638,34 +849,94 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {contrato.unidades.vinculadas.map((unidade, index) => (
-                        <div key={index} className="rounded-lg border p-4">
-                          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{unidade.nome}</h4>
-                              <p className="text-muted-foreground text-sm">
-                                {unidade.percentualValor}% do valor total
-                              </p>
+                      {unidadesLoading ? (
+                        <div className="space-y-4">
+                          {[...Array(2)].map((_, i) => (
+                            <div key={i} className="rounded-lg border p-4">
+                              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                <div className="flex-1 space-y-2">
+                                  <Skeleton className="h-6 w-3/4" />
+                                  <Skeleton className="h-4 w-1/2" />
+                                </div>
+                                <div className="text-right space-y-1">
+                                  <Skeleton className="h-7 w-24" />
+                                  <Skeleton className="h-4 w-20" />
+                                </div>
+                              </div>
+                              <div className="mt-3">
+                                <Skeleton className="h-2 w-full rounded-full" />
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-lg font-bold text-green-600">
-                                {formatarMoeda(unidade.valorTotalMensal)}
-                              </p>
-                              <p className="text-muted-foreground text-sm">
-                                Valor Total Mensal
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-3">
-                            <div className="h-2 w-full rounded-full bg-gray-200">
-                              <div
-                                className="h-2 rounded-full bg-blue-600"
-                                style={{ width: `${unidade.percentualValor}%` }}
-                              ></div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : contrato.unidadesVinculadas && contrato.unidadesVinculadas.length > 0 ? (
+                        contrato.unidadesVinculadas.map((unidade, index) => {
+                          const nomeUnidade = getUnidadeNome(unidade.unidadeSaudeId)
+                          const percentualValor = ((unidade.valorAtribuido / contrato.valorTotal) * 100).toFixed(1)
+                          
+                          return (
+                            <div key={index} className="rounded-lg border p-4">
+                              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold">{nomeUnidade}</h4>
+                                  <p className="text-muted-foreground text-sm">
+                                    {percentualValor}% do valor total
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-green-600">
+                                    {formatarMoeda(unidade.valorAtribuido)}
+                                  </p>
+                                  <p className="text-muted-foreground text-sm">
+                                    Valor Atribuído
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-3">
+                                <div className="h-2 w-full rounded-full bg-gray-200">
+                                  <div
+                                    className="h-2 rounded-full bg-blue-600"
+                                    style={{ width: `${percentualValor}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })
+                      ) : contrato.unidades.vinculadas.length > 0 ? (
+                        contrato.unidades.vinculadas.map((unidade, index) => (
+                          <div key={index} className="rounded-lg border p-4">
+                            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                              <div className="flex-1">
+                                <h4 className="font-semibold">{unidade.nome}</h4>
+                                <p className="text-muted-foreground text-sm">
+                                  {unidade.percentualValor}% do valor total
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-green-600">
+                                  {formatarMoeda(unidade.valorTotalMensal)}
+                                </p>
+                                <p className="text-muted-foreground text-sm">
+                                  Valor Total Mensal
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-3">
+                              <div className="h-2 w-full rounded-full bg-gray-200">
+                                <div
+                                  className="h-2 rounded-full bg-blue-600"
+                                  style={{ width: `${unidade.percentualValor}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-muted-foreground">
+                          Nenhuma unidade vinculada encontrada
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

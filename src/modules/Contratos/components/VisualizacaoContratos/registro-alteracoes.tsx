@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +20,6 @@ import {
   Settings,
   TrendingUp,
   Package,
-  Scale,
   Calculator,
   FileEdit,
   Bookmark,
@@ -35,6 +34,8 @@ import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
+import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface RegistroAlteracoesProps {
   alteracoes: AlteracaoContrato[]
@@ -82,13 +83,34 @@ function criarResumoLimpo(alteracao: AlteracaoContrato): string {
   }
   
   // Fallback: criar resumo baseado nos dados estruturados
-  const tipoMap: Record<string, string> = {
+  // Mapear tanto strings antigas quanto IDs numéricos da API para classificação precisa
+  const tipoMap: Record<string | number, string> = {
+    // Strings antigas (manter compatibilidade)
     'prazo_aditivo': 'Aditivo de Prazo',
     'qualitativo': 'Aditivo Qualitativo', 
-    'alteracao_valor': 'Alteração de Valor',
+    'alteracao_valor': 'Aditivo de Quantidade',
     'repactuacao': 'Repactuação',
     'reajuste': 'Reajuste',
-    'quantidade': 'Aditivo de Quantidade'
+    'quantidade': 'Aditivo de Quantidade',
+    'reequilibrio': 'Reequilíbrio',
+    'rescisao': 'Rescisão',
+    'supressao': 'Supressão',
+    'suspensao': 'Suspensão',
+    'apostilamento': 'Apostilamento',
+    'sub_rogacao': 'Sub-rogação',
+    
+    // IDs numéricos da API (baseado no curl /api/alteracoes-contratuais/tipos)
+    1: 'Aditivo - Prazo',
+    3: 'Aditivo - Qualitativo',
+    4: 'Aditivo - Quantidade', // Este é o que estava aparecendo como repactuação
+    7: 'Reajuste',
+    8: 'Repactuação',
+    9: 'Reequilíbrio',
+    11: 'Rescisão',
+    12: 'Supressão',
+    13: 'Suspensão',
+    0: 'Apostilamento',
+    6: 'Sub-rogação'
   }
   
   const tipoTexto = tipoMap[alteracao.tipo] || 'Alteração Contratual'
@@ -184,7 +206,11 @@ function CollapsibleBlock({
 }
 
 // Helper function para renderizar detalhes da alteração
-function renderDetalhesAlteracao(entrada: EntradaUnificada) {
+function renderDetalhesAlteracao(
+  entrada: EntradaUnificada, 
+  getEmpresaNome: (id: string) => string,
+  getUnidadeNome: (id: string) => string
+) {
   // Se for uma entrada da timeline antiga ou de outro tipo, usar o formato antigo
   if (entrada.origem === 'timeline' || entrada.origem === 'chat') {
     if (entrada.dados && 'valorOriginal' in entrada.dados && entrada.dados.valorOriginal) {
@@ -321,17 +347,48 @@ function renderDetalhesAlteracao(entrada: EntradaUnificada) {
         borderColor="border-orange-200"
         titleColor="text-orange-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+        <div className="text-sm space-y-2 mt-2">
           {(alteracao.fornecedores.fornecedoresVinculados?.length || 0) > 0 && (
-            <li><span className="font-medium">Vinculados:</span> {alteracao.fornecedores.fornecedoresVinculados?.length || 0} fornecedor(es)</li>
+            <div>
+              <span className="font-medium">Vinculados:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.fornecedores.fornecedoresVinculados?.map((id: string, idx: number) => (
+                  <Badge key={`vinc-${idx}`} variant="default" className="text-xs font-mono">
+                    {getEmpresaNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
           {(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) > 0 && (
-            <li><span className="font-medium">Desvinculados:</span> {alteracao.fornecedores.fornecedoresDesvinculados?.length || 0} fornecedor(es)</li>
+            <div>
+              <span className="font-medium">Desvinculados:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.fornecedores.fornecedoresDesvinculados?.map((id: string, idx: number) => (
+                  <Badge key={`desv-${idx}`} variant="destructive" className="text-xs font-mono">
+                    {getEmpresaNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
+          {alteracao.fornecedores.novoFornecedorPrincipal && (
+            <div>
+              <span className="font-medium">Novo Principal:</span>
+              <Badge variant="secondary" className="ml-2 text-xs font-mono">
+                {getEmpresaNome(alteracao.fornecedores.novoFornecedorPrincipal)}
+              </Badge>
+            </div>
+          )}
+          {!(alteracao.fornecedores.fornecedoresVinculados?.length || 0) &&
+            !(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) &&
+            !alteracao.fornecedores.novoFornecedorPrincipal && (
+              <div className="text-xs text-gray-600">Sem alterações detalhadas.</div>
+            )}
           {alteracao.fornecedores.observacoes && (
-            <li><span className="font-medium">Observações:</span> {alteracao.fornecedores.observacoes}</li>
+            <div><span className="font-medium">Observações:</span> {alteracao.fornecedores.observacoes}</div>
           )}
-        </ol>
+        </div>
       </CollapsibleBlock>
     )
   }
@@ -352,17 +409,39 @@ function renderDetalhesAlteracao(entrada: EntradaUnificada) {
         borderColor="border-teal-200"
         titleColor="text-teal-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+        <div className="text-sm space-y-2 mt-2">
           {(alteracao.unidades.unidadesVinculadas?.length || 0) > 0 && (
-            <li><span className="font-medium">Vinculadas:</span> {alteracao.unidades.unidadesVinculadas?.length || 0} unidade(s)</li>
+            <div>
+              <span className="font-medium">Vinculadas:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.unidades.unidadesVinculadas?.map((id: string, idx: number) => (
+                  <Badge key={`uv-${idx}`} variant="default" className="text-xs font-mono">
+                    {getUnidadeNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
           {(alteracao.unidades.unidadesDesvinculadas?.length || 0) > 0 && (
-            <li><span className="font-medium">Desvinculadas:</span> {alteracao.unidades.unidadesDesvinculadas?.length || 0} unidade(s)</li>
+            <div>
+              <span className="font-medium">Desvinculadas:</span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {alteracao.unidades.unidadesDesvinculadas?.map((id: string, idx: number) => (
+                  <Badge key={`ud-${idx}`} variant="destructive" className="text-xs font-mono">
+                    {getUnidadeNome(id)}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
+          {!(alteracao.unidades.unidadesVinculadas?.length || 0) &&
+            !(alteracao.unidades.unidadesDesvinculadas?.length || 0) && (
+              <div className="text-xs text-gray-600">Sem alterações detalhadas.</div>
+            )}
           {alteracao.unidades.observacoes && (
-            <li><span className="font-medium">Observações:</span> {alteracao.unidades.observacoes}</li>
+            <div><span className="font-medium">Observações:</span> {alteracao.unidades.observacoes}</div>
           )}
-        </ol>
+        </div>
       </CollapsibleBlock>
     )
   }
@@ -412,18 +491,51 @@ export function RegistroAlteracoes({
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [termoPesquisa, setTermoPesquisa] = useState('')
   
+  // Build lookup of empresa IDs -> razão social to enrich fornecedores section
+  const fornecedoresIds = useMemo(() => {
+    const ids: string[] = []
+    for (const alt of alteracoes || []) {
+      if (alt.fornecedores) {
+        if (alt.fornecedores.fornecedoresVinculados) ids.push(...alt.fornecedores.fornecedoresVinculados)
+        if (alt.fornecedores.fornecedoresDesvinculados) ids.push(...alt.fornecedores.fornecedoresDesvinculados)
+        if (alt.fornecedores.novoFornecedorPrincipal) ids.push(alt.fornecedores.novoFornecedorPrincipal)
+      }
+    }
+    return Array.from(new Set(ids.filter(Boolean)))
+  }, [alteracoes])
+  const empresasLookup = useEmpresasByIds(fornecedoresIds, { enabled: fornecedoresIds.length > 0 })
+  const getEmpresaNome = useCallback((id: string) => {
+    return empresasLookup.data?.[id]?.razaoSocial || id
+  }, [empresasLookup.data])
+  
+  // Build lookup of unidades IDs -> nome to enrich unidades section
+  const unidadesIds = useMemo(() => {
+    const ids: string[] = []
+    for (const alt of alteracoes || []) {
+      if (alt.unidades) {
+        if (alt.unidades.unidadesVinculadas) ids.push(...alt.unidades.unidadesVinculadas)
+        if (alt.unidades.unidadesDesvinculadas) ids.push(...alt.unidades.unidadesDesvinculadas)
+      }
+    }
+    return Array.from(new Set(ids.filter(Boolean)))
+  }, [alteracoes])
+  const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+  const getUnidadeNome = useCallback((id: string) => {
+    return unidadesLookup.data?.[id]?.nome || id
+  }, [unidadesLookup.data])
+  
   const formatarDataHora = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR')
   }
 
-  const getTituloAlteracao = (tipo: string) => {
-    const titulos = {
+  const getTituloAlteracao = (tipo: string | number) => {
+    const titulos: Record<string | number, string> = {
       // Tipos originais do contrato
       criacao: 'Criação do Contrato',
       designacao_fiscais: 'Designação de Fiscais', 
       primeiro_pagamento: 'Primeiro Pagamento',
       atualizacao_documentos: 'Atualização de Documentos',
-      alteracao_valor: 'Alteração de Valor',
+      alteracao_valor: 'Aditivo de Quantidade',
       prorrogacao: 'Prorrogação de Prazo',
       
       // Novos tipos da timeline
@@ -434,16 +546,34 @@ export function RegistroAlteracoes({
       documento: 'Documento',
       prazo: 'Prazo',
       
-      // Tipos específicos de aditivos da nova API
+      // Tipos específicos de aditivos da nova API (strings)
       prazo_aditivo: 'Aditivo de Prazo',
       qualitativo: 'Aditivo Qualitativo',
       repactuacao: 'Repactuação',
       quantidade: 'Aditivo de Quantidade',
       reajuste: 'Reajuste',
-      repactuacao_reequilibrio: 'Repactuação e Reequilíbrio',
+      reequilibrio: 'Reequilíbrio',
+      rescisao: 'Rescisão',
+      supressao: 'Supressão',
+      suspensao: 'Suspensão',
+      apostilamento: 'Apostilamento',
+      sub_rogacao: 'Sub-rogação',
+      
+      // IDs numéricos da API (baseado no curl /api/alteracoes-contratuais/tipos)
+      1: 'Aditivo - Prazo',
+      3: 'Aditivo - Qualitativo',
+      4: 'Aditivo - Quantidade', // Este é o correto para aditivo de quantidade
+      7: 'Reajuste',
+      8: 'Repactuação', // Este é o ID 8, não deve aparecer para aditivo de quantidade
+      9: 'Reequilíbrio',
+      11: 'Rescisão',
+      12: 'Supressão',
+      13: 'Suspensão',
+      0: 'Apostilamento',
+      6: 'Sub-rogação'
     }
 
-    return titulos[tipo as keyof typeof titulos] || 'Alteração Contratual'
+    return titulos[tipo] || 'Alteração Contratual'
   }
 
   // Converter alterações do contrato para formato unificado
@@ -527,7 +657,6 @@ export function RegistroAlteracoes({
       repactuacao: TrendingUp,
       quantidade: Package,
       reajuste: Calculator,
-      repactuacao_reequilibrio: Scale,
     }
 
     const Icone = icones[tipo as keyof typeof icones] || Info
@@ -570,7 +699,6 @@ export function RegistroAlteracoes({
       repactuacao: 'bg-red-100 text-red-600',
       quantidade: 'bg-blue-100 text-blue-600',
       reajuste: 'bg-green-100 text-green-600',
-      repactuacao_reequilibrio: 'bg-red-100 text-red-600',
     }
 
     return cores[tipo as keyof typeof cores] || 'bg-gray-100 text-gray-600'
@@ -725,7 +853,7 @@ export function RegistroAlteracoes({
                         </p>
 
                         {/* Dados específicos da alteração contratual */}
-                        {renderDetalhesAlteracao(entrada)}
+                        {renderDetalhesAlteracao(entrada, getEmpresaNome, getUnidadeNome)}
 
                         {/* Tags */}
                         {entrada.tags && entrada.tags.length > 0 && (

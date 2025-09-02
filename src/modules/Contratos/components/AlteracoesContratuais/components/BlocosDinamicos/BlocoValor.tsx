@@ -5,9 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
 import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import {
   DollarSign,
@@ -75,16 +73,40 @@ export function BlocoValor({
   limiteLegal = 0,
   onAlertaLimiteLegal
 }: BlocoValorProps) {
-  const [calculoAutomatico, setCalculoAutomatico] = useState(dados.valorCalculadoAutomaticamente ?? false)
-  const [modoPercentual, setModoPercentual] = useState(!!dados.percentualAjuste)
-  
-  // Estados para formatação de valores monetários
+  // Estado para formatação de valores monetários (apenas valor, sem percentual)
   const [valorAjusteFormatado, setValorAjusteFormatado] = useState('')
   const [novoValorGlobalFormatado, setNovoValorGlobalFormatado] = useState('')
 
-  // Calcular valores automaticamente
+  // Função para formatar valor para exibição no input (R$ 1.234,56)
+  const formatarMoedaInput = useCallback((valor: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(valor)
+  }, [])
+
+  // Inicializar valores formatados com base nos dados existentes
+  useEffect(() => {
+    if (dados.valorAjuste && !valorAjusteFormatado) {
+      setValorAjusteFormatado(formatarMoedaInput(dados.valorAjuste))
+    }
+    if (dados.novoValorGlobal && !novoValorGlobalFormatado) {
+      setNovoValorGlobalFormatado(formatarMoedaInput(dados.novoValorGlobal))
+    }
+  }, [dados.valorAjuste, dados.novoValorGlobal, formatarMoedaInput, valorAjusteFormatado, novoValorGlobalFormatado])
+
+  // Calcular valores automaticamente (apenas baseado no valor monetário)
   const valoresCalculados = useMemo(() => {
+    console.log('🔧 Calculando valores:', { 
+      operacao: dados.operacao, 
+      valorAjuste: dados.valorAjuste, 
+      valorOriginal,
+      contractFinancials
+    })
+    
     if (!dados.operacao || valorOriginal === 0) {
+      console.log('⚠️ Retornando valores padrão: operação ou valorOriginal inválidos')
       return {
         valorAjuste: 0,
         percentualAjuste: 0,
@@ -94,19 +116,8 @@ export function BlocoValor({
       }
     }
 
-    let valorAjuste = 0
-    let percentualAjuste = 0
+    let valorAjuste = dados.valorAjuste || 0
     let novoValorGlobal = valorOriginal
-
-    if (modoPercentual && dados.percentualAjuste) {
-      // Calcular a partir do percentual
-      percentualAjuste = dados.percentualAjuste
-      valorAjuste = (valorOriginal * percentualAjuste) / 100
-    } else if (dados.valorAjuste) {
-      // Calcular a partir do valor
-      valorAjuste = dados.valorAjuste
-      percentualAjuste = (valorAjuste / valorOriginal) * 100
-    }
 
     // Calcular novo valor global baseado na operação
     switch (dados.operacao as number) {
@@ -119,12 +130,21 @@ export function BlocoValor({
       case OperacaoValor.Substituir as number:
         novoValorGlobal = dados.novoValorGlobal || valorOriginal
         valorAjuste = novoValorGlobal - valorOriginal
-        percentualAjuste = (valorAjuste / valorOriginal) * 100
         break
     }
 
-    const percentualImpacto = Math.abs((valorAjuste / valorOriginal) * 100)
+    // Calcular percentual automaticamente baseado no valor
+    const percentualAjuste = valorOriginal > 0 ? (valorAjuste / valorOriginal) * 100 : 0
+    const percentualImpacto = Math.abs(percentualAjuste)
     const excedeLimite = limiteLegal > 0 && percentualImpacto > limiteLegal
+
+    console.log('✅ Valores calculados:', {
+      valorAjuste,
+      percentualAjuste: percentualAjuste.toFixed(2) + '%',
+      novoValorGlobal,
+      percentualImpacto,
+      excedeLimite
+    })
 
     return {
       valorAjuste,
@@ -133,7 +153,7 @@ export function BlocoValor({
       percentualImpacto,
       excedeLimite
     }
-  }, [dados, valorOriginal, modoPercentual, limiteLegal])
+  }, [dados.operacao, dados.valorAjuste, dados.novoValorGlobal, valorOriginal, limiteLegal, contractFinancials])
 
   // Emitir alerta de limite legal
   useEffect(() => {
@@ -150,69 +170,26 @@ export function BlocoValor({
     }
   }, [valoresCalculados.excedeLimite, valoresCalculados.percentualImpacto, limiteLegal, onAlertaLimiteLegal])
 
-  // Atualizar valores automaticamente
-  useEffect(() => {
-    if (calculoAutomatico && dados.operacao !== undefined) {
-      const novos = { ...dados }
-      
-      if (dados.operacao !== (OperacaoValor.Substituir as number)) {
-        novos.valorAjuste = valoresCalculados.valorAjuste
-        novos.percentualAjuste = valoresCalculados.percentualAjuste
-        novos.novoValorGlobal = valoresCalculados.novoValorGlobal
-      }
-      
-      novos.valorCalculadoAutomaticamente = true
-      
-      if (JSON.stringify(novos) !== JSON.stringify(dados)) {
-        onChange(novos as IBlocoValor)
-      }
-    }
-  }, [valoresCalculados, calculoAutomatico, dados, onChange])
 
   const handleFieldChange = useCallback((field: keyof IBlocoValor, value: unknown) => {
     const novosDados = {
       ...dados,
-      [field]: value,
-      valorCalculadoAutomaticamente: calculoAutomatico
+      [field]: value
     }
 
     // Limpar campos desnecessários baseado na operação
     if (field === 'operacao') {
       if (value === (OperacaoValor.Substituir as number)) {
         novosDados.valorAjuste = undefined
-        novosDados.percentualAjuste = undefined
+        setValorAjusteFormatado('')
       } else {
         novosDados.novoValorGlobal = undefined
+        setNovoValorGlobalFormatado('')
       }
     }
 
     onChange(novosDados as IBlocoValor)
-  }, [dados, onChange, calculoAutomatico])
-
-  const handleModoChange = useCallback((percentual: boolean) => {
-    setModoPercentual(percentual)
-    // Limpar valores quando mudar o modo
-    if (percentual) {
-      handleFieldChange('valorAjuste', undefined)
-    } else {
-      handleFieldChange('percentualAjuste', undefined)
-    }
-  }, [handleFieldChange])
-
-  const handleCalculoToggle = useCallback((ativo: boolean) => {
-    setCalculoAutomatico(ativo)
-    handleFieldChange('valorCalculadoAutomaticamente', ativo)
-    
-    // Se ativou o modo manual, limpar os valores calculados automaticamente
-    if (!ativo) {
-      // Permitir que o usuário digite valores manualmente
-      setValorAjusteFormatado('')
-      setNovoValorGlobalFormatado('')
-      handleFieldChange('valorAjuste', undefined)
-      handleFieldChange('percentualAjuste', undefined)
-      handleFieldChange('novoValorGlobal', undefined)
-    }
-  }, [handleFieldChange])
+  }, [dados, onChange])
 
   // Formatação de valores monetários
   const formatarMoeda = useCallback((valor: number) => {
@@ -247,38 +224,44 @@ export function BlocoValor({
     return isNaN(numero) ? 0 : numero
   }, [])
 
-  // Handler simplificado para valores monetários 
+  // Função para formatar valor em tempo real enquanto o usuário digita
+  const formatarValorEmTempoReal = useCallback((input: string) => {
+    // Remove tudo exceto dígitos
+    const apenasDigitos = input.replace(/\D/g, '')
+    
+    // Se vazio, retorna vazio
+    if (!apenasDigitos) return ''
+    
+    // Converte para número (centavos) e divide por 100 para obter valor real
+    const valorNumerico = parseInt(apenasDigitos) / 100
+    
+    // Formata como moeda brasileira
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(valorNumerico)
+  }, [])
+
+  // Handler para valores monetários com formatação em tempo real
   const handleValorAjusteChange = useCallback((valorInput: string) => {
-    console.log('🔧 handleValorAjusteChange:', valorInput)
+    console.log('🔧 Input valor ajuste:', valorInput)
     
-    // Atualizar sempre o estado visual
-    setValorAjusteFormatado(valorInput)
+    // Sempre atualizar o campo visual primeiro
+    const valorFormatado = formatarValorEmTempoReal(valorInput)
+    setValorAjusteFormatado(valorFormatado)
     
-    // Parse simples: remover tudo exceto números, vírgulas e pontos
-    const valorLimpo = valorInput.replace(/[^\d.,]/g, '')
+    // Parse para valor numérico
+    const valorNumerico = parseValorMonetario(valorFormatado)
     
-    if (valorLimpo.trim() === '') {
-      console.log('   - campo vazio, definindo como undefined')
-      handleFieldChange('valorAjuste', undefined)
-      return
-    }
+    console.log('💰 Valor formatado:', valorFormatado, 'Valor numérico:', valorNumerico)
     
-    // Conversão brasileira: última vírgula/ponto = decimal
-    let valorFinal = valorLimpo
-    if (valorLimpo.includes(',')) {
-      // Formato brasileiro: 1.500,50 -> 1500.50
-      valorFinal = valorLimpo.replace(/\./g, '').replace(',', '.')
-    }
-    
-    const numero = parseFloat(valorFinal)
-    console.log('   - valor parseado:', numero)
-    
-    if (!isNaN(numero) && numero > 0) {
-      handleFieldChange('valorAjuste', numero)
+    if (valorNumerico > 0) {
+      handleFieldChange('valorAjuste', valorNumerico)
     } else {
       handleFieldChange('valorAjuste', undefined)
     }
-  }, [handleFieldChange])
+  }, [handleFieldChange, formatarValorEmTempoReal, parseValorMonetario])
 
   const handleNovoValorGlobalChange = useCallback((valorFormatado: string) => {
     setNovoValorGlobalFormatado(valorFormatado)
@@ -300,7 +283,7 @@ export function BlocoValor({
     }
   }, [dados.valorAjuste, dados.novoValorGlobal, valorAjusteFormatado, novoValorGlobalFormatado])
 
-  // Verificar se os campos obrigatórios estão preenchidos
+  // Verificar se os campos obrigatórios estão preenchidos (apenas valor monetário)
   const camposObrigatoriosPreenchidos = useMemo(() => {
     if (dados.operacao === undefined) return false
     
@@ -308,9 +291,8 @@ export function BlocoValor({
       return !!dados.novoValorGlobal && dados.novoValorGlobal > 0
     }
     
-    return !!(modoPercentual ? dados.percentualAjuste : dados.valorAjuste) && 
-           (modoPercentual ? dados.percentualAjuste! > 0 : dados.valorAjuste! > 0)
-  }, [dados, modoPercentual])
+    return !!dados.valorAjuste && dados.valorAjuste > 0
+  }, [dados.operacao, dados.valorAjuste, dados.novoValorGlobal])
 
   const operacaoSelecionada = dados.operacao !== undefined ? OPERACOES_CONFIG[dados.operacao] : null
 
@@ -503,110 +485,63 @@ export function BlocoValor({
             {/* Acrescentar/Diminuir */}
             {[OperacaoValor.Acrescentar as number, OperacaoValor.Diminuir as number].includes(dados.operacao as number) && (
               <div className="space-y-6">
-                {/* Controles de cálculo */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium">Modo de entrada</Label>
-                    <p className="text-xs text-gray-600">
-                      {modoPercentual ? 'Informar percentual' : 'Informar valor em reais'}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    {/* Toggle valor/percentual */}
-                    <div className="flex items-center space-x-2">
-                      <Label className="text-sm">R$</Label>
-                      <Switch
-                        checked={modoPercentual}
-                        onCheckedChange={handleModoChange}
-                        disabled={disabled}
-                      />
-                      <Label className="text-sm">%</Label>
-                    </div>
-                    
-                    <Separator orientation="vertical" className="h-6" />
-                    
-                    {/* Toggle cálculo automático */}
-                    <div className="flex items-center space-x-2">
-                      <Calculator className="h-4 w-4 text-gray-500" />
-                      <Switch
-                        checked={calculoAutomatico}
-                        onCheckedChange={handleCalculoToggle}
-                        disabled={disabled}
-                      />
-                      <Label className="text-sm">Auto</Label>
+                {/* Instruções para entrada de valor */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <Label className="text-sm font-medium text-blue-800">Valor Monetário</Label>
+                      <p className="text-xs text-blue-600">
+                        Digite o valor em reais. O percentual será calculado automaticamente.
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Entrada principal */}
+                {/* Entrada principal - apenas valor monetário */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {modoPercentual ? (
-                    <div className="space-y-2">
-                      <Label htmlFor="percentual-ajuste">Percentual de ajuste *</Label>
-                      <div className="relative">
-                        <Input
-                          id="percentual-ajuste"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max="100"
-                          value={dados.percentualAjuste || ''}
-                          onChange={(e) => handleFieldChange('percentualAjuste', parseFloat(e.target.value) || undefined)}
-                          disabled={disabled || calculoAutomatico}
-                          className={cn(errors.percentualAjuste && 'border-red-500', 'pr-8')}
-                          placeholder="Ex: 15.5"
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                          %
-                        </div>
-                      </div>
-                      {errors.percentualAjuste && (
-                        <div className="flex items-center gap-2 text-sm text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          {errors.percentualAjuste}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label htmlFor="valor-ajuste">Valor de ajuste *</Label>
-                      <div className="relative">
-                        <Input
-                          id="valor-ajuste"
-                          type="text"
-                          value={valorAjusteFormatado}
-                          onChange={(e) => handleValorAjusteChange(e.target.value)}
-                          disabled={disabled || calculoAutomatico}
-                          className={cn(errors.valorAjuste && 'border-red-500', 'pl-8')}
-                          placeholder="Ex: 50.000,00"
-                        />
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                          R$
-                        </div>
-                      </div>
-                      {errors.valorAjuste && (
-                        <div className="flex items-center gap-2 text-sm text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          {errors.valorAjuste}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Campo calculado */}
                   <div className="space-y-2">
-                    <Label className="text-gray-600">
-                      {modoPercentual ? 'Valor calculado' : 'Percentual calculado'}
+                    <Label htmlFor="valor-ajuste" className="text-sm font-medium flex items-center gap-1">
+                      Valor do ajuste
+                      {required && <span className="text-red-500" title="Campo obrigatório">*</span>}
                     </Label>
-                    <div className={cn(
-                      'px-3 py-2 bg-gray-50 rounded-md border text-sm font-medium',
-                      calculoAutomatico ? 'text-blue-700' : 'text-gray-600'
-                    )}>
-                      {modoPercentual 
-                        ? formatarMoeda(valoresCalculados.valorAjuste)
-                        : `${valoresCalculados.percentualAjuste.toFixed(2)}%`
-                      }
+                    <Input
+                      id="valor-ajuste"
+                      type="text"
+                      value={valorAjusteFormatado}
+                      onChange={(e) => handleValorAjusteChange(e.target.value)}
+                      placeholder="R$ 0,00"
+                      disabled={disabled}
+                      className={cn(
+                        errors.valorAjuste && 'border-red-500',
+                        'font-mono text-right text-lg'
+                      )}
+                    />
+                    {errors.valorAjuste && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.valorAjuste}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Digite apenas números. Ex: 123456 = R$ 1.234,56
+                    </p>
+                  </div>
+                  
+                  {/* Percentual calculado automaticamente */}
+                  <div className="space-y-2">
+                    <Label className="text-sm text-gray-600 flex items-center gap-1">
+                      <Calculator className="h-3 w-3" />
+                      Percentual (calculado automaticamente)
+                    </Label>
+                    <div className="px-3 py-2 bg-blue-50 rounded-md border border-blue-200 text-lg font-medium text-blue-700">
+                      {valoresCalculados.percentualAjuste.toFixed(2)}%
+                      <div className="text-gray-500 text-xs mt-1">
+                        {valorOriginal > 0 
+                          ? `de ${formatarMoeda(valorOriginal)}` 
+                          : '(valor original não informado)'
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>

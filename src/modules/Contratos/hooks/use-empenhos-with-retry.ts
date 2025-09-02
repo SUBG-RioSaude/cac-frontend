@@ -235,7 +235,7 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
     if (contratoId) {
       carregarEmpenhos()
     }
-  }, [contratoId]) // Removida a dependência carregarEmpenhos
+  }, [contratoId, carregarEmpenhos])
 
   return {
     empenhos,
