@@ -159,9 +159,12 @@ export function BlocosDinamicos({
 
     switch (blocoId) {
       case 'valor': {
-        const campos = ['operacao', 'valorAjuste']
-        const dadosValor = dadosBloco as any // Type assertion for bloco valor
-        const preenchidos = campos.filter(campo => dadosValor[campo] !== undefined && dadosValor[campo] !== '').length
+        const dadosValor = dadosBloco as IBlocoValor
+        const totalCampos = 2
+        const preenchidos = [
+          dadosValor.operacao !== undefined && dadosValor.operacao !== null,
+          dadosValor.valorAjuste !== undefined && dadosValor.valorAjuste !== null && dadosValor.valorAjuste !== 0
+        ].filter(Boolean).length
         const valor = dadosValor.valorAjuste || 0
         const operacao = dadosValor.operacao === 1 ? '+' : dadosValor.operacao === 2 ? '-' : '='
         const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
@@ -172,9 +175,9 @@ export function BlocosDinamicos({
         const percentualTexto = percentual > 0 ? ` (${percentual.toFixed(1)}%)` : ''
         
         return {
-          progresso: { atual: preenchidos, total: campos.length },
+          progresso: { atual: preenchidos, total: totalCampos },
           resumo: valor > 0 ? `${operacao}${valorFormatado}${percentualTexto}` : 'Clique para configurar',
-          completo: preenchidos === campos.length
+          completo: preenchidos === totalCampos
         }
       }
       case 'vigencia': {

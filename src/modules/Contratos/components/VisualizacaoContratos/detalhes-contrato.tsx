@@ -20,7 +20,7 @@ import {
   Edit,
   AlertTriangle,
 } from 'lucide-react'
-import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
+import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
@@ -61,9 +61,10 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   }
 
   // Helper para obter endereco de fornecedor
-  const getEnderecoField = (field: string) => {
+  const getEnderecoField = (field: keyof Endereco): string => {
     if (typeof contrato.fornecedor.endereco === 'string') return ''
-    return (contrato.fornecedor.endereco as any)[field] || ''
+    const endereco = contrato.fornecedor.endereco as Endereco
+    return endereco[field] || ''
   }
 
   const formatarMoeda = (valor: number) => {
@@ -700,7 +701,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <div>
                           <p className="text-muted-foreground text-sm">CEP</p>
                           <p className="font-semibold">
-                            {formatarCEP((empresaData?.endereco as any)?.cep || getEnderecoField('cep'))}
+                            {formatarCEP(empresaData?.cep || getEnderecoField('cep'))}
                           </p>
                         </div>
                         <div className="sm:col-span-2">
@@ -708,36 +709,36 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Logradouro
                           </p>
                           <p className="font-semibold">
-                            {(empresaData?.endereco as any)?.logradouro || getEnderecoField('logradouro')}
-                            {((empresaData?.endereco as any)?.numero || getEnderecoField('numero')) &&
-                              `, ${(empresaData?.endereco as any)?.numero || getEnderecoField('numero')}`}
+                            {empresaData?.endereco || getEnderecoField('logradouro')}
+                            {getEnderecoField('numero') &&
+                              `, ${getEnderecoField('numero')}`}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">Bairro</p>
                           <p className="font-semibold">
-                            {(empresaData?.endereco as any)?.bairro || getEnderecoField('bairro')}
+                            {empresaData?.bairro || getEnderecoField('bairro')}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">Cidade</p>
                           <p className="font-semibold">
-                            {(empresaData?.endereco as any)?.cidade || getEnderecoField('cidade')}
+                            {empresaData?.cidade || getEnderecoField('cidade')}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">UF</p>
                           <p className="font-semibold">
-                            {(empresaData?.endereco as any)?.uf || getEnderecoField('uf')}
+                            {empresaData?.estado || getEnderecoField('uf')}
                           </p>
                         </div>
-                        {((empresaData?.endereco as any)?.complemento || getEnderecoField('complemento')) && (
+                        {getEnderecoField('complemento') && (
                           <div className="sm:col-span-2">
                             <p className="text-muted-foreground text-sm">
                               Complemento
                             </p>
                             <p className="font-semibold">
-                              {(empresaData?.endereco as any)?.complemento || getEnderecoField('complemento')}
+                              {getEnderecoField('complemento')}
                             </p>
                           </div>
                         )}
