@@ -6,7 +6,7 @@ import { Copy, Download, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface DebugPayloadProps {
-  payload: any
+  payload: Record<string, unknown>
   title?: string
   className?: string
 }
