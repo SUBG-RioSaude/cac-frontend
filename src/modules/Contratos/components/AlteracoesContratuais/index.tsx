@@ -322,7 +322,10 @@ export function AlteracoesContratuais({
   }, [contractSuppliers.mainSupplier, contractSuppliers.suppliers, empresasLookup.data])
 
   const getUnitName = useCallback((unitId: string) => {
-    const unit = contractUnits.linkedUnits?.find((u) => (u as any).id === unitId || u.nome === unitId)
+    const unit = contractUnits.linkedUnits?.find((u) => {
+      const unitRecord = u as Record<string, unknown>
+      return unitRecord.id === unitId || u.nome === unitId
+    })
     if (unit) return unit.nome || unitId
     if (contractUnits.demandingUnit === unitId) return contractUnits.demandingUnit
     if (contractUnits.managingUnit === unitId) return contractUnits.managingUnit
@@ -891,6 +894,7 @@ export function AlteracoesContratuais({
     confirmarLimiteLegal, 
     handleSubmeter,
     podeSubmeter,
+    vigenciaFinal,
     contractContext.data,
     contractContext.isLoading,
     contractFinancials.currentBalance,
