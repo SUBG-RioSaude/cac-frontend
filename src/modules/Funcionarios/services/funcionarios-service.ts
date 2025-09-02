@@ -33,6 +33,9 @@ export async function getFuncionarios(
   })
 
   const responseData = response.data;
+  
+  // Debug: Log da resposta para verificar estrutura
+  console.log('Resposta da API de funcionários:', responseData);
 
   // Prioridade 1: Checar a estrutura { sucesso: true, dados: { ... } }
   if (responseData && 'sucesso' in responseData && responseData.sucesso && 'dados' in responseData) {

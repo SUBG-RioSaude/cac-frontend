@@ -16,8 +16,9 @@ import UnidadesFormMelhorado from "@/modules/Contratos/components/CadastroDeCont
 import type { DadosUnidades } from "@/modules/Contratos/types/unidades"
 import AtribuicaoFiscaisForm, { type DadosAtribuicao } from "@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form"
 import ConfirmarAvancoModal from "@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco"
-import { useCreateContrato, type CriarContratoData } from "@/modules/Contratos/hooks/use-contratos-mutations"
+import { useCriarContrato, type CriarContratoData } from "@/modules/Contratos/hooks/use-contratos-mutations"
 import DebugPanel from "@/modules/Contratos/components/CadastroDeContratos/debug-panel"
+import DebugPayload from "@/modules/Contratos/components/CadastroDeContratos/debug-payload"
 import { useDebugCadastro } from "@/modules/Contratos/hooks/use-debug-cadastro"
 import { toast } from "sonner"
 import { cnpjUtils } from "@/lib/utils"
@@ -44,7 +45,7 @@ export default function CadastrarContrato() {
   const [isGeneratingMock, setIsGeneratingMock] = useState(false)
 
   // React Query mutation hook
-  const createContratoMutation = useCreateContrato()
+  const createContratoMutation = useCriarContrato()
 
   // Debug hook
   const debug = useDebugCadastro()
@@ -180,8 +181,15 @@ export default function CadastrarContrato() {
   }
 
   const handleContratoSubmit = (dados: DadosContrato) => {
-    setDadosCompletos((prev) => ({ ...prev, contrato: dados }))
-    console.log("Dados do contrato:", dados)
+    console.log("📝 [DEBUG] handleContratoSubmit chamado com dados:", dados)
+    console.log("📝 [DEBUG] unidadeDemandanteId nos dados:", dados.unidadeDemandanteId)
+    console.log("📝 [DEBUG] unidadeGestoraId nos dados:", dados.unidadeGestoraId)
+    
+    setDadosCompletos((prev) => {
+      const novosDados = { ...prev, contrato: dados }
+      console.log("📝 [DEBUG] Dados completos após handleContratoSubmit:", novosDados)
+      return novosDados
+    })
     setPassoAtual(3)
   }
 
@@ -212,6 +220,26 @@ export default function CadastrarContrato() {
       throw new Error('Dados incompletos para criação do contrato')
     }
 
+    // Debug: verificar dados críticos
+    console.log('🔍 [DEBUG] Dados do fornecedor:', fornecedor)
+    console.log('🔍 [DEBUG] Dados do contrato:', contrato)
+    console.log('🔍 [DEBUG] empresaId do fornecedor:', fornecedor.empresaId)
+    console.log('🔍 [DEBUG] unidadeDemandanteId:', contrato.unidadeDemandanteId)
+    console.log('🔍 [DEBUG] unidadeGestoraId:', contrato.unidadeGestoraId)
+
+    // Validação de campos obrigatórios
+    if (!fornecedor.empresaId) {
+      throw new Error('ID da empresa não encontrado. Verifique se a empresa foi cadastrada corretamente.')
+    }
+    
+    if (!contrato.unidadeDemandanteId) {
+      throw new Error('ID da unidade demandante não encontrado. Verifique se a unidade foi selecionada corretamente.')
+    }
+    
+    if (!contrato.unidadeGestoraId) {
+      throw new Error('ID da unidade gestora não encontrado. Verifique se a unidade foi selecionada corretamente.')
+    }
+
     // Converter valor global para número
     const valorGlobal = (() => {
       const valor = contrato.valorGlobal
@@ -234,9 +262,16 @@ export default function CadastrarContrato() {
       return typeof valor === 'number' ? valor : 0
     })()
 
+    // Extrair processos do array
+    const processoSei = contrato.processos?.find(p => p.tipo === 'sei')?.valor
+    const processoRio = contrato.processos?.find(p => p.tipo === 'rio')?.valor
+    const processoLegado = contrato.processos?.find(p => p.tipo === 'fisico')?.valor
+
     const payload: CriarContratoData = {
       numeroContrato: contrato.numeroContrato || undefined,
-      processoSei: contrato.processoSei || undefined,
+      processoSei: processoSei || undefined,
+      processoRio: processoRio || undefined,
+      processoLegado: processoLegado || undefined,
       categoriaObjeto: contrato.categoriaObjeto || undefined,
       descricaoObjeto: contrato.descricaoObjeto || undefined,
       tipoContratacao: contrato.tipoContratacao || undefined,
@@ -254,7 +289,7 @@ export default function CadastrarContrato() {
       tipoTermoReferencia: contrato.tipoTermoReferencia || undefined,
       termoReferencia: contrato.termoReferencia || undefined,
       vinculacaoPCA: contrato.vinculacaoPCA || undefined,
-      empresaId: fornecedor.empresaId!, // Usar ID (UUID) da empresa
+      empresaId: fornecedor.empresaId || '', // Usar ID (UUID) da empresa
       ativo: contrato.ativo || true,
       // Nova estrutura de unidades vinculadas
       unidadesVinculadas: unidades.unidades?.map(unidade => ({
@@ -267,6 +302,8 @@ export default function CadastrarContrato() {
           }
           return parseFloat(valor?.toString() || '0') || 0
         })(),
+        vigenciaInicialUnidade: contrato.vigenciaInicial || '', // Usar vigência do contrato
+        vigenciaFinalUnidade: contrato.vigenciaFinal || '', // Usar vigência do contrato
         observacoes: unidade.observacoes || unidades.observacoes || undefined
       })) || [],
       // Nova estrutura de documentos (vazia por enquanto)
@@ -432,10 +469,15 @@ export default function CadastrarContrato() {
                 onPrevious={() => setPassoAtual(1)}
                 dadosIniciais={dadosCompletos.contrato}
                 onDataChange={(dados) => {
-                  setDadosCompletos(prev => ({
-                    ...prev,
-                    contrato: { ...prev.contrato, ...dados } as DadosContrato
-                  }))
+                  console.log('🔄 [DEBUG] onDataChange chamado com dados:', dados)
+                  setDadosCompletos(prev => {
+                    const novosDados = {
+                      ...prev,
+                      contrato: { ...prev.contrato, ...dados } as DadosContrato
+                    }
+                    console.log('🔄 [DEBUG] Dados completos atualizados:', novosDados)
+                    return novosDados
+                  })
                 }}
                 onValorContratoChange={handleValorContratoChange}
               />
@@ -552,6 +594,17 @@ export default function CadastrarContrato() {
         apiLogs={debug.apiLogs}
         isGeneratingMock={isGeneratingMock}
       />
+
+      {/* Debug Payload */}
+      {payloadFinal && (
+        <div className="mt-6">
+          <DebugPayload 
+            payload={payloadFinal} 
+            title="Payload Final para API"
+            className="mt-4"
+          />
+        </div>
+      )}
     </LayoutPagina>
   )
 }

@@ -35,20 +35,26 @@ export interface FuncionarioApi {
   id: string
   matricula: string
   cpf: string
-  nome: string
-  email?: string | null
+  nomeCompleto: string // Campo real da API
+  emailInstitucional?: string | null // Campo real da API
   telefone?: string | null
   cargo: string
-  lotacao: string
-  situacaoFuncional: SituacaoFuncional
-  tipoVinculo: TipoVinculo
+  funcao: string // Campo adicional da API
+  situacao: number // Campo real da API (1 = ativo)
+  vinculo: number // Campo real da API
   dataAdmissao: string // ISO date
-  dataDemissao?: string | null // ISO date
+  dataExoneracao?: string | null // Campo real da API
   ativo: boolean
-  usuarioCadastroId: string
-  usuarioAtualizacaoId?: string | null
+  lotacaoId: string // Campo real da API
+  lotacaoNome: string // Campo real da API
+  lotacaoSigla?: string // Campo real da API
   dataCadastro: string // ISO date-time
-  dataAtualizacao?: string | null // ISO date-time
+  // Campos de compatibilidade para mapeamento
+  nome?: string // Para compatibilidade
+  email?: string | null // Para compatibilidade
+  lotacao?: string // Para compatibilidade
+  situacaoFuncional?: SituacaoFuncional // Para compatibilidade
+  tipoVinculo?: TipoVinculo // Para compatibilidade
 }
 
 export interface LotacaoApi {
@@ -148,12 +154,12 @@ export const mapFuncionarioToUsuario = (funcionario: FuncionarioApi): Usuario =>
   return {
     id: funcionario.id,
     matricula: funcionario.matricula,
-    nome: funcionario.nome,
-    email: funcionario.email || '',
+    nome: funcionario.nomeCompleto, // Usar nomeCompleto da API
+    email: funcionario.emailInstitucional || '', // Usar emailInstitucional da API
     cargo: funcionario.cargo,
-    departamento: funcionario.lotacao,
+    departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
     telefone: funcionario.telefone || '',
-    status: mapSituacaoToStatus(funcionario.situacaoFuncional, funcionario.ativo)
+    status: mapSituacaoToStatus(funcionario.situacaoFuncional || funcionario.situacao as SituacaoFuncional, funcionario.ativo)
   }
 }
 

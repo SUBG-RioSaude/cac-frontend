@@ -138,12 +138,12 @@ export function mapearFuncionarioParaUsuario(funcionario: FuncionarioApi): Usuar
   return {
     id: funcionario.id,
     matricula: formatarMatricula(funcionario.matricula),
-    nome: formatarNome(funcionario.nome),
-    email: funcionario.email || '',
+    nome: formatarNome(funcionario.nomeCompleto), // Usar nomeCompleto da API
+    email: funcionario.emailInstitucional || '', // Usar emailInstitucional da API
     cargo: formatarCargo(funcionario.cargo),
-    departamento: funcionario.lotacao,
+    departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
     telefone: funcionario.telefone || '',
-    status: situacaoParaStatus(funcionario.situacaoFuncional, funcionario.ativo)
+    status: situacaoParaStatus(funcionario.situacaoFuncional || funcionario.situacao as SituacaoFuncional, funcionario.ativo)
   }
 }
 

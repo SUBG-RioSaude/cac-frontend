@@ -5,7 +5,7 @@
 
 // Hooks de Contratos
 export { useContratos, useContrato, useContratosVencendo, useContratosVencidos } from './use-contratos'
-export { useCreateContrato, useUpdateContrato, useDeleteContrato } from './use-contratos-mutations'
+export { useCriarContrato, useUpdateContrato, useDeleteContrato } from './use-contratos-mutations'
 
 // Hooks de Empresas/Fornecedores (migrados para módulo próprio)
 export { 
