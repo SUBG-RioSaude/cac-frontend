@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,8 @@ import {
   validarNumeroEmpenho,
   validarValor,
   validarLimiteContrato,
+  validarDataEmpenho,
+  validarNumeroEmpenhoUnico,
   calcularEstatisticas
 } from '../../services/empenhos-service'
 import { currencyUtils } from '@/lib/utils'
@@ -63,9 +66,11 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
 
   useEffect(() => {
     const buscarNomesUnidades = async () => {
-      if (!unidadesVinculadas.length) return
-
-      console.log('🔍 Hook Debug - Iniciando busca de nomes:', unidadesVinculadas.length, 'unidades')
+      if (!unidadesVinculadas.length) {
+        setNomesUnidades({})
+        setCarregando(false)
+        return
+      }
       
       try {
         setCarregando(true)
@@ -73,16 +78,13 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
 
         // Buscar nomes apenas para unidades que não têm nomeUnidade
         const unidadesSemNome = unidadesVinculadas.filter(u => !u.nomeUnidade)
-        console.log('🔍 Hook Debug - Unidades sem nome:', unidadesSemNome.length)
         
         for (const unidade of unidadesSemNome) {
           try {
-            console.log('🔍 Hook Debug - Buscando unidade:', unidade.unidadeSaudeId)
             const unidadeData = await getUnidadeById(unidade.unidadeSaudeId)
-            console.log('🔍 Hook Debug - Unidade encontrada:', unidadeData)
             nomes[unidade.unidadeSaudeId] = unidadeData.nome || `Unidade ${unidade.unidadeSaudeId}`
           } catch (error) {
-            console.error(`Erro ao buscar unidade ${unidade.unidadeSaudeId}:`, error)
+            console.warn(`Erro ao buscar unidade ${unidade.unidadeSaudeId}:`, error)
             nomes[unidade.unidadeSaudeId] = `Unidade ${unidade.unidadeSaudeId}`
           }
         }
@@ -90,12 +92,10 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
         // Adicionar nomes das unidades que já têm nomeUnidade
         unidadesVinculadas.forEach(u => {
           if (u.nomeUnidade) {
-            console.log('🔍 Hook Debug - Unidade com nome já disponível:', u.unidadeSaudeId, u.nomeUnidade)
             nomes[u.unidadeSaudeId] = u.nomeUnidade
           }
         })
 
-        console.log('🔍 Hook Debug - Nomes finais:', nomes)
         setNomesUnidades(nomes)
       } catch (error) {
         console.error('Erro ao buscar nomes das unidades:', error)
@@ -110,8 +110,8 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
   return { nomesUnidades, carregando }
 }
 
-// Componente para exibir nome da unidade
-function NomeUnidade({ unidadeId }: { unidadeId: string }) {
+// Componente para exibir nome da unidade - memoizado para performance
+const NomeUnidade = React.memo(function NomeUnidade({ unidadeId }: { unidadeId: string }) {
   const { nomeUnidade, carregando } = useUnidadeNome(unidadeId)
   
   if (carregando) {
@@ -119,12 +119,13 @@ function NomeUnidade({ unidadeId }: { unidadeId: string }) {
   }
   
   return <span>{nomeUnidade || `Unidade ${unidadeId}`}</span>
-}
+})
 
 export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas = [], empenhosIniciais = [] }: TabEmpenhosProps) {
   // Se temos empenhos iniciais, usar eles diretamente
   const temEmpenhosIniciais = empenhosIniciais.length > 0
   
+  // Sempre usar o hook para operações de CRUD, mas controlar o carregamento inicial
   const {
     empenhos,
     carregando,
@@ -138,19 +139,15 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
   // Hook para buscar nomes das unidades
   const { nomesUnidades, carregando: carregandoNomes } = useUnidadesNomes(unidadesVinculadas)
   
-  // Debug temporário para verificar nomes
-  console.log('🔍 Debug Nomes Unidades:', { 
-    unidadesVinculadas: unidadesVinculadas.length,
-    nomesUnidades,
-    carregandoNomes 
-  })
-  
   // Estado para filtro de unidade
   const [filtroUnidade, setFiltroUnidade] = useState<string>('todas')
   
   // Usar empenhos iniciais se disponíveis, senão usar os do hook
   const empenhosExibidos = useMemo(() => {
-    const empenhosBase = temEmpenhosIniciais ? empenhosIniciais : empenhos
+    // Se temos empenhos iniciais, usar eles, mas também incluir novos empenhos do hook
+    const empenhosBase = temEmpenhosIniciais 
+      ? [...empenhosIniciais, ...empenhos] // Combinar empenhos iniciais com novos
+      : empenhos
     
     // Aplicar filtro por unidade se selecionado
     if (filtroUnidade && filtroUnidade !== 'todas') {
@@ -179,7 +176,9 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
     validacao: {
       numeroEmpenho: { valido: true },
       valor: { valido: true },
-      limite: { valido: true }
+      limite: { valido: true },
+      dataEmpenho: { valido: true },
+      numeroUnico: { valido: true }
     }
   })
 
@@ -205,7 +204,9 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
       validacao: {
         numeroEmpenho: { valido: true },
         valor: { valido: true },
-        limite: { valido: true }
+        limite: { valido: true },
+        dataEmpenho: { valido: true },
+        numeroUnico: { valido: true }
       }
     })
   }, [filtroUnidade])
@@ -233,7 +234,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
         fecharModalConfirmacao()
       } catch (error) {
         console.error('Erro ao excluir empenho:', error)
-        // O erro já é tratado pelo hook
+        // O erro já é tratado pelo hook, mas mantemos log para debug
       }
     }
   }, [modalConfirmacao.empenhoId, excluirEmpenho, fecharModalConfirmacao])
@@ -244,12 +245,39 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
       dados: { ...prev.dados, [campo]: valor }
     }))
 
-    // Validação em tempo real
+    // Validação em tempo real com debounce implícito (apenas para campos críticos)
     if (campo === 'numeroEmpenho' && typeof valor === 'string') {
-      const validacao = validarNumeroEmpenho(valor)
+      // Só valida se tiver pelo menos 4 caracteres (ano)
+      if (valor.length >= 4) {
+        const validacaoFormato = validarNumeroEmpenho(valor)
+        const validacaoUnico = validarNumeroEmpenhoUnico(valor, empenhosExibidos)
+        
+        setFormulario(prev => ({
+          ...prev,
+          validacao: { 
+            ...prev.validacao, 
+            numeroEmpenho: validacaoFormato,
+            numeroUnico: validacaoUnico 
+          }
+        }))
+      } else {
+        // Reset validação se muito curto
+        setFormulario(prev => ({
+          ...prev,
+          validacao: { 
+            ...prev.validacao, 
+            numeroEmpenho: { valido: true },
+            numeroUnico: { valido: true }
+          }
+        }))
+      }
+    }
+
+    if (campo === 'dataEmpenho' && typeof valor === 'string') {
+      const validacao = validarDataEmpenho(valor)
       setFormulario(prev => ({
         ...prev,
-        validacao: { ...prev.validacao, numeroEmpenho: validacao }
+        validacao: { ...prev.validacao, dataEmpenho: validacao }
       }))
     }
 
@@ -314,6 +342,9 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
 
       // Validações finais
       const validacaoNumero = validarNumeroEmpenho(dados.numeroEmpenho)
+      const validacaoUnico = validarNumeroEmpenhoUnico(dados.numeroEmpenho, empenhosExibidos)
+      const validacaoData = validarDataEmpenho(dados.dataEmpenho)
+      
       const valorNumerico = typeof dados.valor === 'string' 
         ? currencyUtils.paraNumero(dados.valor)
         : dados.valor
@@ -325,11 +356,21 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
         valorTotalContrato
       )
 
-      if (!validacaoNumero.valido || !validacaoValor.valido || !validacaoLimite.valido) {
+      const todasValidacoes = [
+        validacaoNumero.valido,
+        validacaoUnico.valido,
+        validacaoData.valido,
+        validacaoValor.valido,
+        validacaoLimite.valido
+      ]
+
+      if (!todasValidacoes.every(v => v)) {
         setFormulario(prev => ({
           ...prev,
           validacao: {
             numeroEmpenho: validacaoNumero,
+            numeroUnico: validacaoUnico,
+            dataEmpenho: validacaoData,
             valor: validacaoValor,
             limite: validacaoLimite
           }
@@ -337,15 +378,33 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
         return
       }
 
-      // Criar novo empenho
-      await salvarEmpenhoHook({
-        contratoId,
-        unidadeSaudeId: dados.unidadeSaudeId,
-        numeroEmpenho: dados.numeroEmpenho,
-        valor: valorNumerico,
-        dataEmpenho: dados.dataEmpenho,
-        observacao: dados.observacao
+      // Validar e formatar dados antes do envio
+      const dataEmpenhoISO = dados.dataEmpenho.includes('T') 
+        ? dados.dataEmpenho 
+        : `${dados.dataEmpenho}T00:00:00.000Z`
+      
+      // Criar payload para debug
+      const payload = {
+        contratoId: String(contratoId),
+        unidadeSaudeId: String(dados.unidadeSaudeId),
+        numeroEmpenho: String(dados.numeroEmpenho).trim(),
+        valor: Number(valorNumerico),
+        dataEmpenho: dataEmpenhoISO,
+        observacao: String(dados.observacao || '').trim()
+      }
+      
+      console.log('[DEBUG] Payload sendo enviado:', payload)
+      console.log('[DEBUG] Tipos dos campos:', {
+        contratoId: typeof payload.contratoId,
+        unidadeSaudeId: typeof payload.unidadeSaudeId,
+        numeroEmpenho: typeof payload.numeroEmpenho,
+        valor: typeof payload.valor,
+        dataEmpenho: typeof payload.dataEmpenho,
+        observacao: typeof payload.observacao
       })
+      
+      // Criar novo empenho
+      await salvarEmpenhoHook(payload)
 
       // Limpar filtro se o empenho foi criado para uma unidade diferente
       if (filtroUnidade && filtroUnidade !== 'todas' && dados.unidadeSaudeId !== filtroUnidade) {
@@ -355,7 +414,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
       fecharFormulario()
     } catch (error) {
       console.error('Erro ao salvar empenho:', error)
-      // O erro já é tratado pelo hook
+      // O erro já é tratado pelo hook, mas mantemos log para debug
     }
   }, [formulario, empenhosExibidos, valorTotalContrato, contratoId, salvarEmpenhoHook, fecharFormulario, filtroUnidade])
 
@@ -363,11 +422,14 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
     const { validacao, dados } = formulario
     return (
       validacao.numeroEmpenho.valido &&
+      validacao.numeroUnico.valido &&
+      validacao.dataEmpenho.valido &&
       validacao.valor.valido &&
       validacao.limite.valido &&
       dados.unidadeSaudeId &&
       dados.numeroEmpenho &&
-      dados.valor
+      dados.valor &&
+      dados.dataEmpenho
     )
   }, [formulario])
 
@@ -517,7 +579,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                  </Badge>
                )}
             </div>
-            <Button onClick={abrirFormulario}>
+            <Button onClick={abrirFormulario} aria-label="Adicionar novo empenho">
               <Plus className="h-4 w-4 mr-2" />
               Novo Empenho
             </Button>
@@ -560,6 +622,8 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                      size="sm"
                      onClick={() => setFiltroUnidade('todas')}
                      className="h-6 px-2"
+                     aria-label="Remover filtro de unidade"
+                     title="Remover filtro"
                    >
                      <X className="h-3 w-3" />
                    </Button>
@@ -632,6 +696,8 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                         size="sm"
                         onClick={() => abrirModalConfirmacao(empenho)}
                         className="text-red-600 hover:text-red-700"
+                        aria-label={`Excluir empenho ${empenho.numeroEmpenho}`}
+                        title={`Excluir empenho ${empenho.numeroEmpenho}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -665,7 +731,12 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                   <h2 className="text-xl font-semibold">
                     Novo Empenho
                   </h2>
-                  <Button variant="ghost" size="sm" onClick={fecharFormulario}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={fecharFormulario}
+                    aria-label="Fechar formulário"
+                  >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -724,6 +795,12 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                          <span>{formulario.validacao.numeroEmpenho.erro}</span>
                        </div>
                      )}
+                     {!formulario.validacao.numeroUnico.valido && (
+                       <div className="flex items-center gap-1 text-red-600 text-sm">
+                         <AlertCircle className="h-4 w-4" />
+                         <span>{formulario.validacao.numeroUnico.erro}</span>
+                       </div>
+                     )}
                      <p className="text-xs text-muted-foreground">
                        Formato: AAAA + qualquer texto (ex: 2025NE000123, 2025NOTA001, etc.)
                      </p>
@@ -764,7 +841,14 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                       type="date"
                       value={formulario.dados.dataEmpenho}
                       onChange={(e) => atualizarCampo('dataEmpenho', e.target.value)}
+                      className={`${!formulario.validacao.dataEmpenho.valido ? 'border-red-500' : ''}`}
                     />
+                    {!formulario.validacao.dataEmpenho.valido && (
+                      <div className="flex items-center gap-1 text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        <span>{formulario.validacao.dataEmpenho.erro}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Observações */}

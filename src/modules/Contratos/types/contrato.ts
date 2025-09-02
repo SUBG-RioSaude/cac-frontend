@@ -578,6 +578,14 @@ export interface ValidacaoEmpenho {
     valido: boolean
     erro?: string
   }
+  dataEmpenho: {
+    valido: boolean
+    erro?: string
+  }
+  numeroUnico: {
+    valido: boolean
+    erro?: string
+  }
 }
 
 // ========== TIPOS PARA CRIAÇÃO DE CONTRATOS ==========

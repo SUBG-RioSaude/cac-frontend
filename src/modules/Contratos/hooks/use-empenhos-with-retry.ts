@@ -34,6 +34,8 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
     operacao: () => Promise<T>,
     operacaoNome: string
   ): Promise<T> => {
+    let ultimoErro: unknown
+    
     for (let tentativa = 1; tentativa <= MAX_RETRIES; tentativa++) {
       try {
         console.log(`[RETRY] ${operacaoNome} - Tentativa ${tentativa}/${MAX_RETRIES}`)
@@ -44,42 +46,43 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
           console.log(`[RETRY] ✅ ${operacaoNome} - Sucesso na tentativa ${tentativa}`)
         }
         
-        // Reset do contador de tentativas falhadas
-        setErro(null)
-        
         return resultado
       } catch (error) {
-        const axiosError = error as { response?: { status?: number }, message?: string }
+        ultimoErro = error
+        const axiosError = error as { response?: { status?: number, data?: unknown }, message?: string }
         
         console.warn(`[RETRY] ⚠️ ${operacaoNome} - Tentativa ${tentativa} falhou:`, {
           status: axiosError.response?.status,
           message: axiosError.message,
+          data: axiosError.response?.data,
           tentativasRestantes: MAX_RETRIES - tentativa
         })
 
-        // Verificar se é erro do servidor (5xx)
+        // Verificar se é erro do servidor (5xx) ou rede
         const isServerError = axiosError.response?.status && axiosError.response.status >= 500
         const isNetworkError = !axiosError.response
         
-        if (isServerError || isNetworkError) {
-          // Se ainda há tentativas restantes, aguarda antes de tentar novamente
-          if (tentativa < MAX_RETRIES) {
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * tentativa))
-            continue
-          }
+        // Erros 4xx (Bad Request, Unauthorized, etc.) não devem ser repetidos
+        const isClientError = axiosError.response?.status && axiosError.response.status >= 400 && axiosError.response.status < 500
+        
+        if (isClientError) {
+          console.log(`[RETRY] 🚫 ${operacaoNome} - Erro de cliente (${axiosError.response?.status}), não será repetido`)
+          break // Sai do loop imediatamente para erros 4xx
         }
         
-        // Se chegou aqui, é a última tentativa ou erro não é do servidor
+        if ((isServerError || isNetworkError) && tentativa < MAX_RETRIES) {
+          // Aguarda antes de tentar novamente apenas para erros 5xx ou rede
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * tentativa))
+          continue
+        }
+        
+        // Se chegou aqui, é a última tentativa
         break
       }
     }
 
-    // Se chegou aqui, todas as tentativas falharam
-    
-    // Se foram 5 tentativas falhadas do servidor, retorna erro 500
-    const erro500 = new Error('Erro 500: Servidor indisponível após múltiplas tentativas')
-    setErro('Erro 500: Servidor indisponível após múltiplas tentativas')
-    throw erro500
+    // Re-lança o último erro original
+    throw ultimoErro
   }, []) // Removida a dependência tentativasFalhadas
 
   const carregarEmpenhos = useCallback(async () => {
@@ -94,15 +97,24 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
       
       setEmpenhos(dados)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
       console.error('Erro ao carregar empenhos:', error)
       
-      if (errorMessage.includes('Erro 500')) {
+      // Extrair informações específicas do erro
+      const axiosError = error as { response?: { status?: number, data?: unknown }, message?: string }
+      
+      if (axiosError.response?.status === 400) {
+        const errorData = axiosError.response.data as { message?: string, error?: string } | undefined
+        const errorMsg = errorData?.message || errorData?.error || 'Dados inválidos enviados para o servidor'
+        setErro(`Erro 400: ${errorMsg}`)
+        toast.error(`Erro de validação: ${errorMsg}`)
+      } else if (axiosError.response?.status && axiosError.response.status >= 500) {
         setErro('Erro 500: Servidor indisponível após múltiplas tentativas')
-        toast.error('Erro 500: Servidor indisponível após múltiplas tentativas')
+        toast.error('Servidor indisponível. Tente novamente em alguns minutos.')
       } else {
-        setErro('Não foi possível carregar os empenhos')
-        toast.error('Não foi possível carregar os empenhos')
+        const errorData = axiosError.response?.data as { message?: string } | undefined
+        const msgErro = errorData?.message || 'Não foi possível carregar os empenhos'
+        setErro(msgErro)
+        toast.error(msgErro)
       }
     } finally {
       setCarregando(false)
@@ -121,15 +133,24 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
       toast.success('Empenho criado com sucesso')
       await carregarEmpenhos() // Recarrega a lista
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
       console.error('Erro ao salvar empenho:', error)
       
-      if (errorMessage.includes('Erro 500')) {
+      // Extrair informações específicas do erro
+      const axiosError = error as { response?: { status?: number, data?: unknown }, message?: string }
+      
+      if (axiosError.response?.status === 400) {
+        const errorData = axiosError.response.data as { message?: string, error?: string } | undefined
+        const errorMsg = errorData?.message || errorData?.error || 'Dados do empenho são inválidos'
+        setErro(`Erro 400: ${errorMsg}`)
+        toast.error(`Erro de validação: ${errorMsg}`)
+      } else if (axiosError.response?.status && axiosError.response.status >= 500) {
         setErro('Erro 500: Servidor indisponível após múltiplas tentativas')
-        toast.error('Erro 500: Servidor indisponível após múltiplas tentativas')
+        toast.error('Servidor indisponível. Tente novamente em alguns minutos.')
       } else {
-        setErro('Não foi possível salvar o empenho')
-        toast.error('Não foi possível salvar o empenho')
+        const errorData = axiosError.response?.data as { message?: string } | undefined
+        const msgErro = errorData?.message || 'Não foi possível salvar o empenho'
+        setErro(msgErro)
+        toast.error(msgErro)
       }
       throw error
     }
@@ -147,15 +168,24 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
       toast.success('Empenho atualizado com sucesso')
       await carregarEmpenhos() // Recarrega a lista
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
       console.error('Erro ao atualizar empenho:', error)
       
-      if (errorMessage.includes('Erro 500')) {
+      // Extrair informações específicas do erro
+      const axiosError = error as { response?: { status?: number, data?: unknown }, message?: string }
+      
+      if (axiosError.response?.status === 400) {
+        const errorData = axiosError.response.data as { message?: string, error?: string } | undefined
+        const errorMsg = errorData?.message || errorData?.error || 'Dados do empenho são inválidos'
+        setErro(`Erro 400: ${errorMsg}`)
+        toast.error(`Erro de validação: ${errorMsg}`)
+      } else if (axiosError.response?.status && axiosError.response.status >= 500) {
         setErro('Erro 500: Servidor indisponível após múltiplas tentativas')
-        toast.error('Erro 500: Servidor indisponível após múltiplas tentativas')
+        toast.error('Servidor indisponível. Tente novamente em alguns minutos.')
       } else {
-        setErro('Não foi possível atualizar o empenho')
-        toast.error('Não foi possível atualizar o empenho')
+        const errorData = axiosError.response?.data as { message?: string } | undefined
+        const msgErro = errorData?.message || 'Não foi possível atualizar o empenho'
+        setErro(msgErro)
+        toast.error(msgErro)
       }
       throw error
     }
@@ -173,15 +203,24 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
       toast.success('Empenho excluído com sucesso')
       await carregarEmpenhos() // Recarrega a lista
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
       console.error('Erro ao excluir empenho:', error)
       
-      if (errorMessage.includes('Erro 500')) {
+      // Extrair informações específicas do erro
+      const axiosError = error as { response?: { status?: number, data?: unknown }, message?: string }
+      
+      if (axiosError.response?.status === 400) {
+        const errorData = axiosError.response.data as { message?: string, error?: string } | undefined
+        const errorMsg = errorData?.message || errorData?.error || 'Não foi possível excluir o empenho'
+        setErro(`Erro 400: ${errorMsg}`)
+        toast.error(`Erro de validação: ${errorMsg}`)
+      } else if (axiosError.response?.status && axiosError.response.status >= 500) {
         setErro('Erro 500: Servidor indisponível após múltiplas tentativas')
-        toast.error('Erro 500: Servidor indisponível após múltiplas tentativas')
+        toast.error('Servidor indisponível. Tente novamente em alguns minutos.')
       } else {
-        setErro('Não foi possível excluir o empenho')
-        toast.error('Não foi possível excluir o empenho')
+        const errorData = axiosError.response?.data as { message?: string } | undefined
+        const msgErro = errorData?.message || 'Não foi possível excluir o empenho'
+        setErro(msgErro)
+        toast.error(msgErro)
       }
       throw error
     }
@@ -196,7 +235,7 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
     if (contratoId) {
       carregarEmpenhos()
     }
-  }, [contratoId, carregarEmpenhos])
+  }, [contratoId]) // Removida a dependência carregarEmpenhos
 
   return {
     empenhos,

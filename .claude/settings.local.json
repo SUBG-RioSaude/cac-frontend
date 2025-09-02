@@ -5,7 +5,8 @@
       "Bash(docker-compose:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm build:*)",
-      "Bash(timeout 10 pnpm dev)"
+      "Bash(timeout 10 pnpm dev)",
+      "Bash(pnpm lint:*)"
     ],
     "deny": [],
     "ask": [],

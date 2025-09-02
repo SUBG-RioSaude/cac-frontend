@@ -598,7 +598,7 @@ export default function CadastrarContrato() {
       {payloadFinal && (
         <div className="mt-6">
           <DebugPayload 
-            payload={payloadFinal} 
+            payload={payloadFinal as unknown as Record<string, unknown>} 
             title="Payload Final para API"
             className="mt-4"
           />

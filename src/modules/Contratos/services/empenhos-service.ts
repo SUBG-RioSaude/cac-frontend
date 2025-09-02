@@ -68,26 +68,26 @@ export async function excluirEmpenho(id: string): Promise<void> {
  * Valida número de empenho
  */
 export function validarNumeroEmpenho(numeroEmpenho: string): { valido: boolean; erro?: string } {
-    if (!numeroEmpenho) {
+    if (!numeroEmpenho || numeroEmpenho.trim() === '') {
       return {
         valido: false,
         erro: 'Número do empenho é obrigatório'
       }
     }
 
-    // Validar apenas os 4 primeiros dígitos (ano)
-    // O resto pode ser qualquer coisa que o usuário digitar
-    const ano = numeroEmpenho.substring(0, 4)
+    const numeroLimpo = numeroEmpenho.trim()
     
-    // Verificar se os 4 primeiros caracteres são números
-    if (!/^\d{4}$/.test(ano)) {
+    // Extrair ano (primeiros 4 dígitos encontrados)
+    const anoMatch = numeroLimpo.match(/\d{4}/)
+    
+    if (!anoMatch) {
       return {
         valido: false,
-        erro: 'Os 4 primeiros dígitos devem ser números (ano)'
+        erro: 'Número deve conter um ano válido (4 dígitos)'
       }
     }
 
-    const anoNumerico = parseInt(ano)
+    const anoNumerico = parseInt(anoMatch[0])
     const anoAtual = new Date().getFullYear()
 
     // Validar ano (deve estar entre 2020 e anoAtual + 5)
@@ -98,8 +98,8 @@ export function validarNumeroEmpenho(numeroEmpenho: string): { valido: boolean; 
       }
     }
 
-    // Verificar se tem pelo menos 5 caracteres (4 do ano + pelo menos 1 adicional)
-    if (numeroEmpenho.length < 5) {
+    // Verificar se tem pelo menos 5 caracteres
+    if (numeroLimpo.length < 5) {
       return {
         valido: false,
         erro: 'Número de empenho deve ter pelo menos 5 caracteres'
@@ -113,7 +113,9 @@ export function validarNumeroEmpenho(numeroEmpenho: string): { valido: boolean; 
  * Valida valor do empenho
  */
 export function validarValor(valor: number | string): { valido: boolean; erro?: string } {
-    const valorNumerico = typeof valor === 'string' ? parseFloat(valor.replace(/[^\d,.-]/g, '').replace(',', '.')) : valor
+    const valorNumerico = typeof valor === 'string' 
+      ? parseFloat(valor.replace(/[^\d,.]/g, '').replace(',', '.')) 
+      : valor
 
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       return {
@@ -168,11 +170,73 @@ export function validarLimiteContrato(
   }
 
 /**
+ * Valida data do empenho
+ */
+export function validarDataEmpenho(dataEmpenho: string): { valido: boolean; erro?: string } {
+  if (!dataEmpenho) {
+    return {
+      valido: false,
+      erro: 'Data do empenho é obrigatória'
+    }
+  }
+
+  const data = new Date(dataEmpenho)
+  const hoje = new Date()
+  const umAnoAtras = new Date()
+  umAnoAtras.setFullYear(hoje.getFullYear() - 1)
+
+  if (isNaN(data.getTime())) {
+    return {
+      valido: false,
+      erro: 'Data inválida'
+    }
+  }
+
+  if (data > hoje) {
+    return {
+      valido: false,
+      erro: 'Data não pode ser futura'
+    }
+  }
+
+  if (data < umAnoAtras) {
+    return {
+      valido: false,
+      erro: 'Data não pode ser anterior a um ano'
+    }
+  }
+
+  return { valido: true }
+}
+
+/**
+ * Valida se o número de empenho já existe
+ */
+export function validarNumeroEmpenhoUnico(
+  numeroEmpenho: string, 
+  empenhos: Empenho[], 
+  empenhoIdAtual?: string
+): { valido: boolean; erro?: string } {
+  const numeroExistente = empenhos.find(emp => 
+    emp.numeroEmpenho === numeroEmpenho && emp.id !== empenhoIdAtual
+  )
+
+  if (numeroExistente) {
+    return {
+      valido: false,
+      erro: 'Este número de empenho já está sendo utilizado'
+    }
+  }
+
+  return { valido: true }
+}
+
+/**
  * Calcula estatísticas dos empenhos
  */
 export function calcularEstatisticas(empenhos: Empenho[], valorTotalContrato: number) {
     const valorTotalEmpenhado = empenhos.reduce((acc, emp) => acc + emp.valor, 0)
-    const valorDisponivel = valorTotalContrato - valorTotalEmpenhado
+    const valorDisponivel = Math.max(0, valorTotalContrato - valorTotalEmpenhado)
     const percentualEmpenhado = valorTotalContrato > 0 ? (valorTotalEmpenhado / valorTotalContrato) * 100 : 0
 
     const unidadesComEmpenho = new Set(empenhos.map(emp => emp.unidadeSaudeId)).size
@@ -181,7 +245,7 @@ export function calcularEstatisticas(empenhos: Empenho[], valorTotalContrato: nu
     totalEmpenhos: empenhos.length,
     valorTotalEmpenhado,
     valorDisponivel,
-    percentualEmpenhado: Math.round(percentualEmpenhado * 100) / 100, // Arredondar para 2 casas decimais
+    percentualEmpenhado: Math.round(percentualEmpenhado * 100) / 100,
     unidadesComEmpenho
   }
 }
