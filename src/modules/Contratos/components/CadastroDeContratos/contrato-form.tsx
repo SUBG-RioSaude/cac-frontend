@@ -406,7 +406,7 @@ export default function ContratoForm({
         vinculacaoPCA: dadosIniciais?.vinculacaoPCA || '',
       })
     }
-  }, [dadosIniciais])
+  }, [dadosIniciais, form])
 
   // Sincronizar processos selecionados com dados iniciais
   useEffect(() => {
@@ -430,7 +430,7 @@ export default function ContratoForm({
       handleValorContratoChange(valorNumerico)
       previousValorRef.current = valorAtual
     }
-  }, [watchedValues.valorGlobal, handleValorContratoChange])
+  }, [watchedValues.valorGlobal, handleValorContratoChange, onValorContratoChange])
 
   useEffect(() => {
     if (onDataChange) {
@@ -469,7 +469,7 @@ export default function ContratoForm({
         handleDataChange(dados)
       }
     }
-  }, [watchedValues, handleDataChange])
+  }, [watchedValues, handleDataChange, onDataChange, form, watchedUnidadeDemandanteId, watchedUnidadeGestoraId])
 
   const handleFormSubmit = (dados: FormDataContrato) => {
     // Obter todos os valores do formulário, incluindo os campos definidos via setValue

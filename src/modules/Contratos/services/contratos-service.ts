@@ -150,6 +150,8 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
       percentualExecutado: 0,
       cronogramaVigencia: [],
     },
+    // Preservar unidadesVinculadas da API
+    unidadesVinculadas: response.data.unidadesVinculadas || [],
   }
   
   console.log('📦 Contrato simplificado criado:', contratoSimples)

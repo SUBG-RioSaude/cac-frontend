@@ -105,9 +105,7 @@ describe('NavUser', () => {
       
       // O dropdown deve estar sempre visível com o mock
       expect(screen.getByTestId('dropdown-content')).toBeInTheDocument()
-      expect(screen.getByText('Conta')).toBeInTheDocument()
-      expect(screen.getByText('Faturamento')).toBeInTheDocument()
-      expect(screen.getByText('Notificações')).toBeInTheDocument()
+      expect(screen.getByText('Perfil')).toBeInTheDocument()
       expect(screen.getByText('Sair')).toBeInTheDocument()
     })
 

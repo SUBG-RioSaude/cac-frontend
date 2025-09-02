@@ -75,25 +75,34 @@ export function validarNumeroEmpenho(numeroEmpenho: string): { valido: boolean; 
       }
     }
 
-    // Padrão: AAAANE999999 (ex.: 2025NE000123)
-    const regex = /^(\d{4})NE(\d{6})$/
-    const match = numeroEmpenho.match(regex)
-
-    if (!match) {
+    // Validar apenas os 4 primeiros dígitos (ano)
+    // O resto pode ser qualquer coisa que o usuário digitar
+    const ano = numeroEmpenho.substring(0, 4)
+    
+    // Verificar se os 4 primeiros caracteres são números
+    if (!/^\d{4}$/.test(ano)) {
       return {
         valido: false,
-        erro: 'Número de empenho inválido. Use o formato AAAANE999999 (ex.: 2025NE000123)'
+        erro: 'Os 4 primeiros dígitos devem ser números (ano)'
       }
     }
 
-    const ano = parseInt(match[1])
+    const anoNumerico = parseInt(ano)
     const anoAtual = new Date().getFullYear()
 
     // Validar ano (deve estar entre 2020 e anoAtual + 5)
-    if (ano < 2020 || ano > anoAtual + 5) {
+    if (anoNumerico < 2020 || anoNumerico > anoAtual + 5) {
       return {
         valido: false,
         erro: `Ano deve estar entre 2020 e ${anoAtual + 5}`
+      }
+    }
+
+    // Verificar se tem pelo menos 5 caracteres (4 do ano + pelo menos 1 adicional)
+    if (numeroEmpenho.length < 5) {
+      return {
+        valido: false,
+        erro: 'Número de empenho deve ter pelo menos 5 caracteres'
       }
     }
 
@@ -110,6 +119,14 @@ export function validarValor(valor: number | string): { valido: boolean; erro?: 
       return {
         valido: false,
         erro: 'Valor deve ser um número positivo'
+      }
+    }
+
+    // Valor mínimo de R$ 100,00
+    if (valorNumerico < 100) {
+      return {
+        valido: false,
+        erro: 'Valor mínimo é R$ 100,00'
       }
     }
 
