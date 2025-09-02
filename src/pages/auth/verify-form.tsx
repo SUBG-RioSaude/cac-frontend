@@ -19,7 +19,9 @@ export default function VerifyForm() {
   const [tempoRestante, setTempoRestante] = useState(600)
   const [podeReenviar, setPodeReenviar] = useState(false)
   const [indiceFocado, setIndiceFocado] = useState<number | null>(null)
+  const [contexto, setContexto] = useState<'login' | 'password_recovery'>('login')
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
   const navigate = useNavigate()
 
   const { 
@@ -32,11 +34,14 @@ export default function VerifyForm() {
 
   useEffect(() => {
     const emailArmazenado = sessionStorage.getItem("auth_email")
+    const contextoAuth = sessionStorage.getItem("auth_context") as 'login' | 'password_recovery' || 'login'
+    
     if (!emailArmazenado) {
       navigate("/login")
       return
     }
     setEmail(emailArmazenado)
+    setContexto(contextoAuth)
 
     // Redireciona se já estiver autenticado
     if (estaAutenticado) {
@@ -46,17 +51,33 @@ export default function VerifyForm() {
       return
     }
 
-    const timer = setInterval(() => {
+    // Limpa timer anterior se existir
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+    }
+
+    // Cria novo timer
+    timerRef.current = setInterval(() => {
       setTempoRestante((prev) => {
         if (prev <= 1) {
           setPodeReenviar(true)
+          // Para o timer quando chegar a 0
+          if (timerRef.current) {
+            clearInterval(timerRef.current)
+            timerRef.current = null
+          }
           return 0
         }
         return prev - 1
       })
     }, 1000)
 
-    return () => clearInterval(timer)
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
+    }
   }, [navigate, estaAutenticado])
 
   const formatarTempo = (segundos: number) => {
@@ -93,17 +114,29 @@ export default function VerifyForm() {
 
     limparErro()
 
-    // Confirma código 2FA
-    const sucesso = await confirmarCodigo2FA(email, codigoString)
-    
-    if (sucesso) {
-      // Login bem-sucedido, redireciona para a página principal
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
-      sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath, { replace: true })
+    if (contexto === 'password_recovery') {
+      // Fluxo de recuperação de senha - apenas verifica código e vai para redefinir senha
+      const sucesso = await confirmarCodigo2FA(email, codigoString)
+      
+      if (sucesso) {
+        // Código válido, navegar para redefinir senha
+        sessionStorage.setItem('auth_context', 'password_reset')
+        navigate("/auth/trocar-senha", { replace: true })
+      }
+      // Erros são tratados pelo store
+    } else {
+      // Fluxo normal de login com 2FA
+      const sucesso = await confirmarCodigo2FA(email, codigoString)
+      
+      if (sucesso) {
+        // Login bem-sucedido, redireciona para a página principal
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+        sessionStorage.removeItem('redirectAfterLogin')
+        navigate(redirectPath, { replace: true })
+      }
+      // Se não foi sucesso, pode ser que precise trocar senha
+      // O store já redirecionará automaticamente se necessário
     }
-    // Se não foi sucesso, pode ser que precise trocar senha
-    // O store já redirecionará automaticamente se necessário
   }
 
   const handleResendCode = async () => {
@@ -112,9 +145,32 @@ export default function VerifyForm() {
     
     try {
       await esqueciSenha(email)
+      
+      // Reinicia o timer
       setTempoRestante(600)
       setPodeReenviar(false)
       setCodigo(["", "", "", "", "", ""])
+      
+      // Limpa timer anterior e cria novo
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+      
+      timerRef.current = setInterval(() => {
+        setTempoRestante((prev) => {
+          if (prev <= 1) {
+            setPodeReenviar(true)
+            // Para o timer quando chegar a 0
+            if (timerRef.current) {
+              clearInterval(timerRef.current)
+              timerRef.current = null
+            }
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      
     } catch (erro) {
       console.error('Erro ao reenviar código:', erro)
     }
@@ -199,10 +255,13 @@ export default function VerifyForm() {
                   <Mail className="w-8 h-8 text-teal-600" />
                 </motion.div>
                 <motion.h1 className="text-2xl font-bold text-gray-900">
-                  Verificação de Segurança
+                  {contexto === 'password_recovery' ? 'Verificar Código de Recuperação' : 'Verificação de Segurança'}
                 </motion.h1>
                 <motion.p className="text-gray-600 text-sm">
-                  Enviamos um código de 6 dígitos para
+                  {contexto === 'password_recovery' 
+                    ? 'Digite o código de recuperação enviado para'
+                    : 'Enviamos um código de 6 dígitos para'
+                  }
                   <br />
                   <span className="font-medium">{email}</span>
                 </motion.p>
@@ -292,12 +351,7 @@ export default function VerifyForm() {
                               exit={{ opacity: 0 }}
                               className="flex items-center"
                             >
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                              >
-                                <Loader2 className="mr-2 h-4 w-4" />
-                              </motion.div>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Verificando...
                             </motion.div>
                           ) : (

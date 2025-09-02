@@ -15,10 +15,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 
 import { ButtonLoadingSpinner } from '@/components/ui/loading'
 import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
@@ -282,8 +282,10 @@ export default function FornecedorForm({
       // Empresa não encontrada - limpa estado
       setEmpresaEncontrada(null)
       
-      // Se for erro de "empresa não encontrada", mostra mensagem informativa
-      if (error instanceof Error && error.message === 'Empresa não encontrada') {
+      // Só mostra mensagem se for erro específico de "empresa não encontrada" 
+      // e ainda não foi mostrado para evitar spam
+      if (error instanceof Error && error.message === 'Empresa não encontrada' && !toastJaMostrado) {
+        setToastJaMostrado(true)
         toast.info('Empresa não cadastrada', {
           description: 'Continue preenchendo o formulário para cadastrar.',
         })
@@ -293,7 +295,8 @@ export default function FornecedorForm({
 
   // Effect para executar consulta quando cnpjParaConsultar mudar
   useEffect(() => {
-    if (cnpjParaConsultar && cnpjParaConsultar.length === 14) {
+    // Só executa a consulta se o CNPJ estiver completo e válido
+    if (cnpjParaConsultar && cnpjParaConsultar.length === 14 && cnpjUtils.validar(cnpjParaConsultar)) {
       refetchConsultaCNPJ()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -359,7 +362,14 @@ export default function FornecedorForm({
     // Garante que o CNPJ está limpo (sem máscara)
     const cnpjLimpo = cnpjUtils.limpar(cnpj)
     
-    if (!cnpjLimpo || !cnpjUtils.validar(cnpjLimpo)) return
+    // Só consulta se o CNPJ estiver completo e válido
+    if (!cnpjLimpo || cnpjLimpo.length !== 14 || !cnpjUtils.validar(cnpjLimpo)) {
+      // Limpa o estado se o CNPJ não for válido
+      setEmpresaEncontrada(null)
+      setToastJaMostrado(false)
+      setCnpjParaConsultar('')
+      return
+    }
 
     // Reset do estado de toast quando CNPJ muda
     setToastJaMostrado(false)
@@ -402,11 +412,22 @@ export default function FornecedorForm({
     name: 'contatos',
   })
 
-  // Função para obter o tipo do contato sem causar re-render
-  const getTipoContato = useCallback((index: number) => {
-    const formValues = form.getValues()
-    return formValues.contatos?.[index]?.tipo || 'Email'
-  }, [form])
+  // Watch para o estado selecionado para tornar os campos reativos
+  const estadoSelecionado = useWatch({
+    control: form.control,
+    name: 'estadoIE',
+  })
+
+  // Watch apenas para os tipos de contatos para reatividade
+  const watchedContatos = useWatch({
+    control: form.control,
+    name: 'contatos',
+  }) || []
+
+  // Memoiza os tipos para evitar re-renders desnecessários
+  const tiposContatosMemo = useMemo(() => {
+    return watchedContatos.map(contato => contato?.tipo || 'Email')
+  }, [watchedContatos])
 
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {
@@ -748,24 +769,30 @@ export default function FornecedorForm({
                             {...field}
                             placeholder="00.000.000/0000-00"
                                                          onChange={(e) => {
-                               const valorMascarado = cnpjUtils.aplicarMascara(
-                                 e.target.value,
-                               )
-                               field.onChange(valorMascarado)
+                              const valorMascarado = cnpjUtils.aplicarMascara(
+                                e.target.value,
+                              )
+                              field.onChange(valorMascarado)
 
-                                if (valorMascarado.length >= 18) {
-                                  // Valida e consulta com CNPJ limpo (sem máscara)
-                                  const cnpjLimpo = cnpjUtils.limpar(valorMascarado)
-                                  const isValid = cnpjUtils.validar(cnpjLimpo)
-                                  
-                                  if (isValid) {
-                                    consultarEmpresaCNPJ(cnpjLimpo)
-                                  }
-                                }
+                              // Só consulta se o CNPJ estiver completo (18 caracteres com máscara)
+                              if (valorMascarado.length === 18) {
+                                // Valida e consulta com CNPJ limpo (sem máscara)
+                                const cnpjLimpo = cnpjUtils.limpar(valorMascarado)
+                                const isValid = cnpjUtils.validar(cnpjLimpo)
                                 
-                                // Notifica mudanças
-                                setTimeout(() => notificarMudancas(), 0)
-                             }}
+                                if (isValid) {
+                                  consultarEmpresaCNPJ(valorMascarado)
+                                }
+                              } else {
+                                // Se o CNPJ não estiver completo, limpa o estado
+                                setEmpresaEncontrada(null)
+                                setToastJaMostrado(false)
+                                setCnpjParaConsultar('')
+                              }
+                              
+                              // Notifica mudanças
+                              setTimeout(() => notificarMudancas(), 0)
+                            }}
                             className={cn(
                               "w-full",
                               isValidCnpj === true &&
@@ -822,8 +849,6 @@ export default function FornecedorForm({
                 control={form.control}
                 name="inscricaoEstadual"
                 render={({ field }) => {
-                  const estadoSelecionado = form.getValues('estadoIE')
-
                   return (
                     <FormItem>
                       <FormLabel htmlFor="inscricaoEstadual" className="mb-2">Inscrição Estadual</FormLabel>
@@ -840,6 +865,8 @@ export default function FornecedorForm({
                                   // Limpa os campos de inscrição quando UF muda
                                   form.setValue('inscricaoEstadual', '')
                                   form.setValue('inscricaoMunicipal', '')
+                                  // Notifica mudanças
+                                  setTimeout(() => notificarMudancas(), 0)
                                 }}
                                 value={estadoField.value}
                               >
@@ -878,13 +905,15 @@ export default function FornecedorForm({
                                   estadoSelecionado,
                                 )
                                 field.onChange(valorMascarado)
+                                // Notifica mudanças
+                                setTimeout(() => notificarMudancas(), 0)
                               } else {
                                 field.onChange(e.target.value)
                               }
                             }}
                             className={cn(
                               !estadoSelecionado &&
-                                'cursor-not-allowed opacity-50',
+                                'cursor-not-allowed bg-slate-100 opacity-50',
                             )}
                           />
                         </div>
@@ -902,8 +931,6 @@ export default function FornecedorForm({
                 control={form.control}
                 name="inscricaoMunicipal"
                 render={({ field }) => {
-                  const estadoSelecionado = form.getValues('estadoIE')
-
                   return (
                     <FormItem>
                       <FormLabel htmlFor="inscricaoMunicipal" className="mb-2">
@@ -927,13 +954,15 @@ export default function FornecedorForm({
                                   estadoSelecionado,
                                 )
                                 field.onChange(valorMascarado)
+                                // Notifica mudanças
+                                setTimeout(() => notificarMudancas(), 0)
                               } else {
                                 field.onChange(e.target.value)
                               }
                             }}
                             className={cn(
                               !estadoSelecionado &&
-                                'cursor-not-allowed opacity-50'
+                                'cursor-not-allowed bg-slate-100 opacity-50'
                             )}
                           />
                         </div>
@@ -1263,7 +1292,11 @@ export default function FornecedorForm({
                               Tipo do Contato
                             </FormLabel>
                             <Select
-                              onValueChange={tipoField.onChange}
+                              onValueChange={(value) => {
+                                tipoField.onChange(value)
+                                // Limpa o valor do contato quando o tipo muda
+                                form.setValue(`contatos.${index}.valor`, '')
+                              }}
                               value={tipoField.value}
                             >
                               <FormControl>
@@ -1291,33 +1324,9 @@ export default function FornecedorForm({
                         control={form.control}
                         name={`contatos.${index}.valor`}
                         render={({ field: valorField }) => {
-                          const tipoContato = getTipoContato(index)
-                          const valor = valorField.value || ''
-
-                          const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                            let valorProcessado = e.target.value
-
-                            // Aplica máscara baseada no tipo
-                            if (tipoContato === 'Telefone') {
-                              valorProcessado = aplicarMascaraTelefoneFixo(e.target.value)
-                            } else if (tipoContato === 'Celular') {
-                              valorProcessado = aplicarMascaraCelular(e.target.value)
-                            }
-
-                            valorField.onChange(valorProcessado)
-
-                            // Validação em tempo real
-                            if (valorProcessado.length > 0) {
-                              if (tipoContato === 'Email') {
-                                validarEmail(valorProcessado)
-                              } else if (tipoContato === 'Telefone') {
-                                validarFormatoTelefoneFixo(valorProcessado)
-                              } else if (tipoContato === 'Celular') {
-                                validarFormatoCelular(valorProcessado)
-                              }
-                            }
-                          }
-
+                          // Usa o tipo memoizado para evitar re-renders
+                          const tipoContato = tiposContatosMemo[index] || 'Email'
+                          
                           return (
                             <FormItem>
                               <FormLabel className="mb-2">
@@ -1332,11 +1341,32 @@ export default function FornecedorForm({
                               <FormControl>
                                 <div className="relative">
                                   <Input
-                                    key={`contato-${index}-${tipoContato}`}
                                     placeholder={getPlaceholderPorTipo(tipoContato)}
                                     type={tipoContato === 'Email' ? 'email' : 'tel'}
-                                    value={valor}
-                                    onChange={handleChange}
+                                    value={valorField.value || ''}
+                                    onChange={(e) => {
+                                      let valorProcessado = e.target.value
+
+                                      // Aplica máscara baseada no tipo
+                                      if (tipoContato === 'Telefone') {
+                                        valorProcessado = aplicarMascaraTelefoneFixo(e.target.value)
+                                      } else if (tipoContato === 'Celular') {
+                                        valorProcessado = aplicarMascaraCelular(e.target.value)
+                                      }
+
+                                      valorField.onChange(valorProcessado)
+
+                                      // Validação em tempo real (opcional, não bloqueia)
+                                      if (valorProcessado.length > 0) {
+                                        if (tipoContato === 'Email') {
+                                          validarEmail(valorProcessado)
+                                        } else if (tipoContato === 'Telefone') {
+                                          validarFormatoTelefoneFixo(valorProcessado)
+                                        } else if (tipoContato === 'Celular') {
+                                          validarFormatoCelular(valorProcessado)
+                                        }
+                                      }
+                                    }}
                                   />
                                 </div>
                               </FormControl>

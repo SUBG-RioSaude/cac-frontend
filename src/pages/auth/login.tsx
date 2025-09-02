@@ -272,12 +272,7 @@ export default function LoginForm() {
                               exit={{ opacity: 0 }}
                               className="flex items-center"
                             >
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                              >
-                                <Loader2 className="mr-2 h-4 w-4" />
-                              </motion.div>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Entrando...
                             </motion.div>
                           ) : (
