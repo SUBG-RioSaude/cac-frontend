@@ -4,6 +4,23 @@ import { RegistroAlteracoes } from '../registro-alteracoes'
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 
+// Mock dos hooks de React Query
+vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
+  useEmpresasByIds: vi.fn(() => ({
+    data: {},
+    isLoading: false,
+    error: null
+  }))
+}))
+
+vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
+  useUnidadesByIds: vi.fn(() => ({
+    data: {},
+    isLoading: false,
+    error: null
+  }))
+}))
+
 // Mock framer-motion para simplificar testes
 vi.mock('framer-motion', () => ({
   motion: {

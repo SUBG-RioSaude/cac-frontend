@@ -38,7 +38,7 @@ export function useContractContext(
  */
 export function useContractSuppliers(contratoId: string, options?: UseContractContextOptions) {
   const { data: contract, ...queryResult } = useContractContext(contratoId, options)
-  const empresaId = (contract as any)?.empresaId as string | undefined
+  const empresaId = contract?.empresaId as string | undefined
   const empresaQuery = useEmpresa(empresaId || '', { enabled: !!empresaId })
   
   const mappedMain = empresaQuery.data
@@ -49,8 +49,8 @@ export function useContractSuppliers(contratoId: string, options?: UseContractCo
         status: empresaQuery.data.ativo ? 'Ativo' as const : 'Inativo' as const,
         contratosAtivos: 0,
         valorTotal: contract?.valorTotal || 0,
-        cidade: (empresaQuery.data as any).cidade || '',
-        estado: (empresaQuery.data as any).estado || ''
+        cidade: empresaQuery.data.cidade || '',
+        estado: empresaQuery.data.estado || ''
       }
     : null
   

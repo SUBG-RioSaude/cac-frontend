@@ -2,7 +2,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -161,9 +160,10 @@ export function BlocosDinamicos({
     switch (blocoId) {
       case 'valor': {
         const campos = ['operacao', 'valorAjuste']
-        const preenchidos = campos.filter(campo => dadosBloco[campo] !== undefined && dadosBloco[campo] !== '').length
-        const valor = dadosBloco.valorAjuste || 0
-        const operacao = dadosBloco.operacao === 1 ? '+' : dadosBloco.operacao === 2 ? '-' : '='
+        const dadosValor = dadosBloco as any // Type assertion for bloco valor
+        const preenchidos = campos.filter(campo => dadosValor[campo] !== undefined && dadosValor[campo] !== '').length
+        const valor = dadosValor.valorAjuste || 0
+        const operacao = dadosValor.operacao === 1 ? '+' : dadosValor.operacao === 2 ? '-' : '='
         const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
         
         // Calcular percentual para o resumo

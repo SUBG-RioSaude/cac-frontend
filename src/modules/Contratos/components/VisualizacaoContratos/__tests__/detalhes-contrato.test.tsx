@@ -4,6 +4,23 @@ import { BrowserRouter } from 'react-router-dom'
 import { DetalhesContrato } from '../detalhes-contrato'
 import { contratoDetalhadoMock } from '@/modules/Contratos/data/contratos-mock'
 
+// Mock dos hooks de React Query
+vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
+  useEmpresa: vi.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null
+  }))
+}))
+
+vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
+  useUnidadesByIds: vi.fn(() => ({
+    data: {},
+    isLoading: false,
+    error: null
+  }))
+}))
+
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
   motion: {

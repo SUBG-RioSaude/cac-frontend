@@ -206,7 +206,11 @@ function CollapsibleBlock({
 }
 
 // Helper function para renderizar detalhes da alteração
-function renderDetalhesAlteracao(entrada: EntradaUnificada) {
+function renderDetalhesAlteracao(
+  entrada: EntradaUnificada, 
+  getEmpresaNome: (id: string) => string,
+  getUnidadeNome: (id: string) => string
+) {
   // Se for uma entrada da timeline antiga ou de outro tipo, usar o formato antigo
   if (entrada.origem === 'timeline' || entrada.origem === 'chat') {
     if (entrada.dados && 'valorOriginal' in entrada.dados && entrada.dados.valorOriginal) {
@@ -517,7 +521,7 @@ export function RegistroAlteracoes({
   }, [alteracoes])
   const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
   const getUnidadeNome = useCallback((id: string) => {
-    return unidadesLookup.data?.[id]?.nomeUnidade || id
+    return unidadesLookup.data?.[id]?.nome || id
   }, [unidadesLookup.data])
   
   const formatarDataHora = (dataHora: string) => {
@@ -849,7 +853,7 @@ export function RegistroAlteracoes({
                         </p>
 
                         {/* Dados específicos da alteração contratual */}
-                        {renderDetalhesAlteracao(entrada)}
+                        {renderDetalhesAlteracao(entrada, getEmpresaNome, getUnidadeNome)}
 
                         {/* Tags */}
                         {entrada.tags && entrada.tags.length > 0 && (

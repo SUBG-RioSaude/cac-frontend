@@ -43,8 +43,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const unidadesIds = [
     contrato.unidadeDemandante, 
     contrato.unidadeGestora,
-    ...(contrato.unidadesVinculadas?.map(u => u.unidadeId) || [])
-  ].filter(Boolean)
+    ...(contrato.unidadesVinculadas?.map(u => u.unidadeSaudeId) || [])
+  ].filter((id): id is string => Boolean(id))
 
   // Buscar dados completos das unidades
   const { 
@@ -57,7 +57,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
     if (!unidadeId) return 'Não informado'
     if (unidadesLoading) return 'Carregando...'
-    return unidadesData?.[unidadeId]?.nomeUnidade || unidadeId
+    return unidadesData?.[unidadeId]?.nome || unidadeId
+  }
+
+  // Helper para obter endereco de fornecedor
+  const getEnderecoField = (field: string) => {
+    if (typeof contrato.fornecedor.endereco === 'string') return ''
+    return (contrato.fornecedor.endereco as any)[field] || ''
   }
 
   const formatarMoeda = (valor: number) => {
@@ -505,7 +511,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {empresaError && (
+                    {!!empresaError && (
                       <Alert variant="destructive">
                         <AlertTriangle className="h-4 w-4" />
                         <AlertDescription>
@@ -694,7 +700,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <div>
                           <p className="text-muted-foreground text-sm">CEP</p>
                           <p className="font-semibold">
-                            {formatarCEP(empresaData?.endereco?.cep || contrato.fornecedor.endereco.cep)}
+                            {formatarCEP((empresaData?.endereco as any)?.cep || getEnderecoField('cep'))}
                           </p>
                         </div>
                         <div className="sm:col-span-2">
@@ -702,36 +708,36 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Logradouro
                           </p>
                           <p className="font-semibold">
-                            {empresaData?.endereco?.logradouro || contrato.fornecedor.endereco.logradouro}
-                            {(empresaData?.endereco?.numero || contrato.fornecedor.endereco.numero) &&
-                              `, ${empresaData?.endereco?.numero || contrato.fornecedor.endereco.numero}`}
+                            {(empresaData?.endereco as any)?.logradouro || getEnderecoField('logradouro')}
+                            {((empresaData?.endereco as any)?.numero || getEnderecoField('numero')) &&
+                              `, ${(empresaData?.endereco as any)?.numero || getEnderecoField('numero')}`}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">Bairro</p>
                           <p className="font-semibold">
-                            {empresaData?.endereco?.bairro || contrato.fornecedor.endereco.bairro}
+                            {(empresaData?.endereco as any)?.bairro || getEnderecoField('bairro')}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">Cidade</p>
                           <p className="font-semibold">
-                            {empresaData?.endereco?.cidade || contrato.fornecedor.endereco.cidade}
+                            {(empresaData?.endereco as any)?.cidade || getEnderecoField('cidade')}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">UF</p>
                           <p className="font-semibold">
-                            {empresaData?.endereco?.uf || contrato.fornecedor.endereco.uf}
+                            {(empresaData?.endereco as any)?.uf || getEnderecoField('uf')}
                           </p>
                         </div>
-                        {(empresaData?.endereco?.complemento || contrato.fornecedor.endereco.complemento) && (
+                        {((empresaData?.endereco as any)?.complemento || getEnderecoField('complemento')) && (
                           <div className="sm:col-span-2">
                             <p className="text-muted-foreground text-sm">
                               Complemento
                             </p>
                             <p className="font-semibold">
-                              {empresaData?.endereco?.complemento || contrato.fornecedor.endereco.complemento}
+                              {(empresaData?.endereco as any)?.complemento || getEnderecoField('complemento')}
                             </p>
                           </div>
                         )}
@@ -865,7 +871,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         </div>
                       ) : contrato.unidadesVinculadas && contrato.unidadesVinculadas.length > 0 ? (
                         contrato.unidadesVinculadas.map((unidade, index) => {
-                          const nomeUnidade = getUnidadeNome(unidade.unidadeId)
+                          const nomeUnidade = getUnidadeNome(unidade.unidadeSaudeId)
                           const percentualValor = ((unidade.valorAtribuido / contrato.valorTotal) * 100).toFixed(1)
                           
                           return (

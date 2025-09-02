@@ -91,9 +91,6 @@ export function BlocoFornecedores({
       enabled: !disabled && debouncedBusca.length >= 3,
       keepPreviousData: true,
       refetchOnMount: false,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      staleTime: 5 * 60 * 1000, // 5 minutos - aumentar cache
     }
   )
 
