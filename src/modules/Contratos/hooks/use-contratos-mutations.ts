@@ -5,17 +5,21 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { executeWithFallback } from '@/lib/axios'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
-import type { Contrato } from '@/modules/Contratos/types/contrato'
+import type {
+  Contrato,
+} from '@/modules/Contratos/types/contrato'
+import { criarContrato, calcularPrazoMeses, converterDataParaISO, gerarNumeroContratoUnico } from '@/modules/Contratos/services/contratos-service'
 
 // Tipos para as mutations
 
 export interface CriarContratoData {
   numeroContrato?: string
   processoSei?: string
+  processoRio?: string
+  processoLegado?: string
   categoriaObjeto?: string
   descricaoObjeto?: string
   tipoContratacao?: string
@@ -36,6 +40,8 @@ export interface CriarContratoData {
   unidadesVinculadas?: Array<{
     unidadeSaudeId: string
     valorAtribuido: number
+    vigenciaInicialUnidade: string
+    vigenciaFinalUnidade: string
     observacoes?: string
   }>
   documentos?: Array<{
@@ -55,53 +61,118 @@ interface AtualizarContratoData extends Partial<CriarContratoData> {
   id: string
 }
 
-// Hook para criar contrato
-export function useCreateContrato() {
+/**
+ * Hook para criar contrato
+ */
+export function useCriarContrato() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const { mutation } = useToast()
+  const { success, error: showError } = useToast()
 
   return useMutation({
-    mutationFn: async (data: CriarContratoData): Promise<Contrato> => {
-      const response = await executeWithFallback<Contrato>({
-        method: 'post',
-        url: '/Contratos',
-        data
+    mutationFn: async (payload: CriarContratoData) => {
+      // Debug: verificar payload original
+      console.log('🔍 [DEBUG] Payload original recebido:', payload)
+      console.log('🔍 [DEBUG] Campos do payload original:', Object.keys(payload))
+      
+      // Preparar dados para API
+      const payloadAPI = {
+        // Campos obrigatórios
+        numeroContrato: payload.numeroContrato || gerarNumeroContratoUnico(),
+        categoriaObjeto: payload.categoriaObjeto || '',
+        descricaoObjeto: payload.descricaoObjeto || '',
+        tipoContratacao: payload.tipoContratacao || '',
+        tipoContrato: payload.tipoContrato || '',
+        unidadeDemandanteId: payload.unidadeDemandanteId || '',
+        unidadeGestoraId: payload.unidadeGestoraId || '',
+        contratacao: payload.contratacao || '',
+        vigenciaInicial: converterDataParaISO(payload.vigenciaInicial),
+        vigenciaFinal: converterDataParaISO(payload.vigenciaFinal),
+        prazoInicialMeses: calcularPrazoMeses(payload.vigenciaInicial, payload.vigenciaFinal),
+        valorGlobal: typeof payload.valorGlobal === 'string' 
+          ? parseFloat((payload.valorGlobal as string).replace(/[^\d,]/g, '').replace(',', '.'))
+          : payload.valorGlobal,
+        formaPagamento: payload.formaPagamento || '',
+        tipoTermoReferencia: payload.tipoTermoReferencia || '',
+        termoReferencia: payload.termoReferencia || '',
+        vinculacaoPCA: payload.vinculacaoPCA || '',
+        empresaId: payload.empresaId,
+        ativo: payload.ativo ?? true,
+        // Campos opcionais
+        processoSei: payload.processoSei,
+        processoRio: payload.processoRio,
+        processoLegado: payload.processoLegado,
+        // Converter funcionários para formato da API
+        funcionarios: (payload.funcionarios || []).map(func => ({
+          funcionarioId: func.funcionarioId,
+          tipoGerencia: func.tipoGerencia,
+          observacoes: func.observacoes
+        })),
+        // Converter unidades vinculadas
+        unidadesVinculadas: (payload.unidadesVinculadas || []).map(unidade => ({
+          unidadeSaudeId: unidade.unidadeSaudeId,
+          valorAtribuido: typeof unidade.valorAtribuido === 'string'
+            ? parseFloat((unidade.valorAtribuido as string).replace(/[^\d,]/g, '').replace(',', '.'))
+            : unidade.valorAtribuido,
+          vigenciaInicialUnidade: converterDataParaISO(unidade.vigenciaInicialUnidade),
+          vigenciaFinalUnidade: converterDataParaISO(unidade.vigenciaFinalUnidade),
+          observacoes: unidade.observacoes
+        }))
+      }
+
+      console.log('📦 [HOOK] Payload preparado para API:', payloadAPI)
+      console.log('🔍 [HOOK] Detalhes do payload:', {
+        numeroContrato: payloadAPI.numeroContrato,
+        empresaId: payloadAPI.empresaId,
+        unidadeDemandanteId: payloadAPI.unidadeDemandanteId,
+        unidadeGestoraId: payloadAPI.unidadeGestoraId,
+        vigenciaInicial: payloadAPI.vigenciaInicial,
+        vigenciaFinal: payloadAPI.vigenciaFinal,
+        valorGlobal: payloadAPI.valorGlobal,
+        unidadesVinculadas: payloadAPI.unidadesVinculadas?.length || 0,
+        funcionarios: payloadAPI.funcionarios?.length || 0
       })
-      return response.data
+      
+      // Debug específico para IDs das unidades
+      console.log('🏢 [DEBUG] IDs das unidades no payload final:', {
+        unidadeDemandanteId: payloadAPI.unidadeDemandanteId,
+        unidadeGestoraId: payloadAPI.unidadeGestoraId,
+        tipoUnidadeDemandanteId: typeof payloadAPI.unidadeDemandanteId,
+        tipoUnidadeGestoraId: typeof payloadAPI.unidadeGestoraId,
+        valorOriginalUnidadeDemandanteId: payload.unidadeDemandanteId,
+        valorOriginalUnidadeGestoraId: payload.unidadeGestoraId
+      })
+      return await criarContrato(payloadAPI)
     },
-
-    onMutate: async () => {
-      // Toast de loading
-      const loadingToast = mutation.loading('Criando contrato')
-      return { loadingToast }
-    },
-
-    onSuccess: (data, _variables, context) => {
-      // Dismiss loading toast
-      if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
-      }
-
-      // Toast de sucesso
-      mutation.success('Contrato criado', data.id)
-
-      // Invalidar caches relevantes
-      queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
+    onSuccess: (data) => {
+      console.log('✅ [HOOK] Contrato criado com sucesso:', data)
+      
+      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: contratoKeys.all })
-
-      // Redirecionar para a página do contrato criado
-      navigate(`/contratos/${data.id}`)
+      queryClient.invalidateQueries({ queryKey: contratoKeys.list() })
+      
+      // Mostrar mensagem de sucesso
+      success('Contrato criado com sucesso!')
+      
+      // Redirecionar para a lista de contratos
+      navigate('/contratos')
     },
-
-    onError: (error, _variables, context) => {
-      // Dismiss loading toast
-      if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+    onError: (error: Error & { response?: { data?: { message?: string }; status?: number }; status?: number }) => {
+      console.error('❌ [HOOK] Erro ao criar contrato:', error)
+      
+      // Extrair mensagem específica do erro
+      let errorMessage = 'Erro ao criar contrato. Tente novamente.'
+      
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error?.response?.status === 409) {
+        errorMessage = 'Já existe um contrato com este número ou dados duplicados. Verifique os dados e tente novamente.'
       }
-
-      // Toast de erro com handling automático
-      mutation.error('criar contrato', error)
+      
+      // Mostrar mensagem de erro específica
+      showError(errorMessage)
     }
   })
 }
@@ -145,6 +216,7 @@ export function useUpdateContrato() {
       // Dismiss loading toast - loadingToast is now just the toast ID
       if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
+        
       }
 
       // Toast de sucesso

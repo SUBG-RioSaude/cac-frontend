@@ -55,6 +55,13 @@ export default function ResetPasswordForm() {
       return
     }
 
+    // Verifica se veio do fluxo de recuperação
+    const contexto = sessionStorage.getItem('auth_context')
+    if (contexto !== 'password_reset' && contexto !== 'password_recovery') {
+      navigate("/login")
+      return
+    }
+
     // Obtém email da sessão
     const emailArmazenado = sessionStorage.getItem("auth_email")
     if (emailArmazenado) {
@@ -83,6 +90,10 @@ export default function ResetPasswordForm() {
     
     if (sucesso) {
       setSucesso("Senha alterada com sucesso!")
+      
+      // Limpar contexto de recuperação
+      sessionStorage.removeItem('auth_context')
+      sessionStorage.removeItem('tokenTrocaSenha')
       
       // Redireciona para login após 2 segundos
       setTimeout(() => {
@@ -390,12 +401,7 @@ export default function ResetPasswordForm() {
                               exit={{ opacity: 0 }}
                               className="flex items-center"
                             >
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                              >
-                                <Loader2 className="mr-2 h-4 w-4" />
-                              </motion.div>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Alterando Senha...
                             </motion.div>
                           ) : (

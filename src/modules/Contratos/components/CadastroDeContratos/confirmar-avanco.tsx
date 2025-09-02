@@ -26,13 +26,19 @@ export default function ConfirmarAvancoModal({
     // Previne scroll da página quando modal estiver aberto
     if (aberto) {
       document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
     } else {
       document.body.style.overflow = 'unset'
+      document.body.style.position = ''
+      document.body.style.width = ''
     }
 
     // Cleanup
     return () => {
       document.body.style.overflow = 'unset'
+      document.body.style.position = ''
+      document.body.style.width = ''
     }
   }, [aberto])
 
@@ -41,7 +47,7 @@ export default function ConfirmarAvancoModal({
   const isFinalizacao = textoConfirmar.toLowerCase().includes('finalizar')
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-[9999] h-screen flex items-center justify-center p-4 md:p-8">
       {/* Overlay com blur */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -49,23 +55,23 @@ export default function ConfirmarAvancoModal({
       />
       
       {/* Modal */}
-      <div className="absolute top-1/2 left-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-gray-200 bg-white shadow-xl">
+      <div className="relative w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
         {/* Header */}
-        <div className="border-b border-gray-100 px-6 py-4">
-          <div className="flex items-center space-x-3">
+        <div className="border-b border-gray-100 px-8 py-6">
+          <div className="flex items-center space-x-4">
             <div
               className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-lg',
+                'flex h-12 w-12 items-center justify-center rounded-lg',
                 isFinalizacao
                   ? 'bg-green-100 text-green-600'
                   : 'bg-slate-100 text-slate-600',
               )}
             >
-              <CheckCircle className="h-5 w-5" />
+              <CheckCircle className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{titulo}</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-xl font-semibold text-gray-900">{titulo}</h2>
+              <p className="text-base text-gray-500">
                 {isFinalizacao
                   ? 'Confirme para finalizar o cadastro'
                   : 'Confirme para prosseguir'}
@@ -75,15 +81,15 @@ export default function ConfirmarAvancoModal({
         </div>
 
         {/* Content */}
-        <div className="space-y-4 px-6 py-5">
-          <p className="text-sm leading-relaxed text-gray-700">{descricao}</p>
+        <div className="space-y-6 px-8 py-6">
+          <p className="text-base leading-relaxed text-gray-700">{descricao}</p>
 
           {/* Aviso de atenção */}
-          <div className="flex items-start space-x-3 rounded-md border border-amber-200 bg-amber-50 p-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+          <div className="flex items-start space-x-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
             <div>
-              <p className="text-sm font-medium text-amber-800">Atenção</p>
-              <p className="text-xs text-amber-700">
+              <p className="text-base font-medium text-amber-800">Atenção</p>
+              <p className="text-sm text-amber-700">
                 {isFinalizacao
                   ? 'Os dados serão salvos permanentemente.'
                   : 'Não será possível retornar à etapa anterior.'}
@@ -93,11 +99,11 @@ export default function ConfirmarAvancoModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end space-x-3 border-t border-gray-100 px-6 py-4">
+        <div className="flex justify-end space-x-4 border-t border-gray-100 px-8 py-6">
           <Button
             variant="outline"
             onClick={onCancelar}
-            className="px-4 py-2 text-sm font-medium"
+            className="px-6 py-3 text-base font-medium"
           >
             {textoCancelar}
           </Button>
@@ -108,7 +114,7 @@ export default function ConfirmarAvancoModal({
               onConfirmar()
             }}
             className={cn(
-              'px-4 py-2 text-sm font-medium',
+              'px-6 py-3 text-base font-medium',
               isFinalizacao
                 ? 'bg-green-600 hover:bg-green-700'
                 : 'bg-slate-700 hover:bg-slate-600',

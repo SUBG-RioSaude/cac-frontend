@@ -16,7 +16,6 @@ import { useAuthStore } from "@/lib/auth/auth-store"
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
   const [sucesso, setSucesso] = useState("")
-  const [emailEnviado, setEmailEnviado] = useState(false)
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
 
@@ -56,21 +55,14 @@ export default function ForgotPasswordForm() {
     const sucesso = await esqueciSenha(email)
     
     if (sucesso) {
-      setSucesso("Instruções de recuperação enviadas para seu e-mail!")
-      setEmailEnviado(true)
+      // Armazenar contexto de recuperação para diferenciá-lo do login 2FA
+      sessionStorage.setItem('auth_context', 'password_recovery')
+      
+      // Redirecionar imediatamente para a tela de verificação
+      navigate("/auth/verificar-codigo", { replace: true })
     }
   }
 
-  const handleResendEmail = async () => {
-    limparErro()
-
-    // Reenvia e-mail
-    const sucesso = await esqueciSenha(email)
-    
-    if (sucesso) {
-      setSucesso("E-mail reenviado com sucesso!")
-    }
-  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -168,42 +160,20 @@ export default function ForgotPasswordForm() {
           >
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="text-center pb-4">
-                <AnimatePresence mode="wait">
-                  {!emailEnviado ? (
-                    <motion.div key="forgot">
-                      <motion.div
-                        className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4"
-                        animate="pulse"
-                      >
-                        <Mail className="w-8 h-8 text-blue-600" />
-                      </motion.div>
-                      <motion.h1 className="text-2xl font-bold text-gray-900">
-                        Esqueceu sua senha?
-                      </motion.h1>
-                      <motion.p className="text-gray-600 text-sm">
-                        Digite seu e-mail e enviaremos instruções
-                        <br />
-                        para redefinir sua senha
-                      </motion.p>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="success" initial="hidden" animate="visible">
-                      <motion.div
-                        className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 0.5, repeat: 2 }}
-                      >
-                        <Check className="w-8 h-8 text-green-600" />
-                      </motion.div>
-                      <motion.h1 className="text-2xl font-bold text-gray-900">E-mail Enviado!</motion.h1>
-                      <motion.p className="text-gray-600 text-sm">
-                        Verifique sua caixa de entrada em
-                        <br />
-                        <span className="font-medium text-gray-900">{email}</span>
-                      </motion.p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <motion.div
+                  className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4"
+                  animate="pulse"
+                >
+                  <Mail className="w-8 h-8 text-blue-600" />
+                </motion.div>
+                <motion.h1 className="text-2xl font-bold text-gray-900">
+                  Esqueceu sua senha?
+                </motion.h1>
+                <motion.p className="text-gray-600 text-sm">
+                  Digite seu e-mail e enviaremos instruções
+                  <br />
+                  para redefinir sua senha
+                </motion.p>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -240,16 +210,10 @@ export default function ForgotPasswordForm() {
                   )}
                 </AnimatePresence>
 
-                <AnimatePresence mode="wait">
-                  {!emailEnviado ? (
-                    <motion.form
-                      key="form"
-                      onSubmit={handleSubmit}
-                      className="space-y-4"
-                      initial="hidden"
-                      animate="visible"
-                      exit="hidden"
-                    >
+                <motion.form
+                  onSubmit={handleSubmit}
+                  className="space-y-4"
+                >
                       <motion.div className="space-y-2">
                         <Label htmlFor="email">E-mail</Label>
                         <motion.div
@@ -290,12 +254,7 @@ export default function ForgotPasswordForm() {
                                   exit={{ opacity: 0 }}
                                   className="flex items-center"
                                 >
-                                  <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                                  >
-                                    <Loader2 className="mr-2 h-4 w-4" />
-                                  </motion.div>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                   Enviando...
                                 </motion.div>
                               ) : (
@@ -322,54 +281,7 @@ export default function ForgotPasswordForm() {
                           </Button>
                         </motion.div>
                       </motion.div>
-                    </motion.form>
-                  ) : (
-                    <motion.div
-                      key="success-actions"
-                      className="space-y-4"
-                      initial="hidden"
-                      animate="visible"
-                      exit="hidden"
-                    >
-                      <motion.div className="text-center space-y-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex items-start space-x-3">
-                            <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
-                            <div className="text-left">
-                              <p className="text-sm font-medium text-blue-900">Verifique sua caixa de entrada</p>
-                              <p className="text-xs text-blue-700 mt-1">
-                                Se não encontrar o e-mail, verifique também a pasta de spam ou lixo eletrônico.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-gray-600">Não recebeu o e-mail?</p>
-
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <Button
-                            variant="outline"
-                            onClick={handleResendEmail}
-                            disabled={carregando}
-                            className="w-full bg-transparent hover:bg-gray-50 transition-all duration-200"
-                          >
-                            {carregando ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Reenviando...
-                              </>
-                            ) : (
-                              <>
-                                <Send className="mr-2 h-4 w-4" />
-                                Reenviar E-mail
-                              </>
-                            )}
-                          </Button>
-                        </motion.div>
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                </motion.form>
 
                 <motion.div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

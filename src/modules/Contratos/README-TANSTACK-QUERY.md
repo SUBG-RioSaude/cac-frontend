@@ -34,7 +34,7 @@ Componentes         (consomem os hooks)
 - `useContratosVencidos(options)` - Contratos vencidos
 
 #### Mutations (Modificação de dados)
-- `useCreateContrato()` - Criar novo contrato
+- `useCriarContrato()` - Criar novo contrato
 - `useUpdateContrato()` - Atualizar contrato existente
 - `useDeleteContrato()` - Deletar contrato (soft delete)
 - `useSuspendContrato()` - Suspender contrato
@@ -101,7 +101,7 @@ Todos os hooks retornam estados de loading, error e data:
 
 ```typescript
 const { data, isLoading, error, isFetching, refetch } = useContratos(filtros)
-const { mutate, isPending, isError } = useCreateContrato()
+const { mutate, isPending, isError } = useCriarContrato()
 ```
 
 ## 📁 Estrutura de Arquivos
@@ -148,7 +148,7 @@ function ContratosPage() {
 ### Exemplo 2: Criar Contrato
 ```typescript
 function CreateContratoForm() {
-  const createMutation = useCreateContrato()
+  const createMutation = useCriarContrato()
   
   const handleSubmit = (formData) => {
     // Toast, loading, error handling e redirecionamento são automáticos

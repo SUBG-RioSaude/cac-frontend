@@ -39,10 +39,18 @@ export type StatusDocumento =
 export interface ContratoUnidadeSaudeDto {
   id: string
   contratoId: string
-  unidadeId: string
-  nomeUnidade: string
+  unidadeSaudeId: string // Corrigido: API retorna unidadeSaudeId, não unidadeId
+  nomeUnidade?: string // Opcional: pode não vir da API
   valorAtribuido: number
+  percentualValor?: number
+  vigenciaInicialUnidade?: string
+  vigenciaFinalUnidade?: string
+  observacoes?: string
   ativo: boolean
+  dataCadastro?: string
+  dataAtualizacao?: string
+  usuarioCadastroId?: string
+  usuarioAtualizacaoId?: string
 }
 
 // ========== TIPOS DA API DE DOCUMENTOS ==========
@@ -180,6 +188,10 @@ export interface Contrato {
   vinculacaoPCA?: string | null
   status?: string | null
   empresaId: string
+  // Novos campos da API
+  empresaRazaoSocial?: string | null
+  empresaCnpj?: string | null
+  unidadeGestoraNomeCompleto?: string | null
   // Added for compatibility
   contratada?: {
     razaoSocial: string
@@ -513,3 +525,122 @@ export const TIPOS_DOCUMENTO: TipoDocumento[] = [
     descricaoDetalhada: 'Documentos diversos relacionados ao contrato'
   }
 ]
+
+// ========== TIPOS PARA EMPENHOS ==========
+
+// Interface para empenho
+export interface Empenho {
+  id: string
+  contratoId: string
+  unidadeSaudeId: string
+  nomeUnidade: string
+  numeroEmpenho: string
+  valor: number
+  dataEmpenho: string
+  observacao?: string
+  ativo: boolean
+  dataCadastro: string
+  dataAtualizacao: string
+}
+
+// Interface para criação de empenho via API
+export interface CriarEmpenhoPayload {
+  contratoId: string
+  unidadeSaudeId: string
+  numeroEmpenho: string
+  valor: number
+  dataEmpenho: string
+  observacao?: string
+}
+
+// Interface para atualização de empenho via API
+export interface AtualizarEmpenhoPayload {
+  valor: number
+  dataEmpenho: string
+  observacao?: string
+}
+
+// Interface para formulário de empenho
+export interface EmpenhoForm {
+  id?: string
+  unidadeSaudeId: string
+  numeroEmpenho: string
+  valor: number | string
+  dataEmpenho: string
+  observacao: string
+}
+
+// Interface para validação de empenho
+export interface ValidacaoEmpenho {
+  numeroEmpenho: {
+    valido: boolean
+    erro?: string
+  }
+  valor: {
+    valido: boolean
+    erro?: string
+  }
+  limite: {
+    valido: boolean
+    erro?: string
+  }
+  dataEmpenho: {
+    valido: boolean
+    erro?: string
+  }
+  numeroUnico: {
+    valido: boolean
+    erro?: string
+  }
+}
+
+// ========== TIPOS PARA CRIAÇÃO DE CONTRATOS ==========
+
+// Interface para criação de contrato via API
+export interface CriarContratoPayload {
+  numeroContrato: string
+  processoSei?: string
+  processoRio?: string
+  processoLegado?: string
+  categoriaObjeto: string
+  descricaoObjeto: string
+  tipoContratacao: string
+  tipoContrato: string
+  unidadeDemandanteId: string
+  unidadeGestoraId: string
+  contratacao: string
+  vigenciaInicial: string // ISO date-time
+  vigenciaFinal: string // ISO date-time
+  prazoInicialMeses: number
+  valorGlobal: number
+  formaPagamento: string
+  tipoTermoReferencia: string
+  termoReferencia: string
+  vinculacaoPCA: string
+  empresaId: string
+  ativo: boolean
+  unidadesVinculadas: UnidadeVinculadaPayload[]
+  funcionarios: FuncionarioContratoPayload[]
+}
+
+// Interface para unidades vinculadas ao contrato
+export interface UnidadeVinculadaPayload {
+  unidadeSaudeId: string
+  valorAtribuido: number
+  vigenciaInicialUnidade: string // ISO date-time
+  vigenciaFinalUnidade: string // ISO date-time
+  observacoes?: string
+}
+
+// Interface para funcionários do contrato
+export interface FuncionarioContratoPayload {
+  funcionarioId: string
+  tipoGerencia: typeof TipoGerencia[keyof typeof TipoGerencia] // 1=Fiscal, 2=Gestor
+  observacoes?: string
+}
+
+// Enum para tipo de gerência
+export const TipoGerencia = {
+  FISCAL: 1,
+  GESTOR: 2
+} as const

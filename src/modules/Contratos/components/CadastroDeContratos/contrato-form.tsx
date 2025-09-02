@@ -11,6 +11,9 @@ import {
   X,
   ChevronsUpDown,
   Loader2,
+  Plus,
+  Trash2,
+  DollarSign,
 } from 'lucide-react'
 import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
 import { Input } from '@/components/ui/input'
@@ -37,7 +40,7 @@ import {
 } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { Separator } from '@/components/ui/separator'
 import {
   Form,
@@ -58,12 +61,8 @@ import { toast } from 'sonner'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {
-  const regex = /^CONT-\d{4}-\d{4}$/
-  if (!regex.test(numero)) return false
-
-  const [, ano] = numero.split('-')
-  const anoAtual = new Date().getFullYear()
-  return parseInt(ano) <= anoAtual
+  // Agora aceita apenas números
+  return /^\d+$/.test(numero) && numero.length > 0
 }
 
 const validarData = (data: string) => {
@@ -91,9 +90,26 @@ const validarPCA = (pca: string) => {
 }
 
 
+
+
+// Interfaces para etapas de pagamento
+export interface EtapaPagamento {
+  id: string
+  numero: number
+  dataInicio: string
+  dataFim: string
+  valor: string
+}
+
+// Interfaces para processos
+export interface ProcessoSelecionado {
+  tipo: 'sei' | 'rio' | 'fisico'
+  valor: string
+}
+
 export interface DadosContrato {
   numeroContrato: string
-  processoSei: string
+  processos: ProcessoSelecionado[]
   categoriaObjeto: string
   descricaoObjeto: string
   tipoContratacao: 'Licitacao' | 'Pregao' | 'Dispensa' | 'Inexigibilidade'
@@ -110,10 +126,11 @@ export interface DadosContrato {
   valorGlobal: string
   formaPagamento: 'Mensal' | 'Etapas' | 'Outro'
   formaPagamentoComplemento?: string
+  quantidadeEtapas?: number
+  etapasPagamento?: EtapaPagamento[]
   tipoTermoReferencia: 'processo_rio' | 'google_drive' | 'texto_livre'
   termoReferencia: string
   vinculacaoPCA: string
-  ativo: boolean
 }
 
 const schemaContrato = z.object({
@@ -122,23 +139,20 @@ const schemaContrato = z.object({
     .min(1, 'Número do contrato é obrigatório')
     .refine(
       validarNumeroContrato,
-      'Formato inválido. Use: CONT-ANO-NUMERO (ex: CONT-2024-0003)',
+      'Número do contrato deve conter apenas números',
     ),
-  processoSei: z.string().min(1, 'Processo SEI é obrigatório'),
+  processos: z
+    .array(
+      z.object({
+        tipo: z.enum(['sei', 'rio', 'fisico']),
+        valor: z.string().min(1, 'Valor do processo é obrigatório'),
+      })
+    )
+    .min(1, 'Pelo menos um processo deve ser informado'),
   categoriaObjeto: z.string().min(1, 'Categoria do objeto é obrigatória'),
   descricaoObjeto: z.string().min(1, 'Descrição do objeto é obrigatória'),
-  tipoContratacao: z.enum([
-    'Licitacao',
-    'Pregao',
-    'Dispensa',
-    'Inexigibilidade',
-  ]),
-  tipoContrato: z.enum([
-    'Compra',
-    'Prestacao_Servico',
-    'Fornecimento',
-    'Manutencao',
-  ]),
+  tipoContratacao: z.enum(['Licitacao', 'Pregao', 'Dispensa', 'Inexigibilidade']),
+  tipoContrato: z.enum(['Compra', 'Prestacao_Servico', 'Fornecimento', 'Manutencao']),
   unidadeDemandante: z.string().min(1, 'Unidade demandante é obrigatória'),
   unidadeGestora: z.string().min(1, 'Unidade gestora é obrigatória'),
   unidadeDemandanteId: z.string().optional(),
@@ -157,7 +171,7 @@ const schemaContrato = z.object({
     .number()
     .min(0, 'Dias deve ser pelo menos 0')
     .max(30, 'Dias máximo de 30'),
-    valorGlobal: z
+  valorGlobal: z
     .string()
     .min(1, 'Valor do contrato é obrigatório')
     .refine(currencyUtils.validar, 'Valor deve ser maior que zero')
@@ -169,13 +183,24 @@ const schemaContrato = z.object({
     }, 'Valor mínimo é R$ 100,00'),
   formaPagamento: z.enum(['Mensal', 'Etapas', 'Outro']),
   formaPagamentoComplemento: z.string().optional(),
+  quantidadeEtapas: z.number().min(1).max(10).optional(),
+  etapasPagamento: z
+    .array(
+      z.object({
+        id: z.string(),
+        numero: z.number(),
+        dataInicio: z.string().min(1, 'Data de início é obrigatória'),
+        dataFim: z.string().min(1, 'Data de fim é obrigatória'),
+        valor: z.string().min(1, 'Valor da etapa é obrigatório'),
+      })
+    )
+    .optional(),
   tipoTermoReferencia: z.enum(['processo_rio', 'google_drive', 'texto_livre']),
   termoReferencia: z.string().min(1, 'Termo de referência é obrigatório'),
   vinculacaoPCA: z
     .string()
     .min(1, 'Vinculação a PCA é obrigatória')
     .refine(validarPCA, 'Apenas números são permitidos'),
-  ativo: z.boolean(),
 }).refine((data) => {
   return data.prazoInicialMeses > 0 || data.prazoInicialDias > 0
 }, {
@@ -192,7 +217,7 @@ const schemaContrato = z.object({
   message: 'Dias não podem exceder 30 quando há meses definidos',
   path: ['prazoInicialDias']
 }).refine((data) => {
-  // Validação: vigência final deve ser posterior à vigência inicial
+  // Validação de vigência final posterior à vigência inicial
   if (data.vigenciaInicial && data.vigenciaFinal) {
     const dataInicial = new Date(data.vigenciaInicial)
     const dataFinal = new Date(data.vigenciaFinal)
@@ -203,14 +228,26 @@ const schemaContrato = z.object({
   message: 'A vigência final deve ser posterior à vigência inicial',
   path: ['vigenciaFinal']
 }).refine((data) => {
-  // Validação: se forma de pagamento é "Outro", o complemento é obrigatório
-  if (data.formaPagamento === 'Outro') {
-    return data.formaPagamentoComplemento && data.formaPagamentoComplemento.trim().length > 0
+  // Validação de campos obrigatórios
+  if (!data.tipoContratacao) {
+    return false
+  }
+  if (!data.tipoContrato) {
+    return false
+  }
+  if (!data.contratacao) {
+    return false
+  }
+  if (!data.formaPagamento) {
+    return false
+  }
+  if (!data.tipoTermoReferencia) {
+    return false
   }
   return true
 }, {
-  message: 'Detalhamento da forma de pagamento é obrigatório quando "Outro" é selecionado',
-  path: ['formaPagamentoComplemento']
+  message: 'Todos os campos são obrigatórios',
+  path: ['tipoContratacao']
 })
 
 type FormDataContrato = z.infer<typeof schemaContrato>
@@ -246,10 +283,13 @@ export default function ContratoForm({
   >('processo_rio')
   const [processoInstrutivo, setProcessoInstrutivo] =
     useState<ProcessoInstrutivo | null>(null)
-  const [openProcesso, setOpenProcesso] = useState(false)
-  const [processoSelecionado, setProcessoSelecionado] = useState('')
+
   const [pesquisaProcesso, setPesquisaProcesso] = useState('')
+  const [openProcesso, setOpenProcesso] = useState(false)
   const [vigenciaFinalEditadaManualmente, setVigenciaFinalEditadaManualmente] = useState(false)
+  const [processosSelecionados, setProcessosSelecionados] = useState<ProcessoSelecionado[]>([])
+  const [etapasPagamento, setEtapasPagamento] = useState<EtapaPagamento[]>([])
+  const [quantidadeEtapas, setQuantidadeEtapas] = useState<number>(0)
 
   // Carregar dados do processo instrutivo
   useEffect(() => {
@@ -284,25 +324,26 @@ export default function ContratoForm({
     resolver: zodResolver(schemaContrato),
     defaultValues: {
       numeroContrato: '',
-      processoSei: '',
+      processos: [],
       categoriaObjeto: '',
       descricaoObjeto: '',
-      tipoContratacao: 'Licitacao',
-      tipoContrato: 'Compra',
+      tipoContratacao: undefined,
+      tipoContrato: undefined,
       unidadeDemandante: '',
       unidadeGestora: '',
-      contratacao: 'Centralizada',
+      contratacao: undefined,
       vigenciaInicial: '',
       vigenciaFinal: '',
       prazoInicialMeses: 12,
       prazoInicialDias: 0,
       valorGlobal: '',
-             formaPagamento: 'Mensal' as const,
-       formaPagamentoComplemento: '',
+      formaPagamento: undefined,
+      formaPagamentoComplemento: '',
+      quantidadeEtapas: 0,
+      etapasPagamento: [],
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: '',
       vinculacaoPCA: '',
-      ativo: true,
       ...dadosIniciais,
     },
   })
@@ -312,40 +353,67 @@ export default function ContratoForm({
   const previousDataRef = useRef<string | null>(null)
   const previousValorRef = useRef<string | null>(null)
 
+  // Watch específico para os campos de ID das unidades
+  const watchedUnidadeDemandanteId = form.watch('unidadeDemandanteId')
+  const watchedUnidadeGestoraId = form.watch('unidadeGestoraId')
+
+  // Callback memoizado para onDataChange
+  const handleDataChange = useCallback((dados: DadosContrato) => {
+    if (onDataChange) {
+      try {
+        onDataChange(dados)
+      } catch (error) {
+        console.error('❌ [DEBUG] Erro ao chamar onDataChange:', error)
+      }
+    }
+  }, [onDataChange])
+
+  // Callback memoizado para onValorContratoChange
+  const handleValorContratoChange = useCallback((valor: number) => {
+    if (onValorContratoChange) {
+      try {
+        onValorContratoChange(valor)
+      } catch (error) {
+        console.error('❌ [DEBUG] Erro ao chamar onValorContratoChange:', error)
+      }
+    }
+  }, [onValorContratoChange])
+
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {
     if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
       form.reset({
         numeroContrato: dadosIniciais?.numeroContrato || '',
-        processoSei: dadosIniciais?.processoSei || '',
+        processos: dadosIniciais?.processos || [],
         categoriaObjeto: dadosIniciais?.categoriaObjeto || '',
         descricaoObjeto: dadosIniciais?.descricaoObjeto || '',
-        tipoContratacao: dadosIniciais?.tipoContratacao || 'Licitacao',
-        tipoContrato: dadosIniciais?.tipoContrato || 'Compra',
+        tipoContratacao: dadosIniciais?.tipoContratacao || undefined,
+        tipoContrato: dadosIniciais?.tipoContrato || undefined,
         unidadeDemandante: dadosIniciais?.unidadeDemandante || '',
         unidadeGestora: dadosIniciais?.unidadeGestora || '',
-        contratacao: dadosIniciais?.contratacao || 'Centralizada',
+        unidadeDemandanteId: dadosIniciais?.unidadeDemandanteId || '',
+        unidadeGestoraId: dadosIniciais?.unidadeGestoraId || '',
+        contratacao: dadosIniciais?.contratacao || undefined,
         vigenciaInicial: dadosIniciais?.vigenciaInicial || '',
         vigenciaFinal: dadosIniciais?.vigenciaFinal || '',
         prazoInicialMeses: dadosIniciais?.prazoInicialMeses || 12,
         prazoInicialDias: dadosIniciais?.prazoInicialDias || 0,
         valorGlobal: dadosIniciais?.valorGlobal ? currencyUtils.aplicarMascara(dadosIniciais.valorGlobal) : '',
-        formaPagamento: dadosIniciais?.formaPagamento || 'Mensal',
+        formaPagamento: dadosIniciais?.formaPagamento || undefined,
         formaPagamentoComplemento: dadosIniciais?.formaPagamentoComplemento || '',
         tipoTermoReferencia: dadosIniciais?.tipoTermoReferencia || 'processo_rio',
         termoReferencia: dadosIniciais?.termoReferencia || '',
         vinculacaoPCA: dadosIniciais?.vinculacaoPCA || '',
-        ativo: dadosIniciais?.ativo ?? true,
       })
     }
   }, [dadosIniciais, form])
 
-  // Sincronizar processo selecionado com dados iniciais
+  // Sincronizar processos selecionados com dados iniciais
   useEffect(() => {
-    if (dadosIniciais.processoSei) {
-      setProcessoSelecionado(dadosIniciais.processoSei)
+    if (dadosIniciais.processos && dadosIniciais.processos.length > 0) {
+      setProcessosSelecionados(dadosIniciais.processos)
     }
-  }, [dadosIniciais.processoSei])
+  }, [dadosIniciais.processos])
 
   // Limpar pesquisa quando popover fechar
   useEffect(() => {
@@ -359,49 +427,64 @@ export default function ContratoForm({
     const valorAtual = watchedValues.valorGlobal || ''
     if (valorAtual !== previousValorRef.current && onValorContratoChange) {
       const valorNumerico = currencyUtils.paraNumero(valorAtual)
-      onValorContratoChange(valorNumerico)
+      handleValorContratoChange(valorNumerico)
       previousValorRef.current = valorAtual
     }
-  }, [watchedValues.valorGlobal, onValorContratoChange])
+  }, [watchedValues.valorGlobal, handleValorContratoChange, onValorContratoChange])
 
   useEffect(() => {
     if (onDataChange) {
+      // Usar form.getValues() para obter todos os valores, incluindo os definidos via setValue
+      const todosOsValores = form.getValues()
+      
       const dados = {
-        numeroContrato: watchedValues.numeroContrato || '',
-        processoSei: watchedValues.processoSei || '',
-        categoriaObjeto: watchedValues.categoriaObjeto || '',
-        descricaoObjeto: watchedValues.descricaoObjeto || '',
-        tipoContratacao: watchedValues.tipoContratacao || '',
-        tipoContrato: watchedValues.tipoContrato || '',
-        unidadeDemandante: watchedValues.unidadeDemandante || '',
-        unidadeGestora: watchedValues.unidadeGestora || '',
-        unidadeDemandanteId: '',
-        unidadeGestoraId: '',
-        contratacao: watchedValues.contratacao || 'Centralizada',
-        vigenciaInicial: watchedValues.vigenciaInicial || '',
-        vigenciaFinal: watchedValues.vigenciaFinal || '',
-        prazoInicialMeses: watchedValues.prazoInicialMeses || 0,
-        prazoInicialDias: watchedValues.prazoInicialDias || 0,
-        valorGlobal: watchedValues.valorGlobal || '',
-        formaPagamento: watchedValues.formaPagamento || 'Mensal',
-        formaPagamentoComplemento: watchedValues.formaPagamentoComplemento || '',
+        numeroContrato: todosOsValores.numeroContrato || '',
+        processos: todosOsValores.processos || [],
+        categoriaObjeto: todosOsValores.categoriaObjeto || '',
+        descricaoObjeto: todosOsValores.descricaoObjeto || '',
+        tipoContratacao: todosOsValores.tipoContratacao || '',
+        tipoContrato: todosOsValores.tipoContrato || '',
+        unidadeDemandante: todosOsValores.unidadeDemandante || '',
+        unidadeGestora: todosOsValores.unidadeGestora || '',
+        unidadeDemandanteId: watchedUnidadeDemandanteId || todosOsValores.unidadeDemandanteId,
+        unidadeGestoraId: watchedUnidadeGestoraId || todosOsValores.unidadeGestoraId,
+        contratacao: todosOsValores.contratacao || 'Centralizada',
+        vigenciaInicial: todosOsValores.vigenciaInicial || '',
+        vigenciaFinal: todosOsValores.vigenciaFinal || '',
+        prazoInicialMeses: todosOsValores.prazoInicialMeses || 0,
+        prazoInicialDias: todosOsValores.prazoInicialDias || 0,
+        valorGlobal: todosOsValores.valorGlobal || '',
+        formaPagamento: todosOsValores.formaPagamento || 'Mensal',
+        formaPagamentoComplemento: todosOsValores.formaPagamentoComplemento || '',
         tipoTermoReferencia:
-          watchedValues.tipoTermoReferencia || 'processo_rio',
-        termoReferencia: watchedValues.termoReferencia || '',
-        vinculacaoPCA: watchedValues.vinculacaoPCA || '',
-        ativo: watchedValues.ativo || false,
+          todosOsValores.tipoTermoReferencia || 'processo_rio',
+        termoReferencia: todosOsValores.termoReferencia || '',
+        vinculacaoPCA: todosOsValores.vinculacaoPCA || '',
       }
 
       const currentDataString = JSON.stringify(dados)
       if (previousDataRef.current !== currentDataString) {
         previousDataRef.current = currentDataString
-        onDataChange(dados)
+        console.log('🔄 [DEBUG] onDataChange chamado com dados:', dados)
+        handleDataChange(dados)
       }
     }
-  }, [watchedValues, onDataChange])
+  }, [watchedValues, handleDataChange, onDataChange, form, watchedUnidadeDemandanteId, watchedUnidadeGestoraId])
 
   const handleFormSubmit = (dados: FormDataContrato) => {
-    const dadosContrato = dados as DadosContrato
+    // Obter todos os valores do formulário, incluindo os campos definidos via setValue
+    const todosOsValores = form.getValues()
+    
+    // Criar objeto DadosContrato com todos os campos necessários
+    const dadosContrato: DadosContrato = {
+      ...dados,
+      unidadeDemandanteId: watchedUnidadeDemandanteId || todosOsValores.unidadeDemandanteId,
+      unidadeGestoraId: watchedUnidadeGestoraId || todosOsValores.unidadeGestoraId,
+    }
+
+    console.log('📝 [DEBUG] handleFormSubmit - dados do schema:', dados)
+    console.log('📝 [DEBUG] handleFormSubmit - todos os valores:', todosOsValores)
+    console.log('📝 [DEBUG] handleFormSubmit - dadosContrato final:', dadosContrato)
 
     const submitOperation = async () => {
       if (onAdvanceRequest) {
@@ -414,6 +497,9 @@ export default function ContratoForm({
     // Chamada direta para evitar atrasos em ambientes de teste
     void submitOperation()
   }
+
+  // Função helper para mapear dados do formulário para API
+
 
   const calcularVigenciaFinal = (
     vigenciaInicial: string,
@@ -575,22 +661,106 @@ export default function ContratoForm({
     return partes.join(' e ')
   }
 
-  const aplicarMascaraNumeroContrato = (valor: string) => {
-    const apenasNumeros = valor.replace(/\D/g, '')
-    if (apenasNumeros.length <= 4) {
-      return `CONT-${apenasNumeros}`
-    } else if (apenasNumeros.length <= 8) {
-      return `CONT-${apenasNumeros.slice(0, 4)}-${apenasNumeros.slice(4)}`
+  // Funções para gerenciar etapas de pagamento
+  const criarEtapasVazias = (quantidade: number): EtapaPagamento[] => {
+    return Array.from({ length: quantidade }, (_, index) => ({
+      id: `etapa-${Date.now()}-${index}`,
+      numero: index + 1,
+      dataInicio: '',
+      dataFim: '',
+      valor: '',
+    }))
+  }
+
+  const handleQuantidadeEtapasChange = (quantidade: number) => {
+    setQuantidadeEtapas(quantidade)
+    form.setValue('quantidadeEtapas', quantidade)
+    
+    if (quantidade > 0) {
+      const novasEtapas = criarEtapasVazias(quantidade)
+      setEtapasPagamento(novasEtapas)
+      form.setValue('etapasPagamento', novasEtapas)
     } else {
-      return `CONT-${apenasNumeros.slice(0, 4)}-${apenasNumeros.slice(4, 8)}`
+      setEtapasPagamento([])
+      form.setValue('etapasPagamento', [])
+    }
+  }
+
+  const atualizarEtapa = (index: number, campo: keyof EtapaPagamento, valor: string) => {
+    const etapasAtualizadas = [...etapasPagamento]
+    etapasAtualizadas[index] = {
+      ...etapasAtualizadas[index],
+      [campo]: valor,
+    }
+    setEtapasPagamento(etapasAtualizadas)
+    form.setValue('etapasPagamento', etapasAtualizadas)
+  }
+
+  // Funções para gerenciar processos
+  const adicionarProcesso = (tipo: 'sei' | 'rio' | 'fisico') => {
+    // Verificar se já existe um processo do mesmo tipo
+    const jaExiste = processosSelecionados.some(p => p.tipo === tipo)
+    if (jaExiste) {
+      toast.error(`Já existe um processo ${tipo.toUpperCase()} adicionado`)
+      return
+    }
+
+    const novoProcesso: ProcessoSelecionado = { tipo, valor: '' }
+    const novosProcessos = [...processosSelecionados, novoProcesso]
+    setProcessosSelecionados(novosProcessos)
+    form.setValue('processos', novosProcessos)
+  }
+
+  const removerProcesso = (index: number) => {
+    const novosProcessos = processosSelecionados.filter((_, i) => i !== index)
+    setProcessosSelecionados(novosProcessos)
+    form.setValue('processos', novosProcessos)
+  }
+
+  const atualizarProcesso = (index: number, valor: string) => {
+    const processosAtualizados = [...processosSelecionados]
+    processosAtualizados[index] = {
+      ...processosAtualizados[index],
+      valor,
+    }
+    setProcessosSelecionados(processosAtualizados)
+    form.setValue('processos', processosAtualizados)
+  }
+
+  // Funções de máscara para processos
+  const aplicarMascaraSEI = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 6) {
+      return `SEI-${apenasNumeros}`
+    } else if (apenasNumeros.length <= 10) {
+      return `SEI-${apenasNumeros.slice(0, 6)}-${apenasNumeros.slice(6)}`
+    } else {
+      return `SEI-${apenasNumeros.slice(0, 6)}-${apenasNumeros.slice(6, 10)}`
+    }
+  }
+
+  const aplicarMascaraFisico = (valor: string) => {
+    const apenasNumeros = valor.replace(/\D/g, '')
+    if (apenasNumeros.length <= 2) {
+      return `LEG-${apenasNumeros}`
+    } else if (apenasNumeros.length <= 5) {
+      return `LEG-${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2)}`
+    } else if (apenasNumeros.length <= 8) {
+      return `LEG-${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2, 5)}.${apenasNumeros.slice(5)}`
+    } else {
+      return `LEG-${apenasNumeros.slice(0, 2)}/${apenasNumeros.slice(2, 5)}.${apenasNumeros.slice(5, 8)}/${apenasNumeros.slice(8, 12)}`
     }
   }
 
   const preencherDadosTeste = () => {
-    const processoTeste = 'SMS-PRO-2024/001'
+    const processosTesteData: ProcessoSelecionado[] = [
+      { tipo: 'sei', valor: 'SEI-123456-2024' },
+      { tipo: 'rio', valor: 'SMS-PRO-2024/001' }
+    ]
+    
     form.reset({
-      numeroContrato: 'CONT-2024-0001',
-      processoSei: processoTeste,
+      numeroContrato: '20240001',
+      processos: processosTesteData,
       categoriaObjeto: 'prestacao_servico_com_mao_obra',
       descricaoObjeto:
         'Prestação de serviços de limpeza e conservação para unidades de saúde, incluindo fornecimento de materiais e equipamentos necessários.',
@@ -605,12 +775,16 @@ export default function ContratoForm({
       prazoInicialDias: 0,
       valorGlobal: currencyUtils.formatar(1500000),
              formaPagamento: 'Mensal',
+      // COMENTADO PARA PRÓXIMA ENTREGA - quantidadeEtapas: 0,
+      // COMENTADO PARA PRÓXIMA ENTREGA - etapasPagamento: [],
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: 'https://processo.rio/processo/12345',
       vinculacaoPCA: '2024',
-      ativo: true,
     })
-    setProcessoSelecionado(processoTeste)
+    
+    setProcessosSelecionados(processosTesteData)
+    // COMENTADO PARA PRÓXIMA ENTREGA - setQuantidadeEtapas(0)
+    // COMENTADO PARA PRÓXIMA ENTREGA - setEtapasPagamento([])
   }
 
   // Função para filtrar opções baseado na pesquisa
@@ -660,27 +834,7 @@ export default function ContratoForm({
     return filtrarOpcoesProcesso(pesquisaProcesso)
   }, [pesquisaProcesso, filtrarOpcoesProcesso])
 
-  // Memoizar o prefixo-sufixo selecionado para evitar recálculos
-  const prefixoSufixoSelecionado = useMemo(() => {
-    return obterPrefixoSufixo(processoSelecionado)
-  }, [processoSelecionado, obterPrefixoSufixo])
 
-  // Memoizar a função de seleção para evitar recriações
-  const handleSelecaoProcesso = useCallback(
-    (currentValue: string) => {
-      const prefixoSufixo = currentValue
-      const anoNumero = obterAnoNumero(processoSelecionado)
-      const processoCompleto = anoNumero
-        ? `${prefixoSufixo}-${anoNumero}`
-        : prefixoSufixo
-
-      setProcessoSelecionado(processoCompleto)
-      setOpenProcesso(false)
-      setPesquisaProcesso('')
-      return processoCompleto
-    },
-    [processoSelecionado, obterAnoNumero],
-  )
 
   // Função para aplicar máscara no campo ano/numero
   const aplicarMascaraAnoNumero = useCallback((valor: string) => {
@@ -730,30 +884,19 @@ export default function ContratoForm({
                   return (
                     <FormItem>
                       <FormLabel htmlFor="numeroContrato" className="mb-2">
-                        Número do Contrato *
+                        Número do Contrato (CCon)*
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             id="numeroContrato"
-                            placeholder="CONT-2024-0001"
+                            placeholder="Ex: 20240001"
                             {...field}
                             onChange={(e) => {
-                              const valorMascarado =
-                                aplicarMascaraNumeroContrato(e.target.value)
-                              field.onChange(valorMascarado)
+                              // Remove tudo que não é número
+                              const apenasNumeros = e.target.value.replace(/\D/g, '')
+                              field.onChange(apenasNumeros)
 
-                              if (valorMascarado.length >= 13) {
-                                const isValid =
-                                  validarNumeroContrato(valorMascarado)
-                                if (isValid) {
-                                  toast.success('Número do contrato válido!')
-                                } else {
-                                  toast.error(
-                                    'Formato inválido. Use: CONT-ANO-NUMERO',
-                                  )
-                                }
-                              }
                             }}
                             className={cn(
                               isValidNumero === true &&
@@ -780,46 +923,119 @@ export default function ContratoForm({
               />
             </div>
 
-            {/* Container para Processo SEI */}
+            {/* Container para Processos */}
             <div className="space-y-2">
               <FormField
                 control={form.control}
-                name="processoSei"
-                render={({ field }) => (
+                name="processos"
+                render={() => (
                   <FormItem>
-                    <FormLabel htmlFor="processoSei" className="mb-2">
-                      Processo SEI / Processo.rio *
+                    <FormLabel className="mb-2">
+                      Processos *
                     </FormLabel>
-                    <FormControl>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Popover
-                          open={openProcesso}
-                          onOpenChange={setOpenProcesso}
+                    <div className="space-y-3">
+                      {/* Botões para adicionar processos */}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => adicionarProcesso('sei')}
+                          className="text-xs"
                         >
-                          <PopoverTrigger asChild>
-                            <div
-                              id="processoSei"
-                              role="combobox"
-                              aria-expanded={openProcesso}
-                              className="flex w-full cursor-pointer items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
-                              onClick={() => setOpenProcesso(true)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  setOpenProcesso(true)
-                                }
-                              }}
-                              tabIndex={0}
-                              aria-label="Selecionar processo SEI"
-                            >
-                              <span className="text-sm text-gray-900">
-                                {prefixoSufixoSelecionado ||
-                                  'Selecione o processo...'}
+                          <Plus className="h-3 w-3 mr-1" />
+                          Processo SEI
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => adicionarProcesso('rio')}
+                          className="text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Processo RIO
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => adicionarProcesso('fisico')}
+                          className="text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Processo Físico
+                        </Button>
+                      </div>
+
+
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Processos adicionados - Seção separada */}
+          {processosSelecionados.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">
+                <FileText className="h-4 w-4" />
+                Processos Adicionados ({processosSelecionados.length})
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {processosSelecionados.map((processo, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-500 uppercase">
+                        {processo.tipo === 'sei' ? 'Processo SEI' : 
+                         processo.tipo === 'rio' ? 'Processo RIO' : 
+                         'Processo Físico'}
                               </span>
-                              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removerProcesso(index)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                             </div>
+                    
+                    {processo.tipo === 'sei' && (
+                      <div>
+                        <Label className="text-xs font-medium text-gray-600">
+                          Número do Processo SEI *
+                        </Label>
+                        <Input
+                          placeholder="SEI-123456-2024"
+                          value={processo.valor}
+                          onChange={(e) => {
+                            const valorMascarado = aplicarMascaraSEI(e.target.value)
+                            atualizarProcesso(index, valorMascarado)
+                          }}
+                          className="mt-1 text-sm"
+                        />
+                      </div>
+                    )}
+                    
+                    {processo.tipo === 'rio' && (
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs font-medium text-gray-600">
+                            Prefixo/Sufixo *
+                          </Label>
+                          <Popover open={openProcesso} onOpenChange={setOpenProcesso}>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-between text-xs mt-1">
+                                {obterPrefixoSufixo(processo.valor) || 'Selecione o processo...'}
+                                <ChevronsUpDown className="h-3 w-3" />
+                              </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-full p-2" align="start">
+                            <PopoverContent className="w-full p-2">
                             <Command>
                               <CommandInput
                                 placeholder="Buscar processo (ex: SMS, CGM, FOM)..."
@@ -827,26 +1043,26 @@ export default function ContratoForm({
                                 onValueChange={setPesquisaProcesso}
                               />
                               <CommandList>
-                                <CommandEmpty>
-                                  Digite para buscar um processo...
-                                </CommandEmpty>
+                                  <CommandEmpty>Digite para buscar um processo...</CommandEmpty>
                                 <CommandGroup>
                                   {opcoesFiltradas.map((opcao) => (
                                     <CommandItem
                                       key={opcao}
                                       value={opcao}
                                       onSelect={(currentValue) => {
-                                        const processoCompleto =
-                                          handleSelecaoProcesso(currentValue)
-                                        field.onChange(processoCompleto)
+                                          const anoNumero = obterAnoNumero(processo.valor)
+                                          const processoCompleto = anoNumero
+                                            ? `${currentValue}-${anoNumero}`
+                                            : currentValue
+                                          atualizarProcesso(index, processoCompleto)
+                                          setOpenProcesso(false)
+                                          setPesquisaProcesso('')
                                       }}
                                     >
                                       <Check
                                         className={cn(
                                           'mr-2 h-4 w-4',
-                                          obterPrefixoSufixo(
-                                            processoSelecionado,
-                                          ) === opcao
+                                            obterPrefixoSufixo(processo.valor) === opcao
                                             ? 'opacity-100'
                                             : 'opacity-0',
                                         )}
@@ -859,30 +1075,22 @@ export default function ContratoForm({
                             </Command>
                           </PopoverContent>
                         </Popover>
+                        </div>
 
+                        <div>
+                          <Label className="text-xs font-medium text-gray-600">
+                            ANO/NÚMERO *
+                          </Label>
                         <Input
-                          placeholder="ANO/NUMERO"
-                          className={cn(
-                            'w-full',
-                            prefixoSufixoSelecionado
-                              ? 'cursor-text border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-500'
-                              : 'cursor-not-allowed border-gray-300 bg-gray-50 text-gray-600',
-                          )}
-                          value={obterAnoNumero(field.value)}
+                            placeholder="2024/001"
+                            value={obterAnoNumero(processo.valor)}
                           onChange={(e) => {
-                            const prefixoSufixo = obterPrefixoSufixo(
-                              field.value,
-                            )
-                            const valorMascarado = aplicarMascaraAnoNumero(
-                              e.target.value,
-                            )
-                            const processoCompleto =
-                              prefixoSufixo && valorMascarado
-                                ? `${prefixoSufixo}-${valorMascarado}`
-                                : prefixoSufixo
-
-                            field.onChange(processoCompleto)
-                            setProcessoSelecionado(processoCompleto)
+                              const prefixo = obterPrefixoSufixo(processo.valor)
+                              const valorMascarado = aplicarMascaraAnoNumero(e.target.value)
+                              const processoCompleto = prefixo && valorMascarado
+                                ? `${prefixo}-${valorMascarado}`
+                                : prefixo
+                              atualizarProcesso(index, processoCompleto)
                           }}
                           onKeyDown={(e) => {
                             // Permite números, ponto e algumas teclas de navegação
@@ -901,16 +1109,39 @@ export default function ContratoForm({
                               e.preventDefault()
                             }
                           }}
-                          disabled={!prefixoSufixoSelecionado}
+                            disabled={!obterPrefixoSufixo(processo.valor)}
+                            className={cn(
+                              'mt-1 text-sm',
+                              obterPrefixoSufixo(processo.valor)
+                                ? 'cursor-text border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:ring-blue-500'
+                                : 'cursor-not-allowed border-gray-300 bg-gray-50 text-gray-600',
+                            )}
                         />
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                      </div>
+                    )}
+                    
+                    {processo.tipo === 'fisico' && (
+                      <div>
+                        <Label className="text-xs font-medium text-gray-600">
+                          Número do Processo Físico *
+                        </Label>
+                        <Input
+                          placeholder="LEG-01/123.456/2024"
+                          value={processo.valor}
+                          onChange={(e) => {
+                            const valorMascarado = aplicarMascaraFisico(e.target.value)
+                            atualizarProcesso(index, valorMascarado)
+                          }}
+                          className="mt-1 text-sm"
               />
             </div>
+                    )}
           </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Grid reorganizado para melhor alinhamento */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -934,9 +1165,6 @@ export default function ContratoForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="cessao_com_insumo">
-                          Cessão com insumo
-                        </SelectItem>
                         <SelectItem value="manutencao_corretiva_preventiva_equipamentos_medicos">
                           Manutenção corretiva e preventiva equipamentos médicos
                         </SelectItem>
@@ -949,11 +1177,14 @@ export default function ContratoForm({
                         <SelectItem value="prestacao_servico_sem_mao_obra">
                           Prestação de serviço SEM mão de obra
                         </SelectItem>
-                        <SelectItem value="servico_com_fornecimento">
-                          Serviço com fornecimento
+                        <SelectItem value="servico_com_fornecimento_cessao_insumo">
+                          Serviço com fornecimento e Cessão com insumo
                         </SelectItem>
                         <SelectItem value="servico_locacao_veiculos">
                           Serviço de locação veículos
+                        </SelectItem>
+                        <SelectItem value="informatica">
+                          Informática
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -1137,20 +1368,19 @@ export default function ContratoForm({
                                     <CommandItem
                                       key={unidade.id}
                                       value={unidade.nome}
-                                      onSelect={(currentValue) => {
-                                        const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
-                                        if (selectedUnit) {
-                                          field.onChange(currentValue === field.value ? "" : currentValue)
-                                          // Capturar o ID da unidade para uso posterior
-                                          const dadosAtuais = form.getValues()
-                                          onDataChange?.({
-                                            ...dadosAtuais,
-                                            unidadeDemandante: currentValue,
-                                            unidadeDemandanteId: selectedUnit.id
-                                          })
-                                        }
-                                        setOpenDemandante(false)
-                                      }}
+                                                                                                                    onSelect={(currentValue) => {
+                                         const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
+                                         if (selectedUnit) {
+                                           field.onChange(currentValue === field.value ? "" : currentValue)
+                                           // Atualizar o campo do formulário com o ID
+                                           form.setValue('unidadeDemandanteId', selectedUnit.id)
+                                           console.log('🔍 [DEBUG] Unidade demandante selecionada:', {
+                                             nome: currentValue,
+                                             id: selectedUnit.id
+                                           })
+                                         }
+                                         setOpenDemandante(false)
+                                       }}
                                     >
                                       <Check
                                         className={cn(
@@ -1221,20 +1451,19 @@ export default function ContratoForm({
                                     <CommandItem
                                       key={unidade.id}
                                       value={unidade.nome}
-                                      onSelect={(currentValue) => {
-                                        const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
-                                        if (selectedUnit) {
-                                          field.onChange(currentValue === field.value ? "" : currentValue)
-                                          // Capturar o ID da unidade para uso posterior
-                                          const dadosAtuais = form.getValues()
-                                          onDataChange?.({
-                                            ...dadosAtuais,
-                                            unidadeGestora: currentValue,
-                                            unidadeGestoraId: selectedUnit.id
-                                          })
-                                        }
-                                        setOpenGestora(false)
-                                      }}
+                                                                                                                    onSelect={(currentValue) => {
+                                         const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
+                                         if (selectedUnit) {
+                                           field.onChange(currentValue === field.value ? "" : currentValue)
+                                           // Atualizar o campo do formulário com o ID
+                                           form.setValue('unidadeGestoraId', selectedUnit.id)
+                                           console.log('🔍 [DEBUG] Unidade gestora selecionada:', {
+                                             nome: currentValue,
+                                             id: selectedUnit.id
+                                           })
+                                         }
+                                         setOpenGestora(false)
+                                       }}
                                     >
                                       <Check
                                         className={cn(
@@ -1655,7 +1884,21 @@ export default function ContratoForm({
                  render={({ field }) => (
                    <FormItem>
                      <FormLabel htmlFor="formaPagamento" className="mb-2">Forma de Pagamento *</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value)
+                            // Limpar etapas quando não for "Etapas"
+                            if (value !== 'Etapas') {
+                              setQuantidadeEtapas(0)
+                              setEtapasPagamento([])
+                              form.setValue('quantidadeEtapas', 0)
+                              form.setValue('etapasPagamento', [])
+                            }
+                          }} 
+                          value={field.value}
+                        >
                        <FormControl className="w-full">
                          <SelectTrigger id="formaPagamento">
                            <SelectValue placeholder="Selecione a forma" />
@@ -1663,10 +1906,41 @@ export default function ContratoForm({
                        </FormControl>
                        <SelectContent>
                          <SelectItem value="Mensal">Mensal</SelectItem>
-                         <SelectItem value="Etapas">Etapas</SelectItem>
+                         {/* <SelectItem value="Etapas">Etapas</SelectItem> */}
                          <SelectItem value="Outro">Outro</SelectItem>
                        </SelectContent>
                      </Select>
+                      </div>
+                      
+                      {/* Campo de quantidade ao lado quando "Etapas" for selecionado */}
+                      {field.value === 'Etapas' && (
+                        <div className="w-24">
+                          <FormField
+                            control={form.control}
+                            name="quantidadeEtapas"
+                            render={() => (
+                              <FormControl>
+                                <Input
+                                  id="quantidadeEtapas"
+                                  type="number"
+                                  min="1"
+                                  max="10"
+                                  placeholder="Qtd"
+                                  value={quantidadeEtapas || ''}
+                                  onChange={(e) => {
+                                    const valor = parseInt(e.target.value) || 0
+                                    if (valor >= 0 && valor <= 10) {
+                                      handleQuantidadeEtapasChange(valor)
+                                    }
+                                  }}
+                                  className="text-center text-sm"
+                                />
+                              </FormControl>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
 
                      {/* Campo complementar para "Outro" */}
                      {field.value === 'Outro' && (
@@ -1699,15 +1973,73 @@ export default function ContratoForm({
                        />
                      )}
 
-                     {/* Espaço reservado para manter alinhamento com campo de valor */}
-                     <div className="mt-1 h-6"></div>
-
                      <FormMessage />
                    </FormItem>
                  )}
                />
              </div>
           </div>
+
+          {/* Etapas de pagamento - Seção separada */}
+          {form.watch('formaPagamento') === 'Etapas' && etapasPagamento.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">
+                    <DollarSign className="h-4 w-4" />
+                    Etapas de Pagamento ({etapasPagamento.length})
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {etapasPagamento.map((etapa, index) => (
+                      <div key={etapa.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm">Etapa {etapa.numero}</h4>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-xs font-medium text-gray-600">
+                              Data de Início *
+                            </Label>
+                            <Input
+                              type="date"
+                              value={etapa.dataInicio}
+                              onChange={(e) => atualizarEtapa(index, 'dataInicio', e.target.value)}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs font-medium text-gray-600">
+                              Data de Fim *
+                            </Label>
+                            <Input
+                              type="date"
+                              value={etapa.dataFim}
+                              onChange={(e) => atualizarEtapa(index, 'dataFim', e.target.value)}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs font-medium text-gray-600">
+                              Valor da Etapa *
+                            </Label>
+                            <Input
+                              placeholder="R$ 0,00"
+                              value={etapa.valor}
+                              onChange={(e) => {
+                                const valorMascarado = currencyUtils.aplicarMascara(e.target.value)
+                                atualizarEtapa(index, 'valor', valorMascarado)
+                              }}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+          )}
         </div>
 
         <Separator />
@@ -1743,57 +2075,66 @@ export default function ContratoForm({
                         )
                         form.setValue('termoReferencia', '')
                       }}
-                      defaultValue={field.value}
+                      value={field.value}
                       className="flex flex-col space-y-3"
                     >
-                      <div className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors hover:border-slate-300">
+                      <label 
+                        htmlFor="processo_rio"
+                        className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors hover:border-slate-300 cursor-pointer"
+                      >
                         <RadioGroupItem
                           value="processo_rio"
                           id="processo_rio"
                           className="border-slate-300"
                         />
                         <ExternalLink className="h-5 w-5 text-slate-600" />
-                        <div>
-                          <Label htmlFor="processo_rio" className="font-medium">
+                        <div className="flex-1">
+                          <span className="font-medium cursor-pointer">
                             Processo.Rio
-                          </Label>
+                          </span>
                           <p className="text-xs text-gray-500">
                             Link do processo no sistema Processo.Rio
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors hover:border-slate-300">
+                      </label>
+                      <label 
+                        htmlFor="google_drive"
+                        className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors hover:border-slate-300 cursor-pointer"
+                      >
                         <RadioGroupItem
                           value="google_drive"
                           id="google_drive"
                           className="border-slate-300"
                         />
                         <ExternalLink className="h-5 w-5 text-green-600" />
-                        <div>
-                          <Label htmlFor="google_drive" className="font-medium">
+                        <div className="flex-1">
+                          <span className="font-medium cursor-pointer">
                             Google Drive
-                          </Label>
+                          </span>
                           <p className="text-xs text-gray-500">
                             Link público do arquivo no Google Drive
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors hover:border-slate-300">
+                      </label>
+                      <label 
+                        htmlFor="texto_livre"
+                        className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 transition-colors hover:border-slate-300 cursor-pointer"
+                      >
                         <RadioGroupItem
                           value="texto_livre"
                           id="texto_livre"
                           className="border-slate-300"
                         />
                         <FileText className="h-5 w-5 text-amber-600" />
-                        <div>
-                          <Label htmlFor="texto_livre" className="font-medium">
+                        <div className="flex-1">
+                          <span className="font-medium cursor-pointer">
                             Texto Livre
-                          </Label>
+                          </span>
                           <p className="text-xs text-gray-500">
                             Descrição textual do termo de referência
                           </p>
                         </div>
-                      </div>
+                      </label>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -1921,31 +2262,7 @@ export default function ContratoForm({
             />
           </div>
 
-          {/* Container para Contrato Ativo */}
-          <div className="space-y-2">
-            <FormField
-              control={form.control}
-              name="ativo"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1">
-                    <FormLabel className="font-medium text-slate-700">
-                      Contrato ativo
-                    </FormLabel>
-                    <p className="text-xs text-slate-600">
-                      Marque esta opção para manter o contrato ativo no sistema
-                    </p>
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
+
         </div>
 
         {/* Botões */}

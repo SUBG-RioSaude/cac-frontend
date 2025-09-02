@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react'
-import { useContratos, useCreateContrato, useUpdateContrato, useDeleteContrato, useToast } from '../hooks'
+import { useContratos, useCriarContrato, useUpdateContrato, useDeleteContrato, useToast } from '../hooks'
 import type { ContratoParametros } from '../services/contratos-service'
 
 // Exemplo 1: Lista de contratos com filtros
@@ -86,7 +86,7 @@ function CreateContratoExample() {
     ativo: true
   })
 
-  const createMutation = useCreateContrato()
+  const createMutation = useCriarContrato()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

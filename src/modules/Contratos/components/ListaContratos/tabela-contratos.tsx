@@ -168,16 +168,18 @@ export function TabelaContratos({
         </CardHeader>
         <CardContent className="space-y-4 p-4">
           <div>
-            <p className="font-semibold text-lg">{contrato.contratada?.razaoSocial || 'Empresa não informada'}</p>
-            <p className="text-sm text-muted-foreground">{contrato.categoriaObjeto || 'Categoria não informada'}</p>
+            <p className="font-semibold text-lg">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'Empresa não informada'}</p>
+            <p className="text-sm text-muted-foreground">CNPJ: {contrato.empresaCnpj || contrato.contratada?.cnpj || 'N/A'}</p>
+            <p className="text-sm text-muted-foreground truncate" title={contrato.descricaoObjeto || ''}>
+              {contrato.descricaoObjeto || 'Objeto não informado'}
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <InfoItem icon={DollarSign} label="Valor Global" value={formatarMoeda(contrato.valorGlobal)} />
             <InfoItem icon={Calendar} label="Vigência" value={`${formatarData(contrato.vigenciaInicial)} - ${formatarData(contrato.vigenciaFinal)}`} />
             <InfoItem icon={Briefcase} label="Contratação" value={contrato.contratacao || 'N/A'} />
-            <InfoItem icon={Building} label="Unidade Gestora" value={contrato.unidadeGestora || 'N/A'} />
-            <InfoItem icon={Building} label="Unidade Demandante" value={contrato.unidadeDemandante || 'N/A'} />
-            <InfoItem icon={FileText} label="Termo de Referência" value={contrato.termoReferencia || 'N/A'} />
+            <InfoItem icon={Building} label="Unidade Gestora" value={contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'} />
+            <InfoItem icon={FileText} label="Processo SEI" value={contrato.processoSei || 'N/A'} />
             <InfoItem icon={Archive} label="Vínculo PCA" value={contrato.vinculacaoPCA || 'N/A'} />
           </div>
           <div className="flex items-center justify-end border-t pt-3">
@@ -237,8 +239,8 @@ export function TabelaContratos({
                     </TableHead>
                     <TableHead className="font-semibold">Contrato</TableHead>
                     <TableHead className="font-semibold">Contratada</TableHead>
-                    <TableHead className="font-semibold">Unidades</TableHead>
-                    <TableHead className="font-semibold">Processo/Referência</TableHead>
+                    <TableHead className="font-semibold">Tipo Contratação</TableHead>
+                    <TableHead className="font-semibold">Unidade Gestora</TableHead>
                     <TableHead className="font-semibold">Período de Vigência</TableHead>
                     <TableHead className="font-semibold text-right">Valor Global</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -280,21 +282,23 @@ export function TabelaContratos({
                             />
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium text-primary">{contrato.numeroContrato}</div>
-                            <div className="text-xs text-muted-foreground">{contrato.processoSei}</div>
-                            <div className="text-xs text-muted-foreground">{contrato.categoriaObjeto}</div>
+                            <div className="font-medium text-primary">{contrato.numeroContrato || 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground">{contrato.processoSei || 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground truncate max-w-48" title={contrato.descricaoObjeto || ''}>
+                              {contrato.descricaoObjeto || 'N/A'}
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">{contrato.contratada?.razaoSocial || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">{contrato.contratacao}</div>
+                            <div className="font-medium">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground">
+                              CNPJ: {contrato.empresaCnpj || contrato.contratada?.cnpj || 'N/A'}
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">Gestora: {contrato.unidadeGestora || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">Demandante: {contrato.unidadeDemandante || 'N/A'}</div>
+                            <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">TR: {contrato.termoReferencia || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">PCA: {contrato.vinculacaoPCA || 'N/A'}</div>
+                            <div className="font-medium">{contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
                             <div>{formatarData(contrato.vigenciaInicial)}</div>
@@ -341,6 +345,7 @@ export function TabelaContratos({
                     </TableHead>
                     <TableHead className="font-semibold">Contrato</TableHead>
                     <TableHead className="font-semibold">Contratada</TableHead>
+                    <TableHead className="font-semibold">Contratação</TableHead>
                     <TableHead className="font-semibold">Vigência</TableHead>
                     <TableHead className="font-semibold text-right">Valor</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -355,6 +360,7 @@ export function TabelaContratos({
                           <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -384,8 +390,11 @@ export function TabelaContratos({
                             <div className="text-xs text-muted-foreground truncate max-w-32">{contrato.descricaoObjeto || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium truncate max-w-36">Empresa contratada</div>
-                            <div className="text-xs text-muted-foreground">CNPJ: 00.000.000/0001-00</div>
+                            <div className="font-medium truncate max-w-36">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground">CNPJ: {contrato.empresaCnpj || contrato.contratada?.cnpj || 'N/A'}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">{formatarData(contrato.vigenciaInicial)}</div>
