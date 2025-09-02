@@ -143,7 +143,7 @@ export function mapearFuncionarioParaUsuario(funcionario: FuncionarioApi): Usuar
     cargo: formatarCargo(funcionario.cargo),
     departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
     telefone: funcionario.telefone || '',
-    status: situacaoParaStatus(funcionario.situacaoFuncional || funcionario.situacao as SituacaoFuncional, funcionario.ativo)
+    status: situacaoParaStatus(funcionario.situacaoFuncional || (funcionario.situacao as unknown as SituacaoFuncional), funcionario.ativo)
   }
 }
 
@@ -201,7 +201,7 @@ export function buscarPorNome(funcionarios: FuncionarioApi[], nome: string): Fun
   
   const nomeLimpo = nome.toLowerCase().trim()
   return funcionarios.filter(f => 
-    f.nome.toLowerCase().includes(nomeLimpo)
+    f.nome?.toLowerCase().includes(nomeLimpo)
   )
 }
 
@@ -213,7 +213,7 @@ export function filtrarPorLotacao(funcionarios: FuncionarioApi[], lotacao: strin
   
   const lotacaoLimpa = lotacao.toLowerCase().trim()
   return funcionarios.filter(f => 
-    f.lotacao.toLowerCase().includes(lotacaoLimpa)
+    f.lotacao?.toLowerCase().includes(lotacaoLimpa)
   )
 }
 
@@ -224,7 +224,7 @@ export function filtrarPorLotacao(funcionarios: FuncionarioApi[], lotacao: strin
  */
 export function agruparPorLotacao(funcionarios: FuncionarioApi[]): Record<string, FuncionarioApi[]> {
   return funcionarios.reduce((grupos, funcionario) => {
-    const lotacao = funcionario.lotacao
+    const lotacao = funcionario.lotacao || 'Sem lotação'
     if (!grupos[lotacao]) {
       grupos[lotacao] = []
     }
@@ -238,7 +238,7 @@ export function agruparPorLotacao(funcionarios: FuncionarioApi[]): Record<string
  */
 export function agruparPorSituacao(funcionarios: FuncionarioApi[]): Record<SituacaoFuncional, FuncionarioApi[]> {
   return funcionarios.reduce((grupos, funcionario) => {
-    const situacao = funcionario.situacaoFuncional
+    const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
     if (!grupos[situacao]) {
       grupos[situacao] = []
     }
@@ -251,9 +251,11 @@ export function agruparPorSituacao(funcionarios: FuncionarioApi[]): Record<Situa
  * Ordena funcionários por nome
  */
 export function ordenarPorNome(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
-  return [...funcionarios].sort((a, b) => 
-    a.nome.localeCompare(b.nome, 'pt-BR', { ignorePunctuation: true })
-  )
+  return [...funcionarios].sort((a, b) => {
+    const nomeA = a.nome || ''
+    const nomeB = b.nome || ''
+    return nomeA.localeCompare(nomeB, 'pt-BR', { ignorePunctuation: true })
+  })
 }
 
 /**
@@ -272,7 +274,7 @@ export function ordenarPorMatricula(funcionarios: FuncionarioApi[]): Funcionario
  */
 export function contarPorSituacao(funcionarios: FuncionarioApi[]): Record<SituacaoFuncional, number> {
   return funcionarios.reduce((contador, funcionario) => {
-    const situacao = funcionario.situacaoFuncional
+    const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
     contador[situacao] = (contador[situacao] || 0) + 1
     return contador
   }, {} as Record<SituacaoFuncional, number>)

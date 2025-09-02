@@ -361,7 +361,12 @@ export function useDebugCadastro() {
 
     return {
       numeroContrato: `CONT-${ano}-${numeroSequencial.toString().padStart(4, '0')}`,
-      processoSei: `${String(timestamp).slice(-5)}.${String(timestamp).slice(-11, -5)}/${ano}-${Math.floor(Math.random() * 89) + 10}`,
+      processos: [
+        {
+          tipo: 'sei' as const,
+          valor: `${String(timestamp).slice(-5)}.${String(timestamp).slice(-11, -5)}/${ano}-${Math.floor(Math.random() * 89) + 10}`
+        }
+      ],
       categoriaObjeto: categorias[categoriaIndex],
       descricaoObjeto: `Contrato para ${categorias[categoriaIndex].toLowerCase()} - ID: ${String(timestamp).slice(-6)}`,
       tipoContratacao: ['Licitacao', 'Pregao', 'Dispensa', 'Inexigibilidade'][Math.floor(Math.random() * 4)] as 'Licitacao' | 'Pregao' | 'Dispensa' | 'Inexigibilidade',
@@ -381,8 +386,7 @@ export function useDebugCadastro() {
       formaPagamentoComplemento,
       tipoTermoReferencia: 'processo_rio',
       termoReferencia: `https://processo.rio/contratos/${ano}/${numeroSequencial}/${String(timestamp).slice(-6)}`,
-      vinculacaoPCA: Math.random() > 0.3 ? 'Sim' : 'Não',
-      ativo: true
+      vinculacaoPCA: Math.random() > 0.3 ? 'Sim' : 'Não'
     }
   }, [])
 

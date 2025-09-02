@@ -10,61 +10,6 @@ import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import type { Empenho, CriarEmpenhoPayload, AtualizarEmpenhoPayload } from '../types/contrato'
 
 // Interfaces para os dados do contrato
-interface EmpenhoUnidade {
-  id: string
-  contratoUnidadeSaudeId: string
-  numeroEmpenho: string
-  valor: number
-  dataEmpenho: string
-  observacao?: string
-  ativo: boolean
-  dataCadastro: string
-  dataAtualizacao: string
-  contratoId: string
-  numeroContrato: string
-  unidadeSaudeId: string
-  valorAtribuidoUnidade: number
-  saldoDisponivelUnidade: number
-  percentualDoValorUnidade: number
-}
-
-interface UnidadeVinculadaComEmpenhos {
-  id: string
-  contratoId: string
-  numeroContrato: string
-  unidadeSaudeId: string
-  valorAtribuido: number
-  percentualValor: number
-  vigenciaInicialUnidade: string
-  vigenciaFinalUnidade: string
-  observacoes?: string
-  valorEmpenhado: number
-  saldoDisponivel: number
-  percentualEmpenhado: number
-  quantidadeEmpenhos: number
-  valorMedioEmpenho: number
-  dataUltimoEmpenho: string
-  statusSaldo: number
-  vtmUnidade: number
-  totalMesesContrato: number
-  mesesDecorridos: number
-  valorEsperadoAteAgora: number
-  diferencaCronograma: number
-  percentualCumprimentoCronograma: number
-  statusCronograma: number
-  empenhos: EmpenhoUnidade[]
-  usuarioCadastroId: string
-  usuarioAtualizacaoId: string
-  dataCadastro: string
-  dataAtualizacao: string
-  ativo: boolean
-}
-
-interface ContratoComEmpenhos {
-  id: string
-  unidadesVinculadas: UnidadeVinculadaComEmpenhos[]
-}
-
 interface UseEmpenhosWithRetryReturn {
   empenhos: Empenho[]
   carregando: boolean
@@ -84,14 +29,11 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
   const [empenhos, setEmpenhos] = useState<Empenho[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
-  const [tentativasFalhadas, setTentativasFalhadas] = useState(0)
 
   const executarComRetry = useCallback(async <T>(
     operacao: () => Promise<T>,
     operacaoNome: string
   ): Promise<T> => {
-    let ultimoErro: Error | null = null
-
     for (let tentativa = 1; tentativa <= MAX_RETRIES; tentativa++) {
       try {
         console.log(`[RETRY] ${operacaoNome} - Tentativa ${tentativa}/${MAX_RETRIES}`)
@@ -103,12 +45,10 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
         }
         
         // Reset do contador de tentativas falhadas
-        setTentativasFalhadas(0)
         setErro(null)
         
         return resultado
       } catch (error) {
-        ultimoErro = error as Error
         const axiosError = error as { response?: { status?: number }, message?: string }
         
         console.warn(`[RETRY] ⚠️ ${operacaoNome} - Tentativa ${tentativa} falhou:`, {
@@ -122,8 +62,6 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
         const isNetworkError = !axiosError.response
         
         if (isServerError || isNetworkError) {
-          setTentativasFalhadas(tentativa)
-          
           // Se ainda há tentativas restantes, aguarda antes de tentar novamente
           if (tentativa < MAX_RETRIES) {
             await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * tentativa))
@@ -137,7 +75,6 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
     }
 
     // Se chegou aqui, todas as tentativas falharam
-    setTentativasFalhadas(MAX_RETRIES)
     
     // Se foram 5 tentativas falhadas do servidor, retorna erro 500
     const erro500 = new Error('Erro 500: Servidor indisponível após múltiplas tentativas')
@@ -252,7 +189,6 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
 
   const limparErro = useCallback(() => {
     setErro(null)
-    setTentativasFalhadas(0)
   }, [])
 
   // Carregar empenhos quando o componente montar

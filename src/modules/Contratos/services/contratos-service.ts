@@ -207,8 +207,8 @@ export async function criarContrato(payload: CriarContratoPayload): Promise<Cont
     // Criar erro customizado com mensagem específica
     const customError = new Error(errorMessage)
     customError.name = 'ContratoCreationError'
-    ;(customError as Record<string, unknown>).status = errorResponse?.response?.status
-    ;(customError as Record<string, unknown>).originalError = error
+    ;(customError as any).status = errorResponse?.response?.status
+    ;(customError as any).originalError = error
     
     throw customError
   }

@@ -621,12 +621,12 @@ export interface UnidadeVinculadaPayload {
 // Interface para funcionários do contrato
 export interface FuncionarioContratoPayload {
   funcionarioId: string
-  tipoGerencia: TipoGerencia // 1=Fiscal, 2=Gestor
+  tipoGerencia: typeof TipoGerencia[keyof typeof TipoGerencia] // 1=Fiscal, 2=Gestor
   observacoes?: string
 }
 
 // Enum para tipo de gerência
-export enum TipoGerencia {
-  FISCAL = 1,
-  GESTOR = 2
-}
+export const TipoGerencia = {
+  FISCAL: 1,
+  GESTOR: 2
+} as const

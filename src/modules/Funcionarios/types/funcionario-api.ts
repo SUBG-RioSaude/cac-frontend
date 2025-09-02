@@ -159,7 +159,7 @@ export const mapFuncionarioToUsuario = (funcionario: FuncionarioApi): Usuario =>
     cargo: funcionario.cargo,
     departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
     telefone: funcionario.telefone || '',
-    status: mapSituacaoToStatus(funcionario.situacaoFuncional || funcionario.situacao as SituacaoFuncional, funcionario.ativo)
+    status: mapSituacaoToStatus(funcionario.situacaoFuncional || (funcionario.situacao as unknown as SituacaoFuncional), funcionario.ativo)
   }
 }
 

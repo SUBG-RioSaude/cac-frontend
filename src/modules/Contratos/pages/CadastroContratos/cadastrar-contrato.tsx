@@ -290,7 +290,6 @@ export default function CadastrarContrato() {
       termoReferencia: contrato.termoReferencia || undefined,
       vinculacaoPCA: contrato.vinculacaoPCA || undefined,
       empresaId: fornecedor.empresaId || '', // Usar ID (UUID) da empresa
-      ativo: contrato.ativo || true,
       // Nova estrutura de unidades vinculadas
       unidadesVinculadas: unidades.unidades?.map(unidade => ({
         unidadeSaudeId: unidade.unidadeHospitalar.id,
