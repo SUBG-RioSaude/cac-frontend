@@ -206,6 +206,7 @@ export interface Contrato {
   documentos?: DocumentoContratoDto[] | null
   valorTotalAtribuido: number
   valorDisponivel: number
+  vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
   quantidadeUnidadesVinculadas: number
   quantidadeDocumentos: number
 }
@@ -328,6 +329,7 @@ export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   dataInicio: string // mapeado de vigenciaInicial
   dataTermino: string // mapeado de vigenciaFinal
   valorTotal: number // mapeado de valorGlobal
+  vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
 
   // Informações CCon
   ccon?: {

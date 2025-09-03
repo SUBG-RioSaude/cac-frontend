@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { IndicadoresRelatorios } from '../indicadores-relatorios'
+import type { ContratoDetalhado } from '../../../types/contrato'
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
@@ -76,6 +77,94 @@ const unidadesMock = {
 }
 
 const valorTotalMock = 1250000.0
+const vtmTotalContratoMock = 26042
+
+const contratoMock: ContratoDetalhado = {
+  id: '1',
+  numeroContrato: 'CONT-2023/0042',
+  objeto: 'Teste de Contrato',
+  dataInicio: '2023-05-12T00:00:00Z',
+  dataTermino: '2024-05-11T23:59:59Z',
+  valorTotal: valorTotalMock,
+  vigenciaInicial: '2023-05-12T00:00:00Z',
+  vigenciaFinal: '2024-05-11T23:59:59Z',
+  valorGlobal: valorTotalMock,
+  vtmTotalContrato: vtmTotalContratoMock,
+  prazoInicialMeses: 12,
+  valorTotalAtribuido: 1250000,
+  valorDisponivel: 750000,
+  quantidadeUnidadesVinculadas: 3,
+  quantidadeDocumentos: 0,
+  empresaId: 'empresa-1',
+  ativo: true,
+  usuarioCadastroId: 'user-1',
+  usuarioAtualizacaoId: 'user-1',
+  dataCadastro: '2023-05-12T00:00:00Z',
+  dataAtualizacao: '2023-05-12T00:00:00Z',
+  responsaveis: {
+    fiscaisAdministrativos: [],
+    gestores: []
+  },
+  fornecedor: {
+    razaoSocial: 'Empresa Teste LTDA',
+    cnpj: '12345678000199',
+    contatos: [],
+    endereco: {
+      cep: '20000-000',
+      logradouro: 'Rua Teste',
+      bairro: 'Bairro Teste',
+      cidade: 'Rio de Janeiro',
+      uf: 'RJ'
+    }
+  },
+  unidades: {
+    demandante: 'Unidade Demandante',
+    gestora: 'Unidade Gestora',
+    vinculadas: []
+  },
+  alteracoes: [],
+  documentos: [],
+  documentosChecklist: {
+    termoReferencia: { entregue: false },
+    homologacao: { entregue: false },
+    ataRegistroPrecos: { entregue: false },
+    garantiaContratual: { entregue: false },
+    contrato: { entregue: false },
+    publicacaoPncp: { entregue: false },
+    publicacaoExtrato: { entregue: false }
+  },
+  indicadores: {
+    saldoAtual: 750000,
+    percentualExecutado: 40,
+    cronogramaVigencia: []
+  },
+  unidadesVinculadas: [
+    {
+      id: '1',
+      contratoId: '1',
+      unidadeSaudeId: 'unidade-1',
+      nomeUnidade: 'Secretaria de Obras',
+      valorAtribuido: 750000,
+      ativo: true
+    },
+    {
+      id: '2',
+      contratoId: '1',
+      unidadeSaudeId: 'unidade-2',
+      nomeUnidade: 'Secretaria de Educação',
+      valorAtribuido: 312500,
+      ativo: true
+    },
+    {
+      id: '3',
+      contratoId: '1',
+      unidadeSaudeId: 'unidade-3',
+      nomeUnidade: 'Secretaria de Saúde',
+      valorAtribuido: 187500,
+      ativo: true
+    }
+  ]
+}
 
 describe('IndicadoresRelatorios', () => {
   it('deve renderizar o componente com todas as seções', () => {
@@ -84,9 +173,11 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
-    expect(screen.getByText('Saldo e Execução')).toBeInTheDocument()
+    expect(screen.getByText('Saldo e Acompanhamento')).toBeInTheDocument()
     expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
     expect(screen.getByText('Distribuição por Unidade')).toBeInTheDocument()
   })
@@ -97,6 +188,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -109,6 +202,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -122,6 +217,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -134,6 +231,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -148,6 +247,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -162,6 +263,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -177,6 +280,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -196,6 +301,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -210,6 +317,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -224,6 +333,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -238,6 +349,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -252,6 +365,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -271,11 +386,18 @@ describe('IndicadoresRelatorios', () => {
       vinculadas: [],
     }
 
+    const contratoVazio = {
+      ...contratoMock,
+      unidadesVinculadas: []
+    }
+
     render(
       <IndicadoresRelatorios
         indicadores={indicadoresMock}
         unidades={unidadesVazias}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoVazio}
       />,
     )
 
@@ -291,6 +413,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -305,11 +429,13 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
     // Verifica se os títulos das seções estão sendo exibidos
-    expect(screen.getByText('Saldo e Execução')).toBeInTheDocument()
+    expect(screen.getByText('Saldo e Acompanhamento')).toBeInTheDocument()
     expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
     expect(screen.getByText('Distribuição por Unidade')).toBeInTheDocument()
   })

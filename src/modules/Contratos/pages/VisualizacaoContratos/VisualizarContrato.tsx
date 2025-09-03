@@ -475,6 +475,8 @@ export function VisualizarContrato() {
                       indicadores={contrato.indicadores}
                       unidades={contrato.unidades}
                       valorTotal={contrato.valorTotal}
+                      vtmTotalContrato={contrato.vtmTotalContrato}
+                      contrato={contrato}
                     />
                   </TabsContent>
                 )}

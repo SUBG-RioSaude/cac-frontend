@@ -23,14 +23,36 @@ import {
 import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { 
+  EditableFieldWrapper,
+  ConfirmEditModal,
+  useFieldEditing
+} from '@/modules/Contratos/components/EditableFields'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
 }
 
+// Type para acessar campos que vêm da API mas não estão na interface ContratoDetalhado
+type ContratoComIds = ContratoDetalhado & {
+  unidadeDemandanteId?: string
+  unidadeGestoraId?: string
+}
+
 export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
   const [editandoCampo, setEditandoCampo] = useState<string | null>(null)
+  
+  const {
+    isEditing,
+    pendingValue,
+    isLoading,
+    startEditing,
+    cancelEditing,
+    handleFieldSave,
+    confirmSave,
+    modalProps
+  } = useFieldEditing({ contrato })
 
   // Buscar dados completos da empresa
   const { 
@@ -39,10 +61,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     error: empresaError 
   } = useEmpresa(contrato.empresaId, { enabled: !!contrato.empresaId })
 
-  // Coletar IDs das unidades para busca
+  // Coletar IDs das unidades para busca  
+  const contratoComIds = contrato as ContratoComIds
   const unidadesIds = [
-    contrato.unidadeDemandante, 
-    contrato.unidadeGestora,
+    contratoComIds.unidadeDemandanteId, 
+    contratoComIds.unidadeGestoraId,
     ...(contrato.unidadesVinculadas?.map(u => u.unidadeSaudeId) || [])
   ].filter((id): id is string => Boolean(id))
 
@@ -91,6 +114,30 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
 
   const isValidOriginalDate = (dateString?: string) => {
     return dateString && !dateString.startsWith('0001-01-01')
+  }
+
+  const shouldShowOriginalDate = (originalDate?: string, currentDate?: string) => {
+    if (!isValidOriginalDate(originalDate) || !currentDate) return false
+    
+    // Extrair apenas ano, mês, dia ignorando timezone para evitar problemas de fuso horário
+    const originalObj = new Date(originalDate!)
+    const currentObj = new Date(currentDate)
+    
+    // Para data original (pode ter timezone Z), usar UTC. Para data atual (sem timezone), usar local
+    const originalYear = originalDate!.includes('Z') ? originalObj.getUTCFullYear() : originalObj.getFullYear()
+    const originalMonth = originalDate!.includes('Z') ? originalObj.getUTCMonth() : originalObj.getMonth()
+    const originalDay = originalDate!.includes('Z') ? originalObj.getUTCDate() : originalObj.getDate()
+    
+    const currentYear = currentObj.getFullYear()
+    const currentMonth = currentObj.getMonth()
+    const currentDay = currentObj.getDate()
+    
+    // Comparar ano, mês e dia
+    return !(originalYear === currentYear && originalMonth === currentMonth && originalDay === currentDay)
+  }
+
+  const shouldShowOriginalValue = (originalValue?: number, currentValue?: number) => {
+    return originalValue && currentValue && originalValue !== currentValue
   }
 
   const getStatusBadge = (status: string) => {
@@ -195,24 +242,50 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <p className="text-muted-foreground text-sm">
                             Processo Rio
                           </p>
-                          <p className="font-semibold">
-                            {contrato.processoRio || 'N/A'}
-                          </p>
+                          {isEditing('processoRio') ? (
+                            <EditableFieldWrapper
+                              fieldKey="processoRio"
+                              value={pendingValue || contrato.processoRio || ''}
+                              onSave={(value) => handleFieldSave('processoRio', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('processoRio')}
+                            >
+                              {contrato.processoRio || 'Não informado'}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">
                             Processo SEI
                           </p>
-                          <p className="font-semibold">
-                            {contrato.processoSei || 'N/A'}
-                          </p>
+                          {isEditing('processoSei') ? (
+                            <EditableFieldWrapper
+                              fieldKey="processoSei"
+                              value={pendingValue || contrato.processoSei || ''}
+                              onSave={(value) => handleFieldSave('processoSei', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('processoSei')}
+                            >
+                              {contrato.processoSei || 'Não informado'}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">
                             Processo Legado
                           </p>
                           <p className="font-semibold">
-                            {contrato.processoLegado || 'N/A'}
+                            {contrato.processoLegado || 'Não informado'}
                           </p>
                         </div>
                       </div>
@@ -228,7 +301,22 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <p className="text-muted-foreground text-sm">
                         Descrição do Objeto
                       </p>
-                      <p className="font-medium">{contrato.objeto}</p>
+                      {isEditing('objeto') ? (
+                        <EditableFieldWrapper
+                          fieldKey="objeto"
+                          value={pendingValue || contrato.objeto}
+                          onSave={(value) => handleFieldSave('objeto', value)}
+                          onCancel={cancelEditing}
+                          isLoading={isLoading}
+                        />
+                      ) : (
+                        <div 
+                          className="font-medium cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                          onClick={() => startEditing('objeto')}
+                        >
+                          {contrato.objeto}
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -273,10 +361,23 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           Data de Início
                         </p>
                         <div className="space-y-1">
-                          <p className="font-semibold">
-                            {formatarData(contrato.dataInicio)}
-                          </p>
-                          {isValidOriginalDate(contrato.vigenciaOriginalInicial) && (
+                          {isEditing('dataInicio') ? (
+                            <EditableFieldWrapper
+                              fieldKey="dataInicio"
+                              value={pendingValue || contrato.dataInicio}
+                              onSave={(value) => handleFieldSave('dataInicio', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('dataInicio')}
+                            >
+                              {formatarData(contrato.dataInicio)}
+                            </div>
+                          )}
+                          {shouldShowOriginalDate(contrato.vigenciaOriginalInicial, contrato.dataInicio) && (
                             <p className="text-sm text-gray-500">
                               Original: {formatarData(contrato.vigenciaOriginalInicial!)}
                             </p>
@@ -288,10 +389,23 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           Data de Término
                         </p>
                         <div className="space-y-1">
-                          <p className="font-semibold">
-                            {formatarData(contrato.dataTermino)}
-                          </p>
-                          {isValidOriginalDate(contrato.vigenciaOriginalFinal) && (
+                          {isEditing('dataTermino') ? (
+                            <EditableFieldWrapper
+                              fieldKey="dataTermino"
+                              value={pendingValue || contrato.dataTermino}
+                              onSave={(value) => handleFieldSave('dataTermino', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('dataTermino')}
+                            >
+                              {formatarData(contrato.dataTermino)}
+                            </div>
+                          )}
+                          {shouldShowOriginalDate(contrato.vigenciaOriginalFinal, contrato.dataTermino) && (
                             <p className="text-sm text-gray-500">
                               Original: {formatarData(contrato.vigenciaOriginalFinal!)}
                             </p>
@@ -323,12 +437,25 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         Valor Total do Contrato
                       </p>
                       <div className="space-y-1">
-                        <p className="text-2xl font-bold text-green-600">
-                          {formatarMoeda(contrato.valorTotal)}
-                        </p>
-                        {contrato.valorGlobalOriginal && (
+                        {isEditing('valorTotal') ? (
+                          <EditableFieldWrapper
+                            fieldKey="valorTotal"
+                            value={pendingValue || contrato.valorTotal}
+                            onSave={(value) => handleFieldSave('valorTotal', value)}
+                            onCancel={cancelEditing}
+                            isLoading={isLoading}
+                          />
+                        ) : (
+                          <div 
+                            className="text-2xl font-bold text-green-600 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                            onClick={() => startEditing('valorTotal')}
+                          >
+                            {formatarMoeda(contrato.valorTotal)}
+                          </div>
+                        )}
+                        {shouldShowOriginalValue(contrato.valorGlobalOriginal, contrato.valorTotal) && (
                           <p className="text-sm text-gray-500">
-                            Original: {formatarMoeda(contrato.valorGlobalOriginal)}
+                            Original: {formatarMoeda(contrato.valorGlobalOriginal!)}
                           </p>
                         )}
                       </div>
@@ -787,7 +914,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       ) : (
                         <>
                           <p className="text-lg font-semibold">
-                            {getUnidadeNome(contrato.unidadeDemandante)}
+                            {getUnidadeNome(contratoComIds.unidadeDemandanteId)}
                           </p>
                           <p className="text-muted-foreground text-sm">
                             Responsável pela demanda do contrato
@@ -821,7 +948,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       ) : (
                         <>
                           <p className="text-lg font-semibold">
-                            {getUnidadeNome(contrato.unidadeGestora)}
+                            {getUnidadeNome(contratoComIds.unidadeGestoraId)}
                           </p>
                           <p className="text-muted-foreground text-sm">
                             Responsável pela gestão do contrato
@@ -946,6 +1073,29 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
           </motion.div>
         </AnimatePresence>
       </Tabs>
+      
+      {/* Modal de confirmação */}
+      {modalProps && (
+        <ConfirmEditModal
+          isOpen={modalProps.isOpen}
+          onClose={cancelEditing}
+          onConfirm={async () => await confirmSave()}
+          fieldLabel={modalProps.fieldLabel}
+          oldValue={modalProps.oldValue || ''}
+          newValue={modalProps.newValue || ''}
+          isLoading={isLoading}
+          isCritical={modalProps.isCritical}
+          formatValue={(value) => {
+            if (modalProps.fieldName === 'valorTotal') {
+              return formatarMoeda(value as number)
+            }
+            if (modalProps.fieldName === 'dataInicio' || modalProps.fieldName === 'dataTermino') {
+              return formatarData(value as string)
+            }
+            return String(value)
+          }}
+        />
+      )}
     </div>
   )
 }

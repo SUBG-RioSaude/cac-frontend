@@ -496,17 +496,30 @@ export function RegistroAlteracoes({
     const ids: string[] = []
     for (const alt of alteracoes || []) {
       if (alt.fornecedores) {
-        if (alt.fornecedores.fornecedoresVinculados) ids.push(...alt.fornecedores.fornecedoresVinculados)
-        if (alt.fornecedores.fornecedoresDesvinculados) ids.push(...alt.fornecedores.fornecedoresDesvinculados)
-        if (alt.fornecedores.novoFornecedorPrincipal) ids.push(alt.fornecedores.novoFornecedorPrincipal)
+        if (Array.isArray(alt.fornecedores.fornecedoresVinculados)) {
+          ids.push(...alt.fornecedores.fornecedoresVinculados.filter(Boolean))
+        }
+        if (Array.isArray(alt.fornecedores.fornecedoresDesvinculados)) {
+          ids.push(...alt.fornecedores.fornecedoresDesvinculados.filter(Boolean))
+        }
+        if (alt.fornecedores.novoFornecedorPrincipal) {
+          ids.push(alt.fornecedores.novoFornecedorPrincipal)
+        }
       }
     }
     return Array.from(new Set(ids.filter(Boolean)))
   }, [alteracoes])
   const empresasLookup = useEmpresasByIds(fornecedoresIds, { enabled: fornecedoresIds.length > 0 })
+
   const getEmpresaNome = useCallback((id: string) => {
-    return empresasLookup.data?.[id]?.razaoSocial || id
-  }, [empresasLookup.data])
+    if (empresasLookup.isLoading) {
+      return 'Carregando...'
+    }
+    if (empresasLookup.error) {
+      return `Erro: ${id.slice(-8)}`
+    }
+    return empresasLookup.data?.[id]?.razaoSocial || `ID: ${id.slice(-8)}`
+  }, [empresasLookup.data, empresasLookup.isLoading, empresasLookup.error])
   
   // Build lookup of unidades IDs -> nome to enrich unidades section
   const unidadesIds = useMemo(() => {
@@ -521,8 +534,14 @@ export function RegistroAlteracoes({
   }, [alteracoes])
   const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
   const getUnidadeNome = useCallback((id: string) => {
-    return unidadesLookup.data?.[id]?.nome || id
-  }, [unidadesLookup.data])
+    if (unidadesLookup.isLoading) {
+      return 'Carregando...'
+    }
+    if (unidadesLookup.error) {
+      return `Erro: ${id.slice(-8)}`
+    }
+    return unidadesLookup.data?.[id]?.nome || `ID: ${id.slice(-8)}`
+  }, [unidadesLookup.data, unidadesLookup.isLoading, unidadesLookup.error])
   
   const formatarDataHora = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR')
