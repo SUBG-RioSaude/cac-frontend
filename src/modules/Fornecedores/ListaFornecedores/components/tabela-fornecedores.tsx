@@ -204,6 +204,7 @@ export function TabelaFornecedores({
                           size="sm"
                           onClick={() => onAbrirFornecedor(fornecedor)}
                           className="h-8 px-3 shadow-sm"
+                          aria-label="Abrir fornecedor"
                         >
                           <Eye className="mr-1 h-4 w-4" />
                           Abrir
@@ -298,6 +299,7 @@ export function TabelaFornecedores({
                             size="sm"
                             onClick={() => onAbrirFornecedor(fornecedor)}
                             className="h-8 px-3 shadow-sm"
+                            aria-label="Abrir fornecedor"
                           >
                             <Eye className="mr-1 h-4 w-4" />
                             Abrir

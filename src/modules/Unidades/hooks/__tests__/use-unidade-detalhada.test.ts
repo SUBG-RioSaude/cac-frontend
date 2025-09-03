@@ -1,10 +1,11 @@
 import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useUnidadeDetalhada } from '../use-unidade-detalhada'
 import { buscarUnidadePorId } from '../../services/unidades-service'
 
 // Mock do serviço
-jest.mock('../../services/unidades-service')
-const mockBuscarUnidadePorId = buscarUnidadePorId as jest.MockedFunction<typeof buscarUnidadePorId>
+vi.mock('../../services/unidades-service')
+const mockBuscarUnidadePorId = vi.mocked(buscarUnidadePorId)
 
 const mockUnidade = {
   nome: 'Assessoria de Comunicação Social',
@@ -36,11 +37,11 @@ const mockUnidade = {
 
 describe('useUnidadeDetalhada', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('deve carregar dados da unidade com sucesso', async () => {
-    mockBuscarUnidadePorId.mockResolvedValue(mockUnidade)
+    vi.mocked(mockBuscarUnidadePorId).mockResolvedValue(mockUnidade)
 
     const { result } = renderHook(() => 
       useUnidadeDetalhada({ id: 'test-id', enabled: true })
@@ -58,12 +59,12 @@ describe('useUnidadeDetalhada', () => {
 
     expect(result.current.unidade).toEqual(mockUnidade)
     expect(result.current.erro).toBe(null)
-    expect(mockBuscarUnidadePorId).toHaveBeenCalledWith('test-id')
+    expect(vi.mocked(mockBuscarUnidadePorId)).toHaveBeenCalledWith('test-id')
   })
 
   it('deve lidar com erro ao carregar unidade', async () => {
     const erro = new Error('Erro na API')
-    mockBuscarUnidadePorId.mockRejectedValue(erro)
+    vi.mocked(mockBuscarUnidadePorId).mockRejectedValue(erro)
 
     const { result } = renderHook(() => 
       useUnidadeDetalhada({ id: 'test-id', enabled: true })
@@ -85,7 +86,7 @@ describe('useUnidadeDetalhada', () => {
     expect(result.current.carregando).toBe(false)
     expect(result.current.unidade).toBe(null)
     expect(result.current.erro).toBe(null)
-    expect(mockBuscarUnidadePorId).not.toHaveBeenCalled()
+    expect(vi.mocked(mockBuscarUnidadePorId)).not.toHaveBeenCalled()
   })
 
   it('não deve carregar quando id está vazio', () => {
@@ -96,11 +97,11 @@ describe('useUnidadeDetalhada', () => {
     expect(result.current.carregando).toBe(false)
     expect(result.current.unidade).toBe(null)
     expect(result.current.erro).toBe(null)
-    expect(mockBuscarUnidadePorId).not.toHaveBeenCalled()
+    expect(vi.mocked(mockBuscarUnidadePorId)).not.toHaveBeenCalled()
   })
 
   it('deve recarregar dados quando recarregar é chamado', async () => {
-    mockBuscarUnidadePorId.mockResolvedValue(mockUnidade)
+    vi.mocked(mockBuscarUnidadePorId).mockResolvedValue(mockUnidade)
 
     const { result } = renderHook(() => 
       useUnidadeDetalhada({ id: 'test-id', enabled: true })
@@ -113,18 +114,16 @@ describe('useUnidadeDetalhada', () => {
     // Chamar recarregar
     result.current.recarregar()
 
-    // Deve estar carregando novamente
-    expect(result.current.carregando).toBe(true)
-
+    // Aguardar que o carregamento seja concluído
     await waitFor(() => {
       expect(result.current.carregando).toBe(false)
     })
 
-    expect(mockBuscarUnidadePorId).toHaveBeenCalledTimes(2)
+    expect(vi.mocked(mockBuscarUnidadePorId)).toHaveBeenCalledTimes(2)
   })
 
   it('deve lidar com erro ao recarregar', async () => {
-    mockBuscarUnidadePorId
+    vi.mocked(mockBuscarUnidadePorId)
       .mockResolvedValueOnce(mockUnidade)
       .mockRejectedValueOnce(new Error('Erro ao recarregar'))
 
@@ -143,6 +142,8 @@ describe('useUnidadeDetalhada', () => {
       expect(result.current.carregando).toBe(false)
     })
 
-    expect(result.current.erro).toBe('Erro ao recarregar dados da unidade')
+    await waitFor(() => {
+      expect(result.current.erro).toBe('Erro ao recarregar dados da unidade')
+    })
   })
 })

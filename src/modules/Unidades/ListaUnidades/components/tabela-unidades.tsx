@@ -49,6 +49,7 @@ export function TabelaUnidades({
   onUnidadesSelecionadasChange,
   paginacao,
   onPaginacaoChange,
+  onVisualizarUnidade,
   ordenacao,
   onOrdenacao,
   onEditarUnidade,
@@ -121,7 +122,7 @@ export function TabelaUnidades({
   const handleVisualizarUnidade = (unidade: Unidade) => {
     console.log('[DEBUG] Navegando para unidade:', unidade)
     console.log('[DEBUG] ID da unidade:', unidade.id, 'tipo:', typeof unidade.id)
-    navigate(`/unidades/${unidade.id}`)
+    onVisualizarUnidade(unidade)
   }
 
   // Paginação

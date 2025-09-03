@@ -106,7 +106,7 @@ export function ListaContratos({ contratos }: ListaContratosProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleVisualizarContrato(contrato.id)}
+                  onClick={() => handleVisualizarContrato(Number(contrato.id))}
                   className="h-8 px-3 text-xs"
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />

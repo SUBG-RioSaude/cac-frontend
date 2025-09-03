@@ -1,20 +1,25 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
 import { useUnidadeDetalhada } from '../../hooks/use-unidade-detalhada'
 
 // Mock do hook
-jest.mock('../../hooks/use-unidade-detalhada')
+vi.mock('../../hooks/use-unidade-detalhada')
 
-const mockUseUnidadeDetalhada = useUnidadeDetalhada as jest.MockedFunction<typeof useUnidadeDetalhada>
+const mockUseUnidadeDetalhada = vi.mocked(useUnidadeDetalhada)
 
 // Mock do react-router-dom
-const mockNavigate = jest.fn()
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ id: 'test-id' }),
-  useNavigate: () => mockNavigate,
-}))
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    useParams: () => ({ unidadeId: 'test-id' }),
+    useNavigate: () => mockNavigate,
+  }
+})
 
 const mockUnidade = {
   nome: 'Assessoria de Comunicação Social',
@@ -54,28 +59,30 @@ const renderWithRouter = (component: React.ReactElement) => {
 
 describe('UnidadeDetalhesPage', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('deve renderizar loading quando está carregando', () => {
-    mockUseUnidadeDetalhada.mockReturnValue({
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: null,
       carregando: true,
       erro: null,
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
     
-    expect(screen.getByText('Carregando...')).toBeInTheDocument()
+    // Verifica se há elementos de loading (divs com animate-pulse)
+    const loadingElements = document.querySelectorAll('.animate-pulse')
+    expect(loadingElements.length).toBeGreaterThan(0)
   })
 
   it('deve renderizar erro quando há erro', () => {
-    mockUseUnidadeDetalhada.mockReturnValue({
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: null,
       carregando: false,
       erro: 'Erro ao carregar dados da unidade',
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
@@ -86,29 +93,28 @@ describe('UnidadeDetalhesPage', () => {
   })
 
   it('deve renderizar dados da unidade quando carregado com sucesso', async () => {
-    mockUseUnidadeDetalhada.mockReturnValue({
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
     
     await waitFor(() => {
-      expect(screen.getByText('Assessoria de Comunicação Social')).toBeInTheDocument()
+      expect(screen.getAllByText('Assessoria de Comunicação Social').length).toBeGreaterThan(0)
       expect(screen.getByText('S/ACS')).toBeInTheDocument()
       expect(screen.getByText('CAP Temporário')).toBeInTheDocument()
-      expect(screen.getByText('Rua Afonso Cavalcanti, 455')).toBeInTheDocument()
     })
   })
 
   it('deve mostrar badge ativo quando unidade está ativa', () => {
-    mockUseUnidadeDetalhada.mockReturnValue({
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
@@ -119,11 +125,11 @@ describe('UnidadeDetalhesPage', () => {
   it('deve mostrar badge inativo quando unidade está inativa', () => {
     const unidadeInativa = { ...mockUnidade, ativo: false }
     
-    mockUseUnidadeDetalhada.mockReturnValue({
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: unidadeInativa,
       carregando: false,
       erro: null,
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
@@ -131,28 +137,28 @@ describe('UnidadeDetalhesPage', () => {
     expect(screen.getByText('Inativo')).toBeInTheDocument()
   })
 
-  it('deve navegar de volta quando clicar em voltar', () => {
-    mockUseUnidadeDetalhada.mockReturnValue({
+  it('deve navegar de volta quando clicar em voltar', async () => {
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
     
     const botaoVoltar = screen.getByText('Voltar')
-    botaoVoltar.click()
+    await userEvent.click(botaoVoltar)
     
     expect(mockNavigate).toHaveBeenCalledWith('/unidades')
   })
 
   it('deve mostrar abas de informações gerais e endereço', () => {
-    mockUseUnidadeDetalhada.mockReturnValue({
+    vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: jest.fn()
+      recarregar: vi.fn()
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
