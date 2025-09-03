@@ -15,14 +15,7 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useFornecedoresStore } from '../store/fornecedores-store'
 import type {
   Fornecedor,
@@ -207,34 +200,14 @@ export function TabelaFornecedores({
 
                       <div className="flex items-center justify-end gap-1">
                         <Button
-                          variant="ghost"
+                          variant="default"
                           size="sm"
                           onClick={() => onAbrirFornecedor(fornecedor)}
-                          className="h-8 w-8 p-0"
-                          aria-label="Abrir fornecedor"
+                          className="h-8 px-3 shadow-sm"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="mr-1 h-4 w-4" />
+                          Abrir
                         </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              aria-label="Abrir menu de ações"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => onAbrirFornecedor(fornecedor)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Abrir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
                     </Card>
                   </motion.div>
@@ -320,39 +293,15 @@ export function TabelaFornecedores({
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onAbrirFornecedor(fornecedor)}
-                              className="h-8 w-8 p-0 opacity-100"
-                              aria-label="Abrir fornecedor"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 opacity-100"
-                                  aria-label="Abrir menu de ações"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onAbrirFornecedor(fornecedor)
-                                  }
-                                >
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Abrir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onAbrirFornecedor(fornecedor)}
+                            className="h-8 px-3 shadow-sm"
+                          >
+                            <Eye className="mr-1 h-4 w-4" />
+                            Abrir
+                          </Button>
                         </TableCell>
                       </motion.tr>
                     ))}

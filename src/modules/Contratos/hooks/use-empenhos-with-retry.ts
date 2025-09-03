@@ -6,7 +6,6 @@ import {
   atualizarEmpenho,
   excluirEmpenho
 } from '../services/empenhos-service'
-import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import type { Empenho, CriarEmpenhoPayload, AtualizarEmpenhoPayload } from '../types/contrato'
 
 // Interfaces para os dados do contrato
@@ -21,8 +20,8 @@ interface UseEmpenhosWithRetryReturn {
   limparErro: () => void
 }
 
-const MAX_RETRIES = 5
-const RETRY_DELAY = 1000 // 1 segundo entre tentativas
+const MAX_RETRIES = 2 // Reduzir para apenas 2 tentativas
+const RETRY_DELAY = 500 // Reduzir delay para 500ms
 
 export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryReturn {
   const toast = useToast()
@@ -38,7 +37,10 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
     
     for (let tentativa = 1; tentativa <= MAX_RETRIES; tentativa++) {
       try {
-        console.log(`[RETRY] ${operacaoNome} - Tentativa ${tentativa}/${MAX_RETRIES}`)
+        // Só logar se for retry (não primeira tentativa)
+        if (tentativa > 1) {
+          console.log(`[RETRY] ${operacaoNome} - Tentativa ${tentativa}/${MAX_RETRIES}`)
+        }
         const resultado = await operacao()
         
         // Se chegou aqui, a operação foi bem-sucedida
@@ -86,6 +88,13 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
   }, []) // Removida a dependência tentativasFalhadas
 
   const carregarEmpenhos = useCallback(async () => {
+    // Evitar requisições se contratoId está vazio
+    if (!contratoId || contratoId.trim() === '') {
+      setEmpenhos([])
+      setCarregando(false)
+      return
+    }
+
     try {
       setCarregando(true)
       setErro(null)
@@ -230,12 +239,53 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
     setErro(null)
   }, [])
 
-  // Carregar empenhos quando o componente montar
+  // Carregar empenhos quando o componente montar - APENAS uma vez por contratoId
   useEffect(() => {
-    if (contratoId) {
-      carregarEmpenhos()
+    // Função local para evitar dependência circular  
+    const carregarDados = async () => {
+      if (!contratoId || contratoId.trim() === '') {
+        setEmpenhos([])
+        setCarregando(false)
+        return
+      }
+
+      try {
+        setCarregando(true)
+        setErro(null)
+        
+        const dados = await executarComRetry(
+          () => listarEmpenhosPorContrato(contratoId),
+          'Carregar Empenhos'
+        )
+        
+        setEmpenhos(dados)
+      } catch (error) {
+        console.error('Erro ao carregar empenhos:', error)
+        
+        const axiosError = error as { response?: { status?: number, data?: unknown }, message?: string }
+        
+        if (axiosError.response?.status === 400) {
+          const errorData = axiosError.response.data as { message?: string, error?: string } | undefined
+          const errorMsg = errorData?.message || errorData?.error || 'Dados inválidos enviados para o servidor'
+          setErro(`Erro 400: ${errorMsg}`)
+          toast.error(`Erro de validação: ${errorMsg}`)
+        } else if (axiosError.response?.status && axiosError.response.status >= 500) {
+          setErro('Erro 500: Servidor indisponível após múltiplas tentativas')
+          toast.error('Servidor indisponível. Tente novamente em alguns minutos.')
+        } else {
+          const errorData = axiosError.response?.data as { message?: string } | undefined
+          const msgErro = errorData?.message || 'Não foi possível carregar os empenhos'
+          setErro(msgErro)
+          toast.error(msgErro)
+        }
+      } finally {
+        setCarregando(false)
+      }
     }
-  }, [contratoId, carregarEmpenhos])
+
+    carregarDados()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contratoId]) // Ignorar outras dependências intencionalmente para evitar loop
 
   return {
     empenhos,
@@ -249,34 +299,6 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
   }
 }
 
-// Hook para buscar nome da unidade por ID
-export function useUnidadeNome(unidadeId: string) {
-  const [nomeUnidade, setNomeUnidade] = useState<string>('')
-  const [carregando, setCarregando] = useState(false)
-
-  useEffect(() => {
-    const buscarNomeUnidade = async (id: string) => {
-      if (!id) return
-
-      try {
-        setCarregando(true)
-        console.log('🔍 Buscando unidade por ID:', id)
-        const unidade = await getUnidadeById(id)
-        console.log('✅ Unidade encontrada:', unidade)
-        setNomeUnidade(unidade.nome || 'Unidade não encontrada')
-      } catch (error) {
-        console.error('❌ Erro ao buscar nome da unidade:', error)
-        setNomeUnidade('Unidade não encontrada')
-      } finally {
-        setCarregando(false)
-      }
-    }
-
-    buscarNomeUnidade(unidadeId)
-  }, [unidadeId])
-
-  return { nomeUnidade, carregando }
-}
 
 // Função utilitária para extrair empenhos dos dados do contrato
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

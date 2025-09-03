@@ -35,7 +35,7 @@ import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alte
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
-import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
 
 interface RegistroAlteracoesProps {
   alteracoes: AlteracaoContrato[]
@@ -519,7 +519,7 @@ export function RegistroAlteracoes({
     }
     return Array.from(new Set(ids.filter(Boolean)))
   }, [alteracoes])
-  const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+  const unidadesLookup = useUnidadesBatch(unidadesIds, { enabled: unidadesIds.length > 0 })
   const getUnidadeNome = useCallback((id: string) => {
     return unidadesLookup.data?.[id]?.nome || id
   }, [unidadesLookup.data])

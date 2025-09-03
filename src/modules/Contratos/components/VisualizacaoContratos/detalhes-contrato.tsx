@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
-import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -46,17 +46,17 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     ...(contrato.unidadesVinculadas?.map(u => u.unidadeSaudeId) || [])
   ].filter((id): id is string => Boolean(id))
 
-  // Buscar dados completos das unidades
+  // Buscar dados completos das unidades usando hook otimizado
   const { 
     data: unidadesData, 
     isLoading: unidadesLoading, 
-    error: unidadesError 
-  } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+    error: unidadesError
+  } = useUnidadesBatch(unidadesIds, { enabled: unidadesIds.length > 0 })
 
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
     if (!unidadeId) return 'Não informado'
-    if (unidadesLoading) return 'Carregando...'
+    if (unidadesLoading && !unidadesData[unidadeId]) return 'Carregando...'
     return unidadesData?.[unidadeId]?.nome || unidadeId
   }
 

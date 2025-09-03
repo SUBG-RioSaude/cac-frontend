@@ -20,10 +20,12 @@ import {
   AlertCircle,
   FileText,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react'
-import { useEmpenhosWithRetry, useUnidadeNome } from '../../hooks/use-empenhos-with-retry'
-import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
+import { useNavigate } from 'react-router-dom'
+import { useEmpenhosWithRetry } from '../../hooks/use-empenhos-with-retry'
+import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
 import { 
   validarNumeroEmpenho,
   validarValor,
@@ -37,7 +39,8 @@ import type {
   Empenho, 
   EmpenhoForm, 
   ValidacaoEmpenho,
-  ContratoUnidadeSaudeDto 
+  ContratoUnidadeSaudeDto,
+  CriarEmpenhoPayload
 } from '../../types/contrato'
 
 interface TabEmpenhosProps {
@@ -59,82 +62,107 @@ interface EstadoModalConfirmacao {
   numeroEmpenho?: string
 }
 
-// Hook para buscar nomes das unidades em lote
+// Hook otimizado usando o novo sistema de cache compartilhado
 function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
-  const [nomesUnidades, setNomesUnidades] = useState<Record<string, string>>({})
-  const [carregando, setCarregando] = useState(false)
-
-  useEffect(() => {
-    const buscarNomesUnidades = async () => {
-      if (!unidadesVinculadas.length) {
-        setNomesUnidades({})
-        setCarregando(false)
-        return
-      }
-      
-      try {
-        setCarregando(true)
-        const nomes: Record<string, string> = {}
-
-        // Buscar nomes apenas para unidades que não têm nomeUnidade
-        const unidadesSemNome = unidadesVinculadas.filter(u => !u.nomeUnidade)
-        
-        for (const unidade of unidadesSemNome) {
-          try {
-            const unidadeData = await getUnidadeById(unidade.unidadeSaudeId)
-            nomes[unidade.unidadeSaudeId] = unidadeData.nome || `Unidade ${unidade.unidadeSaudeId}`
-          } catch (error) {
-            console.warn(`Erro ao buscar unidade ${unidade.unidadeSaudeId}:`, error)
-            nomes[unidade.unidadeSaudeId] = `Unidade ${unidade.unidadeSaudeId}`
-          }
-        }
-
-        // Adicionar nomes das unidades que já têm nomeUnidade
-        unidadesVinculadas.forEach(u => {
-          if (u.nomeUnidade) {
-            nomes[u.unidadeSaudeId] = u.nomeUnidade
-          }
-        })
-
-        setNomesUnidades(nomes)
-      } catch (error) {
-        console.error('Erro ao buscar nomes das unidades:', error)
-      } finally {
-        setCarregando(false)
-      }
-    }
-
-    buscarNomesUnidades()
+  // Extrair IDs das unidades que precisam ser buscadas (apenas as sem nomeUnidade)
+  const unidadesIds = useMemo(() => {
+    return unidadesVinculadas
+      .filter(u => !u.nomeUnidade) // Só buscar as que não têm nome
+      .map(u => u.unidadeSaudeId)
   }, [unidadesVinculadas])
 
-  return { nomesUnidades, carregando }
+  // Usar hook otimizado para buscar dados das unidades
+  const { data: unidadesData, isLoading } = useUnidadesBatch(unidadesIds, { 
+    enabled: unidadesIds.length > 0 
+  })
+
+  // Combinar nomes das unidades: usar nomeUnidade se disponível, senão usar dados da API
+  const nomesUnidades = useMemo(() => {
+    const nomes: Record<string, string> = {}
+    
+    unidadesVinculadas.forEach(u => {
+      if (u.nomeUnidade) {
+        // Usar nome já disponível
+        nomes[u.unidadeSaudeId] = u.nomeUnidade
+      } else if (unidadesData[u.unidadeSaudeId]) {
+        // Usar nome buscado da API
+        nomes[u.unidadeSaudeId] = unidadesData[u.unidadeSaudeId].nome
+      } else {
+        // Fallback para ID
+        nomes[u.unidadeSaudeId] = `Unidade ${u.unidadeSaudeId}`
+      }
+    })
+    
+    return nomes
+  }, [unidadesVinculadas, unidadesData])
+
+  return { 
+    nomesUnidades, 
+    carregando: isLoading 
+  }
 }
 
-// Componente para exibir nome da unidade - memoizado para performance
-const NomeUnidade = React.memo(function NomeUnidade({ unidadeId }: { unidadeId: string }) {
-  const { nomeUnidade, carregando } = useUnidadeNome(unidadeId)
-  
-  if (carregando) {
+// Componente para exibir nome da unidade - otimizado sem hook individual
+const NomeUnidade = React.memo(function NomeUnidade({ 
+  unidadeId, 
+  nomesUnidades, 
+  carregandoNomes 
+}: { 
+  unidadeId: string
+  nomesUnidades: Record<string, string>
+  carregandoNomes: boolean
+}) {
+  const navigate = useNavigate()
+
+  const handleAbrirUnidade = useCallback(() => {
+    navigate(`/unidades/${unidadeId}`)
+  }, [navigate, unidadeId])
+
+  if (carregandoNomes && !nomesUnidades[unidadeId]) {
     return <span className="text-muted-foreground">Carregando...</span>
   }
   
-  return <span>{nomeUnidade || `Unidade ${unidadeId}`}</span>
+  return (
+    <Button
+      variant="link"
+      size="sm"
+      onClick={handleAbrirUnidade}
+      className="h-auto p-0 text-muted-foreground hover:text-foreground"
+    >
+      <span>{nomesUnidades[unidadeId] || `Unidade ${unidadeId}`}</span>
+      <ExternalLink className="ml-1 h-3 w-3" />
+    </Button>
+  )
 })
 
 export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas = [], empenhosIniciais = [] }: TabEmpenhosProps) {
-  // Se temos empenhos iniciais, usar eles diretamente
-  const temEmpenhosIniciais = empenhosIniciais.length > 0
+  const navigate = useNavigate()
   
-  // Sempre usar o hook para operações de CRUD, mas controlar o carregamento inicial
+  // Memoizar para evitar recalculos desnecessários
+  const temEmpenhosIniciais = useMemo(() => empenhosIniciais.length > 0, [empenhosIniciais.length])
+  
+  // Estado local para empenhos quando temos dados iniciais
+  const [empenhosLocais, setEmpenhosLocais] = useState<Empenho[]>(empenhosIniciais)
+  
+  // Atualizar empenhos locais quando empenhosIniciais mudam (apenas quando realmente necessário)
+  useEffect(() => {
+    if (temEmpenhosIniciais) {
+      setEmpenhosLocais(empenhosIniciais)
+    }
+  }, [empenhosIniciais, temEmpenhosIniciais])
+  
+  // Só usar o hook se NÃO temos empenhos iniciais, para evitar requisições duplicadas  
+  // Memoizar para evitar recriações do hook
+  const hookEnabled = useMemo(() => !temEmpenhosIniciais && !!contratoId, [temEmpenhosIniciais, contratoId])
   const {
     empenhos,
     carregando,
     erro,
     carregarEmpenhos,
     salvarEmpenho: salvarEmpenhoHook,
-    excluirEmpenho,
+    excluirEmpenho: excluirEmpenhoHook,
     limparErro
-  } = useEmpenhosWithRetry(contratoId)
+  } = useEmpenhosWithRetry(hookEnabled ? contratoId : '')
   
   // Hook para buscar nomes das unidades
   const { nomesUnidades, carregando: carregandoNomes } = useUnidadesNomes(unidadesVinculadas)
@@ -142,12 +170,10 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
   // Estado para filtro de unidade
   const [filtroUnidade, setFiltroUnidade] = useState<string>('todas')
   
-  // Usar empenhos iniciais se disponíveis, senão usar os do hook
+  // Usar empenhos locais se disponíveis, senão usar os do hook
   const empenhosExibidos = useMemo(() => {
-    // Se temos empenhos iniciais, usar eles, mas também incluir novos empenhos do hook
-    const empenhosBase = temEmpenhosIniciais 
-      ? [...empenhosIniciais, ...empenhos] // Combinar empenhos iniciais com novos
-      : empenhos
+    // Se temos empenhos iniciais, usar os locais (que podem ter sido atualizados), caso contrário usar os do hook
+    const empenhosBase = temEmpenhosIniciais ? empenhosLocais : empenhos
     
     // Aplicar filtro por unidade se selecionado
     if (filtroUnidade && filtroUnidade !== 'todas') {
@@ -155,7 +181,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
     }
     
     return empenhosBase
-  }, [temEmpenhosIniciais, empenhosIniciais, empenhos, filtroUnidade])
+  }, [temEmpenhosIniciais, empenhosLocais, empenhos, filtroUnidade])
   
   // Obter nome da unidade selecionada no filtro
   const nomeUnidadeFiltro = useMemo(() => {
@@ -226,6 +252,29 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
   const fecharModalConfirmacao = useCallback(() => {
     setModalConfirmacao({ aberto: false })
   }, [])
+
+  // Wrapper para salvar empenho que funciona com dados iniciais ou hook
+  const salvarEmpenho = useCallback(async (payload: CriarEmpenhoPayload) => {
+    const novoEmpenho = await salvarEmpenhoHook(payload)
+    
+    // Se temos empenhos iniciais, atualizar estado local
+    if (temEmpenhosIniciais) {
+      // Recarregar a página para obter dados atualizados (fallback seguro)
+      window.location.reload()
+    }
+    
+    return novoEmpenho
+  }, [salvarEmpenhoHook, temEmpenhosIniciais])
+
+  // Wrapper para excluir empenho que funciona com dados iniciais ou hook
+  const excluirEmpenho = useCallback(async (id: string) => {
+    await excluirEmpenhoHook(id)
+    
+    // Se temos empenhos iniciais, atualizar estado local
+    if (temEmpenhosIniciais) {
+      setEmpenhosLocais(prev => prev.filter(emp => emp.id !== id))
+    }
+  }, [excluirEmpenhoHook, temEmpenhosIniciais])
 
   const confirmarExclusao = useCallback(async () => {
     if (modalConfirmacao.empenhoId) {
@@ -404,7 +453,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
       })
       
       // Criar novo empenho
-      await salvarEmpenhoHook(payload)
+      await salvarEmpenho(payload)
 
       // Limpar filtro se o empenho foi criado para uma unidade diferente
       if (filtroUnidade && filtroUnidade !== 'todas' && dados.unidadeSaudeId !== filtroUnidade) {
@@ -416,7 +465,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
       console.error('Erro ao salvar empenho:', error)
       // O erro já é tratado pelo hook, mas mantemos log para debug
     }
-  }, [formulario, empenhosExibidos, valorTotalContrato, contratoId, salvarEmpenhoHook, fecharFormulario, filtroUnidade])
+  }, [formulario, empenhosExibidos, valorTotalContrato, contratoId, salvarEmpenho, fecharFormulario, filtroUnidade])
 
   const formularioValido = useCallback(() => {
     const { validacao, dados } = formulario
@@ -574,9 +623,15 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                 Empenhos Registrados
               </CardTitle>
                              {filtroUnidade && filtroUnidade !== 'todas' && (
-                 <Badge variant="secondary" className="text-xs">
+                 <Button
+                   variant="secondary"
+                   size="sm"
+                   onClick={() => navigate(`/unidades/${filtroUnidade}`)}
+                   className="text-xs hover:bg-secondary/80"
+                 >
                    Filtrado: {nomeUnidadeFiltro}
-                 </Badge>
+                   <ExternalLink className="ml-1 h-3 w-3" />
+                 </Button>
                )}
             </div>
             <Button onClick={abrirFormulario} aria-label="Adicionar novo empenho">
@@ -614,9 +669,15 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
               </div>
                              {filtroUnidade && filtroUnidade !== 'todas' && (
                  <div className="flex items-center gap-2">
-                   <Badge variant="secondary" className="text-sm">
+                   <Button
+                     variant="secondary"
+                     size="sm"
+                     onClick={() => navigate(`/unidades/${filtroUnidade}`)}
+                     className="h-6 px-2 text-xs hover:bg-secondary/80"
+                   >
                      Filtrado: {nomeUnidadeFiltro}
-                   </Badge>
+                     <ExternalLink className="ml-1 h-3 w-3" />
+                   </Button>
                    <Button
                      variant="ghost"
                      size="sm"
@@ -675,7 +736,11 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Building className="h-4 w-4" />
-                          <NomeUnidade unidadeId={empenho.unidadeSaudeId} />
+                          <NomeUnidade 
+                            unidadeId={empenho.unidadeSaudeId}
+                            nomesUnidades={nomesUnidades}
+                            carregandoNomes={carregandoNomes}
+                          />
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />

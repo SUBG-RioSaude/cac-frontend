@@ -3,7 +3,7 @@
  * Integração com TanStack Query e executeWithFallback
  */
 
-import { executeWithFallback } from '@/lib/axios'
+import { executeWithFallback, api } from '@/lib/axios'
 import type {
   UnidadeSaudeApi,
   UnidadeSaudeCreateApi, 
@@ -12,7 +12,8 @@ import type {
   FiltrosUnidadesApi,
   CapApi,
   TipoUnidadeApi,
-  TipoAdministracaoApi
+  TipoAdministracaoApi,
+  UnidadeDetalhada
 } from '@/modules/Unidades/types/unidade-api'
 
 // ========== OPERAÇÕES PRINCIPAIS - UNIDADES ==========
@@ -86,6 +87,19 @@ export async function buscarUnidadesPorNome(nome: string): Promise<UnidadeSaudeA
   })
 
   return response.data
+}
+
+export const buscarUnidadePorId = async (id: string): Promise<UnidadeDetalhada> => {
+  try {
+    console.log('[DEBUG] URL da API:', import.meta.env.VITE_API_URL)
+    console.log('[DEBUG] Fazendo requisição para:', `/unidades/${id}`)
+    const response = await api.get<UnidadeDetalhada>(`/unidades/${id}`)
+    console.log('[DEBUG] Resposta recebida:', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Erro ao buscar unidade por ID:', error)
+    throw error
+  }
 }
 
 // ========== OPERAÇÕES AUXILIARES - CAPS ==========

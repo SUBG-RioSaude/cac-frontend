@@ -13,11 +13,12 @@ vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   }))
 }))
 
-vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
-  useUnidadesByIds: vi.fn(() => ({
+vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
+  useUnidadesBatch: vi.fn(() => ({
     data: {},
     isLoading: false,
-    error: null
+    error: null,
+    getNome: vi.fn((id) => `Mock Unidade ${id}`)
   }))
 }))
 
