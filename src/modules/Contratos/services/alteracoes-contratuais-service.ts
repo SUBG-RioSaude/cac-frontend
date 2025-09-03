@@ -227,9 +227,9 @@ export async function atualizarAlteracaoContratual(
     unidades: dados.blocos.unidades ? {
       operacao: 1, // Operacao padrão
       unidadesAfetadas: dados.blocos.unidades.unidadesVinculadas?.map(u => ({
-        id: u,
-        nome: u,
-        codigo: u
+        id: u.unidadeSaudeId,
+        nome: u.unidadeSaudeId,
+        codigo: u.unidadeSaudeId
       })) || []
     } : undefined
   } : undefined

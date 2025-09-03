@@ -9,18 +9,19 @@ import { cn } from '@/lib/utils'
 import {
   Building2,
   Search,
-  Plus,
-  X,
   MapPin,
-  ArrowRight,
   ArrowLeft,
   AlertCircle,
-  Loader2
+  Loader2,
+  DollarSign
 } from 'lucide-react'
 
 import { useUnidades, useBuscarUnidades } from '@/modules/Unidades/hooks/use-unidades'
-import type { BlocoUnidades as IBlocoUnidades } from '../../../../types/alteracoes-contratuais'
+import type { BlocoUnidades as IBlocoUnidades, UnidadeVinculada } from '../../../../types/alteracoes-contratuais'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+import { LinkedUnitsManager } from './LinkedUnitsManager'
+import { UnlinkedUnitsManager } from './UnlinkedUnitsManager'
+import { UnitValueEditor } from './UnitValueEditor'
 
 interface TransformedUnidade {
   id: string
@@ -41,6 +42,7 @@ interface BlocoUnidadesProps {
   dados: Partial<IBlocoUnidades>
   onChange: (dados: IBlocoUnidades) => void
   contractUnits?: ContractUnits
+  contractValue?: number
   errors?: Record<string, string>
   disabled?: boolean
   required?: boolean
@@ -50,9 +52,9 @@ interface BlocoUnidadesProps {
 function transformUnidadeApiData(unidade: UnidadeSaudeApi): TransformedUnidade {
   return {
     id: unidade.id,
-    codigo: unidade.sigla || `UN${unidade.id.slice(-3)}`, // Usar sigla ou gerar código
+    codigo: unidade.sigla || `UN${unidade.id.slice(-3)}`,
     nome: unidade.nome,
-    tipo: unidade.cap?.nome || 'Unidade', // Usar CAP como tipo
+    tipo: unidade.cap?.nome || 'Unidade',
     endereco: unidade.endereco ? `${unidade.endereco}, ${unidade.bairro || ''}`.trim().replace(/,$/, '') : 'Endereço não informado',
     ativo: unidade.ativo
   }
@@ -63,19 +65,20 @@ const CORES_TIPO: Record<string, string> = {
   UPA: 'bg-red-100 text-red-700',
   Hospital: 'bg-green-100 text-green-700',
   CAPS: 'bg-purple-100 text-purple-700',
-  'Unidade': 'bg-gray-100 text-gray-700', // Fallback
-  // Adicionar mais tipos conforme necessário
+  'Unidade': 'bg-gray-100 text-gray-700',
 }
 
 export function BlocoUnidades({
   dados = {},
   onChange,
   contractUnits,
+  contractValue,
   errors = {},
   disabled = false,
   required = false
 }: BlocoUnidadesProps) {
   const [busca, setBusca] = useState('')
+  const [valueEditorUnit, setValueEditorUnit] = useState<TransformedUnidade | null>(null)
 
   // Carregar unidades via API (busca ou lista)
   const shouldSearch = busca.length >= 2
@@ -98,7 +101,6 @@ export function BlocoUnidades({
     enabled: !shouldSearch && !disabled
   })
 
-
   // Unidades da API transformadas
   const unidadesApi = useMemo(() => {
     const unidades = shouldSearch ? unidadesBusca : unidadesResponse?.dados
@@ -108,24 +110,21 @@ export function BlocoUnidades({
   // Filtrar unidades disponíveis (excluir já vinculadas/desvinculadas)
   const unidadesDisponiveis = useMemo(() => {
     return unidadesApi.filter(u => {
-      return !dados.unidadesVinculadas?.includes(u.id) &&
+      const vinculadas = dados.unidadesVinculadas?.map(uv => uv.unidadeSaudeId) || []
+      return !vinculadas.includes(u.id) &&
         !dados.unidadesDesvinculadas?.includes(u.id)
     })
   }, [unidadesApi, dados])
 
-  // Unidades vinculadas com dados completos
-  const unidadesVinculadasCompletas = useMemo(() => {
-    return dados.unidadesVinculadas?.map((id: string) => 
-      unidadesApi.find((u: TransformedUnidade) => u.id === id)
-    ).filter((u): u is TransformedUnidade => Boolean(u)) || []
-  }, [dados.unidadesVinculadas, unidadesApi])
+  // Função auxiliar para obter detalhes da unidade
+  const getUnitDetails = useCallback((id: string) => {
+    return unidadesApi.find(u => u.id === id)
+  }, [unidadesApi])
 
-  // Unidades desvinculadas com dados completos
-  const unidadesDesvinculadasCompletas = useMemo(() => {
-    return dados.unidadesDesvinculadas?.map((id: string) => 
-      unidadesApi.find((u: TransformedUnidade) => u.id === id)
-    ).filter((u): u is TransformedUnidade => Boolean(u)) || []
-  }, [dados.unidadesDesvinculadas, unidadesApi])
+  // Valor total já atribuído
+  const currentAllocatedValue = useMemo(() => {
+    return dados.unidadesVinculadas?.reduce((sum, unit) => sum + unit.valorAtribuido, 0) || 0
+  }, [dados.unidadesVinculadas])
 
   const handleFieldChange = useCallback((field: keyof IBlocoUnidades, value: unknown) => {
     onChange({
@@ -134,25 +133,28 @@ export function BlocoUnidades({
     } as IBlocoUnidades)
   }, [dados, onChange])
 
-  const handleVincularUnidade = useCallback((unidadeId: string) => {
-    const vinculadas = [...(dados.unidadesVinculadas || []), unidadeId]
+  const handleVincularComValor = useCallback((unidade: TransformedUnidade) => {
+    setValueEditorUnit(unidade)
+  }, [])
+
+  const handleSaveLinkedUnit = useCallback((unidadeVinculada: UnidadeVinculada) => {
+    const vinculadas = [...(dados.unidadesVinculadas || []), unidadeVinculada]
     handleFieldChange('unidadesVinculadas', vinculadas)
+    setValueEditorUnit(null)
   }, [dados.unidadesVinculadas, handleFieldChange])
+
+  const handleUpdateLinkedUnits = useCallback((unidades: UnidadeVinculada[]) => {
+    handleFieldChange('unidadesVinculadas', unidades)
+  }, [handleFieldChange])
 
   const handleDesvincularUnidade = useCallback((unidadeId: string) => {
     const desvinculadas = [...(dados.unidadesDesvinculadas || []), unidadeId]
     handleFieldChange('unidadesDesvinculadas', desvinculadas)
   }, [dados.unidadesDesvinculadas, handleFieldChange])
 
-  const handleRemoverVinculada = useCallback((unidadeId: string) => {
-    const vinculadas = dados.unidadesVinculadas?.filter((id: string) => id !== unidadeId) || []
-    handleFieldChange('unidadesVinculadas', vinculadas)
-  }, [dados.unidadesVinculadas, handleFieldChange])
-
-  const handleRemoverDesvinculada = useCallback((unidadeId: string) => {
-    const desvinculadas = dados.unidadesDesvinculadas?.filter((id: string) => id !== unidadeId) || []
-    handleFieldChange('unidadesDesvinculadas', desvinculadas)
-  }, [dados.unidadesDesvinculadas, handleFieldChange])
+  const handleUpdateUnlinkedUnits = useCallback((unidades: string[]) => {
+    handleFieldChange('unidadesDesvinculadas', unidades)
+  }, [handleFieldChange])
 
   // Verificar se tem alterações
   const temAlteracoes = useMemo(() => {
@@ -160,24 +162,12 @@ export function BlocoUnidades({
            (dados.unidadesDesvinculadas?.length || 0) > 0
   }, [dados])
 
-  // Contar por tipo
+  // Contar por tipo (simplificado)
   const contagemPorTipo = useMemo(() => {
-    const contagem: Record<string, { vinculadas: number, desvinculadas: number }> = {}
-    
-    unidadesVinculadasCompletas.forEach((unidade: TransformedUnidade) => {
-      const tipo = unidade.tipo
-      if (!contagem[tipo]) contagem[tipo] = { vinculadas: 0, desvinculadas: 0 }
-      contagem[tipo].vinculadas++
-    })
-    
-    unidadesDesvinculadasCompletas.forEach((unidade: TransformedUnidade) => {
-      const tipo = unidade.tipo
-      if (!contagem[tipo]) contagem[tipo] = { vinculadas: 0, desvinculadas: 0 }
-      contagem[tipo].desvinculadas++
-    })
-    
-    return contagem
-  }, [unidadesVinculadasCompletas, unidadesDesvinculadasCompletas])
+    const vinculadas = dados.unidadesVinculadas?.length || 0
+    const desvinculadas = dados.unidadesDesvinculadas?.length || 0
+    return { vinculadas, desvinculadas }
+  }, [dados])
 
   // Estado de loading
   const isLoading = shouldSearch ? loadingBusca : loadingUnidades
@@ -198,14 +188,22 @@ export function BlocoUnidades({
             </Badge>
           )}
           
-          {/* Resumo por tipo */}
-          {Object.keys(contagemPorTipo).length > 0 && (
+          {/* Resumo simplificado */}
+          {temAlteracoes && (
             <div className="flex items-center gap-1">
-              {Object.entries(contagemPorTipo).map(([tipo, contagem]) => (
-                <Badge key={tipo} variant="outline" className="text-xs">
-                  {tipo}: +{contagem.vinculadas} -{contagem.desvinculadas}
+              <Badge variant="outline" className="text-xs">
+                +{contagemPorTipo.vinculadas} -{contagemPorTipo.desvinculadas}
+              </Badge>
+              {contractValue && currentAllocatedValue > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                    notation: 'compact'
+                  }).format(currentAllocatedValue)}
                 </Badge>
-              ))}
+              )}
             </div>
           )}
           
@@ -346,11 +344,11 @@ export function BlocoUnidades({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleVincularUnidade(unidade.id)}
+                    onClick={() => handleVincularComValor(unidade)}
                     disabled={disabled}
                     className="text-green-600 hover:text-green-700 hover:border-green-300"
                   >
-                    <ArrowRight className="h-4 w-4" />
+                    <DollarSign className="h-4 w-4" />
                     <span className="hidden sm:inline ml-1">Vincular</span>
                   </Button>
                   <Button
@@ -382,97 +380,24 @@ export function BlocoUnidades({
         </CardContent>
       </Card>
 
-      {/* Unidades vinculadas */}
-      {unidadesVinculadasCompletas.length > 0 && (
-        <Card className="border-green-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-green-700">
-              <Plus className="h-4 w-4" />
-              Unidades Vinculadas ({unidadesVinculadasCompletas.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {unidadesVinculadasCompletas.map((unidade: TransformedUnidade) => (
-                <div
-                  key={unidade.id}
-                  className="flex items-center justify-between p-3 border rounded-lg bg-green-50"
-                >
-                  <div className="flex-1 min-w-0 flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <Badge 
-                      variant="secondary" 
-                      className={cn('text-xs', CORES_TIPO[unidade.tipo as keyof typeof CORES_TIPO])}
-                    >
-                      {unidade.tipo}
-                    </Badge>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{unidade.nome}</p>
-                      <p className="text-xs text-gray-600 font-mono">{unidade.codigo}</p>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemoverVinculada(unidade.id)}
-                    disabled={disabled}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Unidades vinculadas com valor */}
+      <LinkedUnitsManager
+        unidadesVinculadas={dados.unidadesVinculadas || []}
+        onChange={handleUpdateLinkedUnits}
+        getUnitDetails={getUnitDetails}
+        disabled={disabled}
+        errors={errors}
+        contractValue={contractValue}
+      />
 
       {/* Unidades desvinculadas */}
-      {unidadesDesvinculadasCompletas.length > 0 && (
-        <Card className="border-red-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-red-700">
-              <X className="h-4 w-4" />
-              Unidades Desvinculadas ({unidadesDesvinculadasCompletas.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {unidadesDesvinculadasCompletas.map((unidade: TransformedUnidade) => (
-                <div
-                  key={unidade.id}
-                  className="flex items-center justify-between p-3 border rounded-lg bg-red-50"
-                >
-                  <div className="flex-1 min-w-0 flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <Badge 
-                      variant="secondary" 
-                      className={cn('text-xs', CORES_TIPO[unidade.tipo as keyof typeof CORES_TIPO])}
-                    >
-                      {unidade.tipo}
-                    </Badge>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{unidade.nome}</p>
-                      <p className="text-xs text-gray-600 font-mono">{unidade.codigo}</p>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemoverDesvinculada(unidade.id)}
-                    disabled={disabled}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <UnlinkedUnitsManager
+        unidadesDesvinculadas={dados.unidadesDesvinculadas || []}
+        onChange={handleUpdateUnlinkedUnits}
+        getUnitDetails={getUnitDetails}
+        disabled={disabled}
+        errors={errors}
+      />
 
       {/* Observações */}
       <Card>
@@ -510,6 +435,12 @@ export function BlocoUnidades({
               {(dados.unidadesDesvinculadas?.length || 0) > 0 && (
                 <div>• {dados.unidadesDesvinculadas!.length} unidade(s) serão desvinculadas do contrato</div>
               )}
+              {contractValue && currentAllocatedValue > 0 && (
+                <div>• Valor total atribuído: {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(currentAllocatedValue)}</div>
+              )}
               <div className="mt-2 text-xs text-blue-600">
                 Total de alterações: {(dados.unidadesVinculadas?.length || 0) + (dados.unidadesDesvinculadas?.length || 0)} unidades
               </div>
@@ -517,6 +448,17 @@ export function BlocoUnidades({
           </div>
         </div>
       )}
+
+      {/* Modal de edição de valor */}
+      <UnitValueEditor
+        isOpen={!!valueEditorUnit}
+        onClose={() => setValueEditorUnit(null)}
+        unit={valueEditorUnit}
+        onSave={handleSaveLinkedUnit}
+        contractValue={contractValue}
+        currentAllocatedValue={currentAllocatedValue}
+        disabled={disabled}
+      />
     </div>
   )
 }

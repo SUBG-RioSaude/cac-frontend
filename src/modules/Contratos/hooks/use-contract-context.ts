@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getContratoDetalhado } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidade } from '@/modules/Unidades/hooks/use-unidades'
 
 interface UseContractContextOptions {
   enabled?: boolean
@@ -70,11 +71,38 @@ export function useContractSuppliers(contratoId: string, options?: UseContractCo
 export function useContractUnits(contratoId: string, options?: UseContractContextOptions) {
   const { data: contract, ...queryResult } = useContractContext(contratoId, options)
   
+  // Buscar nomes das unidades por ID
+  const unidadeDemandanteId = contract?.unidadeDemandanteId as string | undefined
+  const unidadeGestoraId = contract?.unidadeGestoraId as string | undefined
+  
+  const unidadeDemandanteQuery = useUnidade(unidadeDemandanteId || '', { 
+    enabled: !!unidadeDemandanteId && (options?.enabled ?? true)
+  })
+  
+  const unidadeGestoraQuery = useUnidade(unidadeGestoraId || '', { 
+    enabled: !!unidadeGestoraId && (options?.enabled ?? true)
+  })
+  
+  // Resolver nomes das unidades
+  const demandingUnitName = unidadeDemandanteQuery.data?.nome || 
+                           contract?.unidades?.demandante || 
+                           null
+  const managingUnitName = unidadeGestoraQuery.data?.nome || 
+                          contract?.unidades?.gestora || 
+                          null
+  
   return {
     ...queryResult,
-    units: contract?.unidades || { demandante: null, gestora: null, vinculadas: [] },
-    demandingUnit: contract?.unidades?.demandante || null,
-    managingUnit: contract?.unidades?.gestora || null,
+    isLoading: queryResult.isLoading || unidadeDemandanteQuery.isLoading || unidadeGestoraQuery.isLoading,
+    isFetching: queryResult.isFetching || unidadeDemandanteQuery.isFetching || unidadeGestoraQuery.isFetching,
+    error: queryResult.error || unidadeDemandanteQuery.error || unidadeGestoraQuery.error,
+    units: {
+      demandante: demandingUnitName,
+      gestora: managingUnitName,
+      vinculadas: contract?.unidades?.vinculadas || []
+    },
+    demandingUnit: demandingUnitName,
+    managingUnit: managingUnitName,
     linkedUnits: contract?.unidades?.vinculadas || []
   }
 }

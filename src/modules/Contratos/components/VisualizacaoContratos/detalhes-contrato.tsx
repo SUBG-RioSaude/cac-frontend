@@ -18,6 +18,7 @@ import {
   Hash,
   User,
   Edit,
+  X,
   AlertTriangle,
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
@@ -41,13 +42,14 @@ type ContratoComIds = ContratoDetalhado & {
 
 export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
-  const [editandoCampo, setEditandoCampo] = useState<string | null>(null)
   
   const {
     isEditing,
+    isGroupEditing,
     pendingValue,
     isLoading,
     startEditing,
+    startGroupEditing,
     cancelEditing,
     handleFieldSave,
     confirmSave,
@@ -177,8 +179,12 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     )
   }
 
-  const handleEditarCampo = (campo: string) => {
-    setEditandoCampo(editandoCampo === campo ? null : campo)
+  const handleEditarCampo = (grupo: string) => {
+    if (isGroupEditing(grupo)) {
+      cancelEditing()
+    } else {
+      startGroupEditing(grupo)
+    }
   }
 
   return (
@@ -222,9 +228,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditarCampo('dados-basicos')}
-                      className="h-8 w-8 p-0"
+                      className={`h-8 w-8 p-0 ${isGroupEditing('dados-basicos') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
                     >
-                      <Edit className="h-4 w-4" />
+                      {isGroupEditing('dados-basicos') ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <Edit className="h-4 w-4" />
+                      )}
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -233,9 +243,22 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <p className="text-muted-foreground text-sm">
                           Número do Contrato
                         </p>
-                        <p className="font-semibold">
-                          {contrato.numeroContrato}
-                        </p>
+                        {isEditing('numeroContrato') ? (
+                          <EditableFieldWrapper
+                            fieldKey="numeroContrato"
+                            value={pendingValue || contrato.numeroContrato}
+                            onSave={(value) => handleFieldSave('numeroContrato', value)}
+                            onCancel={cancelEditing}
+                            isLoading={isLoading}
+                          />
+                        ) : (
+                          <div 
+                            className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                            onClick={() => startEditing('numeroContrato')}
+                          >
+                            {contrato.numeroContrato}
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div>
@@ -284,9 +307,22 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <p className="text-muted-foreground text-sm">
                             Processo Legado
                           </p>
-                          <p className="font-semibold">
-                            {contrato.processoLegado || 'Não informado'}
-                          </p>
+                          {isEditing('processoLegado') ? (
+                            <EditableFieldWrapper
+                              fieldKey="processoLegado"
+                              value={pendingValue || contrato.processoLegado || ''}
+                              onSave={(value) => handleFieldSave('processoLegado', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('processoLegado')}
+                            >
+                              {contrato.processoLegado || 'Não informado'}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -295,7 +331,22 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <p className="text-muted-foreground text-sm">
                         Categoria do Objeto
                       </p>
-                      <p className="font-medium">{contrato.categoriaObjeto}</p>
+                      {isEditing('categoriaObjeto') ? (
+                        <EditableFieldWrapper
+                          fieldKey="categoriaObjeto"
+                          value={pendingValue || contrato.categoriaObjeto}
+                          onSave={(value) => handleFieldSave('categoriaObjeto', value)}
+                          onCancel={cancelEditing}
+                          isLoading={isLoading}
+                        />
+                      ) : (
+                        <div 
+                          className="font-medium cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                          onClick={() => startEditing('categoriaObjeto')}
+                        >
+                          {contrato.categoriaObjeto}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">
@@ -349,9 +400,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditarCampo('vigencia-valores')}
-                      className="h-8 w-8 p-0"
+                      className={`h-8 w-8 p-0 ${isGroupEditing('vigencia-valores') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
                     >
-                      <Edit className="h-4 w-4" />
+                      {isGroupEditing('vigencia-valores') ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <Edit className="h-4 w-4" />
+                      )}
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">

@@ -732,9 +732,9 @@ export function AlteracoesContratuais({
                           <div>
                             <span className="font-medium text-gray-700">Unidades Vinculadas:</span>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {dados.blocos.unidades.unidadesVinculadas.map((id: string, index: number) => (
+                              {dados.blocos.unidades.unidadesVinculadas.map((unidade, index: number) => (
                                 <Badge key={index} variant="default" className="text-xs">
-                                  {getUnitName(id)}
+                                  {getUnitName(unidade.unidadeSaudeId)}
                                 </Badge>
                               ))}
                             </div>

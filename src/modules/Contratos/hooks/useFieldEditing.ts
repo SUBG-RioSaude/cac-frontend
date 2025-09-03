@@ -4,9 +4,26 @@ import {
   requiresConfirmation, 
   isCriticalField, 
   getFieldLabel,
-  getFieldConfig
+  getFieldConfig,
+  getFieldsInGroup
 } from '../config/editable-fields-config'
 import type { ContratoDetalhado } from '../types/contrato'
+
+// Mapeamento dos nomes dos campos do frontend para os nomes esperados pela API
+const FRONTEND_TO_API_MAPPING: Record<string, string> = {
+  // Campos que precisam de mapeamento
+  'objeto': 'descricaoObjeto',
+  'valorTotal': 'valorGlobal',
+  'dataInicio': 'vigenciaInicial',
+  'dataTermino': 'vigenciaFinal',
+  
+  // Campos que já estão corretos (não precisam mapeamento, mas listados para documentação)
+  // 'numeroContrato': 'numeroContrato',
+  // 'processoSei': 'processoSei',
+  // 'processoRio': 'processoRio', 
+  // 'processoLegado': 'processoLegado',
+  // 'categoriaObjeto': 'categoriaObjeto'
+}
 
 interface UseFieldEditingProps {
   contrato: ContratoDetalhado
@@ -18,6 +35,8 @@ interface EditingState {
   fieldKey: string | null
   pendingValue: any
   showConfirmModal: boolean
+  editingGroup: string | null // Para edição em bloco
+  editingFields: string[] // Lista de campos sendo editados
 }
 
 export function useFieldEditing({ 
@@ -28,7 +47,9 @@ export function useFieldEditing({
   const [editingState, setEditingState] = useState<EditingState>({
     fieldKey: null,
     pendingValue: null,
-    showConfirmModal: false
+    showConfirmModal: false,
+    editingGroup: null,
+    editingFields: []
   })
 
   const updateMutation = useUpdateContrato()
@@ -37,7 +58,20 @@ export function useFieldEditing({
     setEditingState({
       fieldKey,
       pendingValue: null,
-      showConfirmModal: false
+      showConfirmModal: false,
+      editingGroup: null,
+      editingFields: []
+    })
+  }, [])
+  
+  const startGroupEditing = useCallback((groupKey: string) => {
+    const fieldsInGroup = getFieldsInGroup(groupKey)
+    setEditingState({
+      fieldKey: null,
+      pendingValue: null,
+      showConfirmModal: false,
+      editingGroup: groupKey,
+      editingFields: fieldsInGroup
     })
   }, [])
 
@@ -45,15 +79,20 @@ export function useFieldEditing({
     setEditingState({
       fieldKey: null,
       pendingValue: null,
-      showConfirmModal: false
+      showConfirmModal: false,
+      editingGroup: null,
+      editingFields: []
     })
   }, [])
 
   const saveField = useCallback(async (fieldKey: string, newValue: any) => {
     try {
+      // Mapeia o nome do campo do frontend para o nome esperado pela API
+      const apiFieldName = FRONTEND_TO_API_MAPPING[fieldKey] || fieldKey
+      
       const updateData = {
         id: contrato.id,
-        [fieldKey]: newValue
+        [apiFieldName]: newValue
       }
 
       // Se há justificativa, poderíamos adicioná-la em observações ou em um campo específico
@@ -65,7 +104,9 @@ export function useFieldEditing({
       setEditingState({
         fieldKey: null,
         pendingValue: null,
-        showConfirmModal: false
+        showConfirmModal: false,
+        editingGroup: null,
+        editingFields: []
       })
 
       onSuccess?.()
@@ -83,7 +124,9 @@ export function useFieldEditing({
       setEditingState({
         fieldKey,
         pendingValue: newValue,
-        showConfirmModal: true
+        showConfirmModal: true,
+        editingGroup: null,
+        editingFields: []
       })
     } else {
       // Para campos simples, salva diretamente
@@ -125,15 +168,20 @@ export function useFieldEditing({
 
   return {
     // Estados
-    isEditing: (fieldKey: string) => editingState.fieldKey === fieldKey,
-    isAnyEditing: editingState.fieldKey !== null,
+    isEditing: (fieldKey: string) => 
+      editingState.fieldKey === fieldKey || editingState.editingFields.includes(fieldKey),
+    isGroupEditing: (groupKey: string) => editingState.editingGroup === groupKey,
+    isAnyEditing: editingState.fieldKey !== null || editingState.editingFields.length > 0,
     editingFieldKey: editingState.fieldKey,
+    editingGroup: editingState.editingGroup,
+    editingFields: editingState.editingFields,
     pendingValue: editingState.pendingValue,
     showConfirmModal: editingState.showConfirmModal,
     isLoading: updateMutation.isPending,
 
     // Ações
     startEditing,
+    startGroupEditing,
     cancelEditing,
     handleFieldSave,
     confirmSave,

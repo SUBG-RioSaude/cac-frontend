@@ -140,9 +140,12 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
         cep: ''
       }
     },
+    // Preservar IDs das unidades para busca posterior de nomes
+    unidadeDemandanteId: (response.data as { unidadeDemandanteId?: string }).unidadeDemandanteId || response.data.unidadeDemandante,
+    unidadeGestoraId: (response.data as { unidadeGestoraId?: string }).unidadeGestoraId || response.data.unidadeGestora,
     unidades: {
-      demandante: response.data.unidadeDemandante || 'Não informado',
-      gestora: response.data.unidadeGestora || 'Não informado',
+      demandante: response.data.unidadeDemandante || null, // Será resolvido pelo hook
+      gestora: response.data.unidadeGestora || null, // Será resolvido pelo hook  
       vinculadas: [],
     },
     alteracoes: [],

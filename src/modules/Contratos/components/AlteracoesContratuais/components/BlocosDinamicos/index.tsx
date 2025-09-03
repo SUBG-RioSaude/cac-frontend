@@ -394,6 +394,7 @@ export function BlocosDinamicos({
           <BlocoUnidades
             {...blocoProps}
             contractUnits={contractContext?.units}
+            contractValue={contractContext?.financials?.totalValue || contractContext?.contract?.valorTotal}
             onChange={handleUnidadesChange}
           />
         )

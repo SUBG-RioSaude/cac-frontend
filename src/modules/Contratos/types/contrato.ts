@@ -330,6 +330,10 @@ export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   dataTermino: string // mapeado de vigenciaFinal
   valorTotal: number // mapeado de valorGlobal
   vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
+  
+  // IDs das unidades para busca de nomes
+  unidadeDemandanteId?: string | null
+  unidadeGestoraId?: string | null
 
   // Informações CCon
   ccon?: {

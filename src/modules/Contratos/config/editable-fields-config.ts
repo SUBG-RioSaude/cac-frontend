@@ -45,8 +45,30 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     }
   },
   
-  descricaoObjeto: {
-    fieldKey: 'descricaoObjeto',
+  processoLegado: {
+    fieldKey: 'processoLegado',
+    label: 'Processo Legado',
+    type: 'text',
+    requiresConfirmation: false,
+    isCritical: false,
+    validation: {
+      maxLength: 50
+    }
+  },
+  
+  categoriaObjeto: {
+    fieldKey: 'categoriaObjeto',
+    label: 'Categoria do Objeto',
+    type: 'text',
+    requiresConfirmation: false,
+    isCritical: false,
+    validation: {
+      maxLength: 100
+    }
+  },
+  
+  objeto: {
+    fieldKey: 'objeto',
     label: 'Descrição do Objeto',
     type: 'textarea',
     requiresConfirmation: false,
@@ -92,9 +114,9 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     }
   },
   
-  valorGlobal: {
-    fieldKey: 'valorGlobal',
-    label: 'Valor Global',
+  valorTotal: {
+    fieldKey: 'valorTotal',
+    label: 'Valor Total do Contrato',
     type: 'currency',
     requiresConfirmation: true,
     isCritical: true,
@@ -104,8 +126,8 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     }
   },
   
-  vigenciaInicial: {
-    fieldKey: 'vigenciaInicial',
+  dataInicio: {
+    fieldKey: 'dataInicio',
     label: 'Data de Início da Vigência',
     type: 'date',
     requiresConfirmation: true,
@@ -115,8 +137,8 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     }
   },
   
-  vigenciaFinal: {
-    fieldKey: 'vigenciaFinal',
+  dataTermino: {
+    fieldKey: 'dataTermino',
     label: 'Data Final da Vigência',
     type: 'date',
     requiresConfirmation: true,
@@ -150,17 +172,6 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
       { value: 'centralizado', label: 'Centralizado' },
       { value: 'descentralizado', label: 'Descentralizado' }
     ]
-  },
-
-  categoriaObjeto: {
-    fieldKey: 'categoriaObjeto',
-    label: 'Categoria do Objeto',
-    type: 'text',
-    requiresConfirmation: false,
-    isCritical: false,
-    validation: {
-      maxLength: 100
-    }
   }
 }
 
@@ -190,4 +201,35 @@ export function getFieldConfig(fieldKey: string): EditableFieldConfig | undefine
  */
 export function getFieldLabel(fieldKey: string): string {
   return EDITABLE_FIELDS_CONFIG[fieldKey]?.label ?? fieldKey
+}
+
+// Agrupamento de campos por seção
+export const FIELD_GROUPS = {
+  'dados-basicos': [
+    'numeroContrato',
+    'processoRio', 
+    'processoSei',
+    'processoLegado',
+    'categoriaObjeto',
+    'objeto'
+  ],
+  'vigencia-valores': [
+    'dataInicio',
+    'dataTermino', 
+    'valorTotal'
+  ],
+  // Outros grupos podem ser adicionados futuramente
+  'fiscais': [],
+  'gestores': [],
+  'ccon': [],
+  'dados-empresa': [],
+  'contatos': [],
+  'endereco': [],
+  'unidade-demandante': [],
+  'unidade-gestora': [],
+  'unidades-vinculadas': []
+}
+
+export function getFieldsInGroup(groupKey: string): string[] {
+  return FIELD_GROUPS[groupKey as keyof typeof FIELD_GROUPS] || []
 }
