@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/collapsible'
 import { ChevronDown, Filter, X } from 'lucide-react'
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
-import { unidadesMock } from '@/modules/Contratos/data/contratos-mock'
+import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface FiltrosContratosProps {
   filtros: FiltrosContrato
@@ -25,6 +26,11 @@ export function FiltrosContratos({
   onLimparFiltros,
 }: FiltrosContratosProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const { data: unidadesData, isLoading: unidadesLoading, error: unidadesError } = useUnidades({
+    pagina: 1,
+    tamanhoPagina: 100
+  })
 
   const statusOptions = [
     { value: 'Ativo', label: 'Ativo' },
@@ -43,11 +49,11 @@ export function FiltrosContratos({
     onFiltrosChange({ ...filtros, status: newStatus })
   }
 
-  const handleUnidadeChange = (unidade: string, checked: boolean) => {
+  const handleUnidadeChange = (unidadeId: string, checked: boolean) => {
     const currentUnidades = filtros.unidade || []
     const newUnidades = checked
-      ? [...currentUnidades, unidade]
-      : currentUnidades.filter((u) => u !== unidade)
+      ? [...currentUnidades, unidadeId]
+      : currentUnidades.filter((u) => u !== unidadeId)
 
     onFiltrosChange({ ...filtros, unidade: newUnidades })
   }
@@ -247,23 +253,40 @@ export function FiltrosContratos({
             <div className="space-y-3">
               <Label className="text-sm font-medium">Unidades</Label>
               <div className="grid max-h-40 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
-                {unidadesMock.demandantes.map((unidade) => (
-                  <div key={unidade} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`unidade-${unidade}`}
-                      checked={filtros.unidade?.includes(unidade) || false}
-                      onCheckedChange={(checked) =>
-                        handleUnidadeChange(unidade, checked as boolean)
-                      }
-                    />
-                    <Label
-                      htmlFor={`unidade-${unidade}`}
-                      className="cursor-pointer text-sm font-normal"
-                    >
-                      {unidade}
-                    </Label>
+                {unidadesLoading ? (
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <div key={`skeleton-${index}`} className="flex items-center space-x-2">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  ))
+                ) : unidadesError ? (
+                  <div className="col-span-2 text-center py-4 text-sm text-red-600">
+                    Erro ao carregar unidades: {unidadesError.message}
                   </div>
-                ))}
+                ) : unidadesData?.dados && unidadesData.dados.length > 0 ? (
+                  unidadesData.dados.map((unidade) => (
+                    <div key={unidade.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`unidade-${unidade.id}`}
+                        checked={filtros.unidade?.includes(unidade.id) || false}
+                        onCheckedChange={(checked) =>
+                          handleUnidadeChange(unidade.id, checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor={`unidade-${unidade.id}`}
+                        className="cursor-pointer text-sm font-normal"
+                      >
+                        {unidade.nome}
+                      </Label>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-2 text-center py-4 text-sm text-gray-500">
+                    Nenhuma unidade encontrada
+                  </div>
+                )}
               </div>
             </div>
 

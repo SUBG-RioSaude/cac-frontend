@@ -45,7 +45,7 @@ export default function NotFound({ error: propError }: NotFoundProps) {
 
           <div className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
             <Button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/dashboard')}
               variant="secondary"
               className="flex w-full items-center justify-center gap-2"
             >
@@ -53,7 +53,7 @@ export default function NotFound({ error: propError }: NotFoundProps) {
               Voltar
             </Button>
             <Button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               variant="default"
               className="flex w-full items-center justify-center gap-2"
             >

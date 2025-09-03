@@ -36,20 +36,8 @@ import {
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
-
-// Lista de unidades baseada nos contratos existentes
-const unidadesConhecidas = [
-  'SMS', // Do exemplo da API
-  'Hospital Municipal',
-  'UPA Centro',
-  'Posto de Saúde Norte',
-  'Clínica da Família Sul',
-  'CAPS Adulto',
-  'CAPS Infantil',
-  'Laboratório Central',
-  'Secretaria de Saúde',
-  'Superintendência de Saúde'
-]
+import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface SearchAndFiltersProps {
   termoPesquisa: string
@@ -72,6 +60,12 @@ export function SearchAndFilters({
   const [periodoExpanded, setPeriodoExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [unidadeExpanded, setUnidadeExpanded] = useState(false)
+
+  // Hook para carregar unidades da API
+  const { data: unidadesData, isLoading: unidadesLoading, error: unidadesError } = useUnidades({
+    pagina: 1,
+    tamanhoPagina: 100
+  })
 
   // Calcular número de filtros ativos
   const calcularFiltrosAtivos = () => {
@@ -113,11 +107,11 @@ export function SearchAndFilters({
     onFiltrosChange({ ...filtros, status: newStatus })
   }
 
-  const handleUnidadeChange = (unidade: string, checked: boolean) => {
+  const handleUnidadeChange = (unidadeId: string, checked: boolean) => {
     const currentUnidades = filtros.unidade || []
     const newUnidades = checked
-      ? [...currentUnidades, unidade]
-      : currentUnidades.filter((u) => u !== unidade)
+      ? [...currentUnidades, unidadeId]
+      : currentUnidades.filter((u) => u !== unidadeId)
 
     onFiltrosChange({ ...filtros, unidade: newUnidades })
   }
@@ -402,23 +396,40 @@ export function SearchAndFilters({
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 ml-6 space-y-2">
           <div className="max-h-32 space-y-2 overflow-y-auto">
-            {unidadesConhecidas.map((unidade) => (
-              <div key={unidade} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}
-                  checked={filtros.unidade?.includes(unidade) || false}
-                  onCheckedChange={(checked) =>
-                    handleUnidadeChange(unidade, checked as boolean)
-                  }
-                />
-                <Label
-                  htmlFor={`unidade-${unidade}-${isMobile ? 'mobile' : 'desktop'}`}
-                  className="cursor-pointer text-sm font-normal"
-                >
-                  {unidade}
-                </Label>
+            {unidadesLoading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <div key={`skeleton-${index}`} className="flex items-center space-x-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ))
+            ) : unidadesError ? (
+              <div className="text-center py-2 text-sm text-red-600">
+                Erro ao carregar unidades
               </div>
-            ))}
+            ) : unidadesData?.dados && unidadesData.dados.length > 0 ? (
+              unidadesData.dados.map((unidade) => (
+                <div key={unidade.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`unidade-${unidade.id}-${isMobile ? 'mobile' : 'desktop'}`}
+                    checked={filtros.unidade?.includes(unidade.id) || false}
+                    onCheckedChange={(checked) =>
+                      handleUnidadeChange(unidade.id, checked as boolean)
+                    }
+                  />
+                  <Label
+                    htmlFor={`unidade-${unidade.id}-${isMobile ? 'mobile' : 'desktop'}`}
+                    className="cursor-pointer text-sm font-normal"
+                  >
+                    {unidade.nome}
+                  </Label>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-2 text-sm text-gray-500">
+                Nenhuma unidade encontrada
+              </div>
+            )}
           </div>
         </CollapsibleContent>
       </Collapsible>

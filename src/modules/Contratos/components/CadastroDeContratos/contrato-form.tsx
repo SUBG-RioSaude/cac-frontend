@@ -58,6 +58,7 @@ import { cn, currencyUtils } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import processoInstrutivoData from '@/modules/Contratos/data/processo-instrutivo.json'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {
@@ -67,13 +68,12 @@ const validarNumeroContrato = (numero: string) => {
 
 const validarData = (data: string) => {
   const dataInput = new Date(data)
-  const dataAtual = new Date()
 
   // Verifica se a data é válida
   if (isNaN(dataInput.getTime())) return false
 
-  // Verifica se não é posterior à data atual
-  return dataInput <= dataAtual
+  // Data válida (permite datas futuras)
+  return true
 }
 
 const validarURL = (url: string) => {
@@ -128,9 +128,9 @@ export interface DadosContrato {
   formaPagamentoComplemento?: string
   quantidadeEtapas?: number
   etapasPagamento?: EtapaPagamento[]
-  tipoTermoReferencia: 'processo_rio' | 'google_drive' | 'texto_livre'
-  termoReferencia: string
-  vinculacaoPCA: string
+  tipoTermoReferencia?: 'processo_rio' | 'google_drive' | 'texto_livre'
+  termoReferencia?: string
+  vinculacaoPCA?: string
 }
 
 const schemaContrato = z.object({
@@ -161,7 +161,7 @@ const schemaContrato = z.object({
   vigenciaInicial: z
     .string()
     .min(1, 'Data de vigência inicial é obrigatória')
-    .refine(validarData, 'Data não pode ser posterior à data atual'),
+    .refine(validarData, 'Data inválida'),
   vigenciaFinal: z.string().min(1, 'Data de vigência final é obrigatória'),
   prazoInicialMeses: z
     .number()
@@ -195,12 +195,12 @@ const schemaContrato = z.object({
       })
     )
     .optional(),
-  tipoTermoReferencia: z.enum(['processo_rio', 'google_drive', 'texto_livre']),
-  termoReferencia: z.string().min(1, 'Termo de referência é obrigatório'),
+  tipoTermoReferencia: z.enum(['processo_rio', 'google_drive', 'texto_livre']).optional(),
+  termoReferencia: z.string().optional(),
   vinculacaoPCA: z
     .string()
-    .min(1, 'Vinculação a PCA é obrigatória')
-    .refine(validarPCA, 'Apenas números são permitidos'),
+    .optional()
+    .refine((val) => !val || validarPCA(val), 'Apenas números são permitidos'),
 }).refine((data) => {
   return data.prazoInicialMeses > 0 || data.prazoInicialDias > 0
 }, {
@@ -267,7 +267,6 @@ interface ProcessoInstrutivo {
   sufixos: string[]
 }
 
-
 export default function ContratoForm({
   onSubmit,
   onCancel,
@@ -291,20 +290,9 @@ export default function ContratoForm({
   const [etapasPagamento, setEtapasPagamento] = useState<EtapaPagamento[]>([])
   const [quantidadeEtapas, setQuantidadeEtapas] = useState<number>(0)
 
-  // Carregar dados do processo instrutivo
+  // Inicializar dados do processo instrutivo
   useEffect(() => {
-    const carregarProcessoInstrutivo = async () => {
-      try {
-        const response = await fetch(
-          '/src/modules/Contratos/data/processo-instrutivo.json',
-        )
-        const data = await response.json()
-        setProcessoInstrutivo(data)
-      } catch (error) {
-        console.error('Erro ao carregar processo instrutivo:', error)
-      }
-    }
-    carregarProcessoInstrutivo()
+    setProcessoInstrutivo(processoInstrutivoData)
   }, [])
 
   // Estados para comboboxes de unidades
@@ -1144,7 +1132,7 @@ export default function ContratoForm({
           )}
 
           {/* Grid reorganizado para melhor alinhamento */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Container para Categoria do Objeto */}
             <div className="space-y-2">
               <FormField
@@ -1185,6 +1173,12 @@ export default function ContratoForm({
                         </SelectItem>
                         <SelectItem value="informatica">
                           Informática
+                        </SelectItem>
+                        <SelectItem value="obra">
+                          Obra
+                        </SelectItem>
+                        <SelectItem value="permanente">
+                          Permanente
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -1556,7 +1550,6 @@ export default function ContratoForm({
                            <Input
                              id="vigenciaInicial"
                              type="date"
-                             max={new Date().toISOString().split('T')[0]}
                              value={field.value || ''}
                              onChange={(e) => {
                                field.onChange(e.target.value)
@@ -2061,7 +2054,7 @@ export default function ContratoForm({
               render={({ field }) => (
                 <FormItem className="space-y-3">
                   <FormLabel className="mb-2">
-                    Tipo de Termo de Referência *
+                    Tipo de Termo de Referência
                   </FormLabel>
                   <FormControl>
                     <RadioGroup
@@ -2159,10 +2152,10 @@ export default function ContratoForm({
                   <FormItem>
                     <FormLabel htmlFor="termoReferencia" className="mb-2">
                       {tipoTermo === 'processo_rio'
-                        ? 'Link do Processo.Rio *'
+                        ? 'Link do Processo.Rio'
                         : tipoTermo === 'google_drive'
-                        ? 'Link do Google Drive *'
-                        : 'Descrição do Termo de Referência *'}
+                        ? 'Link do Google Drive'
+                        : 'Descrição do Termo de Referência'}
                     </FormLabel>
                     <FormControl>
                       {tipoTermo === 'texto_livre' ? (
@@ -2216,7 +2209,7 @@ export default function ContratoForm({
                 return (
                   <FormItem>
                     <FormLabel htmlFor="vinculacaoPCA" className="mb-2">
-                      Vinculação a PCA - Ano *
+                      Vinculação a PCA - Ano
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
