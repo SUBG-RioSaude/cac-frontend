@@ -277,13 +277,17 @@ export const useAuthStore = create<AuthState>()(
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
           
           if (!refreshToken || !validarTokenJWT(refreshToken)) {
+            console.log('RefreshToken inválido ou ausente na renovação')
             return false
           }
 
+          console.log('Chamando API para renovar token...')
           const resultado = await authService.renovarToken(refreshToken)
           
           if (resultado.sucesso) {
             const { token, refreshToken: newRefreshToken, usuario } = resultado.dados
+            
+            console.log('Token renovado com sucesso, dados do usuário:', usuario)
             
             // Valida novos tokens antes de salvar
             if (validarTokenJWT(token) && validarTokenJWT(newRefreshToken)) {
@@ -301,6 +305,7 @@ export const useAuthStore = create<AuthState>()(
               return false
             }
           } else {
+            console.log('Falha na renovação do token, fazendo logout')
             // Token inválido, faz logout
             get().logout()
             return false
@@ -315,29 +320,34 @@ export const useAuthStore = create<AuthState>()(
       // Verificação inicial de autenticação
       verificarAutenticacao: async () => {
         try {
+          set({ carregando: true })
+          
           const token = cookieUtils.getCookie('auth_token')
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
           
+          console.log('Verificando autenticação - Token:', token ? 'presente' : 'ausente')
+          console.log('Verificando autenticação - RefreshToken:', refreshToken ? 'presente' : 'ausente')
+          
           if (!token || !refreshToken || !validarTokenJWT(token) || !validarTokenJWT(refreshToken)) {
-            set({ carregando: false, estaAutenticado: false })
+            console.log('Tokens inválidos ou ausentes, definindo como não autenticado')
+            set({ carregando: false, estaAutenticado: false, usuario: null })
             return
           }
 
-          // Verifica se o token ainda é válido
-          const resultado = await authService.verificarAcesso()
+          // Tenta renovar o token para obter os dados do usuário atualizados
+          console.log('Tentando renovar token para obter dados do usuário...')
+          const renovado = await get().renovarToken()
           
-          if (resultado.sucesso) {
-            set({ estaAutenticado: true, carregando: false })
+          if (renovado) {
+            console.log('Token renovado com sucesso, usuário autenticado')
+            set({ carregando: false })
           } else {
-            // Tenta renovar o token
-            const renovado = await get().renovarToken()
-            if (!renovado) {
-              set({ estaAutenticado: false, carregando: false })
-            }
+            console.log('Falha ao renovar token, usuário não autenticado')
+            set({ estaAutenticado: false, carregando: false, usuario: null })
           }
         } catch (erro) {
           console.error('Erro ao verificar autenticação:', erro)
-          set({ estaAutenticado: false, carregando: false })
+          set({ estaAutenticado: false, carregando: false, usuario: null })
         }
       },
 

@@ -37,8 +37,14 @@ export function NavUser() {
     }
   }, [])
 
+  // Debug: log dos dados do usuário
+  useEffect(() => {
+    console.log('NavUser - Dados do usuário:', usuario)
+  }, [usuario])
+
   // Se não há usuário autenticado, não renderiza o componente
   if (!usuario) {
+    console.log('NavUser - Usuário não encontrado, não renderizando componente')
     return null
   }
 
