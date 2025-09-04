@@ -16,8 +16,9 @@ import { useAuthStore } from "@/lib/auth/auth-store"
 export default function VerifyForm() {
   const [codigo, setCodigo] = useState(["", "", "", "", "", ""])
   const [email, setEmail] = useState("")
-  const [tempoRestante, setTempoRestante] = useState(600)
+  const [tempoRestante, setTempoRestante] = useState(300) // 5 minutos = 300 segundos
   const [podeReenviar, setPodeReenviar] = useState(false)
+  const [codigoExpirado, setCodigoExpirado] = useState(false)
   const [indiceFocado, setIndiceFocado] = useState<number | null>(null)
   const [contexto, setContexto] = useState<'login' | 'password_recovery'>('login')
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -61,6 +62,7 @@ export default function VerifyForm() {
       setTempoRestante((prev) => {
         if (prev <= 1) {
           setPodeReenviar(true)
+          setCodigoExpirado(true)
           // Para o timer quando chegar a 0
           if (timerRef.current) {
             clearInterval(timerRef.current)
@@ -87,7 +89,7 @@ export default function VerifyForm() {
   }
 
   const handleCodeChange = (index: number, value: string) => {
-    if (value.length > 1) return
+    if (value.length > 1 || codigoExpirado) return
 
     const novoCodigo = [...codigo]
     novoCodigo[index] = value
@@ -108,7 +110,7 @@ export default function VerifyForm() {
     e.preventDefault()
     const codigoString = codigo.join("")
 
-    if (codigoString.length !== 6) {
+    if (codigoString.length !== 6 || codigoExpirado) {
       return
     }
 
@@ -146,9 +148,10 @@ export default function VerifyForm() {
     try {
       await esqueciSenha(email)
       
-      // Reinicia o timer
-      setTempoRestante(600)
+      // Reinicia o timer e estados
+      setTempoRestante(300) // 5 minutos
       setPodeReenviar(false)
+      setCodigoExpirado(false)
       setCodigo(["", "", "", "", "", ""])
       
       // Limpa timer anterior e cria novo
@@ -160,6 +163,7 @@ export default function VerifyForm() {
         setTempoRestante((prev) => {
           if (prev <= 1) {
             setPodeReenviar(true)
+            setCodigoExpirado(true)
             // Para o timer quando chegar a 0
             if (timerRef.current) {
               clearInterval(timerRef.current)
@@ -292,7 +296,7 @@ export default function VerifyForm() {
                           <motion.div
                             variants={codeInputVariants}
                             animate={indiceFocado === index ? "focused" : digito ? "filled" : "idle"}
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: codigoExpirado ? 1 : 1.02 }}
                             transition={{ duration: 0.2 }}
                           >
                             <Input
@@ -307,7 +311,10 @@ export default function VerifyForm() {
                               onKeyDown={(e) => handleKeyDown(index, e)}
                               onFocus={() => setIndiceFocado(index)}
                               onBlur={() => setIndiceFocado(null)}
-                              className="w-12 h-12 text-center text-lg font-bold border-2 transition-all duration-200"
+                              disabled={codigoExpirado}
+                              className={`w-12 h-12 text-center text-lg font-bold border-2 transition-all duration-200 ${
+                                codigoExpirado ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
                             />
                           </motion.div>
                         </motion.div>
@@ -330,7 +337,7 @@ export default function VerifyForm() {
                         animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 0.5, repeat: 3 }}
                       >
-                        Código expirado
+                        Código expirado - Solicite um novo código
                       </motion.p>
                     )}
                   </motion.div>
@@ -340,7 +347,7 @@ export default function VerifyForm() {
                       <Button
                         type="submit"
                         className="w-full h-12 bg-[#008BA7] hover:bg-[#008BA7]/80 transition-all duration-300 relative overflow-hidden"
-                        disabled={carregando || codigo.join("").length !== 6}
+                        disabled={carregando || codigo.join("").length !== 6 || codigoExpirado}
                       >
                         <AnimatePresence mode="wait">
                           {carregando ? (
