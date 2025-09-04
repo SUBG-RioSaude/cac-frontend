@@ -31,7 +31,7 @@ interface UnitValueEditorProps {
   unit: TransformedUnidade | null
   onSave: (unidadeVinculada: UnidadeVinculada) => void
   contractValue?: number
-  currentAllocatedValue?: number
+  valorRestante?: number
   disabled?: boolean
 }
 
@@ -49,7 +49,7 @@ export function UnitValueEditor({
   unit,
   onSave,
   contractValue,
-  currentAllocatedValue = 0,
+  valorRestante = 0,
   disabled = false
 }: UnitValueEditorProps) {
   const [valor, setValor] = useState('')
@@ -65,8 +65,31 @@ export function UnitValueEditor({
     }
   }, [isOpen, unit])
 
-  const availableValue = contractValue ? contractValue - currentAllocatedValue : undefined
-  const parsedValue = parseFloat(valor.replace(/[^\d,.-]/g, '').replace(',', '.'))
+  const availableValue = valorRestante > 0 ? valorRestante : undefined
+  
+  // Função para fazer parse correto da moeda brasileira
+  const parseBrazilianCurrency = useCallback((currencyString: string): number => {
+    if (!currencyString || currencyString.trim() === '') return 0
+    
+    // Remove símbolos e espaços, mantém apenas dígitos, pontos e vírgula
+    const cleanString = currencyString.replace(/[^\d.,]/g, '')
+    
+    // Se não tem vírgula, é um valor inteiro (ex: "33333" = 33333)
+    if (!cleanString.includes(',')) {
+      return parseFloat(cleanString) || 0
+    }
+    
+    // Se tem vírgula, separa milhares e decimais
+    // Ex: "33.333,33" -> partes = ["33.333", "33"]
+    const parts = cleanString.split(',')
+    const decimalPart = parts[parts.length - 1] // última parte é decimal
+    const integerPart = parts.slice(0, -1).join('').replace(/\./g, '') // remove pontos dos milhares
+    
+    const finalString = integerPart + '.' + decimalPart
+    return parseFloat(finalString) || 0
+  }, [])
+
+  const parsedValue = parseBrazilianCurrency(valor)
 
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -122,17 +145,16 @@ export function UnitValueEditor({
   const suggestPercentage = useCallback((percentage: number) => {
     if (!availableValue) return
     const value = availableValue * (percentage / 100)
-    setValor(new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value))
-  }, [availableValue])
+    // Converter para centavos para usar a mesma lógica do formatCurrency
+    const centavos = Math.round(value * 100).toString()
+    setValor(formatCurrency(centavos))
+  }, [availableValue, formatCurrency])
 
   if (!unit) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
@@ -165,8 +187,8 @@ export function UnitValueEditor({
 
           {/* Informações do contrato */}
           {contractValue && (
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="p-2 bg-blue-50 rounded">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="p-3 bg-blue-50 rounded-lg">
                 <Label className="text-xs text-blue-600">Valor do Contrato</Label>
                 <p className="font-medium text-blue-700">
                   {new Intl.NumberFormat('pt-BR', {
@@ -175,8 +197,8 @@ export function UnitValueEditor({
                   }).format(contractValue)}
                 </p>
               </div>
-              <div className="p-2 bg-green-50 rounded">
-                <Label className="text-xs text-green-600">Valor Disponível</Label>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <Label className="text-xs text-green-600">Valor Restante (para 100%)</Label>
                 <p className="font-medium text-green-700">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
@@ -190,9 +212,27 @@ export function UnitValueEditor({
           {/* Sugestões rápidas */}
           {availableValue && availableValue > 0 && (
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600">Sugestões Rápidas</Label>
-              <div className="flex gap-2">
-                {[10, 25, 50, 100].map(percentage => (
+              <Label className="text-sm font-medium text-gray-700">Sugestões Rápidas</Label>
+              <div className="flex flex-wrap gap-2">
+                {availableValue && (
+                  <Button
+                    key="exact"
+                    type="button"
+                    size="sm"
+                    variant="default"
+                    onClick={() => {
+                      setValor(new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(availableValue))
+                    }}
+                    disabled={disabled}
+                    className="text-xs bg-green-600 hover:bg-green-700"
+                  >
+                    Valor Exato Restante
+                  </Button>
+                )}
+                {[10, 25, 50].map(percentage => (
                     <Button
                       key={percentage}
                       type="button"
@@ -212,7 +252,7 @@ export function UnitValueEditor({
 
           {/* Campo de valor */}
           <div className="space-y-2">
-            <Label htmlFor="valor">Valor a Atribuir *</Label>
+            <Label htmlFor="valor" className="text-sm font-medium">Valor a Atribuir *</Label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -221,7 +261,7 @@ export function UnitValueEditor({
                 onChange={handleValueChange}
                 placeholder="R$ 0,00"
                 className={cn(
-                  "pl-10",
+                  "pl-10 h-11 text-base",
                   errors.valor && 'border-red-500'
                 )}
                 disabled={disabled}
@@ -242,14 +282,14 @@ export function UnitValueEditor({
 
           {/* Campo de observações */}
           <div className="space-y-2">
-            <Label htmlFor="observacoes">Observações</Label>
+            <Label htmlFor="observacoes" className="text-sm font-medium">Observações</Label>
             <Textarea
               id="observacoes"
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
               placeholder="Justificativa para atribuição deste valor..."
               rows={3}
-              className="text-sm"
+              className="text-sm resize-none"
               disabled={disabled}
             />
             <p className="text-xs text-gray-500">
@@ -258,19 +298,19 @@ export function UnitValueEditor({
           </div>
 
           {/* Botões */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
             <Button
               variant="outline"
               onClick={handleCancel}
               disabled={disabled}
-              className="flex-1"
+              className="flex-1 h-11"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleSave}
               disabled={disabled || !valor.trim()}
-              className="flex-1"
+              className="flex-1 h-11"
             >
               <DollarSign className="h-4 w-4 mr-2" />
               Atribuir Valor

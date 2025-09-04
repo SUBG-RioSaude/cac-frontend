@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+import { render, screen } from '@/tests/test-utils'
 import { DetalhesContrato } from '../detalhes-contrato'
 import { contratoDetalhadoMock } from '@/modules/Contratos/data/contratos-mock'
 
@@ -37,13 +36,11 @@ vi.mock('framer-motion', () => ({
   ),
 }))
 
-const renderizarComRouter = (componente: React.ReactElement) => {
-  return render(<BrowserRouter>{componente}</BrowserRouter>)
-}
+// Não precisamos mais do wrapper personalizado, o render já inclui todos os providers
 
 describe('DetalhesContrato', () => {
   it('deve exibir informações básicas do contrato na aba Visão Geral', () => {
-    renderizarComRouter(<DetalhesContrato contrato={contratoDetalhadoMock} />)
+    render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se as informações básicas do contrato estão sendo exibidas na aba padrão
     expect(screen.getByText('CONT-2023/0042')).toBeInTheDocument()
@@ -54,14 +51,14 @@ describe('DetalhesContrato', () => {
   })
 
   it('deve formatar valores monetários corretamente na aba Visão Geral', () => {
-    renderizarComRouter(<DetalhesContrato contrato={contratoDetalhadoMock} />)
+    render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se o valor total está sendo formatado corretamente
     expect(screen.getByText('R$ 1.250.000,00')).toBeInTheDocument()
   })
 
   it('deve exibir status e tipo de contratação com badges na aba Visão Geral', () => {
-    renderizarComRouter(<DetalhesContrato contrato={contratoDetalhadoMock} />)
+    render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se os badges estão sendo exibidos corretamente
     expect(screen.getByText('Ativo')).toBeInTheDocument()
@@ -69,7 +66,7 @@ describe('DetalhesContrato', () => {
   })
 
   it('deve exibir informações dos responsáveis na aba Visão Geral', () => {
-    renderizarComRouter(<DetalhesContrato contrato={contratoDetalhadoMock} />)
+    render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se as informações dos responsáveis estão sendo exibidas
     expect(screen.getByText('Maria Silva Santos')).toBeInTheDocument()
@@ -78,7 +75,7 @@ describe('DetalhesContrato', () => {
   })
 
   it('deve exibir informações de contato dos responsáveis na aba Visão Geral', () => {
-    renderizarComRouter(<DetalhesContrato contrato={contratoDetalhadoMock} />)
+    render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se os contatos dos responsáveis estão sendo exibidos
     expect(
@@ -91,7 +88,7 @@ describe('DetalhesContrato', () => {
   })
 
   it('deve exibir as abas disponíveis', () => {
-    renderizarComRouter(<DetalhesContrato contrato={contratoDetalhadoMock} />)
+    render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se as abas estão sendo exibidas
     expect(screen.getByText('Visão Geral')).toBeInTheDocument()

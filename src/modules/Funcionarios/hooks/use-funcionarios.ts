@@ -6,7 +6,7 @@
  * Integra com sistema de fallback e cache otimizado
  */
 
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query'
+import { useQuery, useQueries, type UseQueryOptions } from '@tanstack/react-query'
 import { 
   getFuncionarios,
   getFuncionarioById,
@@ -64,6 +64,47 @@ export function useGetFuncionarioById(
     gcTime: 30 * 60 * 1000, // 30 minutos
     ...options
   })
+}
+
+/**
+ * Hook para buscar múltiplos funcionários por IDs
+ */
+export function useFuncionariosByIds(
+  ids: string[],
+  options?: { enabled?: boolean }
+) {
+  const { data, isLoading, error } = useQueries({
+    queries: ids.map((id) => ({
+      queryKey: funcionarioKeys.detail(id),
+      queryFn: () => getFuncionarioById(id),
+      enabled: !!(id && (options?.enabled ?? true)),
+      staleTime: 10 * 60 * 1000, // 10 minutos
+      gcTime: 30 * 60 * 1000, // 30 minutos
+      retry: 2,
+    })),
+    combine: (results) => ({
+      data: results.reduce((acc, result, index) => {
+        if (result.data) {
+          acc[ids[index]] = result.data
+        }
+        return acc
+      }, {} as Record<string, FuncionarioApi>),
+      isLoading: results.some(result => result.isLoading),
+      error: results.find(result => result.error)?.error,
+      isSuccess: results.every(result => result.isSuccess),
+      hasErrors: results.some(result => result.error),
+      errors: results.filter(result => result.error).map(result => result.error),
+    })
+  })
+
+  return {
+    data,
+    isLoading,
+    error,
+    funcionarios: data,
+    getFuncionario: (id: string) => data[id],
+    hasData: Object.keys(data).length > 0,
+  }
 }
 
 /**

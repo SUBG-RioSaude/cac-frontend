@@ -30,6 +30,7 @@ interface TransformedUnidade {
   tipo: string
   endereco: string
   ativo: boolean
+  valorAtual?: number
 }
 
 interface ContractUnits {
@@ -107,24 +108,69 @@ export function BlocoUnidades({
     return unidades?.map(transformUnidadeApiData) || []
   }, [shouldSearch, unidadesBusca, unidadesResponse])
 
-  // Filtrar unidades disponíveis (excluir já vinculadas/desvinculadas)
+  // Unidades já vinculadas ao contrato atual (disponíveis para desvincular)
+  const unidadesJaVinculadas = useMemo(() => {
+    if (!contractUnits?.linkedUnits) return []
+    
+    // Filtrar unidades já vinculadas que não estão nas desvinculadas
+    return contractUnits.linkedUnits.filter(u => 
+      !dados.unidadesDesvinculadas?.includes(u.id)
+    )
+  }, [contractUnits, dados.unidadesDesvinculadas])
+
+  // Filtrar unidades disponíveis para vincular (excluir já vinculadas no contrato atual e nas alterações)
   const unidadesDisponiveis = useMemo(() => {
+    const jaVinculadasIds = contractUnits?.linkedUnits?.map(u => u.id) || []
+    const vinculadasAlteracoes = dados.unidadesVinculadas?.map(uv => uv.unidadeSaudeId) || []
+    
     return unidadesApi.filter(u => {
-      const vinculadas = dados.unidadesVinculadas?.map(uv => uv.unidadeSaudeId) || []
-      return !vinculadas.includes(u.id) &&
+      return !jaVinculadasIds.includes(u.id) &&
+        !vinculadasAlteracoes.includes(u.id) &&
         !dados.unidadesDesvinculadas?.includes(u.id)
     })
-  }, [unidadesApi, dados])
+  }, [unidadesApi, contractUnits, dados])
 
   // Função auxiliar para obter detalhes da unidade
   const getUnitDetails = useCallback((id: string) => {
     return unidadesApi.find(u => u.id === id)
   }, [unidadesApi])
 
-  // Valor total já atribuído
-  const currentAllocatedValue = useMemo(() => {
-    return dados.unidadesVinculadas?.reduce((sum, unit) => sum + unit.valorAtribuido, 0) || 0
-  }, [dados.unidadesVinculadas])
+  // Cálculos de valores para validação de 100%
+  const valorCalculations = useMemo(() => {
+    // Valor das unidades já vinculadas no contrato atual
+    const valorJaVinculado = unidadesJaVinculadas.reduce((sum, unit) => sum + (unit.valorAtual || 0), 0)
+    
+    // Valor das novas unidades sendo vinculadas nas alterações
+    const valorNovasVinculadas = dados.unidadesVinculadas?.reduce((sum, unit) => sum + unit.valorAtribuido, 0) || 0
+    
+    // Valor das unidades sendo desvinculadas (precisa ser subtraído)
+    const valorDesvinculado = dados.unidadesDesvinculadas?.reduce((sum, unitId) => {
+      const unidade = unidadesJaVinculadas.find(u => u.id === unitId)
+      return sum + (unidade?.valorAtual || 0)
+    }, 0) || 0
+    
+    // Total distribuído após as alterações
+    const valorTotalDistribuido = valorJaVinculado + valorNovasVinculadas - valorDesvinculado
+    
+    // Percentual em relação ao valor total do contrato
+    const percentualDistribuido = contractValue ? (valorTotalDistribuido / contractValue) * 100 : 0
+    
+    // Valor restante para atingir 100%
+    const valorRestante = contractValue ? contractValue - valorTotalDistribuido : 0
+    
+    return {
+      valorJaVinculado,
+      valorNovasVinculadas,
+      valorDesvinculado,
+      valorTotalDistribuido,
+      percentualDistribuido,
+      valorRestante,
+      isCompleto: Math.abs(valorRestante) < 0.01 // Considera completo se diferença for menor que 1 centavo
+    }
+  }, [unidadesJaVinculadas, dados.unidadesVinculadas, dados.unidadesDesvinculadas, contractValue])
+
+  // Manter compatibilidade com código existente
+  const currentAllocatedValue = valorCalculations.valorNovasVinculadas
 
   const handleFieldChange = useCallback((field: keyof IBlocoUnidades, value: unknown) => {
     onChange({
@@ -155,6 +201,10 @@ export function BlocoUnidades({
   const handleUpdateUnlinkedUnits = useCallback((unidades: string[]) => {
     handleFieldChange('unidadesDesvinculadas', unidades)
   }, [handleFieldChange])
+
+  const handleAlterarValorUnidade = useCallback((unidade: TransformedUnidade) => {
+    setValueEditorUnit(unidade)
+  }, [])
 
   // Verificar se tem alterações
   const temAlteracoes = useMemo(() => {
@@ -225,6 +275,92 @@ export function BlocoUnidades({
         </div>
       </div>
 
+      {/* Indicador de Distribuição do Valor Total */}
+      {contractValue && (
+        <Card className={cn(
+          "border-2",
+          valorCalculations.isCompleto ? "bg-green-50 border-green-300" : 
+          valorCalculations.percentualDistribuido > 100 ? "bg-red-50 border-red-300" : 
+          "bg-yellow-50 border-yellow-300"
+        )}>
+          <CardContent className="pt-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900">Distribuição do Valor do Contrato</h4>
+                <Badge className={cn(
+                  "text-xs",
+                  valorCalculations.isCompleto ? "bg-green-100 text-green-700" :
+                  valorCalculations.percentualDistribuido > 100 ? "bg-red-100 text-red-700" :
+                  "bg-yellow-100 text-yellow-700"
+                )}>
+                  {valorCalculations.percentualDistribuido.toFixed(1)}%
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <Label className="text-xs text-gray-600">Valor Total Distribuído</Label>
+                  <p className="font-medium">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(valorCalculations.valorTotalDistribuido)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600">Valor do Contrato</Label>
+                  <p className="font-medium">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(contractValue)}
+                  </p>
+                </div>
+                <div>
+                  <Label className={cn(
+                    "text-xs",
+                    valorCalculations.valorRestante > 0 ? "text-red-600" : 
+                    valorCalculations.valorRestante < 0 ? "text-red-600" : "text-green-600"
+                  )}>
+                    {valorCalculations.valorRestante > 0 ? "Falta Distribuir" : 
+                     valorCalculations.valorRestante < 0 ? "Excesso" : "✓ Completo"}
+                  </Label>
+                  <p className={cn(
+                    "font-medium",
+                    valorCalculations.valorRestante > 0 ? "text-red-700" : 
+                    valorCalculations.valorRestante < 0 ? "text-red-700" : "text-green-700"
+                  )}>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(Math.abs(valorCalculations.valorRestante))}
+                  </p>
+                </div>
+              </div>
+
+              {!valorCalculations.isCompleto && (
+                <div className={cn(
+                  "flex items-center gap-2 text-sm p-2 rounded",
+                  valorCalculations.valorRestante > 0 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"
+                )}>
+                  <AlertCircle className="h-4 w-4" />
+                  {valorCalculations.valorRestante > 0 ? 
+                    `É necessário distribuir mais ${new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(valorCalculations.valorRestante)} para atingir 100% do contrato.` :
+                    `O valor distribuído excede o contrato em ${new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(Math.abs(valorCalculations.valorRestante))}.`
+                  }
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Contexto de Unidades Atual do Contrato */}
       {contractUnits && (contractUnits.demandingUnit || contractUnits.managingUnit || contractUnits.linkedUnits.length > 0) && (
         <Card className="bg-teal-50 border-teal-200">
@@ -273,12 +409,76 @@ export function BlocoUnidades({
         </Card>
       )}
 
+      {/* Unidades Já Vinculadas ao Contrato */}
+      {unidadesJaVinculadas.length > 0 && (
+        <Card className="bg-orange-50 border-orange-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-orange-700">
+              <Building2 className="h-4 w-4" />
+              Unidades Já Vinculadas ({unidadesJaVinculadas.length})
+            </CardTitle>
+            <p className="text-sm text-orange-600">
+              Unidades que já estão vinculadas ao contrato. Você pode desvinculá-las ou alterar seus valores de consumo.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-48 overflow-y-auto space-y-2">
+              {unidadesJaVinculadas.map(unidade => (
+                <div
+                  key={unidade.id}
+                  className="flex items-center justify-between p-3 border border-orange-200 rounded-lg bg-white"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <p className="font-medium text-sm truncate">{unidade.nome}</p>
+                      {unidade.codigo && (
+                        <span className="text-xs text-gray-500 font-mono">({unidade.codigo})</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-green-700 font-medium">
+                      Valor atual: {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(unidade.valorAtual || 0)}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleAlterarValorUnidade(unidade)}
+                      disabled={disabled}
+                      className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span className="hidden sm:inline ml-1">Alterar Valor</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDesvincularUnidade(unidade.id)}
+                      disabled={disabled}
+                      className="text-red-600 hover:text-red-700 hover:border-red-300"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span className="hidden sm:inline ml-1">Desvincular</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Busca de unidades */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Unidades de Saúde Disponíveis
+            Unidades Disponíveis para Vincular
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -349,17 +549,7 @@ export function BlocoUnidades({
                     className="text-green-600 hover:text-green-700 hover:border-green-300"
                   >
                     <DollarSign className="h-4 w-4" />
-                    <span className="hidden sm:inline ml-1">Vincular</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDesvincularUnidade(unidade.id)}
-                    disabled={disabled}
-                    className="text-red-600 hover:text-red-700 hover:border-red-300"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline ml-1">Desvincular</span>
+                    <span className="hidden sm:inline ml-1">Vincular com Valor</span>
                   </Button>
                 </div>
               </div>
@@ -456,7 +646,7 @@ export function BlocoUnidades({
         unit={valueEditorUnit}
         onSave={handleSaveLinkedUnit}
         contractValue={contractValue}
-        currentAllocatedValue={currentAllocatedValue}
+        valorRestante={valorCalculations.valorRestante}
         disabled={disabled}
       />
     </div>

@@ -223,6 +223,18 @@ export interface Responsavel {
   dataDesignacao: string
 }
 
+export interface ContratoFuncionario {
+  id: string
+  contratoId: string
+  funcionarioId: string
+  tipoGerencia: number // 1 = Gestor, 2 = Fiscal
+  tipoGerenciaDescricao: string
+  ativo: boolean
+  funcionarioNome: string
+  funcionarioMatricula: string
+  funcionarioCargo: string
+}
+
 export interface Contato {
   tipo: 'email' | 'celular' | 'telefone'
   valor: string
@@ -371,6 +383,9 @@ export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   // Documentos (tipo legado para compatibilidade - override do tipo da API)
   documentos: DocumentoContrato[]
   documentosChecklist: ChecklistData
+
+  // Funcionários vinculados ao contrato (nova API)
+  funcionarios?: ContratoFuncionario[]
 
   // Indicadores
   indicadores: {

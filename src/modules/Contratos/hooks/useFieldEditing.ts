@@ -9,6 +9,8 @@ import {
 } from '../config/editable-fields-config'
 import type { ContratoDetalhado } from '../types/contrato'
 
+type FieldValue = string | number | Date | null | undefined
+
 // Mapeamento dos nomes dos campos do frontend para os nomes esperados pela API
 const FRONTEND_TO_API_MAPPING: Record<string, string> = {
   // Campos que precisam de mapeamento
@@ -28,12 +30,12 @@ const FRONTEND_TO_API_MAPPING: Record<string, string> = {
 interface UseFieldEditingProps {
   contrato: ContratoDetalhado
   onSuccess?: () => void
-  onError?: (error: any) => void
+  onError?: (error: unknown) => void
 }
 
 interface EditingState {
   fieldKey: string | null
-  pendingValue: any
+  pendingValue: FieldValue
   showConfirmModal: boolean
   editingGroup: string | null // Para edição em bloco
   editingFields: string[] // Lista de campos sendo editados
@@ -85,7 +87,7 @@ export function useFieldEditing({
     })
   }, [])
 
-  const saveField = useCallback(async (fieldKey: string, newValue: any) => {
+  const saveField = useCallback(async (fieldKey: string, newValue: FieldValue) => {
     try {
       // Mapeia o nome do campo do frontend para o nome esperado pela API
       const apiFieldName = FRONTEND_TO_API_MAPPING[fieldKey] || fieldKey
@@ -116,7 +118,7 @@ export function useFieldEditing({
     }
   }, [contrato.id, updateMutation, onSuccess, onError])
 
-  const handleFieldSave = useCallback(async (fieldKey: string, newValue: any) => {
+  const handleFieldSave = useCallback(async (fieldKey: string, newValue: FieldValue) => {
     const needsConfirmation = requiresConfirmation(fieldKey)
 
     if (needsConfirmation) {
@@ -140,7 +142,7 @@ export function useFieldEditing({
     }
   }, [editingState.fieldKey, editingState.pendingValue, saveField])
 
-  const formatFieldValue = useCallback((fieldKey: string, value: any): string => {
+  const formatFieldValue = useCallback((fieldKey: string, value: FieldValue): string => {
     const config = getFieldConfig(fieldKey)
     
     if (config?.type === 'currency' && typeof value === 'number') {
@@ -162,9 +164,19 @@ export function useFieldEditing({
     return String(value || '')
   }, [])
 
-  const getOriginalValue = useCallback((fieldKey: string): any => {
-    return (contrato as any)[fieldKey]
+  const getOriginalValue = useCallback((fieldKey: string): FieldValue => {
+    return (contrato as unknown as Record<string, FieldValue>)[fieldKey]
   }, [contrato])
+
+  const convertToModalValue = useCallback((value: FieldValue): string | number => {
+    if (value instanceof Date) {
+      return value.toISOString()
+    }
+    if (value === null || value === undefined) {
+      return ''
+    }
+    return value
+  }, [])
 
   return {
     // Estados
@@ -198,10 +210,10 @@ export function useFieldEditing({
       isOpen: true,
       fieldName: editingState.fieldKey,
       fieldLabel: getFieldLabel(editingState.fieldKey),
-      oldValue: getOriginalValue(editingState.fieldKey),
-      newValue: editingState.pendingValue,
+      oldValue: convertToModalValue(getOriginalValue(editingState.fieldKey)),
+      newValue: convertToModalValue(editingState.pendingValue),
       isCritical: isCriticalField(editingState.fieldKey),
-      formatValue: (value: any) => formatFieldValue(editingState.fieldKey!, value),
+      formatValue: (value: FieldValue) => formatFieldValue(editingState.fieldKey!, value),
       onConfirm: confirmSave,
       onClose: cancelEditing,
       isLoading: updateMutation.isPending

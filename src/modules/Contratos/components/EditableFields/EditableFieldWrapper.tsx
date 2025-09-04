@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Check, X, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
+type FieldValue = string | number | Date | null | undefined
+
 interface EditableFieldWrapperProps {
   fieldKey: string
-  value: any
+  value: FieldValue
   isLoading?: boolean
-  onSave: (value: any) => Promise<void>
+  onSave: (value: FieldValue) => Promise<void>
   onCancel: () => void
 }
 

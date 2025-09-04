@@ -29,6 +29,7 @@ import {
   ConfirmEditModal,
   useFieldEditing
 } from '@/modules/Contratos/components/EditableFields'
+import { FuncionarioCard } from './FuncionarioCard'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -77,6 +78,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     isLoading: unidadesLoading, 
     error: unidadesError 
   } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+
+  // Organizar funcionários por tipo a partir dos dados já disponíveis no contrato
+  const funcionariosData = contrato.funcionarios || []
+  
+  // Separar fiscais e gestores
+  const fiscaisFromAPI = funcionariosData.filter(f => f.tipoGerencia === 2 && f.ativo)
+  const gestoresFromAPI = funcionariosData.filter(f => f.tipoGerencia === 1 && f.ativo)
 
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
@@ -535,39 +543,20 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {contrato.responsaveis.fiscaisAdministrativos.map(
-                      (fiscal) => (
-                        <div key={fiscal.id} className="rounded-lg border p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                              <User className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{fiscal.nome}</h4>
-                              <p className="text-muted-foreground text-sm">
-                                {fiscal.cargo}
-                              </p>
-                              <div className="mt-2 space-y-1">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Mail className="h-3 w-3" />
-                                  {fiscal.email}
-                                </div>
-                                {fiscal.telefone && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Phone className="h-3 w-3" />
-                                    {fiscal.telefone}
-                                  </div>
-                                )}
-                                <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                                  <Calendar className="h-3 w-3" />
-                                  Designado em{' '}
-                                  {formatarData(fiscal.dataDesignacao)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ),
+                    {fiscaisFromAPI.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum fiscal administrativo designado</p>
+                      </div>
+                    ) : (
+                      fiscaisFromAPI.map((fiscal) => (
+                        <FuncionarioCard
+                          key={fiscal.id}
+                          contratoFuncionario={fiscal}
+                          variant="fiscal"
+                          isLoading={false}
+                        />
+                      ))
                     )}
                   </CardContent>
                 </Card>
@@ -589,38 +578,21 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {contrato.responsaveis.gestores.map((gestor) => (
-                      <div key={gestor.id} className="rounded-lg border p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                            <User className="h-5 w-5 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{gestor.nome}</h4>
-                            <p className="text-muted-foreground text-sm">
-                              {gestor.cargo}
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              <div className="flex items-center gap-2 text-sm">
-                                <Mail className="h-3 w-3" />
-                                {gestor.email}
-                              </div>
-                              {gestor.telefone && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Phone className="h-3 w-3" />
-                                  {gestor.telefone}
-                                </div>
-                              )}
-                              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                                <Calendar className="h-3 w-3" />
-                                Designado em{' '}
-                                {formatarData(gestor.dataDesignacao)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    {gestoresFromAPI.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum gestor designado</p>
                       </div>
-                    ))}
+                    ) : (
+                      gestoresFromAPI.map((gestor) => (
+                        <FuncionarioCard
+                          key={gestor.id}
+                          contratoFuncionario={gestor}
+                          variant="gestor"
+                          isLoading={false}
+                        />
+                      ))
+                    )}
                   </CardContent>
                 </Card>
 
