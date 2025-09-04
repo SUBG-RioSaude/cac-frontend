@@ -21,7 +21,7 @@ const UnidadesListPage = () => {
     sigla?: string
     tipo?: string
   }>({})
-  const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<number[]>([])
+  const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<(string | number)[]>([])
   const [ordenacao, setOrdenacao] = useState<OrdenacaoParams>({
     coluna: 'nome',
     direcao: 'asc'

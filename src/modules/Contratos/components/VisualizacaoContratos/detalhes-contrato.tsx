@@ -72,7 +72,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     ...(contrato.unidadesVinculadas?.map(u => u.unidadeSaudeId) || [])
   ].filter((id): id is string => Boolean(id))
 
-  // Buscar dados completos das unidades
+  // Buscar dados completos das unidades usando hook otimizado
   const { 
     data: unidadesData, 
     isLoading: unidadesLoading, 
@@ -89,7 +89,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
     if (!unidadeId) return 'Não informado'
-    if (unidadesLoading) return 'Carregando...'
+    if (unidadesLoading && !unidadesData[unidadeId]) return 'Carregando...'
     return unidadesData?.[unidadeId]?.nome || unidadeId
   }
 

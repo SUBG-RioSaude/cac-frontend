@@ -447,6 +447,7 @@ export default function FornecedorForm({
         estado: dadosIniciais?.estado || '',
         cep: dadosIniciais?.cep || '',
         ativo: dadosIniciais?.ativo ?? true,
+        empresaId: dadosIniciais?.empresaId || '',
         contatos: dadosIniciais?.contatos?.length ? dadosIniciais.contatos : [
           {
             id: '1',
@@ -486,6 +487,7 @@ export default function FornecedorForm({
       estado: formValues.estado || '',
       cep: formValues.cep || '',
       ativo: formValues.ativo || false,
+      empresaId: formValues.empresaId || empresaEncontrada?.id,
       contatos: (formValues.contatos || []).map((contato) => ({
         id: contato.id,
         nome: contato.nome || '',
@@ -496,7 +498,7 @@ export default function FornecedorForm({
     }
 
     handleDataChange(dados)
-  }, [form, handleDataChange, onDataChange])
+  }, [form, handleDataChange, onDataChange, empresaEncontrada?.id])
 
   const handleFormSubmit = async (dados: z.infer<typeof fornecedorSchema>) => {
     if (isSubmitting) return // Previne múltiplos submits

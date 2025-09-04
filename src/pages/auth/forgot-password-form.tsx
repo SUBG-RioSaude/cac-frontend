@@ -51,15 +51,22 @@ export default function ForgotPasswordForm() {
     limparErro()
     setSucesso("")
 
-    // Executa esqueci senha
-    const sucesso = await esqueciSenha(email)
-    
-    if (sucesso) {
-      // Armazenar contexto de recuperação para diferenciá-lo do login 2FA
-      sessionStorage.setItem('auth_context', 'password_recovery')
+    try {
+      // Executa esqueci senha
+      const sucesso = await esqueciSenha(email)
       
-      // Redirecionar imediatamente para a tela de verificação
-      navigate("/auth/verificar-codigo", { replace: true })
+      if (sucesso) {
+        // Armazenar contexto de recuperação para diferenciá-lo do login 2FA
+        sessionStorage.setItem('auth_context', 'password_recovery')
+        sessionStorage.setItem('auth_email', email)
+        
+        console.log('Redirecionando para verificação de código...')
+        
+        // Redirecionar imediatamente para a tela de verificação
+        navigate("/auth/verificar-codigo", { replace: true })
+      }
+    } catch (error) {
+      console.error('Erro ao processar esqueci senha:', error)
     }
   }
 

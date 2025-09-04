@@ -168,6 +168,56 @@
         }
       ]
     },
+    "funcionarios": [
+      {
+        "id": "1",
+        "contratoId": "1",
+        "funcionarioId": "1",
+        "tipoGerencia": 2,
+        "tipoGerenciaDescricao": "Fiscal Administrativo",
+        "nome": "Maria Silva Santos",
+        "funcionarioNome": "Maria Silva Santos",
+        "funcionarioCargo": "Engenheira Civil",
+        "funcionarioMatricula": "MAT001",
+        "email": "maria.santos@prefeitura.gov.br",
+        "telefone": "(11) 98765-4321",
+        "cargo": "Engenheira Civil",
+        "departamento": "Secretaria de Obras",
+        "ativo": true
+      },
+      {
+        "id": "2", 
+        "contratoId": "1",
+        "funcionarioId": "2",
+        "tipoGerencia": 2,
+        "tipoGerenciaDescricao": "Fiscal Administrativo",
+        "nome": "João Carlos Oliveira",
+        "funcionarioNome": "João Carlos Oliveira",
+        "funcionarioCargo": "Arquiteto",
+        "funcionarioMatricula": "MAT002",
+        "email": "joao.oliveira@prefeitura.gov.br",
+        "telefone": "(11) 97654-3210",
+        "cargo": "Arquiteto", 
+        "departamento": "Secretaria de Obras",
+        "ativo": true
+      },
+      {
+        "id": "3",
+        "contratoId": "1", 
+        "funcionarioId": "3",
+        "tipoGerencia": 1,
+        "tipoGerenciaDescricao": "Gestor",
+        "nome": "Ana Paula Costa",
+        "funcionarioNome": "Ana Paula Costa",
+        "funcionarioCargo": "Coordenadora de Contratos",
+        "funcionarioMatricula": "MAT003",
+        "email": "ana.costa@prefeitura.gov.br",
+        "telefone": "(11) 96543-2109",
+        "cargo": "Coordenadora de Contratos",
+        "departamento": "Secretaria de Administração",
+        "ativo": true
+      }
+    ],
     "fornecedor": {
       "razaoSocial": "Construtora ABC Ltda",
       "cnpj": "12.345.678/0001-90",

@@ -1,5 +1,5 @@
 export interface ContratoVinculado {
-  id: number
+  id: string | number
   numero: string
   objeto: string
   fornecedor: string
@@ -10,7 +10,7 @@ export interface ContratoVinculado {
 }
 
 export interface Unidade {
-  id: number
+  id: string | number
   nome: string
   sigla: string
   UO: string
@@ -52,7 +52,7 @@ export interface UnidadeStoreState {
   filtros: FiltrosUnidade
   
   // Seleção
-  unidadesSelecionadas: number[]
+  unidadesSelecionadas: (string | number)[]
   
   // Paginação
   paginacao: PaginacaoParamsUnidade
@@ -60,7 +60,7 @@ export interface UnidadeStoreState {
   // Ações
   setTermoPesquisa: (termo: string) => void
   setFiltros: (filtros: FiltrosUnidade) => void
-  selecionarUnidade: (id: number, selecionado: boolean) => void
+  selecionarUnidade: (id: string | number, selecionado: boolean) => void
   selecionarTodasUnidades: (selecionadas: boolean) => void
   setPaginacao: (paginacao: PaginacaoParamsUnidade) => void
   aplicarFiltros: () => void

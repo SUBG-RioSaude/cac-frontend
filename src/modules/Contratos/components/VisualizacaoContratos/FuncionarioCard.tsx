@@ -85,8 +85,8 @@ export function FuncionarioCard({
   // Usar dados da API se disponível, senão usar dados da nova API do contrato, depois dados legados
   const nomeCompleto = funcionario?.nomeCompleto || contratoFuncionario?.funcionarioNome || responsavel?.nome || 'Nome não informado'
   const cargo = funcionario?.cargo || contratoFuncionario?.funcionarioCargo || responsavel?.cargo || 'Cargo não informado'
-  const email = funcionario?.emailInstitucional || responsavel?.email || ''
-  const telefone = funcionario?.telefone || responsavel?.telefone || ''
+  const email = funcionario?.emailInstitucional || contratoFuncionario?.email || responsavel?.email || ''
+  const telefone = funcionario?.telefone || contratoFuncionario?.telefone || responsavel?.telefone || ''
   const matricula = funcionario?.matricula || contratoFuncionario?.funcionarioMatricula
 
   return (

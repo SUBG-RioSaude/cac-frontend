@@ -139,34 +139,44 @@ export function useTiposAdministracao(options?: { enabled?: boolean }) {
   })
 }
 
-// ========== HOOK PARA MÚLTIPLAS UNIDADES ==========
+// ========== HOOK PARA MÚLTIPLAS UNIDADES - OTIMIZADO ==========
 
 /**
- * Hook para buscar múltiplas unidades por ID e retornar um mapa id->unidade
+ * Hook otimizado para buscar múltiplas unidades por ID usando cache compartilhado
+ * Reduz significativamente o número de requisições através de deduplicação inteligente
  */
 export function useUnidadesByIds(
   ids: string[],
   options?: { enabled?: boolean }
 ) {
   const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
+  
+  // Usar useQueries com configurações otimizadas para reduzir requests
   const queries = useQueries({
     queries: uniqueIds.map((id) => ({
       queryKey: unidadeKeys.detail(id),
       queryFn: async () => await getUnidadeById(id),
       enabled: (options?.enabled ?? true) && !!id,
-      staleTime: 5 * 60 * 1000, // 5 minutos
+      staleTime: 10 * 60 * 1000, // 10 minutos - aumentado para reduzir refetches
+      gcTime: 15 * 60 * 1000, // 15 minutos - cache mais longo
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      refetchOnMount: false, // Não refetch se já tem dados em cache
+      // Configurações importantes para reduzir requests
+      retry: 1, // Reduzir tentativas de retry
+      retryDelay: 1000,
+      networkMode: 'online' as const
     }))
   })
 
+  // Processar resultados manualmente
   const map = uniqueIds.reduce<Record<string, UnidadeSaudeApi>>((acc, id, idx) => {
     const q = queries[idx]
     if (q?.data) acc[id] = q.data as UnidadeSaudeApi
     return acc
   }, {})
 
-  const isLoading = queries.some(q => q.isLoading)
+  const isLoading = queries.some(q => q.isLoading && !q.data)
   const isFetching = queries.some(q => q.isFetching)
   const error = queries.find(q => q.error)?.error
 

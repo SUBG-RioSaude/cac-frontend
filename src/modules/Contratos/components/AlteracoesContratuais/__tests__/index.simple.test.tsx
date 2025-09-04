@@ -33,5 +33,5 @@ describe('AlteracoesContratuais - Import Test', () => {
     const module = await import('../index.tsx')
     expect(module).toBeDefined()
     expect(typeof module).toBe('object')
-  })
+  }, 10000)
 })

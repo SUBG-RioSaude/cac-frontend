@@ -253,19 +253,6 @@ describe('TabelaFornecedores', () => {
     })
   })
 
-  it('deve exibir menu dropdown com ações para cada fornecedor', () => {
-    render(
-      <TabelaFornecedores
-        fornecedores={mockFornecedores}
-        paginacao={mockPaginacao}
-        {...mockHandlers}
-      />
-    )
-
-    const botoesMenu = screen.getAllByLabelText('Abrir menu de ações')
-    expect(botoesMenu).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
-  })
-
   it('deve formatar valores monetários corretamente', () => {
     render(
       <TabelaFornecedores

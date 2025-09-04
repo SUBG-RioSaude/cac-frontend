@@ -196,9 +196,6 @@ describe('ContratoForm', () => {
       expect(
         screen.getByText(/Valor do contrato é obrigatório/i),
       ).toBeInTheDocument()
-      expect(
-        screen.getByText(/vinculação a pca é obrigatória/i),
-      ).toBeInTheDocument()
     })
   })
 

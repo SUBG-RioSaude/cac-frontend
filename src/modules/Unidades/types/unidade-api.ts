@@ -85,8 +85,15 @@ export interface FiltrosUnidadesApi {
 import type { Unidade } from '@/modules/Unidades/ListaUnidades/types/unidade'
 
 export function mapearUnidadeApi(apiData: UnidadeSaudeApi): Unidade {
+  console.log('[DEBUG] Mapeando unidade API:', apiData)
+  
+  // Preservar o ID original (pode ser GUID ou número)
+  const mappedId = apiData.id
+  
+  console.log('[DEBUG] ID mapeado:', mappedId, 'de:', apiData.id, 'tipo original:', typeof apiData.id)
+  
   return {
-    id: parseInt(apiData.id) || 0,
+    id: mappedId,
     nome: apiData.nome,
     sigla: apiData.sigla || '',
     UO: apiData.uo?.toString() || '',
@@ -118,4 +125,32 @@ export interface CapCreateApi {
   nome: string
   uo: string
   ativo?: boolean
+}
+
+export interface UnidadeDetalhada {
+  nome: string
+  sigla: string
+  capId: string
+  cap: {
+    nome: string
+    uo: string
+    id: string
+    ativo: boolean
+  }
+  endereco: string
+  bairro: string
+  ua: number
+  subsecretaria: string
+  ap: string
+  uo: number
+  ug: number
+  cnes: string
+  latitude: string
+  longitude: string
+  tipoUnidadeId: number
+  tipoUnidade: TipoUnidadeApi | null
+  tipoAdministracaoId: number
+  tipoAdministracao: TipoAdministracaoApi | null
+  id: string
+  ativo: boolean
 }

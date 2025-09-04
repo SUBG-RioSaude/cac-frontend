@@ -17,8 +17,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  ExternalLink,
-  ArrowRight,
+  Eye,
 } from 'lucide-react'
 import type {
   Unidade,
@@ -30,8 +29,8 @@ import { currencyUtils } from '@/lib/utils'
 
 interface TabelaUnidadesProps {
   unidades: Unidade[]
-  unidadesSelecionadas: number[]
-  onUnidadesSelecionadasChange: (selecionadas: number[]) => void
+  unidadesSelecionadas: (string | number)[]
+  onUnidadesSelecionadasChange: (selecionadas: (string | number)[]) => void
   paginacao: PaginacaoParamsUnidade
   onPaginacaoChange: (paginacao: PaginacaoParamsUnidade) => void
   onVisualizarUnidade: (unidade: Unidade) => void
@@ -95,7 +94,7 @@ export function TabelaUnidades({
     )
   }
 
-  const handleSelecionarUnidade = (id: number, selecionado: boolean) => {
+  const handleSelecionarUnidade = (id: string | number, selecionado: boolean) => {
     if (selecionado) {
       onUnidadesSelecionadasChange([...unidadesSelecionadas, id])
     } else {
@@ -115,6 +114,12 @@ export function TabelaUnidades({
     } else {
       onUnidadesSelecionadasChange([])
     }
+  }
+
+  const handleVisualizarUnidade = (unidade: Unidade) => {
+    console.log('[DEBUG] Navegando para unidade:', unidade)
+    console.log('[DEBUG] ID da unidade:', unidade.id, 'tipo:', typeof unidade.id)
+    onVisualizarUnidade(unidade)
   }
 
   // Paginação
@@ -174,7 +179,7 @@ export function TabelaUnidades({
               <AnimatePresence>
                 {unidadesPaginadas.map((unidade, index) => (
                   <motion.div
-                    key={unidade.id}
+                    key={`mobile-${unidade.id}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -182,7 +187,7 @@ export function TabelaUnidades({
                   >
                     <Card
                       className="hover:bg-muted/30 cursor-pointer p-4 transition-all hover:shadow-md"
-                      onClick={() => onVisualizarUnidade(unidade)}
+                      onClick={() => handleVisualizarUnidade(unidade)}
                     >
                       <div className="mb-3 flex items-start justify-between">
                         <div className="flex items-center gap-2">
@@ -209,14 +214,6 @@ export function TabelaUnidades({
 
                       <div className="mb-3 space-y-2">
                         <div>
-                          <p className="text-muted-foreground text-xs">UO</p>
-                          <p className="text-sm">{unidade.UO}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">UG</p>
-                          <p className="text-sm">{unidade.UG}</p>
-                        </div>
-                        <div>
                           <p className="text-muted-foreground text-xs">
                             Contratos Ativos
                           </p>
@@ -234,25 +231,18 @@ export function TabelaUnidades({
                             )}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Endereço
-                          </p>
-                          <p className="line-clamp-2 text-sm">
-                            {unidade.endereco}
-                          </p>
-                        </div>
                       </div>
 
                       <div className="flex items-center justify-end">
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
-                          onClick={() => onVisualizarUnidade(unidade)}
-                          className="h-8 px-3 text-xs"
+                          onClick={() => handleVisualizarUnidade(unidade)}
+                          className="h-9 px-4 shadow-sm"
+                          title="Abrir unidade"
                         >
-                          Ações
-                          <ExternalLink className="mr-1 h-3 w-3" />
+                          <Eye className="mr-2 h-4 w-4" />
+                          Detalhes
                         </Button>
                       </div>
                     </Card>
@@ -292,24 +282,6 @@ export function TabelaUnidades({
                     </TableHead>
                     <TableHead
                       className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
-                      onClick={() => onOrdenacao('UO')}
-                    >
-                      <div className="flex items-center gap-2">
-                        UO
-                        {getIconeOrdenacao('UO')}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
-                      onClick={() => onOrdenacao('UG')}
-                    >
-                      <div className="flex items-center gap-2">
-                        UG
-                        {getIconeOrdenacao('UG')}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('status')}
                     >
                       <div className="flex items-center gap-2">
@@ -335,8 +307,7 @@ export function TabelaUnidades({
                         {getIconeOrdenacao('valorTotalContratado')}
                       </div>
                     </TableHead>
-                    <TableHead className="font-semibold">Endereço</TableHead>
-                    <TableHead className="w-24 text-center font-semibold">
+                    <TableHead className="text-right font-semibold">
                       Ações
                     </TableHead>
                   </TableRow>
@@ -345,13 +316,13 @@ export function TabelaUnidades({
                   <AnimatePresence>
                     {unidadesPaginadas.map((unidade, index) => (
                       <motion.tr
-                        key={unidade.id}
+                        key={`desktop-${unidade.id}-${index}`}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                         className="group hover:bg-muted/30 cursor-pointer transition-colors"
-                        onClick={() => onVisualizarUnidade(unidade)}
+                        onClick={() => handleVisualizarUnidade(unidade)}
                       >
                         <TableCell>
                           <Checkbox
@@ -374,12 +345,6 @@ export function TabelaUnidades({
                             {unidade.sigla}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="font-mono text-sm">{unidade.UO}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-mono text-sm">{unidade.UG}</div>
-                        </TableCell>
                         <TableCell>{getStatusBadge(unidade.status)}</TableCell>
                         <TableCell>
                           <div className="text-center text-sm font-medium">
@@ -393,22 +358,15 @@ export function TabelaUnidades({
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="line-clamp-2 max-w-[300px] text-sm">
-                            {unidade.endereco}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center transition-transform ease-in-out hover:scale-110">
+                        <TableCell className="text-right">
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
-                            onClick={() => onVisualizarUnidade(unidade)}
-                            className="h-8 px-3 text-xs"
+                            onClick={() => handleVisualizarUnidade(unidade)}
+                            className="h-8 px-3 shadow-sm"
                           >
+                            <Eye className="mr-1 h-4 w-4" />
                             Abrir
-                            <div className="transition-transform ease-in-out hover:scale-125">
-                              <ArrowRight className="mr-1 h-5 w-5" />
-                            </div>
                           </Button>
                         </TableCell>
                       </motion.tr>
@@ -444,11 +402,11 @@ export function TabelaUnidades({
               </Button>
 
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                {totalPaginas > 0 && Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                   const pageNum = i + 1
                   return (
                     <Button
-                      key={pageNum}
+                      key={`page-${pageNum}`}
                       variant={
                         paginacao.pagina === pageNum ? 'default' : 'outline'
                       }

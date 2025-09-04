@@ -73,7 +73,7 @@ export default function ServerError({ error: propError }: ServerErrorProps) {
               {isRetrying ? 'Tentando...' : 'Tentar novamente'}
             </Button>
             <Button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               variant="secondary"
               className="flex w-full items-center justify-center gap-2"
             >

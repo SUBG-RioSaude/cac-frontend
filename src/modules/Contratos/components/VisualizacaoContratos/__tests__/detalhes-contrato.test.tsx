@@ -12,11 +12,12 @@ vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   }))
 }))
 
-vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
-  useUnidadesByIds: vi.fn(() => ({
+vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
+  useUnidadesBatch: vi.fn(() => ({
     data: {},
     isLoading: false,
-    error: null
+    error: null,
+    getNome: vi.fn((id) => `Mock Unidade ${id}`)
   }))
 }))
 
@@ -79,12 +80,20 @@ describe('DetalhesContrato', () => {
 
     // Verifica se os contatos dos responsáveis estão sendo exibidos
     expect(
-      screen.getByText('maria.santos@prefeitura.gov.br'),
+      screen.getAllByText((content, element) => {
+        return element?.textContent === 'maria.santos@prefeitura.gov.br'
+      })[0]
     ).toBeInTheDocument()
     expect(
-      screen.getByText('joao.oliveira@prefeitura.gov.br'),
+      screen.getAllByText((content, element) => {
+        return element?.textContent === 'joao.oliveira@prefeitura.gov.br'  
+      })[0]
     ).toBeInTheDocument()
-    expect(screen.getByText('ana.costa@prefeitura.gov.br')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((content, element) => {
+        return element?.textContent === 'ana.costa@prefeitura.gov.br'
+      })[0]
+    ).toBeInTheDocument()
   })
 
   it('deve exibir as abas disponíveis', () => {

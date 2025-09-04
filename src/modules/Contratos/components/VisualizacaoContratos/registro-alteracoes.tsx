@@ -35,6 +35,7 @@ import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alte
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface RegistroAlteracoesProps {

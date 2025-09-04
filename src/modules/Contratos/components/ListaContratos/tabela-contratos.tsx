@@ -70,6 +70,13 @@ export function TabelaContratos({
     }
   }, [])
 
+  const obterProcessoPriorizado = useCallback((contrato: Contrato) => {
+    if (contrato.processoRio) return contrato.processoRio
+    if (contrato.processoSei) return contrato.processoSei
+    if (contrato.processoLegado) return contrato.processoLegado
+    return 'N/A'
+  }, [])
+
   const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
       'ativo': {
@@ -161,7 +168,7 @@ export function TabelaContratos({
             />
             <div>
               <h3 className="font-bold text-primary">{contrato.numeroContrato}</h3>
-              <p className="text-xs text-muted-foreground">{contrato.processoSei}</p>
+              <p className="text-xs text-muted-foreground">{obterProcessoPriorizado(contrato)}</p>
             </div>
           </div>
           {getStatusBadge(contrato.status || 'indefinido')}
@@ -179,7 +186,7 @@ export function TabelaContratos({
             <InfoItem icon={Calendar} label="Vigência" value={`${formatarData(contrato.vigenciaInicial)} - ${formatarData(contrato.vigenciaFinal)}`} />
             <InfoItem icon={Briefcase} label="Contratação" value={contrato.contratacao || 'N/A'} />
             <InfoItem icon={Building} label="Unidade Gestora" value={contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'} />
-            <InfoItem icon={FileText} label="Processo SEI" value={contrato.processoSei || 'N/A'} />
+            <InfoItem icon={FileText} label="Processo" value={obterProcessoPriorizado(contrato)} />
             <InfoItem icon={Archive} label="Vínculo PCA" value={contrato.vinculacaoPCA || 'N/A'} />
           </div>
           <div className="flex items-center justify-end border-t pt-3">
@@ -283,7 +290,7 @@ export function TabelaContratos({
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-primary">{contrato.numeroContrato || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">{contrato.processoSei || 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground">{obterProcessoPriorizado(contrato)}</div>
                             <div className="text-xs text-muted-foreground truncate max-w-48" title={contrato.descricaoObjeto || ''}>
                               {contrato.descricaoObjeto || 'N/A'}
                             </div>

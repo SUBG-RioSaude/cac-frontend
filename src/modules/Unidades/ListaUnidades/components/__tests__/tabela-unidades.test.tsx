@@ -122,12 +122,10 @@ describe('TabelaUnidades', () => {
     // Verifica se existem cabeçalhos (podem aparecer múltiplas vezes devido ao mobile/desktop)
     expect(screen.getAllByText('Nome').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Sigla').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('UO').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('UG').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Status').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Contratos').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Valor Total').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Endereço').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Ações').length).toBeGreaterThan(0)
   })
 
   it('deve exibir status badges corretos', () => {
