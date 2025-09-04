@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SearchAndFilters } from '../pesquisa-e-filtros'
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 
@@ -18,22 +17,6 @@ vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
     error: null,
   }),
 }))
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-})
-
-const renderWithQueryClient = (component: React.ReactElement) => {
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
-  )
-}
 
 // Mock props para os testes
 const mockProps = {

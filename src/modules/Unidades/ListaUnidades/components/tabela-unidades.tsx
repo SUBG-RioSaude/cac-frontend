@@ -19,7 +19,6 @@ import {
   ArrowDown,
   Eye,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import type {
   Unidade,
   PaginacaoParamsUnidade,
@@ -56,8 +55,6 @@ export function TabelaUnidades({
   onExcluirUnidade,
   isLoading = false,
 }: TabelaUnidadesProps) {
-  const navigate = useNavigate()
-  
   // Supress unused variables warnings for future implementation
   void onEditarUnidade
   void onExcluirUnidade
