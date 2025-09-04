@@ -233,6 +233,8 @@ export interface ContratoFuncionario {
   funcionarioNome: string
   funcionarioMatricula: string
   funcionarioCargo: string
+  email?: string
+  telefone?: string
 }
 
 export interface Contato {
