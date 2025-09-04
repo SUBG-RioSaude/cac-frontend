@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ExternalLink,
   FileText,
-  Zap,
   Clock,
   FolderOpen,
   Check,
@@ -166,7 +165,7 @@ const schemaContrato = z.object({
   prazoInicialMeses: z
     .number()
     .min(0, 'Meses deve ser pelo menos 0')
-    .max(60, 'Meses máximo de 60'),
+    .max(72, 'Meses máximo de 72'),
   prazoInicialDias: z
     .number()
     .min(0, 'Dias deve ser pelo menos 0')
@@ -740,41 +739,6 @@ export default function ContratoForm({
     }
   }
 
-  const preencherDadosTeste = () => {
-    const processosTesteData: ProcessoSelecionado[] = [
-      { tipo: 'sei', valor: 'SEI-123456-2024' },
-      { tipo: 'rio', valor: 'SMS-PRO-2024/001' }
-    ]
-    
-    form.reset({
-      numeroContrato: '20240001',
-      processos: processosTesteData,
-      categoriaObjeto: 'prestacao_servico_com_mao_obra',
-      descricaoObjeto:
-        'Prestação de serviços de limpeza e conservação para unidades de saúde, incluindo fornecimento de materiais e equipamentos necessários.',
-      tipoContratacao: 'Pregao',
-      tipoContrato: 'Prestacao_Servico',
-      unidadeDemandante: 'Secretaria Municipal de Saúde',
-      unidadeGestora: 'Departamento de Administração e Finanças',
-      contratacao: 'Centralizada',
-      vigenciaInicial: '2024-01-15',
-      vigenciaFinal: '2024-12-31',
-      prazoInicialMeses: 12,
-      prazoInicialDias: 0,
-      valorGlobal: currencyUtils.formatar(1500000),
-             formaPagamento: 'Mensal',
-      // COMENTADO PARA PRÓXIMA ENTREGA - quantidadeEtapas: 0,
-      // COMENTADO PARA PRÓXIMA ENTREGA - etapasPagamento: [],
-      tipoTermoReferencia: 'processo_rio',
-      termoReferencia: 'https://processo.rio/processo/12345',
-      vinculacaoPCA: '2024',
-    })
-    
-    setProcessosSelecionados(processosTesteData)
-    // COMENTADO PARA PRÓXIMA ENTREGA - setQuantidadeEtapas(0)
-    // COMENTADO PARA PRÓXIMA ENTREGA - setEtapasPagamento([])
-  }
-
   // Função para filtrar opções baseado na pesquisa
   const filtrarOpcoesProcesso = useCallback(
     (pesquisa: string) => {
@@ -1153,31 +1117,31 @@ export default function ContratoForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="manutencao_corretiva_preventiva_equipamentos_medicos">
+                        <SelectItem value="Manutenção Corretiva e Preventiva Equipamentos Médicos">
                           Manutenção corretiva e preventiva equipamentos médicos
                         </SelectItem>
-                        <SelectItem value="manutencao_corretiva_preventiva_predial">
+                        <SelectItem value="Manutenção Corretiva e Preventiva Predial">
                           Manutenção corretiva e preventiva predial
                         </SelectItem>
-                        <SelectItem value="prestacao_servico_com_mao_obra">
+                        <SelectItem value="Prestação de Serviço COM Mão de Obra">
                           Prestação de serviço COM mão de obra
                         </SelectItem>
-                        <SelectItem value="prestacao_servico_sem_mao_obra">
+                        <SelectItem value="Prestação de Serviço SEM Mão de Obra">
                           Prestação de serviço SEM mão de obra
                         </SelectItem>
-                        <SelectItem value="servico_com_fornecimento_cessao_insumo">
+                        <SelectItem value="Serviço com Fornecimento e Cessão com Insumo">
                           Serviço com fornecimento e Cessão com insumo
                         </SelectItem>
-                        <SelectItem value="servico_locacao_veiculos">
+                        <SelectItem value="Serviço de Locação Veículos">
                           Serviço de locação veículos
                         </SelectItem>
-                        <SelectItem value="informatica">
+                        <SelectItem value="Informática">
                           Informática
                         </SelectItem>
-                        <SelectItem value="obra">
+                        <SelectItem value="Obra">
                           Obra
                         </SelectItem>
-                        <SelectItem value="permanente">
+                        <SelectItem value="Permanente">
                           Permanente
                         </SelectItem>
                       </SelectContent>
@@ -1613,8 +1577,8 @@ export default function ContratoForm({
                                  value={field.value || ''}
                                  onChange={(e) => {
                                    let valor = parseInt(e.target.value) || 0
-                                   if (valor > 60) {
-                                     valor = 60
+                                   if (valor > 72) {
+                                     valor = 72
                                    }
                                    field.onChange(valor)
                                    const prazoDias = form.getValues('prazoInicialDias')
@@ -1632,7 +1596,7 @@ export default function ContratoForm({
                                  <button
                                    type="button"
                                    onClick={() => {
-                                     const novoValor = Math.min((field.value || 0) + 1, 60)
+                                     const novoValor = Math.min((field.value || 0) + 1, 72)
                                      field.onChange(novoValor)
                                      const prazoDias = form.getValues('prazoInicialDias')
                                      handlePrazoChange(novoValor, prazoDias)
@@ -1739,7 +1703,7 @@ export default function ContratoForm({
                         </div>
                        
                        {/* Aviso para prazos muito longos */}
-                       {(form.watch('prazoInicialMeses') || 0) > 60 && (
+                       {(form.watch('prazoInicialMeses') || 0) > 72 && (
                          <div className="mt-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
                            ⚠️ Prazo muito longo. Considere revisar a duração do contrato.
                          </div>
@@ -2260,19 +2224,6 @@ export default function ContratoForm({
 
         {/* Botões */}
         <div className="space-y-6 border-t border-gray-200 pt-8">
-          {/* Botão de preenchimento rápido para testes */}
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={preencherDadosTeste}
-              className="border-violet-300 bg-gradient-to-r from-violet-100 to-purple-100 text-sm text-violet-700 shadow-sm hover:from-violet-200 hover:to-purple-200"
-            >
-              <Zap className="mr-2 h-4 w-4" />
-              Preencher Dados de Teste
-            </Button>
-          </div>
-
           <div className="flex items-center justify-between">
             <div className="flex gap-3">
               {onCancel && (

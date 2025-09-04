@@ -112,15 +112,6 @@ export function AuthFlowGuard() {
     return <Outlet />
   }
 
-  // Verifica se está no fluxo de recuperação de senha
-  const contexto = sessionStorage.getItem('auth_context')
-  const isPasswordRecoveryFlow = contexto === 'password_recovery' || contexto === 'password_reset'
-  
-  // Se está no fluxo de recuperação de senha, permite acesso às rotas de auth
-  if (isPasswordRecoveryFlow) {
-    return <Outlet />
-  }
-
   // Se está autenticado mas precisa trocar senha
   if (estaAutenticado && usuario?.precisaTrocarSenha) {
     // Se não estiver na rota de troca de senha, redireciona

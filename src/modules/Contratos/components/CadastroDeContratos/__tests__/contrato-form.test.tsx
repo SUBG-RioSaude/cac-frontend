@@ -241,8 +241,9 @@ describe('ContratoForm', () => {
       expect(screen.getByText(/número do contrato é obrigatório/i)).toBeInTheDocument()
     })
 
-    // Agora preenche o formulário com dados válidos
-    fireEvent.click(screen.getByText(/preencher dados de teste/i))
+    // Agora preenche o formulário com dados válidos manualmente
+    const numeroContratoInput = screen.getByLabelText(/número do contrato/i)
+    fireEvent.change(numeroContratoInput, { target: { value: '20240001' } })
 
     // Aguarda o preenchimento
     await waitFor(() => {
@@ -300,7 +301,7 @@ describe('ContratoForm', () => {
     expect(screen.getByDisplayValue('Prestação de serviços')).toBeInTheDocument()
   })
 
-  it('deve validar prazo inicial entre 0 e 60 meses', async () => {
+      it('deve validar prazo inicial entre 0 e 72 meses', async () => {
     renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const prazoMesesInput = screen.getByDisplayValue('12')
@@ -308,8 +309,8 @@ describe('ContratoForm', () => {
     fireEvent.change(prazoMesesInput, { target: { value: '12' } })
     expect(prazoMesesInput).toHaveValue('12')
 
-    fireEvent.change(prazoMesesInput, { target: { value: '60' } })
-    expect(prazoMesesInput).toHaveValue('60')
+    fireEvent.change(prazoMesesInput, { target: { value: '72' } })
+    expect(prazoMesesInput).toHaveValue('72')
 
     // Quando o valor é 0, o campo fica vazio devido à lógica value={field.value || ''}
     fireEvent.change(prazoMesesInput, { target: { value: '0' } })

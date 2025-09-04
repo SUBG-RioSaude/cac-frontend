@@ -33,7 +33,6 @@ import {
   Trash2,
   Check,
   X,
-  Zap,
   ShieldCheck,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
@@ -654,40 +653,6 @@ export default function FornecedorForm({
         ativo: true,
       })
     }
-  }
-
-  const preencherDadosTeste = () => {
-    form.reset({
-      cnpj: cnpjUtils.formatar('11222333000181'),
-      razaoSocial: 'Empresa de Limpeza Exemplo LTDA',
-      estadoIE: 'RJ',
-      inscricaoEstadual: '12.345.67-8',
-      inscricaoMunicipal: '12.345.678-9',
-      endereco: 'Rua das Flores, 123',
-      numero: '123',
-      complemento: 'Sala 101',
-      bairro: 'Centro',
-      cidade: 'Rio de Janeiro',
-      estado: 'RJ',
-      cep: '20040-020',
-      ativo: true,
-      contatos: [
-        {
-          id: '1',
-          nome: 'João Silva',
-          valor: 'joao@empresa.com',
-          tipo: 'Email' as const,
-          ativo: true,
-        },
-        {
-          id: '2',
-          nome: 'Maria Santos',
-          valor: '(21) 9 9999-8888',
-          tipo: 'Celular' as const,
-          ativo: true,
-        },
-      ],
-    })
   }
 
   const getPlaceholderPorTipo = (tipo: string) => {
@@ -1500,19 +1465,6 @@ export default function FornecedorForm({
 
         {/* Botões */}
         <div className="space-y-6 border-t border-gray-200 pt-8">
-          {/* Botão de preenchimento rápido para testes */}
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={preencherDadosTeste}
-              className="border-violet-300 bg-gradient-to-r from-violet-100 to-purple-100 text-sm text-violet-700 shadow-sm hover:from-violet-200 hover:to-purple-200"
-            >
-              <Zap className="mr-2 h-4 w-4" />
-              Preencher Dados de Teste
-            </Button>
-          </div>
-
           <div className="flex items-center justify-between">
             <div className="flex gap-3">
               {onCancel && (
