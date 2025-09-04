@@ -193,9 +193,9 @@ export default function ForgotPasswordForm() {
                       transition={{ duration: 0.3 }}
                     >
                       <Alert variant="destructive" className="border-red-200 bg-red-50">
-                        <motion.div initial={{ x: -10 }} animate={{ x: 0 }} transition={{ duration: 0.2 }}>
-                          <AlertDescription className="text-red-800">{erro}</AlertDescription>
-                        </motion.div>
+                        <AlertDescription className="text-red-800 leading-relaxed break-words">
+                          {erro}
+                        </AlertDescription>
                       </Alert>
                     </motion.div>
                   )}

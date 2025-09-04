@@ -34,6 +34,7 @@ import {
   Check,
   X,
   Zap,
+  ShieldCheck,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -209,6 +210,7 @@ export default function FornecedorForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
+  const [cepBypassDisponivel, setCepBypassDisponivel] = useState(false)
   const [cepPreenchido, setCepPreenchido] = useState(false)
   const [cepValido, setCepValido] = useState(false)
   const [cnpjParaConsultar, setCnpjParaConsultar] = useState<string>('')
@@ -316,6 +318,7 @@ export default function FornecedorForm({
     setIsLoadingCEP(true)
     setCepError(null)
     setCepValido(false)
+    setCepBypassDisponivel(false)
 
     try {
       const cepLimpo = cep.replace(/\D/g, '')
@@ -326,6 +329,7 @@ export default function FornecedorForm({
         setCepError('CEP não encontrado')
         setCepValido(false)
         setCepPreenchido(false)
+        setCepBypassDisponivel(true)
         return
       }
 
@@ -349,12 +353,33 @@ export default function FornecedorForm({
         }, 100)
       }
     } catch {
-      setCepError('Erro ao buscar CEP')
+      setCepError('Erro ao buscar CEP - ViaCEP não está respondendo')
       setCepValido(false)
       setCepPreenchido(false)
+      setCepBypassDisponivel(true)
     } finally {
       setIsLoadingCEP(false)
     }
+  }
+
+  // Função para fazer bypass do ViaCEP
+  const bypassViaCEP = () => {
+    setCepError(null)
+    setCepBypassDisponivel(false)
+    setCepPreenchido(true)
+    setCepValido(true)
+    
+    toast.success('CEP liberado para preenchimento manual', {
+      description: 'Você pode preencher o endereço manualmente.'
+    })
+
+    // Foca no campo de endereço para o usuário preencher manualmente
+    setTimeout(() => {
+      const enderecoField = document.querySelector(
+        'input[name="endereco"]',
+      ) as HTMLInputElement
+      enderecoField?.focus()
+    }, 100)
   }
 
   // Função para consultar empresa por CNPJ
@@ -771,7 +796,8 @@ export default function FornecedorForm({
                             id="cnpj"
                             {...field}
                             placeholder="00.000.000/0000-00"
-                                                         onChange={(e) => {
+                            disabled={!!empresaEncontrada}
+                            onChange={(e) => {
                               const valorMascarado = cnpjUtils.aplicarMascara(
                                 e.target.value,
                               )
@@ -802,6 +828,8 @@ export default function FornecedorForm({
                                 'border-green-500 bg-green-50 pr-10',
                               isValidCnpj === false &&
                                 'border-red-500 bg-red-50 pr-10',
+                              !!empresaEncontrada && 
+                                'cursor-not-allowed bg-slate-100 opacity-50',
                             )}
                           />
                           {isConsultandoCNPJ && (
@@ -836,7 +864,16 @@ export default function FornecedorForm({
                   <FormItem>
                     <FormLabel htmlFor="razaoSocial" className="mb-2">Razão Social *</FormLabel>
                     <FormControl>
-                      <Input id="razaoSocial" placeholder="Digite a razão social" className="w-full" {...field} />
+                      <Input 
+                        id="razaoSocial" 
+                        placeholder="Digite a razão social" 
+                        className={cn(
+                          "w-full",
+                          !!empresaEncontrada && 'cursor-not-allowed bg-slate-100 opacity-50'
+                        )}
+                        disabled={!!empresaEncontrada}
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -872,9 +909,16 @@ export default function FornecedorForm({
                                   setTimeout(() => notificarMudancas(), 0)
                                 }}
                                 value={estadoField.value}
+                                disabled={!!empresaEncontrada}
                               >
                                 <FormControl>
-                                  <SelectTrigger id="estadoIE" className="w-full">
+                                  <SelectTrigger 
+                                    id="estadoIE" 
+                                    className={cn(
+                                      "w-full",
+                                      !!empresaEncontrada && 'cursor-not-allowed bg-slate-100 opacity-50'
+                                    )}
+                                  >
                                     <SelectValue placeholder="UF" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -900,7 +944,7 @@ export default function FornecedorForm({
                                 ? 'Ex: 12.345.67-8'
                                 : 'Selecione UF primeiro'
                             }
-                            disabled={!estadoSelecionado}
+                            disabled={!estadoSelecionado || !!empresaEncontrada}
                             onChange={(e) => {
                               if (estadoSelecionado) {
                                 const valorMascarado = ieUtils.aplicarMascara(
@@ -915,7 +959,7 @@ export default function FornecedorForm({
                               }
                             }}
                             className={cn(
-                              !estadoSelecionado &&
+                              (!estadoSelecionado || !!empresaEncontrada) &&
                                 'cursor-not-allowed bg-slate-100 opacity-50',
                             )}
                           />
@@ -949,7 +993,7 @@ export default function FornecedorForm({
                                 ? 'Ex: 12345-67'
                                 : 'Selecione UF da IE primeiro'
                             }
-                            disabled={!estadoSelecionado}
+                            disabled={!estadoSelecionado || !!empresaEncontrada}
                             onChange={(e) => {
                               if (estadoSelecionado) {
                                 const valorMascarado = imUtils.aplicarMascara(
@@ -964,7 +1008,7 @@ export default function FornecedorForm({
                               }
                             }}
                             className={cn(
-                              !estadoSelecionado &&
+                              (!estadoSelecionado || !!empresaEncontrada) &&
                                 'cursor-not-allowed bg-slate-100 opacity-50'
                             )}
                           />
@@ -1004,6 +1048,7 @@ export default function FornecedorForm({
                         <Input
                           placeholder="12345-678"
                           {...field}
+                          disabled={!!empresaEncontrada}
                           onChange={(e) => {
                             const valorMascarado = aplicarMascaraCEP(
                               e.target.value,
@@ -1017,7 +1062,8 @@ export default function FornecedorForm({
                           }}
                           className={cn(
                             cepError && 'border-red-500 bg-red-50',
-                            cepValido && 'border-green-500 bg-green-50'
+                            cepValido && 'border-green-500 bg-green-50',
+                            !!empresaEncontrada && 'cursor-not-allowed bg-slate-100 opacity-50'
                           )}
                         />
                         {isLoadingCEP && (
@@ -1033,7 +1079,21 @@ export default function FornecedorForm({
                       </div>
                     </FormControl>
                     {cepError && (
-                      <p className="text-sm text-red-600">{cepError}</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-red-600">{cepError}</p>
+                        {cepBypassDisponivel && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={bypassViaCEP}
+                            className="flex items-center gap-2 text-xs"
+                          >
+                            <ShieldCheck className="h-3 w-3" />
+                            Continuar sem validar CEP
+                          </Button>
+                        )}
+                      </div>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -1053,9 +1113,9 @@ export default function FornecedorForm({
                       <Input
                         placeholder="Rua, Avenida, Travessa..."
                         {...field}
-                        disabled={!cepPreenchido}
+                        disabled={!cepPreenchido || !!empresaEncontrada}
                         className={cn(
-                          !cepPreenchido &&
+                          (!cepPreenchido || !!empresaEncontrada) &&
                             'cursor-not-allowed bg-slate-100 opacity-50',
                         )}
                       />
@@ -1078,9 +1138,9 @@ export default function FornecedorForm({
                       <Input
                         placeholder="Rio de Janeiro"
                         {...field}
-                        disabled={!cepPreenchido}
+                        disabled={!cepPreenchido || !!empresaEncontrada}
                         className={cn(
-                          !cepPreenchido &&
+                          (!cepPreenchido || !!empresaEncontrada) &&
                             'cursor-not-allowed bg-slate-100 opacity-50',
                         )}
                       />
@@ -1103,9 +1163,9 @@ export default function FornecedorForm({
                       <Input
                         placeholder="Ramos"
                         {...field}
-                        disabled={!cepPreenchido}
+                        disabled={!cepPreenchido || !!empresaEncontrada}
                         className={cn(
-                          !cepPreenchido &&
+                          (!cepPreenchido || !!empresaEncontrada) &&
                             'cursor-not-allowed bg-slate-100 opacity-50',
                         )}
                       />
@@ -1128,13 +1188,13 @@ export default function FornecedorForm({
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        disabled={!cepPreenchido}
+                        disabled={!cepPreenchido || !!empresaEncontrada}
                       >
                         <FormControl>
                           <SelectTrigger
                             className={cn(
                               'h-9 w-full',
-                              !cepPreenchido &&
+                              (!cepPreenchido || !!empresaEncontrada) &&
                                 'cursor-not-allowed bg-slate-100 opacity-50',
                             )}
                           >
@@ -1167,9 +1227,9 @@ export default function FornecedorForm({
                         <Input
                           placeholder="123"
                           {...field}
-                          disabled={!cepPreenchido}
+                          disabled={!cepPreenchido || !!empresaEncontrada}
                           className={cn(
-                            !cepPreenchido &&
+                            (!cepPreenchido || !!empresaEncontrada) &&
                               'cursor-not-allowed bg-slate-100 opacity-50',
                           )}
                         />
@@ -1193,9 +1253,9 @@ export default function FornecedorForm({
                       <Input
                         placeholder="Apt, Sala, Bloco... (opcional)"
                         {...field}
-                        disabled={!cepPreenchido}
+                        disabled={!cepPreenchido || !!empresaEncontrada}
                         className={cn(
-                          !cepPreenchido &&
+                          (!cepPreenchido || !!empresaEncontrada) &&
                             'cursor-not-allowed bg-slate-100 opacity-50',
                         )}
                       />
@@ -1226,7 +1286,7 @@ export default function FornecedorForm({
               variant="outline"
               size="sm"
               onClick={adicionarContato}
-              disabled={fields.length >= 3}
+              disabled={fields.length >= 3 || !!empresaEncontrada}
               className="ml-4 flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -1256,6 +1316,7 @@ export default function FornecedorForm({
                       size="sm"
                       onClick={() => remove(index)}
                       className="text-red-600 hover:text-red-700"
+                      disabled={!!empresaEncontrada}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -1276,6 +1337,11 @@ export default function FornecedorForm({
                               <Input
                                 placeholder="Digite o nome"
                                 {...nomeField}
+                                disabled={!!empresaEncontrada}
+                                className={cn(
+                                  !!empresaEncontrada &&
+                                    'cursor-not-allowed bg-slate-100 opacity-50',
+                                )}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1303,7 +1369,14 @@ export default function FornecedorForm({
                               value={tipoField.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger
+                                  className={cn(
+                                    'w-full',
+                                    !!empresaEncontrada &&
+                                      'cursor-not-allowed bg-slate-100 opacity-50',
+                                  )}
+                                  disabled={!!empresaEncontrada}
+                                >
                                   <SelectValue placeholder="Selecione o tipo" />
                                 </SelectTrigger>
                               </FormControl>
@@ -1347,6 +1420,11 @@ export default function FornecedorForm({
                                     placeholder={getPlaceholderPorTipo(tipoContato)}
                                     type={tipoContato === 'Email' ? 'email' : 'tel'}
                                     value={valorField.value || ''}
+                                    disabled={!!empresaEncontrada}
+                                    className={cn(
+                                      !!empresaEncontrada &&
+                                        'cursor-not-allowed bg-slate-100 opacity-50',
+                                    )}
                                     onChange={(e) => {
                                       let valorProcessado = e.target.value
 
@@ -1401,6 +1479,11 @@ export default function FornecedorForm({
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={!!empresaEncontrada}
+                  className={cn(
+                    !!empresaEncontrada &&
+                      'cursor-not-allowed opacity-50',
+                  )}
                 />
               </FormControl>
               <div className="space-y-1">
