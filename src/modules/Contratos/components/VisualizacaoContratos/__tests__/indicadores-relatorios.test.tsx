@@ -1,6 +1,20 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/tests/test-utils'
 import { IndicadoresRelatorios } from '../indicadores-relatorios'
+import type { ContratoDetalhado } from '../../../types/contrato'
+
+// Mock dos hooks de React Query
+vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
+  useUnidadesByIds: vi.fn(() => ({
+    data: {
+      'unidade-1': { nome: 'Secretaria de Obras' },
+      'unidade-2': { nome: 'Secretaria de Educação' },
+      'unidade-3': { nome: 'Secretaria de Saúde' }
+    },
+    isLoading: false,
+    error: null
+  }))
+}))
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
@@ -76,6 +90,94 @@ const unidadesMock = {
 }
 
 const valorTotalMock = 1250000.0
+const vtmTotalContratoMock = 26042
+
+const contratoMock: ContratoDetalhado = {
+  id: '1',
+  numeroContrato: 'CONT-2023/0042',
+  objeto: 'Teste de Contrato',
+  dataInicio: '2023-05-12T00:00:00Z',
+  dataTermino: '2024-05-11T23:59:59Z',
+  valorTotal: valorTotalMock,
+  vigenciaInicial: '2023-05-12T00:00:00Z',
+  vigenciaFinal: '2024-05-11T23:59:59Z',
+  valorGlobal: valorTotalMock,
+  vtmTotalContrato: vtmTotalContratoMock,
+  prazoInicialMeses: 12,
+  valorTotalAtribuido: 1250000,
+  valorDisponivel: 750000,
+  quantidadeUnidadesVinculadas: 3,
+  quantidadeDocumentos: 0,
+  empresaId: 'empresa-1',
+  ativo: true,
+  usuarioCadastroId: 'user-1',
+  usuarioAtualizacaoId: 'user-1',
+  dataCadastro: '2023-05-12T00:00:00Z',
+  dataAtualizacao: '2023-05-12T00:00:00Z',
+  responsaveis: {
+    fiscaisAdministrativos: [],
+    gestores: []
+  },
+  fornecedor: {
+    razaoSocial: 'Empresa Teste LTDA',
+    cnpj: '12345678000199',
+    contatos: [],
+    endereco: {
+      cep: '20000-000',
+      logradouro: 'Rua Teste',
+      bairro: 'Bairro Teste',
+      cidade: 'Rio de Janeiro',
+      uf: 'RJ'
+    }
+  },
+  unidades: {
+    demandante: 'Unidade Demandante',
+    gestora: 'Unidade Gestora',
+    vinculadas: []
+  },
+  alteracoes: [],
+  documentos: [],
+  documentosChecklist: {
+    termoReferencia: { entregue: false },
+    homologacao: { entregue: false },
+    ataRegistroPrecos: { entregue: false },
+    garantiaContratual: { entregue: false },
+    contrato: { entregue: false },
+    publicacaoPncp: { entregue: false },
+    publicacaoExtrato: { entregue: false }
+  },
+  indicadores: {
+    saldoAtual: 750000,
+    percentualExecutado: 40,
+    cronogramaVigencia: []
+  },
+  unidadesVinculadas: [
+    {
+      id: '1',
+      contratoId: '1',
+      unidadeSaudeId: 'unidade-1',
+      nomeUnidade: 'Secretaria de Obras',
+      valorAtribuido: 750000,
+      ativo: true
+    },
+    {
+      id: '2',
+      contratoId: '1',
+      unidadeSaudeId: 'unidade-2',
+      nomeUnidade: 'Secretaria de Educação',
+      valorAtribuido: 312500,
+      ativo: true
+    },
+    {
+      id: '3',
+      contratoId: '1',
+      unidadeSaudeId: 'unidade-3',
+      nomeUnidade: 'Secretaria de Saúde',
+      valorAtribuido: 187500,
+      ativo: true
+    }
+  ]
+}
 
 describe('IndicadoresRelatorios', () => {
   it('deve renderizar o componente com todas as seções', () => {
@@ -84,9 +186,11 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
-    expect(screen.getByText('Saldo e Execução')).toBeInTheDocument()
+    expect(screen.getByText('Saldo e Acompanhamento')).toBeInTheDocument()
     expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
     expect(screen.getByText('Distribuição por Unidade')).toBeInTheDocument()
   })
@@ -97,6 +201,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -109,6 +215,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -122,6 +230,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -134,6 +244,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -148,6 +260,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -162,13 +276,13 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
-    expect(screen.getByText('Fase 1: Início')).toBeInTheDocument()
-    expect(screen.getByText('Fase 2: Execução Inicial')).toBeInTheDocument()
-    expect(screen.getByText('Fase 3: Execução Principal')).toBeInTheDocument()
-    expect(screen.getByText('Fase 4: Finalização')).toBeInTheDocument()
+    expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
+    expect(screen.getByText('Período 1 (1º ao 3º mês)')).toBeInTheDocument()
   })
 
   it('deve exibir status correto para cada fase do cronograma', () => {
@@ -177,17 +291,14 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
-    // Verifica se os status estão sendo exibidos (pode haver múltiplos)
-    const elementosConcluido = screen.getAllByText('Concluído')
-    const elementosEmAndamento = screen.getAllByText('Em Andamento')
-    const elementosPendente = screen.getAllByText('Pendente')
-
-    expect(elementosConcluido.length).toBeGreaterThan(0)
-    expect(elementosEmAndamento.length).toBeGreaterThan(0)
-    expect(elementosPendente.length).toBeGreaterThan(0)
+    // Verifica se há pelo menos um status sendo exibido
+    const statusElements = screen.queryAllByText(/Concluído|Em Andamento|Pendente/)
+    expect(statusElements.length).toBeGreaterThan(0)
   })
 
   it('deve aplicar cores corretas para cada status do cronograma', () => {
@@ -196,12 +307,14 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
-    // Verifica se as cores estão sendo aplicadas nos containers dos status
-    const fases = screen.getAllByText(/Fase 1|Fase 2|Fase 3|Fase 4/)
-    expect(fases.length).toBeGreaterThan(0)
+    // Verifica se há períodos sendo renderizados
+    const periodos = screen.getAllByText(/Período \d/)
+    expect(periodos.length).toBeGreaterThan(0)
   })
 
   it('deve exibir todas as unidades vinculadas', () => {
@@ -210,6 +323,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -224,6 +339,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -238,12 +355,13 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
-    expect(screen.getByText('R$ 62.500,00/mês')).toBeInTheDocument()
-    expect(screen.getByText('R$ 26.041,67/mês')).toBeInTheDocument()
-    expect(screen.getByText('R$ 15.625,00/mês')).toBeInTheDocument()
+    // Verifica se o VTM do contrato está sendo exibido no resumo
+    expect(screen.getByText('R$ 26.042,00/mês')).toBeInTheDocument()
   })
 
   it('deve exibir resumo financeiro das unidades', () => {
@@ -252,16 +370,15 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
-    expect(screen.getByText('Total Mensal')).toBeInTheDocument()
+    expect(screen.getByText('Resumo Financeiro')).toBeInTheDocument()
     expect(screen.getByText('Maior Participação')).toBeInTheDocument()
-    expect(screen.getByText('Unidades Ativas')).toBeInTheDocument()
-
-    // Verifica se há elementos "3" (pode haver múltiplos)
-    const elementosTres = screen.getAllByText('3')
-    expect(elementosTres.length).toBeGreaterThan(0)
+    expect(screen.getAllByText('VTM do Contrato').length).toBeGreaterThan(0)
+    expect(screen.getByText('Gasto Médio por Dia')).toBeInTheDocument()
   })
 
   it('deve renderizar corretamente quando não há unidades vinculadas', () => {
@@ -271,18 +388,23 @@ describe('IndicadoresRelatorios', () => {
       vinculadas: [],
     }
 
+    const contratoVazio = {
+      ...contratoMock,
+      unidadesVinculadas: []
+    }
+
     render(
       <IndicadoresRelatorios
         indicadores={indicadoresMock}
         unidades={unidadesVazias}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoVazio}
       />,
     )
 
     expect(screen.getByText('Distribuição por Unidade')).toBeInTheDocument()
-    // Verifica se há elementos "0" (pode haver múltiplos)
-    const elementosZero = screen.getAllByText('0')
-    expect(elementosZero.length).toBeGreaterThan(0)
+    expect(screen.getByText('Nenhuma unidade vinculada')).toBeInTheDocument()
   })
 
   it('deve aplicar classes CSS corretas para responsividade', () => {
@@ -291,6 +413,8 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
@@ -305,11 +429,13 @@ describe('IndicadoresRelatorios', () => {
         indicadores={indicadoresMock}
         unidades={unidadesMock}
         valorTotal={valorTotalMock}
+        vtmTotalContrato={vtmTotalContratoMock}
+        contrato={contratoMock}
       />,
     )
 
     // Verifica se os títulos das seções estão sendo exibidos
-    expect(screen.getByText('Saldo e Execução')).toBeInTheDocument()
+    expect(screen.getByText('Saldo e Acompanhamento')).toBeInTheDocument()
     expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
     expect(screen.getByText('Distribuição por Unidade')).toBeInTheDocument()
   })

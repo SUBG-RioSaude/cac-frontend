@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@/tests/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RegistroAlteracoes } from '../registro-alteracoes'
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
@@ -19,6 +19,18 @@ vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
     isLoading: false,
     error: null,
     getNome: vi.fn((id) => `Mock Unidade ${id}`)
+  }))
+}))
+
+vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
+  useUnidadesByIds: vi.fn(() => ({
+    data: {
+      'unidade-1': { nome: 'Mock Unidade 1' },
+      'unidade-2': { nome: 'Mock Unidade 2' },
+      'unidade-3': { nome: 'Mock Unidade 3' }
+    },
+    isLoading: false,
+    error: null
   }))
 }))
 

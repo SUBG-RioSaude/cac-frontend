@@ -46,6 +46,7 @@ interface TransformedUnidade {
   tipo: string
   endereco: string
   ativo: boolean
+  valorAtual?: number
 }
 
 interface ContractInfo {
@@ -87,6 +88,7 @@ interface BlocosDinamicosProps {
   contractContext?: ContractContextData
   errors?: Record<string, string>
   disabled?: boolean
+  onContextChange?: () => void // Para invalidar contexto quando necessário
 }
 
 interface BlocoInfo {
@@ -148,7 +150,8 @@ export function BlocosDinamicos({
   onChange,
   contractContext,
   errors = {},
-  disabled = false
+  disabled = false,
+  onContextChange
 }: BlocosDinamicosProps) {
   // Estado para controlar quais blocos estão expandidos
   const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set())
@@ -209,10 +212,32 @@ export function BlocosDinamicos({
         const vinculadas = db.unidadesVinculadas?.length || 0
         const desvinculadas = db.unidadesDesvinculadas?.length || 0
         const total = vinculadas + desvinculadas
+        
+        // Verificar se valor está 100% distribuído
+        const valorContrato = contractContext?.financials?.totalValue || contractContext?.contract?.valorTotal || 0
+        let valorCompleto = true
+        let resumoValor = ''
+        
+        if (valorContrato > 0) {
+          // Calcular valor total distribuído (similar ao BlocoUnidades)
+          const valorJaVinculado = contractContext?.units?.linkedUnits?.reduce((sum: number, unit: TransformedUnidade) => sum + (unit.valorAtual || 0), 0) || 0
+          const valorNovasVinculadas = db.unidadesVinculadas?.reduce((sum, unit) => sum + unit.valorAtribuido, 0) || 0
+          const valorDesvinculado = db.unidadesDesvinculadas?.reduce((sum, unitId) => {
+            const unidade = contractContext?.units?.linkedUnits?.find((u: TransformedUnidade) => u.id === unitId)
+            return sum + (unidade?.valorAtual || 0)
+          }, 0) || 0
+          
+          const valorTotalDistribuido = valorJaVinculado + valorNovasVinculadas - valorDesvinculado
+          const percentual = (valorTotalDistribuido / valorContrato) * 100
+          valorCompleto = Math.abs(valorContrato - valorTotalDistribuido) < 0.01
+          
+          resumoValor = valorCompleto ? ' • 100% distribuído' : ` • ${percentual.toFixed(1)}% distribuído`
+        }
+        
         return {
-          progresso: { atual: total > 0 ? 1 : 0, total: 1 },
-          resumo: total > 0 ? `${vinculadas} vinculadas, ${desvinculadas} desvinculadas` : 'Clique para configurar',
-          completo: total > 0
+          progresso: { atual: total > 0 && valorCompleto ? 1 : 0, total: 1 },
+          resumo: total > 0 ? `${vinculadas} vinculadas, ${desvinculadas} desvinculadas${resumoValor}` : 'Clique para configurar',
+          completo: total > 0 && valorCompleto
         }
       }
       case 'clausulas': {
@@ -324,7 +349,7 @@ export function BlocosDinamicos({
   }
 
   const handleUnidadesChange = (unidades: unknown) => {
-    console.log('ðŸ”§ handleUnidadesChange:', unidades)
+    console.log('🔧 handleUnidadesChange:', unidades)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -332,6 +357,12 @@ export function BlocosDinamicos({
         unidades 
       } 
     } as Partial<AlteracaoContratualForm>)
+    
+    // Invalidar contexto para atualizar nomes das unidades demandante/gestora
+    if (onContextChange) {
+      console.log('🔄 Triggering context invalidation after units change')
+      onContextChange()
+    }
   }
 
   // FunÃ§Ã£o para renderizar cada bloco
@@ -394,6 +425,7 @@ export function BlocosDinamicos({
           <BlocoUnidades
             {...blocoProps}
             contractUnits={contractContext?.units}
+            contractValue={contractContext?.financials?.totalValue || contractContext?.contract?.valorTotal}
             onChange={handleUnidadesChange}
           />
         )

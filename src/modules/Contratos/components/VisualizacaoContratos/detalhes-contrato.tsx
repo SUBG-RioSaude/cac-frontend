@@ -18,19 +18,44 @@ import {
   Hash,
   User,
   Edit,
+  X,
   AlertTriangle,
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
-import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
+import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { 
+  EditableFieldWrapper,
+  ConfirmEditModal,
+  useFieldEditing
+} from '@/modules/Contratos/components/EditableFields'
+import { FuncionarioCard } from './FuncionarioCard'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
 }
 
+// Type para acessar campos que vêm da API mas não estão na interface ContratoDetalhado
+type ContratoComIds = ContratoDetalhado & {
+  unidadeDemandanteId?: string
+  unidadeGestoraId?: string
+}
+
 export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
-  const [editandoCampo, setEditandoCampo] = useState<string | null>(null)
+  
+  const {
+    isEditing,
+    isGroupEditing,
+    pendingValue,
+    isLoading,
+    startEditing,
+    startGroupEditing,
+    cancelEditing,
+    handleFieldSave,
+    confirmSave,
+    modalProps
+  } = useFieldEditing({ contrato })
 
   // Buscar dados completos da empresa
   const { 
@@ -39,10 +64,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     error: empresaError 
   } = useEmpresa(contrato.empresaId, { enabled: !!contrato.empresaId })
 
-  // Coletar IDs das unidades para busca
+  // Coletar IDs das unidades para busca  
+  const contratoComIds = contrato as ContratoComIds
   const unidadesIds = [
-    contrato.unidadeDemandante, 
-    contrato.unidadeGestora,
+    contratoComIds.unidadeDemandanteId, 
+    contratoComIds.unidadeGestoraId,
     ...(contrato.unidadesVinculadas?.map(u => u.unidadeSaudeId) || [])
   ].filter((id): id is string => Boolean(id))
 
@@ -50,8 +76,15 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const { 
     data: unidadesData, 
     isLoading: unidadesLoading, 
-    error: unidadesError
-  } = useUnidadesBatch(unidadesIds, { enabled: unidadesIds.length > 0 })
+    error: unidadesError 
+  } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+
+  // Organizar funcionários por tipo a partir dos dados já disponíveis no contrato
+  const funcionariosData = contrato.funcionarios || []
+  
+  // Separar fiscais e gestores
+  const fiscaisFromAPI = funcionariosData.filter(f => f.tipoGerencia === 2 && f.ativo)
+  const gestoresFromAPI = funcionariosData.filter(f => f.tipoGerencia === 1 && f.ativo)
 
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
@@ -93,6 +126,30 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     return dateString && !dateString.startsWith('0001-01-01')
   }
 
+  const shouldShowOriginalDate = (originalDate?: string, currentDate?: string) => {
+    if (!isValidOriginalDate(originalDate) || !currentDate) return false
+    
+    // Extrair apenas ano, mês, dia ignorando timezone para evitar problemas de fuso horário
+    const originalObj = new Date(originalDate!)
+    const currentObj = new Date(currentDate)
+    
+    // Para data original (pode ter timezone Z), usar UTC. Para data atual (sem timezone), usar local
+    const originalYear = originalDate!.includes('Z') ? originalObj.getUTCFullYear() : originalObj.getFullYear()
+    const originalMonth = originalDate!.includes('Z') ? originalObj.getUTCMonth() : originalObj.getMonth()
+    const originalDay = originalDate!.includes('Z') ? originalObj.getUTCDate() : originalObj.getDate()
+    
+    const currentYear = currentObj.getFullYear()
+    const currentMonth = currentObj.getMonth()
+    const currentDay = currentObj.getDate()
+    
+    // Comparar ano, mês e dia
+    return !(originalYear === currentYear && originalMonth === currentMonth && originalDay === currentDay)
+  }
+
+  const shouldShowOriginalValue = (originalValue?: number, currentValue?: number) => {
+    return originalValue && currentValue && originalValue !== currentValue
+  }
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       ativo: {
@@ -130,8 +187,12 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     )
   }
 
-  const handleEditarCampo = (campo: string) => {
-    setEditandoCampo(editandoCampo === campo ? null : campo)
+  const handleEditarCampo = (grupo: string) => {
+    if (isGroupEditing(grupo)) {
+      cancelEditing()
+    } else {
+      startGroupEditing(grupo)
+    }
   }
 
   return (
@@ -175,9 +236,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditarCampo('dados-basicos')}
-                      className="h-8 w-8 p-0"
+                      className={`h-8 w-8 p-0 ${isGroupEditing('dados-basicos') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
                     >
-                      <Edit className="h-4 w-4" />
+                      {isGroupEditing('dados-basicos') ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <Edit className="h-4 w-4" />
+                      )}
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -186,34 +251,86 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <p className="text-muted-foreground text-sm">
                           Número do Contrato
                         </p>
-                        <p className="font-semibold">
-                          {contrato.numeroContrato}
-                        </p>
+                        {isEditing('numeroContrato') ? (
+                          <EditableFieldWrapper
+                            fieldKey="numeroContrato"
+                            value={pendingValue || contrato.numeroContrato}
+                            onSave={(value) => handleFieldSave('numeroContrato', value)}
+                            onCancel={cancelEditing}
+                            isLoading={isLoading}
+                          />
+                        ) : (
+                          <div 
+                            className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                            onClick={() => startEditing('numeroContrato')}
+                          >
+                            {contrato.numeroContrato}
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div>
                           <p className="text-muted-foreground text-sm">
                             Processo Rio
                           </p>
-                          <p className="font-semibold">
-                            {contrato.processoRio || 'N/A'}
-                          </p>
+                          {isEditing('processoRio') ? (
+                            <EditableFieldWrapper
+                              fieldKey="processoRio"
+                              value={pendingValue || contrato.processoRio || ''}
+                              onSave={(value) => handleFieldSave('processoRio', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('processoRio')}
+                            >
+                              {contrato.processoRio || 'Não informado'}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">
                             Processo SEI
                           </p>
-                          <p className="font-semibold">
-                            {contrato.processoSei || 'N/A'}
-                          </p>
+                          {isEditing('processoSei') ? (
+                            <EditableFieldWrapper
+                              fieldKey="processoSei"
+                              value={pendingValue || contrato.processoSei || ''}
+                              onSave={(value) => handleFieldSave('processoSei', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('processoSei')}
+                            >
+                              {contrato.processoSei || 'Não informado'}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">
                             Processo Legado
                           </p>
-                          <p className="font-semibold">
-                            {contrato.processoLegado || 'N/A'}
-                          </p>
+                          {isEditing('processoLegado') ? (
+                            <EditableFieldWrapper
+                              fieldKey="processoLegado"
+                              value={pendingValue || contrato.processoLegado || ''}
+                              onSave={(value) => handleFieldSave('processoLegado', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('processoLegado')}
+                            >
+                              {contrato.processoLegado || 'Não informado'}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -222,13 +339,43 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <p className="text-muted-foreground text-sm">
                         Categoria do Objeto
                       </p>
-                      <p className="font-medium">{contrato.categoriaObjeto}</p>
+                      {isEditing('categoriaObjeto') ? (
+                        <EditableFieldWrapper
+                          fieldKey="categoriaObjeto"
+                          value={pendingValue || contrato.categoriaObjeto}
+                          onSave={(value) => handleFieldSave('categoriaObjeto', value)}
+                          onCancel={cancelEditing}
+                          isLoading={isLoading}
+                        />
+                      ) : (
+                        <div 
+                          className="font-medium cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                          onClick={() => startEditing('categoriaObjeto')}
+                        >
+                          {contrato.categoriaObjeto}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">
                         Descrição do Objeto
                       </p>
-                      <p className="font-medium">{contrato.objeto}</p>
+                      {isEditing('objeto') ? (
+                        <EditableFieldWrapper
+                          fieldKey="objeto"
+                          value={pendingValue || contrato.objeto}
+                          onSave={(value) => handleFieldSave('objeto', value)}
+                          onCancel={cancelEditing}
+                          isLoading={isLoading}
+                        />
+                      ) : (
+                        <div 
+                          className="font-medium cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                          onClick={() => startEditing('objeto')}
+                        >
+                          {contrato.objeto}
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -261,9 +408,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditarCampo('vigencia-valores')}
-                      className="h-8 w-8 p-0"
+                      className={`h-8 w-8 p-0 ${isGroupEditing('vigencia-valores') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
                     >
-                      <Edit className="h-4 w-4" />
+                      {isGroupEditing('vigencia-valores') ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <Edit className="h-4 w-4" />
+                      )}
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -273,10 +424,23 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           Data de Início
                         </p>
                         <div className="space-y-1">
-                          <p className="font-semibold">
-                            {formatarData(contrato.dataInicio)}
-                          </p>
-                          {isValidOriginalDate(contrato.vigenciaOriginalInicial) && (
+                          {isEditing('dataInicio') ? (
+                            <EditableFieldWrapper
+                              fieldKey="dataInicio"
+                              value={pendingValue || contrato.dataInicio}
+                              onSave={(value) => handleFieldSave('dataInicio', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('dataInicio')}
+                            >
+                              {formatarData(contrato.dataInicio)}
+                            </div>
+                          )}
+                          {shouldShowOriginalDate(contrato.vigenciaOriginalInicial, contrato.dataInicio) && (
                             <p className="text-sm text-gray-500">
                               Original: {formatarData(contrato.vigenciaOriginalInicial!)}
                             </p>
@@ -288,10 +452,23 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           Data de Término
                         </p>
                         <div className="space-y-1">
-                          <p className="font-semibold">
-                            {formatarData(contrato.dataTermino)}
-                          </p>
-                          {isValidOriginalDate(contrato.vigenciaOriginalFinal) && (
+                          {isEditing('dataTermino') ? (
+                            <EditableFieldWrapper
+                              fieldKey="dataTermino"
+                              value={pendingValue || contrato.dataTermino}
+                              onSave={(value) => handleFieldSave('dataTermino', value)}
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div 
+                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                              onClick={() => startEditing('dataTermino')}
+                            >
+                              {formatarData(contrato.dataTermino)}
+                            </div>
+                          )}
+                          {shouldShowOriginalDate(contrato.vigenciaOriginalFinal, contrato.dataTermino) && (
                             <p className="text-sm text-gray-500">
                               Original: {formatarData(contrato.vigenciaOriginalFinal!)}
                             </p>
@@ -323,12 +500,25 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         Valor Total do Contrato
                       </p>
                       <div className="space-y-1">
-                        <p className="text-2xl font-bold text-green-600">
-                          {formatarMoeda(contrato.valorTotal)}
-                        </p>
-                        {contrato.valorGlobalOriginal && (
+                        {isEditing('valorTotal') ? (
+                          <EditableFieldWrapper
+                            fieldKey="valorTotal"
+                            value={pendingValue || contrato.valorTotal}
+                            onSave={(value) => handleFieldSave('valorTotal', value)}
+                            onCancel={cancelEditing}
+                            isLoading={isLoading}
+                          />
+                        ) : (
+                          <div 
+                            className="text-2xl font-bold text-green-600 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
+                            onClick={() => startEditing('valorTotal')}
+                          >
+                            {formatarMoeda(contrato.valorTotal)}
+                          </div>
+                        )}
+                        {shouldShowOriginalValue(contrato.valorGlobalOriginal, contrato.valorTotal) && (
                           <p className="text-sm text-gray-500">
-                            Original: {formatarMoeda(contrato.valorGlobalOriginal)}
+                            Original: {formatarMoeda(contrato.valorGlobalOriginal!)}
                           </p>
                         )}
                       </div>
@@ -353,39 +543,20 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {contrato.responsaveis.fiscaisAdministrativos.map(
-                      (fiscal) => (
-                        <div key={fiscal.id} className="rounded-lg border p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                              <User className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold">{fiscal.nome}</h4>
-                              <p className="text-muted-foreground text-sm">
-                                {fiscal.cargo}
-                              </p>
-                              <div className="mt-2 space-y-1">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Mail className="h-3 w-3" />
-                                  {fiscal.email}
-                                </div>
-                                {fiscal.telefone && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Phone className="h-3 w-3" />
-                                    {fiscal.telefone}
-                                  </div>
-                                )}
-                                <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                                  <Calendar className="h-3 w-3" />
-                                  Designado em{' '}
-                                  {formatarData(fiscal.dataDesignacao)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ),
+                    {fiscaisFromAPI.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum fiscal administrativo designado</p>
+                      </div>
+                    ) : (
+                      fiscaisFromAPI.map((fiscal) => (
+                        <FuncionarioCard
+                          key={fiscal.id}
+                          contratoFuncionario={fiscal}
+                          variant="fiscal"
+                          isLoading={false}
+                        />
+                      ))
                     )}
                   </CardContent>
                 </Card>
@@ -407,38 +578,21 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {contrato.responsaveis.gestores.map((gestor) => (
-                      <div key={gestor.id} className="rounded-lg border p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                            <User className="h-5 w-5 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{gestor.nome}</h4>
-                            <p className="text-muted-foreground text-sm">
-                              {gestor.cargo}
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              <div className="flex items-center gap-2 text-sm">
-                                <Mail className="h-3 w-3" />
-                                {gestor.email}
-                              </div>
-                              {gestor.telefone && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Phone className="h-3 w-3" />
-                                  {gestor.telefone}
-                                </div>
-                              )}
-                              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                                <Calendar className="h-3 w-3" />
-                                Designado em{' '}
-                                {formatarData(gestor.dataDesignacao)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    {gestoresFromAPI.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum gestor designado</p>
                       </div>
-                    ))}
+                    ) : (
+                      gestoresFromAPI.map((gestor) => (
+                        <FuncionarioCard
+                          key={gestor.id}
+                          contratoFuncionario={gestor}
+                          variant="gestor"
+                          isLoading={false}
+                        />
+                      ))
+                    )}
                   </CardContent>
                 </Card>
 
@@ -787,7 +941,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       ) : (
                         <>
                           <p className="text-lg font-semibold">
-                            {getUnidadeNome(contrato.unidadeDemandante)}
+                            {getUnidadeNome(contratoComIds.unidadeDemandanteId)}
                           </p>
                           <p className="text-muted-foreground text-sm">
                             Responsável pela demanda do contrato
@@ -821,7 +975,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       ) : (
                         <>
                           <p className="text-lg font-semibold">
-                            {getUnidadeNome(contrato.unidadeGestora)}
+                            {getUnidadeNome(contratoComIds.unidadeGestoraId)}
                           </p>
                           <p className="text-muted-foreground text-sm">
                             Responsável pela gestão do contrato
@@ -946,6 +1100,29 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
           </motion.div>
         </AnimatePresence>
       </Tabs>
+      
+      {/* Modal de confirmação */}
+      {modalProps && (
+        <ConfirmEditModal
+          isOpen={modalProps.isOpen}
+          onClose={cancelEditing}
+          onConfirm={async () => await confirmSave()}
+          fieldLabel={modalProps.fieldLabel}
+          oldValue={modalProps.oldValue || ''}
+          newValue={modalProps.newValue || ''}
+          isLoading={isLoading}
+          isCritical={modalProps.isCritical}
+          formatValue={(value) => {
+            if (modalProps.fieldName === 'valorTotal') {
+              return formatarMoeda(value as number)
+            }
+            if (modalProps.fieldName === 'dataInicio' || modalProps.fieldName === 'dataTermino') {
+              return formatarData(value as string)
+            }
+            return String(value)
+          }}
+        />
+      )}
     </div>
   )
 }

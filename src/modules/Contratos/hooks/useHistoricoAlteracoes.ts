@@ -56,19 +56,9 @@ function transformAlteracaoContratual(alteracao: AlteracaoContratualResponse): A
     valor: alteracao.valor || undefined,
     clausulas: alteracao.clausulas || undefined,
     
-    // Campos adicionais para compatibilidade futura
-    fornecedores: alteracao.fornecedores ? {
-      fornecedoresVinculados: [],
-      fornecedoresDesvinculados: [],
-      novoFornecedorPrincipal: null,
-      observacoes: null
-    } : undefined,
-    
-    unidades: alteracao.unidades ? {
-      unidadesVinculadas: [],
-      unidadesDesvinculadas: [],
-      observacoes: null
-    } : undefined
+    // Campos adicionais - preservar dados originais da API
+    fornecedores: alteracao.fornecedores || undefined,
+    unidades: alteracao.unidades || undefined
   }
 }
 

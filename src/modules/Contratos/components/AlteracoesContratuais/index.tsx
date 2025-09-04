@@ -38,6 +38,7 @@ import {
   useContractSuppliers,
   useContractUnits
 } from '../../hooks/use-contract-context'
+import { useContractContextInvalidation } from '../../hooks/use-contract-context-invalidation'
 import type { AlteracaoContratualForm, AlteracaoContratualResponse, AlertaLimiteLegal, FornecedorAlteracao, TipoAlteracao } from '../../types/alteracoes-contratuais'
 import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
@@ -146,6 +147,9 @@ export function AlteracoesContratuais({
   const contractTerms = useContractTerms(contratoId)
   const contractSuppliers = useContractSuppliers(contratoId)
   const contractUnits = useContractUnits(contratoId)
+  
+  // Hook para invalidação inteligente do contexto
+  const { invalidateContext } = useContractContextInvalidation(contratoId)
 
   // Hook personalizado para gerenciar estado e lógica
   const {
@@ -473,6 +477,7 @@ export function AlteracoesContratuais({
               },
               isLoading: contractContext.isLoading || contractFinancials.isLoading || contractTerms.isLoading || contractSuppliers.isLoading || contractUnits.isLoading
             }}
+            onContextChange={invalidateContext}
             errors={errors}
             disabled={isLoading}
           />
@@ -732,9 +737,9 @@ export function AlteracoesContratuais({
                           <div>
                             <span className="font-medium text-gray-700">Unidades Vinculadas:</span>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {dados.blocos.unidades.unidadesVinculadas.map((id: string, index: number) => (
+                              {dados.blocos.unidades.unidadesVinculadas.map((unidade, index: number) => (
                                 <Badge key={index} variant="default" className="text-xs">
-                                  {getUnitName(id)}
+                                  {getUnitName(unidade.unidadeSaudeId)}
                                 </Badge>
                               ))}
                             </div>
@@ -902,7 +907,8 @@ export function AlteracoesContratuais({
     contractUnits.isLoading,
     contractUnits.linkedUnits,
     contractUnits.managingUnit,
-    getCompanyName
+    getCompanyName,
+    invalidateContext
   ])
 
   return (

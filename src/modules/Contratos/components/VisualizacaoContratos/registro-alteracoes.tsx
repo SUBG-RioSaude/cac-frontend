@@ -35,7 +35,7 @@ import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alte
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
-import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
+import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface RegistroAlteracoesProps {
   alteracoes: AlteracaoContrato[]
@@ -414,11 +414,24 @@ function renderDetalhesAlteracao(
             <div>
               <span className="font-medium">Vinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alteracao.unidades.unidadesVinculadas?.map((id: string, idx: number) => (
-                  <Badge key={`uv-${idx}`} variant="default" className="text-xs font-mono">
-                    {getUnidadeNome(id)}
-                  </Badge>
-                ))}
+                {alteracao.unidades.unidadesVinculadas?.map((unidade: string | { unidadeSaudeId: string; id?: string; valorAtribuido?: number }, idx: number) => {
+                  // Extrair o ID correto, seja string direta ou objeto com unidadeSaudeId
+                  const unidadeId = typeof unidade === 'string' ? unidade : unidade?.unidadeSaudeId || unidade?.id
+                  
+                  // Se não conseguir extrair o ID, pular esta unidade
+                  if (!unidadeId) return null
+                  
+                  return (
+                    <Badge key={`uv-${idx}`} variant="default" className="text-xs font-mono">
+                      {getUnidadeNome(unidadeId)}
+                      {typeof unidade === 'object' && unidade.valorAtribuido && (
+                        <span className="ml-1 text-xs opacity-75">
+                          ({new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(unidade.valorAtribuido)})
+                        </span>
+                      )}
+                    </Badge>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -496,33 +509,67 @@ export function RegistroAlteracoes({
     const ids: string[] = []
     for (const alt of alteracoes || []) {
       if (alt.fornecedores) {
-        if (alt.fornecedores.fornecedoresVinculados) ids.push(...alt.fornecedores.fornecedoresVinculados)
-        if (alt.fornecedores.fornecedoresDesvinculados) ids.push(...alt.fornecedores.fornecedoresDesvinculados)
-        if (alt.fornecedores.novoFornecedorPrincipal) ids.push(alt.fornecedores.novoFornecedorPrincipal)
+        if (Array.isArray(alt.fornecedores.fornecedoresVinculados)) {
+          ids.push(...alt.fornecedores.fornecedoresVinculados.filter(Boolean))
+        }
+        if (Array.isArray(alt.fornecedores.fornecedoresDesvinculados)) {
+          ids.push(...alt.fornecedores.fornecedoresDesvinculados.filter(Boolean))
+        }
+        if (alt.fornecedores.novoFornecedorPrincipal) {
+          ids.push(alt.fornecedores.novoFornecedorPrincipal)
+        }
       }
     }
     return Array.from(new Set(ids.filter(Boolean)))
   }, [alteracoes])
   const empresasLookup = useEmpresasByIds(fornecedoresIds, { enabled: fornecedoresIds.length > 0 })
-  const getEmpresaNome = useCallback((id: string) => {
-    return empresasLookup.data?.[id]?.razaoSocial || id
-  }, [empresasLookup.data])
+
+  const getEmpresaNome = useCallback((id: string | number) => {
+    // Garantir que id seja sempre string
+    const idStr = String(id)
+    if (empresasLookup.isLoading) {
+      return 'Carregando...'
+    }
+    if (empresasLookup.error) {
+      return `Erro: ${idStr.slice(-8)}`
+    }
+    return empresasLookup.data?.[idStr]?.razaoSocial || `ID: ${idStr.slice(-8)}`
+  }, [empresasLookup.data, empresasLookup.isLoading, empresasLookup.error])
   
   // Build lookup of unidades IDs -> nome to enrich unidades section
   const unidadesIds = useMemo(() => {
     const ids: string[] = []
     for (const alt of alteracoes || []) {
       if (alt.unidades) {
-        if (alt.unidades.unidadesVinculadas) ids.push(...alt.unidades.unidadesVinculadas)
-        if (alt.unidades.unidadesDesvinculadas) ids.push(...alt.unidades.unidadesDesvinculadas)
+        // Extrair IDs das unidades vinculadas (podem ser strings ou objetos)
+        if (alt.unidades.unidadesVinculadas) {
+          alt.unidades.unidadesVinculadas.forEach((unidade: string | { unidadeSaudeId: string; id?: string }) => {
+            const id = typeof unidade === 'string' ? unidade : unidade?.unidadeSaudeId || unidade?.id
+            if (id) ids.push(String(id))
+          })
+        }
+        // Unidades desvinculadas são sempre strings
+        if (alt.unidades.unidadesDesvinculadas) {
+          alt.unidades.unidadesDesvinculadas.forEach((id: string | number) => {
+            if (id) ids.push(String(id))
+          })
+        }
       }
     }
     return Array.from(new Set(ids.filter(Boolean)))
   }, [alteracoes])
-  const unidadesLookup = useUnidadesBatch(unidadesIds, { enabled: unidadesIds.length > 0 })
-  const getUnidadeNome = useCallback((id: string) => {
-    return unidadesLookup.data?.[id]?.nome || id
-  }, [unidadesLookup.data])
+  const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+  const getUnidadeNome = useCallback((id: string | number) => {
+    // Garantir que id seja sempre string
+    const idStr = String(id)
+    if (unidadesLookup.isLoading) {
+      return 'Carregando...'
+    }
+    if (unidadesLookup.error) {
+      return `Erro: ${idStr.slice(-8)}`
+    }
+    return unidadesLookup.data?.[idStr]?.nome || `ID: ${idStr.slice(-8)}`
+  }, [unidadesLookup.data, unidadesLookup.isLoading, unidadesLookup.error])
   
   const formatarDataHora = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR')

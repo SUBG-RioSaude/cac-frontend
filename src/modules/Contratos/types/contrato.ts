@@ -206,6 +206,7 @@ export interface Contrato {
   documentos?: DocumentoContratoDto[] | null
   valorTotalAtribuido: number
   valorDisponivel: number
+  vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
   quantidadeUnidadesVinculadas: number
   quantidadeDocumentos: number
 }
@@ -220,6 +221,20 @@ export interface Responsavel {
   telefone?: string
   cargo: string
   dataDesignacao: string
+}
+
+export interface ContratoFuncionario {
+  id: string
+  contratoId: string
+  funcionarioId: string
+  tipoGerencia: number // 1 = Gestor, 2 = Fiscal
+  tipoGerenciaDescricao: string
+  ativo: boolean
+  funcionarioNome: string
+  funcionarioMatricula: string
+  funcionarioCargo: string
+  email?: string
+  telefone?: string
 }
 
 export interface Contato {
@@ -328,6 +343,11 @@ export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   dataInicio: string // mapeado de vigenciaInicial
   dataTermino: string // mapeado de vigenciaFinal
   valorTotal: number // mapeado de valorGlobal
+  vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
+  
+  // IDs das unidades para busca de nomes
+  unidadeDemandanteId?: string | null
+  unidadeGestoraId?: string | null
 
   // Informações CCon
   ccon?: {
@@ -365,6 +385,9 @@ export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   // Documentos (tipo legado para compatibilidade - override do tipo da API)
   documentos: DocumentoContrato[]
   documentosChecklist: ChecklistData
+
+  // Funcionários vinculados ao contrato (nova API)
+  funcionarios?: ContratoFuncionario[]
 
   // Indicadores
   indicadores: {

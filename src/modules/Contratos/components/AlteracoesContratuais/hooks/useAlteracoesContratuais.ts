@@ -182,11 +182,16 @@ export function useAlteracoesContratuais({
               if (!vigencia.novaDataFinal) {
                 novosErrors['blocos.vigencia.novaDataFinal'] = 'Nova data final é obrigatória'
               }
-            } else if ((operacao === OperacaoVigencia.SuspenderDeterminado || operacao === OperacaoVigencia.SuspenderIndeterminado)) {
-              // Para suspensão determinada, validar período
-              if (operacao === OperacaoVigencia.SuspenderDeterminado) {
-                // Adicionar validações específicas se necessário
+            } else if (operacao === OperacaoVigencia.Acrescentar || operacao === OperacaoVigencia.Diminuir || operacao === OperacaoVigencia.SuspenderDeterminado) {
+              // Para operações com tempo, validar quantidade e unidade
+              if (!vigencia.valorTempo || vigencia.valorTempo <= 0) {
+                novosErrors['blocos.vigencia.valorTempo'] = 'Quantidade de tempo é obrigatória'
               }
+              if (vigencia.tipoUnidade === undefined) {
+                novosErrors['blocos.vigencia.tipoUnidade'] = 'Unidade de tempo deve ser selecionada'
+              }
+            } else if (operacao === OperacaoVigencia.SuspenderIndeterminado) {
+              // Para suspensão indeterminada, não precisa validar tempo
             }
           }
         }
@@ -355,6 +360,16 @@ export function useAlteracoesContratuais({
               if (!vigencia.novaDataFinal) {
                 novosErrors['blocos.vigencia.novaDataFinal'] = 'Nova data final é obrigatória'
               }
+            } else if (operacao === OperacaoVigencia.Acrescentar || operacao === OperacaoVigencia.Diminuir || operacao === OperacaoVigencia.SuspenderDeterminado) {
+              // Para operações com tempo, validar quantidade e unidade
+              if (!vigencia.valorTempo || vigencia.valorTempo <= 0) {
+                novosErrors['blocos.vigencia.valorTempo'] = 'Quantidade de tempo é obrigatória'
+              }
+              if (vigencia.tipoUnidade === undefined) {
+                novosErrors['blocos.vigencia.tipoUnidade'] = 'Unidade de tempo deve ser selecionada'
+              }
+            } else if (operacao === OperacaoVigencia.SuspenderIndeterminado) {
+              // Para suspensão indeterminada, não precisa validar tempo
             }
           }
         }

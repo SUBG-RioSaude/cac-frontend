@@ -100,9 +100,16 @@ export interface BlocoFornecedores {
   observacoes?: string
 }
 
-// Interface para o Bloco Unidades
+// Interface para unidade vinculada com valor atribuído
+export interface UnidadeVinculada {
+  unidadeSaudeId: string
+  valorAtribuido: number
+  observacoes?: string
+}
+
+// Interface para o Bloco Unidades - NOVO FORMATO
 export interface BlocoUnidades {
-  unidadesVinculadas?: string[]
+  unidadesVinculadas?: UnidadeVinculada[]
   unidadesDesvinculadas?: string[]
   observacoes?: string
 }
@@ -198,7 +205,7 @@ export interface AlteracaoContratualPayload {
   
   // Bloco Unidades - NOVO FORMATO
   unidades?: {
-    unidadesVinculadas?: string[] // Array de IDs
+    unidadesVinculadas?: UnidadeVinculada[] // Array com valor atribuído
     unidadesDesvinculadas?: string[] // Array de IDs
     observacoes?: string
   }
@@ -731,13 +738,14 @@ export function transformToApiPayload(
       observacoes: unidades.observacoes
     }
 
-    // Analisar operação e mapear unidades afetadas  
+    // Transformar unidades vinculadas com valor atribuído
     if (unidades.unidadesVinculadas && unidades.unidadesVinculadas.length > 0) {
-      payload.unidades.unidadesVinculadas = unidades.unidadesVinculadas // Já são IDs de string
+      payload.unidades.unidadesVinculadas = unidades.unidadesVinculadas // Já no formato correto
     }
     
+    // Unidades desvinculadas permanecem como array de IDs
     if (unidades.unidadesDesvinculadas && unidades.unidadesDesvinculadas.length > 0) {
-      payload.unidades.unidadesDesvinculadas = unidades.unidadesDesvinculadas // Já são IDs de string
+      payload.unidades.unidadesDesvinculadas = unidades.unidadesDesvinculadas
     }
     
     console.log('   ✅ Bloco unidades transformado:', payload.unidades)
