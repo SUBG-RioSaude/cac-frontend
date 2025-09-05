@@ -535,7 +535,7 @@ export function BlocosDinamicos({
                       'pb-4 cursor-pointer hover:bg-gray-50 transition-colors',
                       isExpanded && 'border-b'
                     )}>
-                      <CardTitle className="flex items-center justify-between">
+                      <CardTitle role="heading" aria-level={3} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             'p-2 rounded-md',

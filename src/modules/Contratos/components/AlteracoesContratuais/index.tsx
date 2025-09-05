@@ -40,6 +40,7 @@ import {
 } from '../../hooks/use-contract-context'
 import { useContractContextInvalidation } from '../../hooks/use-contract-context-invalidation'
 import type { AlteracaoContratualForm, AlteracaoContratualResponse, AlertaLimiteLegal, FornecedorAlteracao, TipoAlteracao } from '../../types/alteracoes-contratuais'
+import { TIPOS_ALTERACAO_CONFIG } from '../../types/alteracoes-contratuais'
 import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
 
@@ -485,9 +486,15 @@ export function AlteracoesContratuais({
 
       case 3: { // Revisão
 
+        // Função para mapear tipo de alteração para nome descritivo
+        const getTipoNome = (tipo: number): string => {
+          const config = TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
+          return config?.label || `Tipo ${tipo}`
+        }
+
         const getUnitName = (unitId: string) => {
-          // Check in linked units (array of objects with nome property)
-          const unit = contractUnits.linkedUnits?.find((u) => u.nome === unitId)
+          // Check in linked units (array of objects with id property)
+          const unit = contractUnits.linkedUnits?.find((u) => u.id === unitId)
           if (unit) {
             return unit.nome || unitId
           }
@@ -530,8 +537,7 @@ export function AlteracoesContratuais({
                   <div className="flex flex-wrap gap-2 mt-1">
                     {dados.tiposAlteracao?.map((tipo: number) => (
                       <Badge key={tipo} variant="secondary">
-                        {/* Aqui você mapearia o tipo para o nome */}
-                        Tipo {tipo}
+                        {getTipoNome(tipo)}
                       </Badge>
                     ))}
                   </div>

@@ -17,6 +17,7 @@ import type {
   ContratoDetalhado,
 } from '@/modules/Contratos/types/contrato'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { dateUtils } from '@/lib/utils'
 
 interface IndicadoresRelatoriosProps {
   indicadores: {
@@ -65,7 +66,7 @@ export function IndicadoresRelatorios({
   }
 
   const formatarData = (data: string) => {
-    return new Date(data).toLocaleDateString('pt-BR')
+    return dateUtils.formatarDataUTC(data)
   }
 
   const getStatusPeriodo = (status: string) => {
