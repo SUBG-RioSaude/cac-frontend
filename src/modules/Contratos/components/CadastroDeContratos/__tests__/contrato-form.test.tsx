@@ -105,7 +105,8 @@ describe('ContratoForm', () => {
     expect(screen.getByLabelText(/tipo de contrato/i)).toBeInTheDocument()
     expect(screen.getAllByText(/unidade demandante/i)[0]).toBeInTheDocument()
     expect(screen.getAllByText(/unidade gestora/i)[0]).toBeInTheDocument()
-    expect(screen.getByText('Contratação *')).toBeInTheDocument()
+    // Campo "Contratação" está oculto mas ainda é funcional
+    expect(screen.getAllByText('Tipo de Contratação *')[0]).toBeInTheDocument()
     expect(screen.getByLabelText('Centralizada')).toBeInTheDocument()
     expect(screen.getByLabelText('Descentralizada')).toBeInTheDocument()
     expect(screen.getByLabelText(/vigência inicial/i)).toBeInTheDocument()
@@ -312,9 +313,9 @@ describe('ContratoForm', () => {
     fireEvent.change(prazoMesesInput, { target: { value: '72' } })
     expect(prazoMesesInput).toHaveValue('72')
 
-    // Quando o valor é 0, o campo fica vazio devido à lógica value={field.value || ''}
+    // Quando o valor é 0, o campo mostra "0"
     fireEvent.change(prazoMesesInput, { target: { value: '0' } })
-    expect(prazoMesesInput).toHaveValue('')
+    expect(prazoMesesInput).toHaveValue('0')
   })
 
   it('deve validar prazo inicial entre 0 e 30 dias', async () => {
@@ -328,9 +329,9 @@ describe('ContratoForm', () => {
     fireEvent.change(prazoDiasInput, { target: { value: '30' } })
     expect(prazoDiasInput).toHaveValue('30')
 
-    // Quando o valor é 0, o campo fica vazio devido à lógica value={form.watch('prazoInicialDias') || ''}
+    // Quando o valor é 0, o campo mostra "0"
     fireEvent.change(prazoDiasInput, { target: { value: '0' } })
-    expect(prazoDiasInput).toHaveValue('')
+    expect(prazoDiasInput).toHaveValue('0')
   })
 
   it('deve exibir prazo total calculado', async () => {

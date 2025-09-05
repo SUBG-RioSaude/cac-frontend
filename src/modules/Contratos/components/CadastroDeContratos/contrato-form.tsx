@@ -314,7 +314,7 @@ export default function ContratoForm({
       processos: [],
       categoriaObjeto: '',
       descricaoObjeto: '',
-      tipoContratacao: undefined,
+      tipoContratacao: 'Licitacao',
       tipoContrato: undefined,
       unidadeDemandante: '',
       unidadeGestora: '',
@@ -1152,8 +1152,8 @@ export default function ContratoForm({
               />
             </div>
 
-            {/* Container para Tipo de Contratação */}
-            <div className="space-y-2">
+            {/* Container para Tipo de Contratação - CAMPO OCULTO */}
+            <div className="hidden">
               <FormField
                 control={form.control}
                 name="tipoContratacao"
@@ -1164,7 +1164,7 @@ export default function ContratoForm({
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      defaultValue="Licitacao"
                     >
                       <FormControl className="w-full">
                         <SelectTrigger id="tipoContratacao">
@@ -1175,9 +1175,7 @@ export default function ContratoForm({
                         <SelectItem value="Licitacao">Licitação</SelectItem>
                         <SelectItem value="Pregao">Pregão</SelectItem>
                         <SelectItem value="Dispensa">Dispensa</SelectItem>
-                        <SelectItem value="Inexigibilidade">
-                          Inexigibilidade
-                        </SelectItem>
+                        <SelectItem value="Inexigibilidade">Inexigibilidade</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1454,7 +1452,7 @@ export default function ContratoForm({
               name="contratacao"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel className="mb-2">Contratação *</FormLabel>
+                  <FormLabel className="mb-2">Tipo de Contratação *</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -1574,15 +1572,25 @@ export default function ContratoForm({
                                  type="text"
                                  inputMode="numeric"
                                  pattern="[0-9]*"
-                                 value={field.value || ''}
+                                 value={field.value?.toString() || ''}
                                  onChange={(e) => {
-                                   let valor = parseInt(e.target.value) || 0
-                                   if (valor > 72) {
-                                     valor = 72
+                                   const valorDigitado = e.target.value
+                                   
+                                   // Permite campo vazio ou apenas números
+                                   if (valorDigitado === '' || /^\d+$/.test(valorDigitado)) {
+                                     const valor = valorDigitado === '' ? 0 : parseInt(valorDigitado)
+                                     
+                                     // Aplica limite apenas se o valor exceder 72
+                                     const valorFinal = valor > 72 ? 72 : valor
+                                     
+                                     field.onChange(valorFinal)
+                                     
+                                     // Só chama handlePrazoChange se o valor for válido
+                                     if (valorFinal >= 0) {
+                                       const prazoDias = form.getValues('prazoInicialDias')
+                                       handlePrazoChange(valorFinal, prazoDias)
+                                     }
                                    }
-                                   field.onChange(valor)
-                                   const prazoDias = form.getValues('prazoInicialDias')
-                                   handlePrazoChange(valor, prazoDias)
                                  }}
                                  onBlur={field.onBlur}
                                  name={field.name}
@@ -1633,18 +1641,25 @@ export default function ContratoForm({
                                  inputMode="numeric"
                                  pattern="[0-9]*"
                                  maxLength={4}
-                                 value={form.watch('prazoInicialDias') || ''}
+                                 value={form.watch('prazoInicialDias')?.toString() || ''}
                                  onChange={(e) => {
-                                   let valor = parseInt(e.target.value) || 0
+                                   const valorDigitado = e.target.value
                                    
-                                   // Limita o valor máximo a 30 dias
-                                   if (valor > 30) {
-                                     valor = 30
+                                   // Permite campo vazio ou apenas números
+                                   if (valorDigitado === '' || /^\d+$/.test(valorDigitado)) {
+                                     const valor = valorDigitado === '' ? 0 : parseInt(valorDigitado)
+                                     
+                                     // Limita o valor máximo a 30 dias
+                                     const valorFinal = valor > 30 ? 30 : valor
+                                     
+                                     form.setValue('prazoInicialDias', valorFinal)
+                                     
+                                     // Só chama handlePrazoChange se o valor for válido
+                                     if (valorFinal >= 0) {
+                                       const prazoMeses = form.getValues('prazoInicialMeses')
+                                       handlePrazoChange(prazoMeses, valorFinal)
+                                     }
                                    }
-                                   
-                                   form.setValue('prazoInicialDias', valor)
-                                   const prazoMeses = form.getValues('prazoInicialMeses')
-                                   handlePrazoChange(prazoMeses, valor)
                                  }}
                                  onBlur={field.onBlur}
                                  name="prazoInicialDias"
