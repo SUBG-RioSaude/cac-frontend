@@ -34,6 +34,14 @@ interface ContractTerms {
   isActive: boolean
 }
 
+interface OperacaoConfig {
+  label: string
+  icone: React.ComponentType<{ className?: string }>
+  cor: string
+  descricao: string
+  disabled?: boolean
+}
+
 interface BlocoVigenciaProps {
   dados: Partial<IBlocoVigencia>
   onChange: (dados: IBlocoVigencia) => void
@@ -47,7 +55,7 @@ interface BlocoVigenciaProps {
   }
 }
 
-const OPERACOES_CONFIG = {
+const OPERACOES_CONFIG: Record<number, OperacaoConfig> = {
   [OperacaoVigencia.Acrescentar]: {
     label: 'Acrescentar tempo',
     icone: Plus,
@@ -61,22 +69,25 @@ const OPERACOES_CONFIG = {
     descricao: 'Reduzir o período de vigência'
   },
   [OperacaoVigencia.Substituir]: {
-    label: 'Nova data final',
+    label: 'Nova data final (em breve)',
     icone: Calendar,
     cor: 'blue',
-    descricao: 'Definir nova data de término'
+    descricao: 'Definir nova data de término',
+    disabled: true
   },
   [OperacaoVigencia.SuspenderDeterminado]: {
-    label: 'Suspender por período',
+    label: 'Suspender por período (em breve)',
     icone: Pause,
     cor: 'yellow',
-    descricao: 'Pausar execução por tempo determinado'
+    descricao: 'Pausar execução por tempo determinado',
+    disabled: true
   },
   [OperacaoVigencia.SuspenderIndeterminado]: {
-    label: 'Suspender indeterminadamente',
+    label: 'Suspender indeterminadamente (em breve)',
     icone: StopCircle,
     cor: 'orange',
-    descricao: 'Pausar sem prazo definido para retomada'
+    descricao: 'Pausar sem prazo definido para retomada',
+    disabled: true
   }
 }
 
@@ -369,10 +380,21 @@ export function BlocoVigencia({
                 {Object.entries(OPERACOES_CONFIG).map(([key, config]) => {
                   const Icon = config.icone
                   return (
-                    <SelectItem key={key} value={key}>
+                    <SelectItem 
+                      key={key} 
+                      value={key}
+                      disabled={config.disabled}
+                    >
                       <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4" />
-                        <span>{config.label}</span>
+                        <Icon className={cn(
+                          "h-4 w-4",
+                          config.disabled && "text-gray-400"
+                        )} />
+                        <span className={cn(
+                          config.disabled && "text-gray-400"
+                        )}>
+                          {config.label}
+                        </span>
                       </div>
                     </SelectItem>
                   )

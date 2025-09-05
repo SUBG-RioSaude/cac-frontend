@@ -823,6 +823,77 @@ export const imUtils = {
 /**
  * Utilitários para formatação e validação monetária
  */
+/**
+ * Utilitários para formatação segura de datas
+ */
+export const dateUtils = {
+  /**
+   * Formata uma data string da API para o formato brasileiro, tratando timezone de forma segura
+   * @param dateString - Data no formato ISO da API (ex: "2031-09-01T00:00:00")
+   * @returns Data formatada no padrão brasileiro (ex: "01/09/2031")
+   */
+  formatarDataUTC: (dateString: string): string => {
+    if (!dateString) return ''
+    
+    try {
+      // Parse a data como UTC para evitar problemas de timezone
+      // Se já tem timezone (Z ou +/-), usa como está
+      // Se não tem, adiciona 'Z' para forçar UTC
+      const isoString = dateString.includes('Z') || dateString.includes('+') || dateString.includes('-', 10) 
+        ? dateString 
+        : dateString + 'Z'
+      
+      const date = new Date(isoString)
+      
+      // Verifica se a data é válida
+      if (isNaN(date.getTime())) {
+        return ''
+      }
+      
+      // Formata usando UTC para evitar conversão de timezone
+      return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+    } catch (error) {
+      return ''
+    }
+  },
+
+  /**
+   * Formata uma data string da API para formato brasileiro com opções customizadas
+   * @param dateString - Data no formato ISO da API
+   * @param options - Opções de formatação (opcional)
+   * @returns Data formatada
+   */
+  formatarDataUTCCustom: (
+    dateString: string, 
+    options: Intl.DateTimeFormatOptions = {}
+  ): string => {
+    if (!dateString) return ''
+    
+    try {
+      const isoString = dateString.includes('Z') || dateString.includes('+') || dateString.includes('-', 10)
+        ? dateString 
+        : dateString + 'Z'
+      
+      const date = new Date(isoString)
+      
+      if (isNaN(date.getTime())) {
+        return ''
+      }
+      
+      const defaultOptions: Intl.DateTimeFormatOptions = {
+        timeZone: 'UTC',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }
+      
+      return date.toLocaleDateString('pt-BR', { ...defaultOptions, ...options })
+    } catch (error) {
+      return ''
+    }
+  }
+}
+
 export const currencyUtils = {
   /**
    * Remove todos os caracteres não numéricos de um valor monetário

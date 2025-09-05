@@ -531,6 +531,7 @@ export function useAlteracoesContratuais({
         fundamentoLegal: '',
         observacoes: ''
       },
+      dataEfeito: '',
       blocos: {},
       status: StatusAlteracao.Rascunho
     })

@@ -46,19 +46,22 @@ const OPERACOES_CONFIG = {
     label: 'Acrescentar valor',
     icone: Plus,
     cor: 'green',
-    descricao: 'Aumentar o valor do contrato'
+    descricao: 'Aumentar o valor do contrato',
+    disabled: false
   },
   [OperacaoValor.Diminuir]: {
     label: 'Diminuir valor',
     icone: Minus,
     cor: 'red',
-    descricao: 'Reduzir o valor do contrato'
+    descricao: 'Reduzir o valor do contrato',
+    disabled: false
   },
   [OperacaoValor.Substituir]: {
-    label: 'Novo valor global',
+    label: 'Novo valor global (em breve)',
     icone: RefreshCw,
     cor: 'blue',
-    descricao: 'Substituir por um novo valor total'
+    descricao: 'Substituir por um novo valor total',
+    disabled: true
   }
 }
 

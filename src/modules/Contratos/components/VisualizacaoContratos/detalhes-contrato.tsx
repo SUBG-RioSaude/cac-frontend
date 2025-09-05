@@ -30,6 +30,7 @@ import {
   useFieldEditing
 } from '@/modules/Contratos/components/EditableFields'
 import { FuncionarioCard } from './FuncionarioCard'
+import { dateUtils } from '@/lib/utils'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -108,7 +109,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   }
 
   const formatarData = (data: string) => {
-    return new Date(data).toLocaleDateString('pt-BR')
+    return dateUtils.formatarDataUTC(data)
   }
 
   const formatarCNPJ = (cnpj: string) => {

@@ -24,6 +24,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { dateUtils } from '@/lib/utils'
 import { useEmpenhosWithRetry } from '../../hooks/use-empenhos-with-retry'
 import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
 import { 
@@ -744,7 +745,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{new Date(empenho.dataEmpenho).toLocaleDateString('pt-BR')}</span>
+                          <span>{dateUtils.formatarDataUTC(empenho.dataEmpenho)}</span>
                         </div>
                       </div>
 
