@@ -192,12 +192,6 @@ export function validarDataEmpenho(dataEmpenho: string): { valido: boolean; erro
     }
   }
 
-  if (data > hoje) {
-    return {
-      valido: false,
-      erro: 'Data não pode ser futura'
-    }
-  }
 
   if (data < umAnoAtras) {
     return {
