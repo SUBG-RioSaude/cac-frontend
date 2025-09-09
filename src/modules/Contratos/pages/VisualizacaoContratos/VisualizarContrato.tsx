@@ -299,20 +299,28 @@ export function VisualizarContrato() {
 
               {/* Ações do header - Responsivo */}
               <div className="flex items-center justify-between gap-2 sm:justify-end sm:gap-3">
-                {/* Contador de dias - Sempre visível mas adaptativo */}
+                {/* Contador de dias restantes - Sempre visível mas adaptativo */}
                 <div className="text-center sm:text-right">
-                  <p className="text-lg font-bold text-green-600 sm:text-2xl">
+                  <p className={`text-lg font-bold sm:text-2xl ${(() => {
+                      const hoje = new Date()
+                      const dataTermino = new Date(contrato.dataTermino)
+                      const diffTime = dataTermino.getTime() - hoje.getTime()
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                      
+                      if (diffDays <= 0) return 'text-red-600' // Vencido
+                      if (diffDays <= 60) return 'text-red-600' // 60 dias ou menos
+                      if (diffDays <= 100) return 'text-orange-500' // 100 a 91 dias
+                      return 'text-green-600' // Acima de 100 dias
+                    })()}`}>
                     {(() => {
                       const hoje = new Date()
-                      const dataInicio = new Date(contrato.dataInicio)
-                      const diffTime = hoje.getTime() - dataInicio.getTime()
-                      const diffDays = Math.ceil(
-                        diffTime / (1000 * 60 * 60 * 24),
-                      )
+                      const dataTermino = new Date(contrato.dataTermino)
+                      const diffTime = dataTermino.getTime() - hoje.getTime()
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
                       return diffDays > 0 ? diffDays : 0
                     })()}
                   </p>
-                  <p className="text-muted-foreground text-xs">dias vigente</p>
+                  <p className="text-muted-foreground text-xs">dias restantes</p>
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">

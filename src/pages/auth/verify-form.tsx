@@ -101,6 +101,31 @@ export default function VerifyForm() {
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    // Funcionalidade Ctrl+V para colar código automaticamente
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      e.preventDefault()
+      
+      navigator.clipboard.readText().then(text => {
+        // Remove espaços e caracteres especiais, mantém apenas números
+        const cleanText = text.replace(/\D/g, '')
+        
+        // Verifica se o texto tem exatamente 6 dígitos
+        if (cleanText.length === 6) {
+          const novoCodigo = cleanText.split('')
+          setCodigo(novoCodigo)
+          
+          // Foca no último campo após colar
+          setTimeout(() => {
+            inputRefs.current[5]?.focus()
+          }, 0)
+        }
+      }).catch(() => {
+        // Ignora erros silenciosamente (caso não tenha permissão para clipboard)
+      })
+      
+      return
+    }
+
     if (e.key === "Backspace" && !codigo[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }

@@ -1,10 +1,11 @@
 import { Separator } from '@/components/ui/separator'
 import { useSidebar } from '@/components/ui/sidebar'
 import { obterVersaoApp, obterAnoAtual } from '@/lib/versao'
+import { NavUser } from '@/components/nav-user'
 
 /**
  * Componente de rodapé para a sidebar.
- * Exibe informações sobre o desenvolvedor e a versão do aplicativo.
+ * Exibe informações sobre o desenvolvedor, versão do aplicativo e menu de usuário.
  */
 export default function SidebarFooter() {
   const versaoApp = obterVersaoApp()
@@ -14,23 +15,29 @@ export default function SidebarFooter() {
   if (state === 'collapsed') {
     // Versão compacta quando a sidebar está colapsada
     return (
-      <div className="border-sidebar-border bg-sidebar border-t p-2 text-center">
-        <div className="text-sidebar-foreground/60 font-mono text-xs">
-          v{versaoApp}
+      <div className="border-sidebar-border bg-sidebar border-t">
+        <NavUser />
+        <div className="p-2 text-center">
+          <div className="text-sidebar-foreground/60 font-mono text-xs">
+            v{versaoApp}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="border-sidebar-border bg-sidebar text-sidebar-foreground border-t p-4">
-      <div className="space-y-2 text-center">
-        <div className="text-sidebar-foreground/70 text-xs">
-          Desenvolvido pelo time de TI {anoAtual}
-        </div>
-        <Separator className="bg-sidebar-border/50" />
-        <div className="text-sidebar-foreground/60 font-mono text-xs">
-          v{versaoApp}
+    <div className="border-sidebar-border bg-sidebar text-sidebar-foreground border-t">
+      <NavUser />
+      <div className="p-3">
+        <div className="space-y-2 text-center">
+          <div className="text-sidebar-foreground/70 text-xs">
+            Desenvolvido pelo time de TI {anoAtual}
+          </div>
+          <Separator className="bg-sidebar-border/50" />
+          <div className="text-sidebar-foreground/60 font-mono text-xs">
+            v{versaoApp}
+          </div>
         </div>
       </div>
     </div>

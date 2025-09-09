@@ -879,7 +879,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                        id="valor"
                        value={formulario.dados.valor}
                        onChange={(e) => atualizarCampo('valor', e.target.value)}
-                       placeholder="R$ 0,00"
+                       placeholder="R$ 0,00 (valores + ou - aceitos)"
                        className={`${(!formulario.validacao.valor.valido || !formulario.validacao.limite.valido) ? 'border-red-500' : ''}`}
                      />
                      {!formulario.validacao.valor.valido && (
@@ -895,7 +895,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
                        </div>
                      )}
                      <p className="text-xs text-muted-foreground">
-                       Valor mínimo: R$ 100,00 | Máximo: {currencyUtils.formatar(estatisticas.valorDisponivel)}
+                       Valores positivos ou negativos são aceitos (exceto R$ 0,00)
                      </p>
                    </div>
 

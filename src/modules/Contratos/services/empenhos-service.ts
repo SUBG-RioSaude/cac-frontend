@@ -114,28 +114,29 @@ export function validarNumeroEmpenho(numeroEmpenho: string): { valido: boolean; 
  */
 export function validarValor(valor: number | string): { valido: boolean; erro?: string } {
     const valorNumerico = typeof valor === 'string' 
-      ? parseFloat(valor.replace(/[^\d,.]/g, '').replace(',', '.')) 
+      ? parseFloat(valor.replace(/[^\d,.-]/g, '').replace(',', '.')) 
       : valor
 
-    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+    if (isNaN(valorNumerico)) {
       return {
         valido: false,
-        erro: 'Valor deve ser um número positivo'
+        erro: 'Valor deve ser um número válido'
       }
     }
 
-    // Valor mínimo de R$ 100,00
-    if (valorNumerico < 100) {
+    // Valor não pode ser zero
+    if (valorNumerico === 0) {
       return {
         valido: false,
-        erro: 'Valor mínimo é R$ 100,00'
+        erro: 'Valor não pode ser zero'
       }
     }
 
-    if (valorNumerico > 999999999.99) {
+    // Valores extremos (positivos e negativos)
+    if (valorNumerico > 999999999.99 || valorNumerico < -999999999.99) {
       return {
         valido: false,
-        erro: 'Valor não pode exceder R$ 999.999.999,99'
+        erro: 'Valor não pode exceder R$ ±999.999.999,99'
       }
     }
 

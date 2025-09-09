@@ -86,6 +86,7 @@ export const useAuthStore = create<AuthState>()(
           if (resultado.precisaTrocarSenha) {
             sessionStorage.setItem('tokenTrocaSenha', resultado.tokenTrocaSenha || '')
             sessionStorage.setItem('auth_email', email)
+            sessionStorage.setItem('auth_context', 'password_reset') // Define contexto correto para troca de senha
             set({ carregando: false, erro: null }) // Limpa qualquer erro
             window.location.href = '/auth/trocar-senha' // Redireciona
             return false // Indica que o fluxo de autenticação não foi concluído (ainda precisa trocar senha)

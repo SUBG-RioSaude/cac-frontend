@@ -137,6 +137,7 @@ export interface Usuario {
 export interface UsuarioAtribuido extends Usuario {
   tipo: "fiscal" | "gestor" | null
   observacoes?: string
+  urlNomeacao?: string // URL da nomeação do fiscal (obrigatório apenas para fiscais)
 }
 
 // ========== UTILITÁRIOS DE MAPEAMENTO ==========

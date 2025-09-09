@@ -898,10 +898,10 @@ export const currencyUtils = {
   /**
    * Remove todos os caracteres não numéricos de um valor monetário
    * @param value - Valor com ou sem formatação
-   * @returns Valor apenas com números e ponto decimal
+   * @returns Valor apenas com números, ponto decimal e sinal negativo
    */
   limpar: (value: string): string => {
-    return value.replace(/[^\d,]/g, '').replace(',', '.')
+    return value.replace(/[^\d,-]/g, '').replace(',', '.')
   },
 
   /**
@@ -933,15 +933,23 @@ export const currencyUtils = {
    * @returns Valor com máscara aplicada
    */
   aplicarMascara: (value: string): string => {
+    // Detectar se há sinal negativo
+    const isNegative = value.startsWith('-')
+    
     // Remove tudo exceto números
     const apenasNumeros = value.replace(/\D/g, '')
 
     // Se vazio, retorna vazio
-    if (!apenasNumeros) return ''
+    if (!apenasNumeros) return isNegative ? '-' : ''
 
     // Converte para número (centavos)
     const numeroEmCentavos = parseInt(apenasNumeros)
-    const numeroEmReais = numeroEmCentavos / 100
+    let numeroEmReais = numeroEmCentavos / 100
+
+    // Aplicar sinal negativo se necessário
+    if (isNegative) {
+      numeroEmReais = -numeroEmReais
+    }
 
     // Formata como moeda
     return new Intl.NumberFormat('pt-BR', {
@@ -955,7 +963,7 @@ export const currencyUtils = {
   /**
    * Valida se um valor monetário é válido
    * @param value - Valor com ou sem formatação
-   * @returns true se o valor for válido e maior que zero
+   * @returns true se o valor for válido e diferente de zero
    */
   validar: (value: string): boolean => {
     if (!value || value.trim() === '') return false
@@ -963,7 +971,7 @@ export const currencyUtils = {
     const valorLimpo = currencyUtils.limpar(value)
     const numeroValue = parseFloat(valorLimpo)
 
-    return !isNaN(numeroValue) && numeroValue > 0
+    return !isNaN(numeroValue) && numeroValue !== 0
   },
 
   /**

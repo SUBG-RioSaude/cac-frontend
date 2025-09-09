@@ -55,7 +55,7 @@ describe('AppSidebar', () => {
     render(<MockedAppSidebar />)
     
     const homeLink = screen.getByRole('link')
-    expect(homeLink).toHaveAttribute('href', '/')
+    expect(homeLink).toHaveAttribute('href', '/dashboard')
   })
 
   it('deve ter as classes corretas para sidebar', () => {

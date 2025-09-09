@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Search, UserPlus, X, Users, UserCheck, CheckCircle, Loader2 } from "lucide-react"
+import { Search, UserPlus, X, Users, UserCheck, CheckCircle, Loader2, Link } from "lucide-react"
+import { toast } from "sonner"
 import { 
   useFuncionariosParaAtribuicao,
   useGetLotacoesAtivas,
@@ -132,8 +133,24 @@ export default function AtribuicaoFiscaisForm({
     setUsuariosAtribuidos((prev) => prev.map((usuario) => (usuario.id === usuarioId ? { ...usuario, observacoes } : usuario)))
   }
 
+  const handleUrlNomeacaoChange = (usuarioId: string, urlNomeacao: string) => {
+    setUsuariosAtribuidos((prev) => prev.map((usuario) => (usuario.id === usuarioId ? { ...usuario, urlNomeacao } : usuario)))
+  }
+
 
   const handleSubmit = () => {
+    // Validar se fiscais e gestores têm URL da nomeação
+    const usuariosSemUrl = usuariosAtribuidos.filter(
+      usuario => (usuario.tipo === "fiscal" || usuario.tipo === "gestor") && (!usuario.urlNomeacao || usuario.urlNomeacao.trim() === "")
+    )
+    
+    if (usuariosSemUrl.length > 0) {
+      toast.error("Todos os fiscais e gestores devem ter a URL da nomeação preenchida.", {
+        description: "Verifique se todos os fiscais e gestores têm a URL da nomeação preenchida antes de continuar."
+      })
+      return
+    }
+    
     const dados: DadosAtribuicao = {
       usuariosAtribuidos,
     }
@@ -323,6 +340,22 @@ export default function AtribuicaoFiscaisForm({
                           className="text-xs h-8"
                         />
                       </div>
+                      {/* Campo URL da nomeação - para fiscais e gestores */}
+                      {(usuario.tipo === "fiscal" || usuario.tipo === "gestor") && (
+                        <div className="mt-2">
+                          <div className="relative">
+                            <Link className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
+                            <Input
+                              type="url"
+                              placeholder="URL da nomeação *"
+                              value={usuario.urlNomeacao || ''}
+                              onChange={(e) => handleUrlNomeacaoChange(usuario.id, e.target.value)}
+                              className="text-xs h-8 pl-7"
+                              required
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <Button
                       variant="ghost"

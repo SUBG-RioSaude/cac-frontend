@@ -103,7 +103,7 @@ export function NavMain({
                       ? '[&[data-active=true]]:text-sidebar-primary cursor-pointer [&[data-active=true]]:bg-transparent [&[data-active=true]]:font-medium'
                       : state === 'collapsed'
                         ? 'hover:text-sidebar-primary cursor-pointer justify-center'
-                        : 'hover:text-sidebar-primary cursor-pointer'
+                        : 'hover:text-sidebar-primary cursor-pointer transition-all duration-200'
                   }
                   onClick={() => handleItemClick(item)}
                 >

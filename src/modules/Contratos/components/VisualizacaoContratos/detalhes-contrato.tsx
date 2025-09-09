@@ -20,6 +20,8 @@ import {
   Edit,
   X,
   AlertTriangle,
+  Check,
+  Clock,
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
@@ -30,7 +32,6 @@ import {
   useFieldEditing
 } from '@/modules/Contratos/components/EditableFields'
 import { FuncionarioCard } from './FuncionarioCard'
-import { dateUtils } from '@/lib/utils'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -109,7 +110,21 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   }
 
   const formatarData = (data: string) => {
-    return dateUtils.formatarDataUTC(data)
+    // Evitar problemas de timezone formatando diretamente a string
+    if (!data) return ''
+    
+    // Se a data já vem no formato ISO (YYYY-MM-DD), converter para DD/MM/YYYY
+    if (data.includes('-')) {
+      const [year, month, day] = data.split('T')[0].split('-')
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
+    }
+    
+    // Se já está no formato DD/MM/YYYY, retornar como está
+    if (data.includes('/')) {
+      return data
+    }
+    
+    return data
   }
 
   const formatarCNPJ = (cnpj: string) => {
@@ -400,130 +415,136 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
 
                 {/* Vigência e Valores */}
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
                       Vigência e Valores
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditarCampo('vigencia-valores')}
-                      className={`h-8 w-8 p-0 ${isGroupEditing('vigencia-valores') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
-                    >
-                      {isGroupEditing('vigencia-valores') ? (
-                        <X className="h-4 w-4" />
-                      ) : (
-                        <Edit className="h-4 w-4" />
-                      )}
-                    </Button>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Data de Início
-                        </p>
-                        <div className="space-y-1">
-                          {isEditing('dataInicio') ? (
-                            <EditableFieldWrapper
-                              fieldKey="dataInicio"
-                              value={pendingValue || contrato.dataInicio}
-                              onSave={(value) => handleFieldSave('dataInicio', value)}
-                              onCancel={cancelEditing}
-                              isLoading={isLoading}
-                            />
-                          ) : (
-                            <div 
-                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
-                              onClick={() => startEditing('dataInicio')}
-                            >
-                              {formatarData(contrato.dataInicio)}
-                            </div>
-                          )}
-                          {shouldShowOriginalDate(contrato.vigenciaOriginalInicial, contrato.dataInicio) && (
-                            <p className="text-sm text-gray-500">
-                              Original: {formatarData(contrato.vigenciaOriginalInicial!)}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Data de Término
-                        </p>
-                        <div className="space-y-1">
-                          {isEditing('dataTermino') ? (
-                            <EditableFieldWrapper
-                              fieldKey="dataTermino"
-                              value={pendingValue || contrato.dataTermino}
-                              onSave={(value) => handleFieldSave('dataTermino', value)}
-                              onCancel={cancelEditing}
-                              isLoading={isLoading}
-                            />
-                          ) : (
-                            <div 
-                              className="font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
-                              onClick={() => startEditing('dataTermino')}
-                            >
-                              {formatarData(contrato.dataTermino)}
-                            </div>
-                          )}
-                          {shouldShowOriginalDate(contrato.vigenciaOriginalFinal, contrato.dataTermino) && (
-                            <p className="text-sm text-gray-500">
-                              Original: {formatarData(contrato.vigenciaOriginalFinal!)}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                  <CardContent className="py-6">
+                    {/* Verificar se há alterações */}
+                    {(() => {
+                      const hasChanges = shouldShowOriginalDate(contrato.vigenciaOriginalInicial, contrato.dataInicio) || 
+                        shouldShowOriginalDate(contrato.vigenciaOriginalFinal, contrato.dataTermino) ||
+                        shouldShowOriginalValue(contrato.valorGlobalOriginal, contrato.valorTotal) ||
+                        (contrato.prazoOriginalMeses && contrato.prazoOriginalMeses !== contrato.prazoInicialMeses);
 
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        Prazo Inicial
-                      </p>
-                      <div className="space-y-1">
-                        <p className="font-semibold">
-                          {contrato.prazoInicialMeses} meses
-                        </p>
-                        {contrato.prazoOriginalMeses && 
-                         contrato.prazoOriginalMeses > 0 && 
-                         contrato.prazoOriginalMeses !== contrato.prazoInicialMeses && (
-                          <p className="text-sm text-gray-500">
-                            Original: {contrato.prazoOriginalMeses} meses
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        Valor Total do Contrato
-                      </p>
-                      <div className="space-y-1">
-                        {isEditing('valorTotal') ? (
-                          <EditableFieldWrapper
-                            fieldKey="valorTotal"
-                            value={pendingValue || contrato.valorTotal}
-                            onSave={(value) => handleFieldSave('valorTotal', value)}
-                            onCancel={cancelEditing}
-                            isLoading={isLoading}
-                          />
-                        ) : (
-                          <div 
-                            className="text-2xl font-bold text-green-600 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 -mx-1"
-                            onClick={() => startEditing('valorTotal')}
-                          >
-                            {formatarMoeda(contrato.valorTotal)}
+                      if (!hasChanges) {
+                        // Visualização unitária - layout original sem edição
+                        return (
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <p className="text-muted-foreground text-sm">
+                                Data de Início
+                              </p>
+                              <p className="font-semibold">
+                                {formatarData(contrato.dataInicio)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-sm">
+                                Data de Término
+                              </p>
+                              <p className="font-semibold">
+                                {formatarData(contrato.dataTermino)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-sm">
+                                Prazo Inicial
+                              </p>
+                              <p className="font-semibold">
+                                {contrato.prazoInicialMeses} meses
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-sm">
+                                Valor Total do Contrato
+                              </p>
+                              <p className="text-2xl font-bold text-green-600">
+                                {formatarMoeda(contrato.valorTotal)}
+                              </p>
+                            </div>
                           </div>
-                        )}
-                        {shouldShowOriginalValue(contrato.valorGlobalOriginal, contrato.valorTotal) && (
-                          <p className="text-sm text-gray-500">
-                            Original: {formatarMoeda(contrato.valorGlobalOriginal!)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                        );
+                      }
+
+                      // Timeline com alterações - ordem invertida (atual no topo)
+                      const mesesOriginais = contrato.prazoOriginalMeses || contrato.prazoInicialMeses;
+
+                      return (
+                        <div className="relative">
+                            {/* Linha conectora vertical */}
+                            <div className="absolute left-4 top-8 bottom-4 w-0.5 bg-gray-300 z-0"></div>
+                            
+                            <div className="space-y-0">
+                              {/* Item Atual - no topo */}
+                              <div className="relative flex items-start gap-4 pb-8">
+                                {/* Ícone */}
+                                <div className="flex flex-col items-center relative">
+                                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center z-10 relative">
+                                    <Clock className="w-4 h-4 text-white" />
+                                  </div>
+                                </div>
+                                
+                                {/* Conteúdo */}
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className="font-semibold">Atual</span>
+                                    <Badge className="bg-gray-800 text-white text-xs">
+                                      {contrato.prazoInicialMeses} meses
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Vigência: {formatarData(contrato.dataInicio)} - {formatarData(contrato.dataTermino)}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Valor: {formatarMoeda(contrato.valorTotal)}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Prazo: {contrato.prazoInicialMeses} meses
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Item Original - embaixo */}
+                              <div className="relative flex items-start gap-4">
+                                {/* Ícone */}
+                                <div className="flex flex-col items-center">
+                                  <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center z-10">
+                                    <Check className="w-4 h-4 text-white" />
+                                  </div>
+                                </div>
+                                
+                                {/* Conteúdo */}
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className="font-semibold">Original</span>
+                                    <Badge className="bg-gray-800 text-white text-xs">
+                                      {mesesOriginais} meses
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Vigência: {contrato.vigenciaOriginalInicial ? 
+                                      formatarData(contrato.vigenciaOriginalInicial) : 
+                                      formatarData(contrato.dataInicio)
+                                    } - {contrato.vigenciaOriginalFinal ? 
+                                      formatarData(contrato.vigenciaOriginalFinal) : 
+                                      formatarData(contrato.dataTermino)
+                                    }
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Valor: {formatarMoeda(contrato.valorGlobalOriginal || contrato.valorTotal)}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Prazo: {mesesOriginais} meses
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
 

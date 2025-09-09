@@ -11,7 +11,6 @@ import {
 
 import { NavMain } from '@/components/nav-main'
 
-import { NavUser } from '@/components/nav-user'
 import SidebarFooterCustom from '@/components/sidebar-footer'
 import { Separator } from './ui/separator'
 import { Link } from 'react-router-dom'
@@ -89,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {/* Container principal da logo */}
               <div className="flex flex-col items-center space-y-3 group-data-[state=collapsed]:space-y-2">
                 {/* Logo principal limpa - sem quadrado */}
-                <Link to="/">
+                <Link to="/dashboard">
                   <div className="logo-container relative transition-all duration-500 group-data-[state=collapsed]:scale-75 hover:scale-110">
                     <img
                       src="/logo certa.png"
@@ -99,16 +98,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </div>
                 </Link>
 
-                {/* Badge CAC melhorada */}
+                {/* Badge CAC redesenhada com ícone maior */}
                 <div className="group-data-[state=collapsed]:hidden">
-                  <div className="group/cac relative inline-flex items-center gap-1 overflow-hidden rounded-full bg-gray-600 px-4 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
-                    <img
-                      src="/logos-cac/3.png"
-                      alt="Logo CAC"
-                      className="h-15 w-15 object-contain opacity-95 drop-shadow-sm"
-                      style={{ animationDuration: '6s' }}
-                    />
-                    <span className="text-sidebar-foreground text-lg font-bold tracking-wider uppercase drop-shadow-sm">
+                  <div className="relative inline-flex items-center gap-3 overflow-hidden rounded-xl bg-gray-600 px-4 py-2 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
+                    {/* Ícone CAC maior */}
+                    <div className="flex items-center justify-center h-[45px]">
+                      <img
+                        src="/logos-cac/3.png"
+                        alt="Logo CAC"
+                        className="h-25 w-25 object-contain opacity-95 drop-shadow-sm"
+                        style={{ animationDuration: '6s' }}
+                      />
+                    </div>
+                    {/* Texto CAC */}
+                    <span className="text-sidebar-foreground ml-[-20px] text-lg font-bold tracking-wider uppercase drop-shadow-sm">
                       CAC
                     </span>
                     {/* Efeito de brilho animado */}
@@ -129,7 +132,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser />
         <SidebarFooterCustom />
       </SidebarFooter>
     </Sidebar>

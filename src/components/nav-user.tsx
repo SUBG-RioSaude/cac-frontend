@@ -76,7 +76,7 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group/user relative overflow-hidden bg-gray-600 py-8 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01]"
+              className="group/user relative overflow-hidden bg-gray-600 h-15 py-4 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01] mt-5 mb-3"
             >
               {/* Efeito de brilho animado */}
               <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full"></div>
@@ -89,7 +89,7 @@ export function NavUser() {
 
               <div className="relative z-10 flex items-center gap-3">
                 <div className="relative">
-                  <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 group-hover/user:border-sidebar-border/60 h-11 w-11 rounded-xl border-2 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
+                  <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 group-hover/user:border-sidebar-border/60 h-9 w-9 rounded-xl border-2 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
                     <AvatarImage
                       src="/logos-cac/4.png"
                       alt={usuario.nomeCompleto || usuario.email}
@@ -106,16 +106,16 @@ export function NavUser() {
                   </Avatar>
 
                   {/* Indicador de status online */}
-                  <div className="absolute -right-1 -bottom-1">
+                  <div className="absolute -right-0.5 -bottom-0.5">
                     <div className="relative">
                       {/* Anel externo pulsante */}
-                      <div className="absolute inset-0 h-4 w-4 animate-ping rounded-full bg-green-400/40 group-data-[state=open]:bg-green-300/60"></div>
+                      <div className="absolute inset-0 h-3 w-3 animate-ping rounded-full bg-green-400/40 group-data-[state=open]:bg-green-300/60"></div>
                       {/* Anel médio */}
-                      <div className="absolute inset-0.5 h-3 w-3 animate-pulse rounded-full bg-green-400/70"></div>
+                      <div className="absolute inset-0.5 h-2 w-2 animate-pulse rounded-full bg-green-400/70"></div>
                       {/* Núcleo sólido */}
-                      <div className="border-sidebar relative h-4 w-4 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40"></div>
+                      <div className="border-sidebar relative h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40"></div>
                       {/* Brilho interno */}
-                      <div className="absolute inset-1 h-2 w-2 rounded-full bg-green-200/90"></div>
+                      <div className="absolute inset-0.5 h-1.5 w-1.5 rounded-full bg-green-200/90"></div>
                     </div>
                   </div>
                 </div>
