@@ -153,7 +153,7 @@ export function useGetFuncionarioByCpf(
 export function useBuscarFuncionariosPorNome(
   nome: string,
   limit = 10,
-  options?: UseQueryOptions<FuncionarioApi[]> & {
+  options?: Omit<UseQueryOptions<FuncionarioApi[]>, 'queryKey' | 'queryFn'> & {
     enabled?: boolean
   }
 ) {

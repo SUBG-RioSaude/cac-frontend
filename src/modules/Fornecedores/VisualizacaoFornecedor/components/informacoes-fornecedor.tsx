@@ -1,13 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cnpjUtils } from '@/lib/utils';
 
 interface InformacoesFornecedorProps {
   razaoSocial: string;
-  nomeFantasia: string;
   cnpj: string;
-  inscricaoEstadual: string;
-  inscricaoMunicipal: string;
-  dataCadastro: string;
-  dataAtualizacao: string;
+  inscricaoEstadual?: string | null;
+  inscricaoMunicipal?: string | null;
 }
 
 export function InformacoesFornecedor(props: InformacoesFornecedorProps) {
@@ -16,34 +14,29 @@ export function InformacoesFornecedor(props: InformacoesFornecedorProps) {
       <CardHeader>
         <CardTitle>Informações Gerais</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <p className="text-sm text-muted-foreground">Razão Social</p>
-          <p>{props.razaoSocial}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Nome Fantasia</p>
-          <p>{props.nomeFantasia}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">CNPJ</p>
-          <p>{props.cnpj}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Inscrição Estadual</p>
-          <p>{props.inscricaoEstadual}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Inscrição Municipal</p>
-          <p>{props.inscricaoMunicipal}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Data de Cadastro</p>
-          <p>{props.dataCadastro}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Última Atualização</p>
-          <p>{props.dataAtualizacao}</p>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Razão Social</p>
+            <p className="font-medium">{props.razaoSocial}</p>
+          </div>
+          
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">CNPJ</p>
+            <p className="font-mono">{cnpjUtils.formatar(props.cnpj)}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Inscrição Estadual</p>
+              <p>{props.inscricaoEstadual || 'Não informada'}</p>
+            </div>
+            
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Inscrição Municipal</p>
+              <p>{props.inscricaoMunicipal || 'Não informada'}</p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

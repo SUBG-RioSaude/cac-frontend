@@ -26,6 +26,8 @@ import {
 import type { Contrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
 import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cnpjUtils } from '@/lib/utils'
+import { VigenciaDisplay } from './VigenciaDisplay'
 
 interface TabelaContratosProps {
   contratos: Contrato[]
@@ -37,6 +39,7 @@ interface TabelaContratosProps {
   onSelecionarTodos: (contratoIds: string[], selecionado: boolean) => void
   totalContratos: number
   isPlaceholderData?: boolean
+  hideContratadaColumn?: boolean
 }
 
 export function TabelaContratos({
@@ -48,6 +51,7 @@ export function TabelaContratos({
   onSelecionarContrato,
   onSelecionarTodos,
   totalContratos,
+  hideContratadaColumn = false,
 }: TabelaContratosProps) {
   const navigate = useNavigate()
 
@@ -59,22 +63,17 @@ export function TabelaContratos({
     return (valor: number) => formatter.format(valor)
   }, [])
 
-  const formatarData = useCallback((data: string) => {
-    if (!data) return 'N/A'
-    try {
-      const date = new Date(data)
-      if (isNaN(date.getTime())) return 'N/A'
-      return date.toLocaleDateString('pt-BR')
-    } catch (error) {
-      return 'N/A'
-    }
-  }, [])
 
   const obterProcessoPriorizado = useCallback((contrato: Contrato) => {
     if (contrato.processoRio) return contrato.processoRio
     if (contrato.processoSei) return contrato.processoSei
     if (contrato.processoLegado) return contrato.processoLegado
     return 'N/A'
+  }, [])
+
+  const formatarCNPJ = useCallback((cnpj: string | null | undefined) => {
+    if (!cnpj) return 'N/A'
+    return cnpjUtils.formatar(cnpj)
   }, [])
 
   const getStatusBadge = useCallback((status: string) => {
@@ -175,15 +174,29 @@ export function TabelaContratos({
         </CardHeader>
         <CardContent className="space-y-4 p-4">
           <div>
-            <p className="font-semibold text-lg">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'Empresa não informada'}</p>
-            <p className="text-sm text-muted-foreground">CNPJ: {contrato.empresaCnpj || contrato.contratada?.cnpj || 'N/A'}</p>
+            {!hideContratadaColumn && (
+              <>
+                <p className="font-semibold text-lg">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'Empresa não informada'}</p>
+                <p className="text-sm text-muted-foreground">CNPJ: {formatarCNPJ(contrato.empresaCnpj || contrato.contratada?.cnpj)}</p>
+              </>
+            )}
             <p className="text-sm text-muted-foreground truncate" title={contrato.descricaoObjeto || ''}>
               {contrato.descricaoObjeto || 'Objeto não informado'}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <InfoItem icon={DollarSign} label="Valor Global" value={formatarMoeda(contrato.valorGlobal)} />
-            <InfoItem icon={Calendar} label="Vigência" value={`${formatarData(contrato.vigenciaInicial)} - ${formatarData(contrato.vigenciaFinal)}`} />
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Vigência
+              </p>
+              <VigenciaDisplay 
+                vigenciaInicio={contrato.vigenciaInicial}
+                vigenciaFim={contrato.vigenciaFinal}
+                compact
+              />
+            </div>
             <InfoItem icon={Briefcase} label="Contratação" value={contrato.contratacao || 'N/A'} />
             <InfoItem icon={Building} label="Unidade Gestora" value={contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'} />
             <InfoItem icon={FileText} label="Processo" value={obterProcessoPriorizado(contrato)} />
@@ -245,7 +258,7 @@ export function TabelaContratos({
                       />
                     </TableHead>
                     <TableHead className="font-semibold">Contrato</TableHead>
-                    <TableHead className="font-semibold">Contratada</TableHead>
+                    {!hideContratadaColumn && <TableHead className="font-semibold">Contratada</TableHead>}
                     <TableHead className="font-semibold">Tipo Contratação</TableHead>
                     <TableHead className="font-semibold">Unidade Gestora</TableHead>
                     <TableHead className="font-semibold">Período de Vigência</TableHead>
@@ -261,7 +274,7 @@ export function TabelaContratos({
                         <TableRow key={`skeleton-${index}`}>
                           <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          {!hideContratadaColumn && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -295,12 +308,14 @@ export function TabelaContratos({
                               {contrato.descricaoObjeto || 'N/A'}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="font-medium">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">
-                              CNPJ: {contrato.empresaCnpj || contrato.contratada?.cnpj || 'N/A'}
-                            </div>
-                          </TableCell>
+                          {!hideContratadaColumn && (
+                            <TableCell>
+                              <div className="font-medium">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
+                              <div className="text-xs text-muted-foreground">
+                                CNPJ: {formatarCNPJ(contrato.empresaCnpj || contrato.contratada?.cnpj)}
+                              </div>
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
                           </TableCell>
@@ -308,8 +323,10 @@ export function TabelaContratos({
                             <div className="font-medium">{contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
-                            <div>{formatarData(contrato.vigenciaInicial)}</div>
-                            <div>{formatarData(contrato.vigenciaFinal)}</div>
+                            <VigenciaDisplay 
+                              vigenciaInicio={contrato.vigenciaInicial}
+                              vigenciaFim={contrato.vigenciaFinal}
+                            />
                           </TableCell>
                           <TableCell className="text-right font-medium">{formatarMoeda(contrato.valorGlobal)}</TableCell>
                           <TableCell>{getStatusBadge(contrato.status || 'indefinido')}</TableCell>
@@ -351,7 +368,7 @@ export function TabelaContratos({
                       />
                     </TableHead>
                     <TableHead className="font-semibold">Contrato</TableHead>
-                    <TableHead className="font-semibold">Contratada</TableHead>
+                    {!hideContratadaColumn && <TableHead className="font-semibold">Contratada</TableHead>}
                     <TableHead className="font-semibold">Contratação</TableHead>
                     <TableHead className="font-semibold">Vigência</TableHead>
                     <TableHead className="font-semibold text-right">Valor</TableHead>
@@ -366,7 +383,7 @@ export function TabelaContratos({
                         <TableRow key={`skeleton-${index}`}>
                           <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          {!hideContratadaColumn && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
                           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -396,16 +413,21 @@ export function TabelaContratos({
                             <div className="font-medium">{contrato.numeroContrato || 'N/A'}</div>
                             <div className="text-xs text-muted-foreground truncate max-w-32">{contrato.descricaoObjeto || 'N/A'}</div>
                           </TableCell>
-                          <TableCell>
-                            <div className="font-medium truncate max-w-36">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">CNPJ: {contrato.empresaCnpj || contrato.contratada?.cnpj || 'N/A'}</div>
-                          </TableCell>
+                          {!hideContratadaColumn && (
+                            <TableCell>
+                              <div className="font-medium truncate max-w-36">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
+                              <div className="text-xs text-muted-foreground">CNPJ: {formatarCNPJ(contrato.empresaCnpj || contrato.contratada?.cnpj)}</div>
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm">{formatarData(contrato.vigenciaInicial)}</div>
-                            <div className="text-sm">{formatarData(contrato.vigenciaFinal)}</div>
+                            <VigenciaDisplay 
+                              vigenciaInicio={contrato.vigenciaInicial}
+                              vigenciaFim={contrato.vigenciaFinal}
+                              compact
+                            />
                           </TableCell>
                           <TableCell className="text-right font-medium">{formatarMoeda(contrato.valorGlobal)}</TableCell>
                           <TableCell>{getStatusBadge(contrato.status || 'ativo')}</TableCell>

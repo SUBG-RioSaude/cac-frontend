@@ -281,3 +281,81 @@ export function gerarNumeroContratoUnico(): string {
   
   return `CONTRATO-${ano}${mes}${dia}-${timestamp}`
 }
+
+/**
+ * Buscar contratos por empresa/fornecedor
+ */
+export async function getContratosPorEmpresa(
+  empresaId: string,
+  filtros?: Omit<ContratoParametros, 'empresaId'>
+): Promise<PaginacaoResponse<Contrato>> {
+  console.log('🔍 [SERVIÇO] Buscando contratos para empresa:', empresaId)
+  
+  const parametros: ContratoParametros = {
+    ...filtros,
+    empresaId,
+    tamanhoPagina: filtros?.tamanhoPagina || 20,
+    pagina: filtros?.pagina || 1
+  }
+  
+  try {
+    const response = await executeWithFallback<PaginacaoResponse<Contrato> | { dados: Contrato[] }>({ 
+      method: 'get',
+      url: `/contratos/empresa/${empresaId}`,
+      params: parametros
+    })
+
+    // Usar mesma lógica de normalização do getContratos
+    if (response.data && 'dados' in response.data && Array.isArray(response.data.dados)) {
+      const dados = response.data.dados as Contrato[]
+      
+      const paginatedResponse: PaginacaoResponse<Contrato> = {
+        dados,
+        paginaAtual: ('paginaAtual' in response.data ? response.data.paginaAtual : parametros.pagina) || 1,
+        tamanhoPagina: ('tamanhoPagina' in response.data ? response.data.tamanhoPagina : parametros.tamanhoPagina) || dados.length,
+        totalRegistros: ('totalRegistros' in response.data ? response.data.totalRegistros : dados.length) || dados.length,
+        totalPaginas: ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
+        temProximaPagina: ('temProximaPagina' in response.data ? response.data.temProximaPagina : false) || false,
+        temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
+      }
+      
+      console.log('✅ [SERVIÇO] Contratos da empresa encontrados:', paginatedResponse.totalRegistros)
+      return paginatedResponse
+    }
+
+    // Fallback para resposta já formatada
+    if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
+      console.log('✅ [SERVIÇO] Contratos da empresa encontrados (formato completo):', response.data.totalRegistros)
+      return response.data as PaginacaoResponse<Contrato>
+    }
+
+    // Fallback para array direto
+    if (Array.isArray(response.data)) {
+      console.log('✅ [SERVIÇO] Contratos da empresa encontrados (array direto):', response.data.length)
+      return {
+        dados: response.data as Contrato[],
+        paginaAtual: 1,
+        tamanhoPagina: response.data.length,
+        totalRegistros: response.data.length,
+        totalPaginas: 1,
+        temProximaPagina: false,
+        temPaginaAnterior: false
+      }
+    }
+
+    // Fallback vazio
+    console.log('⚠️ [SERVIÇO] Nenhum contrato encontrado para a empresa')
+    return {
+      dados: [],
+      paginaAtual: 1,
+      tamanhoPagina: parametros.tamanhoPagina || 20,
+      totalRegistros: 0,
+      totalPaginas: 0,
+      temProximaPagina: false,
+      temPaginaAnterior: false
+    }
+  } catch (error) {
+    console.error('❌ [SERVIÇO] Erro ao buscar contratos da empresa:', error)
+    throw error
+  }
+}

@@ -23,7 +23,7 @@ import {
   Check,
   Clock,
 } from 'lucide-react'
-import type { ContratoDetalhado, Endereco } from '@/modules/Contratos/types/contrato'
+import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 import { 
@@ -32,6 +32,8 @@ import {
   useFieldEditing
 } from '@/modules/Contratos/components/EditableFields'
 import { FuncionarioCard } from './FuncionarioCard'
+import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
+import { useFuncionariosByIds } from '@/modules/Funcionarios/hooks/use-funcionarios'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -45,6 +47,11 @@ type ContratoComIds = ContratoDetalhado & {
 
 export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
+  const [modalSubstituicao, setModalSubstituicao] = useState<{
+    aberto: boolean
+    funcionario?: ContratoFuncionario & { funcionarioNome?: string; funcionarioId: string }
+    tipoGerencia?: 1 | 2
+  }>({ aberto: false })
   
   const {
     isEditing,
@@ -87,6 +94,26 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   // Separar fiscais e gestores
   const fiscaisFromAPI = funcionariosData.filter(f => f.tipoGerencia === 2 && f.ativo)
   const gestoresFromAPI = funcionariosData.filter(f => f.tipoGerencia === 1 && f.ativo)
+
+  // Buscar dados completos dos funcionários para exibição mais rica
+  const funcionariosIds = funcionariosData.map(f => f.funcionarioId).filter(Boolean)
+  const { data: funcionariosCompletos = {} } = useFuncionariosByIds(
+    funcionariosIds,
+    { enabled: funcionariosIds.length > 0 }
+  )
+
+  // Handlers do modal de substituição
+  const handleAbrirModalSubstituicao = (funcionario: ContratoFuncionario & { funcionarioNome?: string; funcionarioId: string }, tipoGerencia: 1 | 2) => {
+    setModalSubstituicao({
+      aberto: true,
+      funcionario,
+      tipoGerencia
+    })
+  }
+
+  const handleFecharModalSubstituicao = () => {
+    setModalSubstituicao({ aberto: false })
+  }
 
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
@@ -575,8 +602,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <FuncionarioCard
                           key={fiscal.id}
                           contratoFuncionario={fiscal}
+                          funcionario={funcionariosCompletos[fiscal.funcionarioId]}
                           variant="fiscal"
                           isLoading={false}
+                          onSubstituir={() => handleAbrirModalSubstituicao(fiscal, 2)}
+                          permitirSubstituicao={true}
                         />
                       ))
                     )}
@@ -610,8 +640,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <FuncionarioCard
                           key={gestor.id}
                           contratoFuncionario={gestor}
+                          funcionario={funcionariosCompletos[gestor.funcionarioId]}
                           variant="gestor"
                           isLoading={false}
+                          onSubstituir={() => handleAbrirModalSubstituicao(gestor, 1)}
+                          permitirSubstituicao={true}
                         />
                       ))
                     )}
@@ -1123,6 +1156,18 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
         </AnimatePresence>
       </Tabs>
       
+      {/* Modal de substituição de funcionário */}
+      {modalSubstituicao.aberto && modalSubstituicao.funcionario && modalSubstituicao.tipoGerencia && (
+        <SubstituirFuncionarioModal
+          aberto={modalSubstituicao.aberto}
+          onFechar={handleFecharModalSubstituicao}
+          contratoId={contrato.id}
+          funcionarioAtual={modalSubstituicao.funcionario}
+          tipoGerencia={modalSubstituicao.tipoGerencia}
+          funcionarioCompleto={funcionariosCompletos[modalSubstituicao.funcionario.funcionarioId]}
+        />
+      )}
+
       {/* Modal de confirmação */}
       {modalProps && (
         <ConfirmEditModal
