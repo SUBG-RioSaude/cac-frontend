@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import {
   User,
   Mail,
@@ -8,7 +9,8 @@ import {
   Building,
   Hash,
   CheckCircle,
-  XCircle
+  XCircle,
+  RefreshCw
 } from 'lucide-react'
 import type { Responsavel, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
@@ -20,6 +22,8 @@ interface FuncionarioCardProps {
   funcionario?: FuncionarioApi // dados completos da API (opcional)
   isLoading?: boolean
   variant: 'fiscal' | 'gestor'
+  onSubstituir?: () => void // Callback para abrir modal de substituição
+  permitirSubstituicao?: boolean // Se deve mostrar botão de substituir
 }
 
 export function FuncionarioCard({ 
@@ -27,7 +31,9 @@ export function FuncionarioCard({
   contratoFuncionario,
   funcionario, 
   isLoading = false, 
-  variant 
+  variant,
+  onSubstituir,
+  permitirSubstituicao = true
 }: FuncionarioCardProps) {
   const variantConfig = {
     fiscal: {
@@ -102,7 +108,7 @@ export function FuncionarioCard({
         <div className="flex-1">
           {/* Header com nome e status */}
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <h4 className="font-semibold text-gray-900">{nomeCompleto}</h4>
               <p className="text-muted-foreground text-sm">{cargo}</p>
               {funcionario?.funcao && funcionario.funcao !== cargo && (
@@ -110,13 +116,28 @@ export function FuncionarioCard({
               )}
             </div>
             
-            {/* Status de situação funcional */}
-            {situacao && (
-              <div className="flex items-center gap-1">
-                <situacao.icon className={`h-4 w-4 ${situacao.color}`} />
-                <span className={`text-xs ${situacao.color}`}>{situacao.label}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Status de situação funcional */}
+              {situacao && (
+                <div className="flex items-center gap-1">
+                  <situacao.icon className={`h-4 w-4 ${situacao.color}`} />
+                  <span className={`text-xs ${situacao.color}`}>{situacao.label}</span>
+                </div>
+              )}
+
+              {/* Botão de substituir */}
+              {permitirSubstituicao && onSubstituir && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSubstituir}
+                  className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                  title={`Substituir ${variant}`}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Informações de identificação */}

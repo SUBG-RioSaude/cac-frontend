@@ -15,7 +15,6 @@ import {
   CheckCircle,
   Info,
   Search,
-  Plus,
   MessageSquare,
   Settings,
   TrendingUp,
@@ -40,7 +39,6 @@ import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 interface RegistroAlteracoesProps {
   alteracoes: AlteracaoContrato[]
   entradasTimeline?: TimelineEntry[] // Entradas vindas do sistema de timeline/alterações contratuais
-  onAdicionarObservacao?: () => void
   onMarcarChatComoAlteracao?: (chatId: string) => void
 }
 
@@ -73,6 +71,7 @@ interface EntradaUnificada {
   dados?: DadosAlteracaoContratual | DadosMilestone | AlteracaoContrato
   prioridade?: 'baixa' | 'media' | 'alta' | 'critica'
   tags?: string[]
+  status?: string
 }
 
 // Função para criar resumo limpo baseado nos dados estruturados
@@ -160,6 +159,41 @@ function criarResumoLimpo(alteracao: AlteracaoContrato): string {
   }
 }
 
+// Componente helper para badges com estados de loading/error
+interface SmartBadgeProps {
+  result: { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string }
+  variant?: 'default' | 'destructive' | 'secondary'
+  className?: string
+  showTooltip?: boolean
+}
+
+function SmartBadge({ result, variant = 'default', className = '', showTooltip = true }: SmartBadgeProps) {
+  const getVariantForStatus = () => {
+    if (result.status === 'error') return 'destructive'
+    if (result.status === 'loading') return 'secondary'
+    if (result.status === 'not_found') return 'outline'
+    return variant
+  }
+
+  const badge = (
+    <Badge variant={getVariantForStatus()} className={cn("text-xs", className)}>
+      {result.status === 'loading' && <div className="animate-pulse mr-1">⟳</div>}
+      {result.status === 'error' && <div className="mr-1">⚠</div>}
+      {result.nome}
+    </Badge>
+  )
+
+  if (showTooltip && (result.status === 'error' || result.status === 'not_found') && result.fullId) {
+    return (
+      <div title={`ID completo: ${result.fullId}${result.status === 'error' ? ' (Erro ao carregar)' : ' (Não encontrado)'}`}>
+        {badge}
+      </div>
+    )
+  }
+
+  return badge
+}
+
 // Componente helper para blocos collapsible
 interface CollapsibleBlockProps {
   icon: React.ElementType
@@ -208,8 +242,8 @@ function CollapsibleBlock({
 // Helper function para renderizar detalhes da alteração
 function renderDetalhesAlteracao(
   entrada: EntradaUnificada, 
-  getEmpresaNome: (id: string) => string,
-  getUnidadeNome: (id: string) => string
+  getEmpresaNome: (id: string) => { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string },
+  getUnidadeNome: (id: string) => { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string }
 ) {
   // Se for uma entrada da timeline antiga ou de outro tipo, usar o formato antigo
   if (entrada.origem === 'timeline' || entrada.origem === 'chat') {
@@ -353,9 +387,7 @@ function renderDetalhesAlteracao(
               <span className="font-medium">Vinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.fornecedores.fornecedoresVinculados?.map((id: string, idx: number) => (
-                  <Badge key={`vinc-${idx}`} variant="default" className="text-xs font-mono">
-                    {getEmpresaNome(id)}
-                  </Badge>
+                  <SmartBadge key={`vinc-${idx}`} result={getEmpresaNome(id)} variant="default" />
                 ))}
               </div>
             </div>
@@ -365,9 +397,7 @@ function renderDetalhesAlteracao(
               <span className="font-medium">Desvinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.fornecedores.fornecedoresDesvinculados?.map((id: string, idx: number) => (
-                  <Badge key={`desv-${idx}`} variant="destructive" className="text-xs font-mono">
-                    {getEmpresaNome(id)}
-                  </Badge>
+                  <SmartBadge key={`desv-${idx}`} result={getEmpresaNome(id)} variant="destructive" />
                 ))}
               </div>
             </div>
@@ -375,9 +405,9 @@ function renderDetalhesAlteracao(
           {alteracao.fornecedores.novoFornecedorPrincipal && (
             <div>
               <span className="font-medium">Novo Principal:</span>
-              <Badge variant="secondary" className="ml-2 text-xs font-mono">
-                {getEmpresaNome(alteracao.fornecedores.novoFornecedorPrincipal)}
-              </Badge>
+              <div className="mt-1">
+                <SmartBadge result={getEmpresaNome(alteracao.fornecedores.novoFornecedorPrincipal)} variant="secondary" />
+              </div>
             </div>
           )}
           {!(alteracao.fornecedores.fornecedoresVinculados?.length || 0) &&
@@ -421,15 +451,17 @@ function renderDetalhesAlteracao(
                   // Se não conseguir extrair o ID, pular esta unidade
                   if (!unidadeId) return null
                   
+                  const nomeResult = getUnidadeNome(unidadeId)
+                  
                   return (
-                    <Badge key={`uv-${idx}`} variant="default" className="text-xs font-mono">
-                      {getUnidadeNome(unidadeId)}
+                    <div key={`uv-${idx}`} className="flex items-center">
+                      <SmartBadge result={nomeResult} variant="default" />
                       {typeof unidade === 'object' && unidade.valorAtribuido && (
-                        <span className="ml-1 text-xs opacity-75">
+                        <span className="ml-1 text-xs text-muted-foreground">
                           ({new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(unidade.valorAtribuido)})
                         </span>
                       )}
-                    </Badge>
+                    </div>
                   )
                 })}
               </div>
@@ -440,9 +472,7 @@ function renderDetalhesAlteracao(
               <span className="font-medium">Desvinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.unidades.unidadesDesvinculadas?.map((id: string, idx: number) => (
-                  <Badge key={`ud-${idx}`} variant="destructive" className="text-xs font-mono">
-                    {getUnidadeNome(id)}
-                  </Badge>
+                  <SmartBadge key={`ud-${idx}`} result={getUnidadeNome(id)} variant="destructive" />
                 ))}
               </div>
             </div>
@@ -498,10 +528,10 @@ function renderDetalhesAlteracao(
 export function RegistroAlteracoes({ 
   alteracoes, 
   entradasTimeline = [],
-  onAdicionarObservacao,
   onMarcarChatComoAlteracao 
 }: RegistroAlteracoesProps) {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
+  const [filtroStatus, setFiltroStatus] = useState<string>('todos')
   const [termoPesquisa, setTermoPesquisa] = useState('')
   
   // Build lookup of empresa IDs -> razão social to enrich fornecedores section
@@ -528,12 +558,16 @@ export function RegistroAlteracoes({
     // Garantir que id seja sempre string
     const idStr = String(id)
     if (empresasLookup.isLoading) {
-      return 'Carregando...'
+      return { nome: 'Carregando...', status: 'loading' as const }
     }
     if (empresasLookup.error) {
-      return `Erro: ${idStr.slice(-8)}`
+      return { nome: `ID: ${idStr.slice(-8)}`, status: 'error' as const, fullId: idStr }
     }
-    return empresasLookup.data?.[idStr]?.razaoSocial || `ID: ${idStr.slice(-8)}`
+    const nome = empresasLookup.data?.[idStr]?.razaoSocial
+    if (!nome) {
+      return { nome: `ID: ${idStr.slice(-8)}`, status: 'not_found' as const, fullId: idStr }
+    }
+    return { nome, status: 'success' as const }
   }, [empresasLookup.data, empresasLookup.isLoading, empresasLookup.error])
   
   // Build lookup of unidades IDs -> nome to enrich unidades section
@@ -563,16 +597,52 @@ export function RegistroAlteracoes({
     // Garantir que id seja sempre string
     const idStr = String(id)
     if (unidadesLookup.isLoading) {
-      return 'Carregando...'
+      return { nome: 'Carregando...', status: 'loading' as const }
     }
     if (unidadesLookup.error) {
-      return `Erro: ${idStr.slice(-8)}`
+      return { nome: `ID: ${idStr.slice(-8)}`, status: 'error' as const, fullId: idStr }
     }
-    return unidadesLookup.data?.[idStr]?.nome || `ID: ${idStr.slice(-8)}`
+    const nome = unidadesLookup.data?.[idStr]?.nome
+    if (!nome) {
+      return { nome: `ID: ${idStr.slice(-8)}`, status: 'not_found' as const, fullId: idStr }
+    }
+    return { nome, status: 'success' as const }
   }, [unidadesLookup.data, unidadesLookup.isLoading, unidadesLookup.error])
   
   const formatarDataHora = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR')
+  }
+
+  const getStatusAlteracao = (alteracao: AlteracaoContrato) => {
+    // Mapear status numéricos da API para texto legível
+    const statusMap: Record<number, string> = {
+      0: 'rascunho',
+      1: 'pendente',  
+      2: 'em_aprovacao',
+      3: 'aprovado',
+      4: 'executado',
+      5: 'cancelado'
+    }
+    
+    if (typeof alteracao.status === 'number') {
+      return statusMap[alteracao.status] || 'indefinido'
+    }
+    
+    // Fallback para strings antigas
+    return String(alteracao.status || 'indefinido').toLowerCase()
+  }
+
+  const getTituloStatus = (status: string) => {
+    const titulos: Record<string, string> = {
+      'rascunho': 'Rascunho',
+      'pendente': 'Pendente',
+      'em_aprovacao': 'Em Aprovação', 
+      'aprovado': 'Aprovado',
+      'executado': 'Executado',
+      'cancelado': 'Cancelado',
+      'indefinido': 'Status Indefinido'
+    }
+    return titulos[status] || status
   }
 
   const getTituloAlteracao = (tipo: string | number) => {
@@ -632,7 +702,8 @@ export function RegistroAlteracoes({
     dataHora: alt.dataHora,
     responsavel: alt.responsavel,
     origem: 'contrato' as const,
-    dados: alt // Incluir todos os dados da alteração para o renderDetalhesAlteracao
+    dados: alt, // Incluir todos os dados da alteração para o renderDetalhesAlteracao
+    status: getStatusAlteracao(alt) // Adicionar status para filtragem
   }))
 
   // Converter entradas da timeline para formato unificado  
@@ -658,6 +729,11 @@ export function RegistroAlteracoes({
       ? entradas 
       : entradas.filter(e => e.tipo === filtroTipo)
     
+    // Filtrar por status
+    if (filtroStatus !== 'todos') {
+      entradasFiltradas = entradasFiltradas.filter(e => e.status === filtroStatus)
+    }
+    
     // Filtrar por termo de pesquisa
     if (termoPesquisa) {
       const termo = termoPesquisa.toLowerCase()
@@ -672,13 +748,23 @@ export function RegistroAlteracoes({
     return entradasFiltradas.sort((a, b) => 
       new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime()
     )
-  }, [alteracoesUnificadas, timelineUnificadas, filtroTipo, termoPesquisa])
+  }, [alteracoesUnificadas, timelineUnificadas, filtroTipo, filtroStatus, termoPesquisa])
 
   // Tipos únicos para o filtro
   const tiposDisponiveis = useMemo(() => {
     const tipos = new Set(todasEntradas.map(e => e.tipo))
     return Array.from(tipos)
   }, [todasEntradas])
+
+  // Status únicos para o filtro (apenas de alterações de contrato)
+  const statusDisponiveis = useMemo(() => {
+    const status = new Set(
+      alteracoesUnificadas
+        .map(e => e.status)
+        .filter(Boolean) // Remover undefined
+    )
+    return Array.from(status)
+  }, [alteracoesUnificadas])
 
   const getIconeAlteracao = (tipo: string) => {
     const icones = {
@@ -764,22 +850,13 @@ export function RegistroAlteracoes({
                 {todasEntradas.length}
               </Badge>
             </CardTitle>
-            
-            <div className="flex items-center gap-2">
-              {onAdicionarObservacao && (
-                <Button variant="outline" size="sm" onClick={onAdicionarObservacao}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Observação
-                </Button>
-              )}
-            </div>
           </div>
         </CardHeader>
         
         <CardContent className="pt-0">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3">
             {/* Pesquisa */}
-            <div className="relative flex-1">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Pesquisar alterações..."
@@ -789,20 +866,40 @@ export function RegistroAlteracoes({
               />
             </div>
             
-            {/* Filtro por tipo */}
-            <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os tipos</SelectItem>
-                {tiposDisponiveis.map(tipo => (
-                  <SelectItem key={tipo} value={tipo}>
-                    {getTituloAlteracao(tipo)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Filtros */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              {/* Filtro por tipo */}
+              <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filtrar por tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os tipos</SelectItem>
+                  {tiposDisponiveis.map(tipo => (
+                    <SelectItem key={tipo} value={tipo}>
+                      {getTituloAlteracao(tipo)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Filtro por status */}
+              {statusDisponiveis.length > 0 && (
+                <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os status</SelectItem>
+                    {statusDisponiveis.map(status => status ? (
+                      <SelectItem key={status} value={status}>
+                        {getTituloStatus(status)}
+                      </SelectItem>
+                    ) : null)}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -870,6 +967,24 @@ export function RegistroAlteracoes({
                                 {entrada.origem === 'contrato' ? 'Sistema' : 
                                  entrada.origem === 'timeline' ? 'Alteração' : 'Chat'}
                               </Badge>
+                              {entrada.status && entrada.origem === 'contrato' && (
+                                <Badge 
+                                  variant={
+                                    entrada.status === 'executado' ? 'default' :
+                                    entrada.status === 'aprovado' ? 'secondary' :
+                                    entrada.status === 'rascunho' ? 'outline' :
+                                    'destructive'
+                                  } 
+                                  className={cn(
+                                    "text-xs",
+                                    entrada.status === 'executado' && "bg-green-100 text-green-800 border-green-200",
+                                    entrada.status === 'aprovado' && "bg-blue-100 text-blue-800 border-blue-200",
+                                    entrada.status === 'rascunho' && "bg-gray-100 text-gray-600 border-gray-200"
+                                  )}
+                                >
+                                  {getTituloStatus(entrada.status)}
+                                </Badge>
+                              )}
                               {entrada.prioridade && entrada.prioridade !== 'media' && (
                                 <Badge variant="outline" className={cn(
                                   "text-xs",
@@ -895,9 +1010,18 @@ export function RegistroAlteracoes({
                           </div>
                         </div>
 
-                        <p className="text-muted-foreground mb-3 text-sm leading-relaxed">
-                          {entrada.descricao}
-                        </p>
+                        <div className="mb-3 text-sm leading-relaxed">
+                          <div 
+                            className="text-muted-foreground break-words whitespace-pre-wrap max-h-24 overflow-y-auto prose prose-sm max-w-none"
+                            style={{ 
+                              wordBreak: 'break-word',
+                              overflowWrap: 'break-word',
+                              hyphens: 'auto'
+                            }}
+                          >
+                            {entrada.descricao}
+                          </div>
+                        </div>
 
                         {/* Dados específicos da alteração contratual */}
                         {renderDetalhesAlteracao(entrada, getEmpresaNome, getUnidadeNome)}

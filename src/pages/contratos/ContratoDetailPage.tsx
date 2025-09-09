@@ -6,6 +6,7 @@ import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-doc
 import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -60,8 +61,7 @@ function ContratoDetailPage() {
         </TabsList>
 
         <TabsContent value="detalhes">
-          {/* <DetalhesContrato contrato={contrato} /> */}
-          <p>Área para os detalhes do contrato.</p>
+          <DetalhesContrato contrato={contrato} />
         </TabsContent>
 
         <TabsContent value="documentos" className="space-y-6">

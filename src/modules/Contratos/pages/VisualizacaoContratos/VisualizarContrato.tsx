@@ -472,7 +472,6 @@ export function VisualizarContrato() {
                     <RegistroAlteracoes 
                       alteracoes={historicoAlteracoes} 
                       entradasTimeline={entradasTimeline}
-                      onAdicionarObservacao={() => handleTabChange('timeline')}
                     />
                   </TabsContent>
                 )}
