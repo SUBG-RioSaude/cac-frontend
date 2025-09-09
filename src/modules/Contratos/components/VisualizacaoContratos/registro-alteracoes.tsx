@@ -40,6 +40,7 @@ interface RegistroAlteracoesProps {
   alteracoes: AlteracaoContrato[]
   entradasTimeline?: TimelineEntry[] // Entradas vindas do sistema de timeline/alterações contratuais
   onMarcarChatComoAlteracao?: (chatId: string) => void
+  onAdicionarObservacao?: () => void
 }
 
 // Dados específicos tipados
@@ -528,7 +529,8 @@ function renderDetalhesAlteracao(
 export function RegistroAlteracoes({ 
   alteracoes, 
   entradasTimeline = [],
-  onMarcarChatComoAlteracao 
+  onMarcarChatComoAlteracao,
+  onAdicionarObservacao,
 }: RegistroAlteracoesProps) {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [filtroStatus, setFiltroStatus] = useState<string>('todos')
@@ -850,6 +852,16 @@ export function RegistroAlteracoes({
                 {todasEntradas.length}
               </Badge>
             </CardTitle>
+            {onAdicionarObservacao && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onAdicionarObservacao}
+                aria-label="Observação"
+              >
+                Observação
+              </Button>
+            )}
           </div>
         </CardHeader>
         

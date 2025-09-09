@@ -34,7 +34,6 @@ import {
 import { FuncionarioCard } from './FuncionarioCard'
 import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
 import { useFuncionariosByIds } from '@/modules/Funcionarios/hooks/use-funcionarios'
-import { dateUtils } from '@/lib/utils'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado

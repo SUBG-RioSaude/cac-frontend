@@ -6,9 +6,17 @@
 // ========== INTERFACES EXISTENTES (PRESERVADAS) ==========
 
 export interface ContatoEmpresa {
+  id: string
   nome: string
   valor: string
-  tipo: string
+  tipo: 'Email' | 'Telefone' | 'Celular'
+  ativo: boolean
+}
+
+export interface ContatoEmpresaRequest {
+  nome: string
+  valor: string
+  tipo: 'Email' | 'Telefone' | 'Celular'
 }
 
 export interface EmpresaRequest {
@@ -22,24 +30,25 @@ export interface EmpresaRequest {
   estado: string
   cep: string
   usuarioCadastroId: string
-  contatos: ContatoEmpresa[]
+  contatos: ContatoEmpresaRequest[]
 }
 
 export interface EmpresaResponse {
   id: string
   cnpj: string
   razaoSocial: string
-  inscricaoEstadual: string
-  inscricaoMunicipal: string
+  nomeFantasia?: string | null
+  inscricaoEstadual?: string | null
+  inscricaoMunicipal?: string | null
   endereco: string
+  numero?: string | null
+  complemento?: string | null
   bairro: string
   cidade: string
   estado: string
   cep: string
-  usuarioCadastroId: string
+  usuarioCadastroId?: string
   contatos: ContatoEmpresa[]
-  dataCadastro: string
-  dataAtualizacao: string
   ativo: boolean
 }
 

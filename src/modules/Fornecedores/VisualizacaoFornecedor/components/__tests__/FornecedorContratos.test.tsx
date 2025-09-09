@@ -3,11 +3,25 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { FornecedorContratos } from '../FornecedorContratos'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
+import type { PaginacaoParams } from '@/types/api'
 
 // Mock do TabelaContratos para verificar props
+interface MockTabelaContratosProps {
+  contratos: Contrato[]
+  isLoading: boolean
+  paginacao: PaginacaoParams
+  contratosSelecionados: string[]
+  onPaginacaoChange: (paginacao: PaginacaoParams) => void
+  onSelecionarContrato: (contratoId: string, selecionado: boolean) => void
+  onSelecionarTodos: (contratoIds: string[], selecionado: boolean) => void
+  totalContratos: number
+  isPlaceholderData?: boolean
+  hideContratadaColumn?: boolean
+}
+
 const mockTabelaContratos = vi.fn()
 vi.mock('@/modules/Contratos/components/ListaContratos/tabela-contratos', () => ({
-  TabelaContratos: (props: any) => {
+  TabelaContratos: (props: MockTabelaContratosProps) => {
     mockTabelaContratos(props)
     return <div data-testid="tabela-contratos">Mocked TabelaContratos</div>
   },

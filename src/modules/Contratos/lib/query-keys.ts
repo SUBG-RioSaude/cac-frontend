@@ -26,6 +26,7 @@ export const contratoKeys = {
   
   // Queries específicas por contexto
   byEmpresa: (empresaId: string) => [...contratoKeys.all, 'empresa', empresaId] as const,
+  porEmpresa: (empresaId: string, filtros?: Partial<ContratoParametros>) => [...contratoKeys.all, 'porEmpresa', empresaId, filtros] as const,
   byUnidade: (unidadeId: string) => [...contratoKeys.all, 'unidade', unidadeId] as const,
   vencendo: (dias?: number) => [...contratoKeys.all, 'vencendo', dias] as const,
   vencidos: () => [...contratoKeys.all, 'vencidos'] as const,

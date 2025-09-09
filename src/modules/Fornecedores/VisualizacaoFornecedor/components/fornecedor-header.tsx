@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { cnpjUtils } from '@/lib/utils';
 
 interface FornecedorHeaderProps {
   razaoSocial: string;
@@ -17,7 +18,7 @@ export function FornecedorHeader({ razaoSocial, cnpj, status }: FornecedorHeader
         </Button>
         <div>
           <h1 className="text-2xl font-bold">{razaoSocial}</h1>
-          <p className="text-muted-foreground">{cnpj}</p>
+          <p className="text-muted-foreground">{cnpjUtils.formatar(cnpj)}</p>
         </div>
       </div>
       <Badge>{status}</Badge>
