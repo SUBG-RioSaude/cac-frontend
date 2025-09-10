@@ -29,6 +29,7 @@ import {
 
 import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
 import type { DocumentoMultiplo } from '../../types/contrato'
+import { DateDisplay } from '@/components/ui/formatters'
 
 interface TabDocumentosProps {
   contratoId: string;
@@ -149,14 +150,6 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
     setHasUnsavedChanges(false)
   }, [contratoId, documentosLocais, updateMutation])
 
-  const formatarData = useCallback((data?: string) => {
-    if (!data) return null;
-    return new Date(data).toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    });
-  }, [])
 
   if (isLoading) {
     return (
@@ -238,7 +231,11 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                   {documento.selecionado && documento.dataEntrega && (
                     <div className="text-xs text-green-600 flex items-center gap-1 mt-1">
                       <Calendar className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{formatarData(documento.dataEntrega)}</span>
+                      <span className="truncate"><DateDisplay value={documento.dataEntrega} options={{
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      }} /></span>
                     </div>
                   )}
                 </div>

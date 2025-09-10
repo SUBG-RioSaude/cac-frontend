@@ -919,12 +919,14 @@ export const currencyUtils = {
       return 'R$ 0,00'
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    const formatted = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(numericValue)
+    // Substitui NBSP por espaço regular para facilitar matching em testes e consistência visual
+    return formatted.replace(/\u00a0/g, ' ')
   },
 
   /**
@@ -952,12 +954,13 @@ export const currencyUtils = {
     }
 
     // Formata como moeda
-    return new Intl.NumberFormat('pt-BR', {
+    const formatted = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(numeroEmReais)
+    return formatted.replace(/\u00a0/g, ' ')
   },
 
   /**

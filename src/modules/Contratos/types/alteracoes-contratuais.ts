@@ -107,6 +107,35 @@ export interface UnidadeVinculada {
   observacoes?: string
 }
 
+// Operações de valor para unidades
+export const OperacaoValorUnidade = {
+  Substituir: 'substituir',
+  Adicionar: 'adicionar', 
+  Subtrair: 'subtrair'
+} as const
+
+export type OperacaoValorUnidade = typeof OperacaoValorUnidade[keyof typeof OperacaoValorUnidade]
+
+// Interface para alteração de valor de unidade
+export interface AlteracaoValorUnidade {
+  unidadeSaudeId: string
+  operacao: OperacaoValorUnidade
+  valorOperacao: number
+  valorAnterior: number
+  valorResultante: number
+  observacoes?: string
+}
+
+// Interface para histórico de alterações de valor
+export interface HistoricoAlteracaoValor {
+  timestamp: string
+  operacao: 'criar' | 'editar' | 'remover'
+  valorAnterior?: number
+  valorNovo: number
+  observacoes?: string
+  usuario?: string
+}
+
 // Interface para o Bloco Unidades - NOVO FORMATO
 export interface BlocoUnidades {
   unidadesVinculadas?: UnidadeVinculada[]

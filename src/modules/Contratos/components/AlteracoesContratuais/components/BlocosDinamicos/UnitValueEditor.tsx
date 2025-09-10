@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,10 +11,16 @@ import {
   MapPin,
   DollarSign,
   AlertCircle,
-  Calculator
+  Calculator,
+  Plus,
+  Minus,
+  RefreshCcw,
+  TrendingUp,
+  TrendingDown,
+  Equal
 } from 'lucide-react'
 
-import type { UnidadeVinculada } from '../../../../types/alteracoes-contratuais'
+import type { UnidadeVinculada, OperacaoValorUnidade } from '../../../../types/alteracoes-contratuais'
 
 interface TransformedUnidade {
   id: string
@@ -23,6 +29,7 @@ interface TransformedUnidade {
   tipo: string
   endereco: string
   ativo: boolean
+  valorAtual?: number
 }
 
 interface UnitValueEditorProps {
@@ -33,6 +40,8 @@ interface UnitValueEditorProps {
   contractValue?: number
   valorRestante?: number
   disabled?: boolean
+  mode?: 'create' | 'edit'
+  existingValue?: number
 }
 
 const CORES_TIPO: Record<string, string> = {
@@ -50,20 +59,32 @@ export function UnitValueEditor({
   onSave,
   contractValue,
   valorRestante = 0,
-  disabled = false
+  disabled = false,
+  mode = 'create',
+  existingValue = 0
 }: UnitValueEditorProps) {
   const [valor, setValor] = useState('')
   const [observacoes, setObservacoes] = useState('')
+  const [operacao, setOperacao] = useState<OperacaoValorUnidade>('substituir')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen && unit) {
-      setValor('')
+      if (mode === 'edit' && existingValue > 0) {
+        setValor(new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(existingValue))
+        setOperacao('substituir')
+      } else {
+        setValor('')
+        setOperacao('substituir')
+      }
       setObservacoes('')
       setErrors({})
     }
-  }, [isOpen, unit])
+  }, [isOpen, unit, mode, existingValue])
 
   const availableValue = valorRestante > 0 ? valorRestante : undefined
   
@@ -90,6 +111,24 @@ export function UnitValueEditor({
   }, [])
 
   const parsedValue = parseBrazilianCurrency(valor)
+  
+  // Calcular valor resultante baseado na operação
+  const valorResultante = useMemo(() => {
+    if (mode === 'create') {
+      return parsedValue
+    }
+    
+    switch (operacao) {
+      case 'substituir':
+        return parsedValue
+      case 'adicionar':
+        return existingValue + parsedValue
+      case 'subtrair':
+        return Math.max(0, existingValue - parsedValue)
+      default:
+        return parsedValue
+    }
+  }, [mode, operacao, parsedValue, existingValue])
 
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -98,29 +137,50 @@ export function UnitValueEditor({
       newErrors.valor = 'Valor é obrigatório'
     } else if (isNaN(parsedValue) || parsedValue <= 0) {
       newErrors.valor = 'Valor deve ser um número positivo'
-    } else if (availableValue && parsedValue > availableValue) {
-      newErrors.valor = `Valor excede o disponível (${new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(availableValue)})`
+    } else {
+      // Validações específicas por operação
+      if (mode === 'edit') {
+        if (operacao === 'subtrair' && parsedValue > existingValue) {
+          newErrors.valor = `Não é possível subtrair mais que o valor atual (${new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(existingValue)})`
+        }
+      }
+      
+      // Validar se o valor resultante não excede o disponível no contrato
+      if (availableValue && mode === 'create' && parsedValue > availableValue) {
+        newErrors.valor = `Valor excede o disponível (${new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(availableValue)})`
+      } else if (availableValue && mode === 'edit') {
+        const diferencaValor = valorResultante - existingValue
+        if (diferencaValor > availableValue) {
+          newErrors.valor = `Esta operação excede o valor disponível no contrato em ${new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(diferencaValor - availableValue)}`
+        }
+      }
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [valor, parsedValue, availableValue])
+  }, [valor, parsedValue, availableValue, mode, operacao, existingValue, valorResultante])
 
   const handleSave = useCallback(() => {
     if (!unit || !validateForm()) return
 
     const unidadeVinculada: UnidadeVinculada = {
       unidadeSaudeId: unit.id,
-      valorAtribuido: parsedValue,
+      valorAtribuido: valorResultante,
       observacoes: observacoes.trim() || undefined
     }
 
     onSave(unidadeVinculada)
     onClose()
-  }, [unit, validateForm, parsedValue, observacoes, onSave, onClose])
+  }, [unit, validateForm, valorResultante, observacoes, onSave, onClose])
 
   const handleCancel = useCallback(() => {
     onClose()
@@ -143,12 +203,26 @@ export function UnitValueEditor({
   }, [formatCurrency])
 
   const suggestPercentage = useCallback((percentage: number) => {
-    if (!availableValue) return
-    const value = availableValue * (percentage / 100)
-    // Converter para centavos para usar a mesma lógica do formatCurrency
+    if (!availableValue && mode === 'create') return
+    
+    let baseValue: number
+    if (mode === 'edit' && operacao !== 'substituir') {
+      baseValue = existingValue
+    } else {
+      baseValue = availableValue || 0
+    }
+    
+    const value = baseValue * (percentage / 100)
     const centavos = Math.round(value * 100).toString()
     setValor(formatCurrency(centavos))
-  }, [availableValue, formatCurrency])
+  }, [availableValue, formatCurrency, mode, operacao, existingValue])
+  
+  const adjustValue = useCallback((adjustment: number) => {
+    const currentValue = parsedValue || 0
+    const newValue = Math.max(0, currentValue + adjustment)
+    const centavos = Math.round(newValue * 100).toString()
+    setValor(formatCurrency(centavos))
+  }, [parsedValue, formatCurrency])
 
   if (!unit) return null
 
@@ -158,7 +232,7 @@ export function UnitValueEditor({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Atribuir Valor à Unidade
+            {mode === 'edit' ? 'Editar Valor da Unidade' : 'Atribuir Valor à Unidade'}
           </DialogTitle>
         </DialogHeader>
 
@@ -218,6 +292,107 @@ export function UnitValueEditor({
             </div>
           )}
 
+          {/* Valor atual e operações - apenas no modo edit */}
+          {mode === 'edit' && (
+            <div className="space-y-4">
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <Label className="text-sm font-medium text-orange-800">Valor Atual da Unidade</Label>
+                <p className="text-lg font-bold text-orange-900">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(existingValue)}
+                </p>
+              </div>
+
+              {/* Seletor de Operação */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Operação</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={operacao === 'substituir' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setOperacao('substituir')}
+                    disabled={disabled}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <RefreshCcw className="h-3 w-3" />
+                    Substituir
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={operacao === 'adicionar' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setOperacao('adicionar')}
+                    disabled={disabled}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Adicionar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={operacao === 'subtrair' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setOperacao('subtrair')}
+                    disabled={disabled}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <Minus className="h-3 w-3" />
+                    Subtrair
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {operacao === 'substituir' && 'Substituir completamente o valor atual'}
+                  {operacao === 'adicionar' && 'Somar ao valor atual'}
+                  {operacao === 'subtrair' && 'Subtrair do valor atual'}
+                </p>
+              </div>
+
+              {/* Preview do resultado */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <Label className="text-xs text-blue-600">Valor Resultante</Label>
+                    <p className="font-medium text-blue-800">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(valorResultante)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-blue-600">
+                    {operacao === 'adicionar' && valorResultante > existingValue && (
+                      <>
+                        <TrendingUp className="h-3 w-3" />
+                        +{new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL'
+                        }).format(valorResultante - existingValue)}
+                      </>
+                    )}
+                    {operacao === 'subtrair' && valorResultante < existingValue && (
+                      <>
+                        <TrendingDown className="h-3 w-3" />
+                        -{new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL'
+                        }).format(existingValue - valorResultante)}
+                      </>
+                    )}
+                    {operacao === 'substituir' && (
+                      <>
+                        <Equal className="h-3 w-3" />
+                        Novo valor
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sugestões rápidas */}
           {availableValue && availableValue > 0 && (
             <div className="space-y-2">
@@ -263,20 +438,99 @@ export function UnitValueEditor({
 
           {/* Campo de valor */}
           <div className="space-y-2">
-            <Label htmlFor="valor" className="text-sm font-medium">Valor a Atribuir *</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="valor"
-                value={valor}
-                onChange={handleValueChange}
-                placeholder="R$ 0,00"
-                className={cn(
-                  "pl-10 h-11 text-base",
-                  errors.valor && 'border-red-500'
-                )}
-                disabled={disabled}
-              />
+            <Label htmlFor="valor" className="text-sm font-medium">
+              {mode === 'edit' ? 
+                (operacao === 'substituir' ? 'Novo Valor *' : 
+                 operacao === 'adicionar' ? 'Valor a Adicionar *' : 'Valor a Subtrair *') : 
+                'Valor a Atribuir *'
+              }
+            </Label>
+            <div className="space-y-2">
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="valor"
+                  value={valor}
+                  onChange={handleValueChange}
+                  placeholder="R$ 0,00"
+                  className={cn(
+                    "pl-10 pr-24 h-11 text-base",
+                    errors.valor && 'border-red-500'
+                  )}
+                  disabled={disabled}
+                />
+                {/* Botões de ajuste rápido */}
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => adjustValue(-1000)}
+                    disabled={disabled || parsedValue <= 1000}
+                    className="h-7 w-7 p-0 text-xs"
+                    title="Diminuir R$ 1.000"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => adjustValue(1000)}
+                    disabled={disabled}
+                    className="h-7 w-7 p-0 text-xs"
+                    title="Aumentar R$ 1.000"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Controles de ajuste fino */}
+              {mode === 'edit' && (
+                <div className="flex justify-center gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => adjustValue(-10000)}
+                    disabled={disabled || parsedValue <= 10000}
+                    className="h-6 px-2 text-xs text-gray-600 hover:text-gray-800"
+                  >
+                    -10k
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => adjustValue(-5000)}
+                    disabled={disabled || parsedValue <= 5000}
+                    className="h-6 px-2 text-xs text-gray-600 hover:text-gray-800"
+                  >
+                    -5k
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => adjustValue(5000)}
+                    disabled={disabled}
+                    className="h-6 px-2 text-xs text-gray-600 hover:text-gray-800"
+                  >
+                    +5k
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => adjustValue(10000)}
+                    disabled={disabled}
+                    className="h-6 px-2 text-xs text-gray-600 hover:text-gray-800"
+                  >
+                    +10k
+                  </Button>
+                </div>
+              )}
             </div>
             {errors.valor && (
               <div className="flex items-center gap-2 text-sm text-red-600">
@@ -324,7 +578,11 @@ export function UnitValueEditor({
               className="flex-1 h-11"
             >
               <DollarSign className="h-4 w-4 mr-2" />
-              Atribuir Valor
+              {mode === 'edit' ? 
+                (operacao === 'substituir' ? 'Substituir Valor' :
+                 operacao === 'adicionar' ? 'Adicionar Valor' : 'Subtrair Valor') :
+                'Atribuir Valor'
+              }
             </Button>
           </div>
         </div>

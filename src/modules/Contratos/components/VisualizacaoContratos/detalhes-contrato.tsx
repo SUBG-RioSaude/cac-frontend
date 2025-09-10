@@ -28,7 +28,8 @@ import {
 import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
-import { CNPJDisplay, CEPDisplay } from '@/components/ui/formatters'
+import { CNPJDisplay, CEPDisplay, DateDisplay } from '@/components/ui/formatters'
+import { dateUtils } from '@/lib/utils'
 import { 
   EditableFieldWrapper,
   ConfirmEditModal,
@@ -139,23 +140,6 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     }).format(valor)
   }
 
-  const formatarData = (data: string) => {
-    // Evitar problemas de timezone formatando diretamente a string
-    if (!data) return ''
-    
-    // Se a data já vem no formato ISO (YYYY-MM-DD), converter para DD/MM/YYYY
-    if (data.includes('-')) {
-      const [year, month, day] = data.split('T')[0].split('-')
-      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
-    }
-    
-    // Se já está no formato DD/MM/YYYY, retornar como está
-    if (data.includes('/')) {
-      return data
-    }
-    
-    return data
-  }
 
 
 
@@ -431,7 +415,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                 Data de Início
                               </p>
                               <p className="font-semibold">
-                                {formatarData(contrato.dataInicio)}
+                                <DateDisplay value={contrato.dataInicio} />
                               </p>
                             </div>
                             <div>
@@ -439,7 +423,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                 Data de Término
                               </p>
                               <p className="font-semibold">
-                                {formatarData(contrato.dataTermino)}
+                                <DateDisplay value={contrato.dataTermino} />
                               </p>
                             </div>
                             <div>
@@ -489,7 +473,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                     </Badge>
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Vigência: {formatarData(contrato.dataInicio)} - {formatarData(contrato.dataTermino)}
+                                    Vigência: <DateDisplay value={contrato.dataInicio} /> - <DateDisplay value={contrato.dataTermino} />
                                   </div>
                                   <div className="text-sm text-gray-600">
                                     Valor: {formatarMoeda(contrato.valorTotal)}
@@ -519,11 +503,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                   </div>
                                   <div className="text-sm text-gray-600">
                                     Vigência: {contrato.vigenciaOriginalInicial ? 
-                                      formatarData(contrato.vigenciaOriginalInicial) : 
-                                      formatarData(contrato.dataInicio)
+                                      <DateDisplay value={contrato.vigenciaOriginalInicial} /> : 
+                                      <DateDisplay value={contrato.dataInicio} />
                                     } - {contrato.vigenciaOriginalFinal ? 
-                                      formatarData(contrato.vigenciaOriginalFinal) : 
-                                      formatarData(contrato.dataTermino)
+                                      <DateDisplay value={contrato.vigenciaOriginalFinal} /> : 
+                                      <DateDisplay value={contrato.dataTermino} />
                                     }
                                   </div>
                                   <div className="text-sm text-gray-600">
@@ -649,7 +633,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Data de Início
                           </p>
                           <p className="font-semibold">
-                            {formatarData(contrato.ccon.dataInicio)}
+                            <DateDisplay value={contrato.ccon.dataInicio} />
                           </p>
                         </div>
                         <div>
@@ -657,7 +641,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Data de Término
                           </p>
                           <p className="font-semibold">
-                            {formatarData(contrato.ccon.dataTermino)}
+                            <DateDisplay value={contrato.ccon.dataTermino} />
                           </p>
                         </div>
                       </div>
@@ -1150,7 +1134,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
               return formatarMoeda(value as number)
             }
             if (modalProps.fieldName === 'dataInicio' || modalProps.fieldName === 'dataTermino') {
-              return formatarData(value as string)
+              return dateUtils.formatarDataUTC(value as string)
             }
             return String(value)
           }}

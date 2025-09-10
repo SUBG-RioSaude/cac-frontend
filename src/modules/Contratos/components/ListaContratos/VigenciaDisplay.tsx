@@ -7,6 +7,7 @@
 
 import { Calendar, CalendarCheck, CalendarX, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 
 interface VigenciaDisplayProps {
   vigenciaInicio?: string | null
@@ -21,22 +22,7 @@ export function VigenciaDisplay({
   className,
   compact = false 
 }: VigenciaDisplayProps) {
-  const formatarData = (data: string | null | undefined): string => {
-    if (!data) return '-'
-    
-    try {
-      return new Date(data).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      })
-    } catch {
-      return '-'
-    }
-  }
 
-  const dataInicio = formatarData(vigenciaInicio)
-  const dataFim = formatarData(vigenciaFim)
 
   // Determinar status da vigência para ícone no modo compact
   const agora = new Date()
@@ -75,10 +61,10 @@ export function VigenciaDisplay({
       <div className={cn("flex items-center gap-1", className)}>
         {getStatusIcon()}
         <span className="text-xs text-muted-foreground">
-          {dataInicio !== '-' && dataFim !== '-' ? (
-            `${dataInicio} - ${dataFim}`
-          ) : dataInicio !== '-' ? (
-            `${dataInicio} - ∞`
+          {vigenciaInicio && vigenciaFim ? (
+            <><DateDisplay value={vigenciaInicio} /> - <DateDisplay value={vigenciaFim} /></>
+          ) : vigenciaInicio ? (
+            <><DateDisplay value={vigenciaInicio} /> - ∞</>
           ) : (
             'Não definida'
           )}
@@ -89,17 +75,17 @@ export function VigenciaDisplay({
 
   return (
     <div className={cn("space-y-0.5", className)}>
-      {dataInicio !== '-' && (
+      {vigenciaInicio && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span>Início: {dataInicio}</span>
+          <span>Início: <DateDisplay value={vigenciaInicio} /></span>
         </div>
       )}
       
-      {dataFim !== '-' ? (
+      {vigenciaFim ? (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <div className="w-2 h-2 rounded-full bg-red-500" />
-          <span>Fim: {dataFim}</span>
+          <span>Fim: <DateDisplay value={vigenciaFim} /></span>
         </div>
       ) : vigenciaInicio && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

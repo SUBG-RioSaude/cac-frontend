@@ -15,6 +15,11 @@ CLAUDE.sessions.md
 AGENTS.md
 
 
+.tanstack
+.github
+.vscode
+
+
 .env
 
 node_modules

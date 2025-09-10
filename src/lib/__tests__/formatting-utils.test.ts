@@ -12,7 +12,7 @@ describe('currencyUtils', () => {
     const out = currencyUtils.formatar(-9876.54)
     expect(out).toContain('R$')
     expect(out).toContain('9.876,54')
-    expect(out).toMatch(/^-|\s-|-|d|−|\(R\$\)/) // deve indicar negativo
+    expect(out).toMatch(/^-|\s-|-|\(R\$\)/) // deve indicar negativo
   })
 
   it('formata zero como "R$ 0,00"', () => {

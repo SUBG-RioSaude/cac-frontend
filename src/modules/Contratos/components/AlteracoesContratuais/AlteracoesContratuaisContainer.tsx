@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 import {
   FileText,
   ArrowUp,
@@ -217,14 +218,14 @@ export function AlteracoesContratuaisContainer({
                   <div className="flex items-center gap-2">
                     <span className="text-gray-600 font-medium text-xs">Vigência Original:</span>
                     <span className="font-semibold text-sm">
-                      {new Date(vigenciaOriginal.dataInicio).toLocaleDateString('pt-BR')} - {new Date(vigenciaOriginal.dataFim).toLocaleDateString('pt-BR')}
+                      <DateDisplay value={vigenciaOriginal.dataInicio} /> - <DateDisplay value={vigenciaOriginal.dataFim} />
                     </span>
                   </div>
                   <span className="text-gray-400">|</span>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-600 font-medium text-xs">Vigência Atual:</span>
                     <span className="font-semibold text-sm">
-                      {new Date(vigenciaOriginal.dataInicio).toLocaleDateString('pt-BR')} - {new Date(calcularVigenciaAtual() || vigenciaOriginal.dataFim).toLocaleDateString('pt-BR')}
+                      <DateDisplay value={vigenciaOriginal.dataInicio} /> - <DateDisplay value={calcularVigenciaAtual() || vigenciaOriginal.dataFim} />
                     </span>
                     {(() => {
                       const extensao = calcularExtensaoPrazo()

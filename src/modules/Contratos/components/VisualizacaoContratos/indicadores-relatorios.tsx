@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
+import { currencyUtils } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -206,7 +207,7 @@ export function IndicadoresRelatorios({
                   VTM do Contrato
                 </p>
                 <p className="text-base font-bold break-all text-purple-600 sm:text-xl">
-                  <CurrencyDisplay value={vtmTotalContrato} />
+                  <span className="font-mono">{currencyUtils.formatar(vtmTotalContrato)}/mês</span>
                 </p>
               </div>
               <div className="rounded-lg bg-orange-50 p-3 text-center sm:p-4">

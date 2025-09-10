@@ -31,6 +31,7 @@ interface TransformedUnidade {
   endereco: string
   ativo: boolean
   valorAtual?: number
+  __editMode?: boolean
 }
 
 interface ContractUnits {
@@ -203,7 +204,10 @@ export function BlocoUnidades({
   }, [handleFieldChange])
 
   const handleAlterarValorUnidade = useCallback((unidade: TransformedUnidade) => {
-    setValueEditorUnit(unidade)
+    setValueEditorUnit({
+      ...unidade,
+      __editMode: true // flag interna para identificar modo de edição
+    } as TransformedUnidade & { __editMode?: boolean })
   }, [])
 
   // Verificar se tem alterações
@@ -643,11 +647,13 @@ export function BlocoUnidades({
       <UnitValueEditor
         isOpen={!!valueEditorUnit}
         onClose={() => setValueEditorUnit(null)}
-        unit={valueEditorUnit}
+        unit={valueEditorUnit ? (({ __editMode, ...rest }) => rest)(valueEditorUnit) : null}
         onSave={handleSaveLinkedUnit}
         contractValue={contractValue}
         valorRestante={valorCalculations.valorRestante}
         disabled={disabled}
+        mode={valueEditorUnit?.__editMode ? 'edit' : 'create'}
+        existingValue={valueEditorUnit?.__editMode ? valueEditorUnit?.valorAtual || 0 : 0}
       />
     </div>
   )

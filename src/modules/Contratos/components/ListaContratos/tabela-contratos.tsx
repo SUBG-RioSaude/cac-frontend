@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
 import { VigenciaDisplay } from './VigenciaDisplay'
 import { CNPJDisplay } from '@/components/ui/formatters'
+import { cnpjUtils } from '@/lib/utils'
 
 interface TabelaContratosProps {
   contratos: Contrato[]
@@ -276,7 +277,11 @@ export function TabelaContratos({
                             <TableCell>
                               <div className="font-medium">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
                               <div className="text-xs text-muted-foreground">
-                                CNPJ: <CNPJDisplay value={contrato.empresaCnpj || contrato.contratada?.cnpj} fallback="N/A" />
+                                {(() => {
+                                  const rawCnpj = contrato.empresaCnpj || contrato.contratada?.cnpj
+                                  const cnpjTexto = rawCnpj ? cnpjUtils.formatar(rawCnpj) : 'N/A'
+                                  return `CNPJ: ${cnpjTexto}`
+                                })()}
                               </div>
                             </TableCell>
                           )}
@@ -380,7 +385,13 @@ export function TabelaContratos({
                           {!hideContratadaColumn && (
                             <TableCell>
                               <div className="font-medium truncate max-w-36">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
-                              <div className="text-xs text-muted-foreground">CNPJ: <CNPJDisplay value={contrato.empresaCnpj || contrato.contratada?.cnpj} fallback="N/A" /></div>
+                              <div className="text-xs text-muted-foreground">
+                                {(() => {
+                                  const rawCnpj = contrato.empresaCnpj || contrato.contratada?.cnpj
+                                  const cnpjTexto = rawCnpj ? cnpjUtils.formatar(rawCnpj) : 'N/A'
+                                  return `CNPJ: ${cnpjTexto}`
+                                })()}
+                              </div>
                             </TableCell>
                           )}
                           <TableCell>

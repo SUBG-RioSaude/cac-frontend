@@ -48,7 +48,7 @@ export function StatusBadge({
       {IconComponent && (
         <IconComponent className={cn(iconSizes[size], 'shrink-0')} />
       )}
-      <span>{config.label}</span>
+      <span className={config.className}>{config.label}</span>
     </Badge>
   )
 }

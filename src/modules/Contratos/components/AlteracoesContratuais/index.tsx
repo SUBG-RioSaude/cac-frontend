@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { CurrencyDisplay } from '@/components/ui/formatters'
+import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
 import {
   ChevronRight,
   ChevronLeft,
@@ -554,7 +554,7 @@ export function AlteracoesContratuais({
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Data da Publicação</Label>
                   <p className="text-sm text-gray-600">
-                    {dados.dataEfeito ? new Date(dados.dataEfeito).toLocaleDateString('pt-BR') : '-'}
+                    {dados.dataEfeito ? <DateDisplay value={dados.dataEfeito} /> : '-'}
                   </p>
                 </div>
 
@@ -609,7 +609,7 @@ export function AlteracoesContratuais({
                           <div>
                             <span className="font-medium text-gray-700">Nova Data Final:</span>
                             <p className="text-gray-600">
-                              {new Date(dados.blocos.vigencia.novaDataFinal).toLocaleDateString('pt-BR')}
+                              <DateDisplay value={dados.blocos.vigencia.novaDataFinal} />
                             </p>
                           </div>
                         )}

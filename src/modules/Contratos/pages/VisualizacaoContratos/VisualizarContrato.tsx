@@ -14,6 +14,7 @@ import {
 import { ContratoStatusBadge } from '@/components/ui/status-badge'
 import { parseStatusContrato } from '@/types/status'
 import { Separator } from '@/components/ui/separator'
+import { DateDisplay } from '@/components/ui/formatters'
 
 // Componentes das abas
 import { DetalhesContrato } from '../../components/VisualizacaoContratos/detalhes-contrato'
@@ -367,9 +368,9 @@ export function VisualizarContrato() {
                     Vigência
                   </p>
                   <p className="text-xs font-medium break-words sm:text-sm">
-                    {new Date(contrato.dataInicio).toLocaleDateString('pt-BR')}{' '}
+                    <DateDisplay value={contrato.dataInicio} />{' '}
                     -{' '}
-                    {new Date(contrato.dataTermino).toLocaleDateString('pt-BR')}
+                    <DateDisplay value={contrato.dataTermino} />
                   </p>
                 </div>
                 <div className="text-center sm:col-span-2 sm:text-left lg:col-span-1">
