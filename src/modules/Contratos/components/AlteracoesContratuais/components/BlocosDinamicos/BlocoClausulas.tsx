@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 import {
   Plus,
   Minus,
@@ -142,7 +143,7 @@ export function BlocoClausulas({
                 <Label className="text-xs text-purple-600">Período de Vigência</Label>
                 <p className="font-medium text-purple-900">
                   {contractInfo.dataInicio && contractInfo.dataTermino ? (
-                    `${new Date(contractInfo.dataInicio).toLocaleDateString('pt-BR')} - ${new Date(contractInfo.dataTermino).toLocaleDateString('pt-BR')}`
+                    <><DateDisplay value={contractInfo.dataInicio} /> - <DateDisplay value={contractInfo.dataTermino} /></>
                   ) : 'Não informado'}
                 </p>
               </div>

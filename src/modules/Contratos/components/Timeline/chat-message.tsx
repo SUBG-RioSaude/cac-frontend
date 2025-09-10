@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 import {
   Reply,
   MoreHorizontal,
@@ -52,13 +53,6 @@ export function ChatMessage({
     }
   }
 
-  const formatarDataCompleta = (dataHora: string) => {
-    try {
-      return new Date(dataHora).toLocaleString('pt-BR')
-    } catch {
-      return dataHora
-    }
-  }
 
   const getTipoMensagemBadge = () => {
     switch (mensagem.tipo) {
@@ -245,7 +239,13 @@ export function ChatMessage({
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem className="text-xs text-muted-foreground">
-                  {formatarDataCompleta(mensagem.dataEnvio)}
+                  <DateDisplay value={mensagem.dataEnvio} options={{
+                    day: '2-digit',
+                    month: '2-digit', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }} />
                 </DropdownMenuItem>
                 
                 {isOwn && (

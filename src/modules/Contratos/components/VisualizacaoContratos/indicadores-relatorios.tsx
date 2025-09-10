@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
+import { currencyUtils } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -17,7 +19,6 @@ import type {
   ContratoDetalhado,
 } from '@/modules/Contratos/types/contrato'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
-import { dateUtils } from '@/lib/utils'
 
 interface IndicadoresRelatoriosProps {
   indicadores: {
@@ -58,16 +59,7 @@ export function IndicadoresRelatorios({
     return unidade?.nome || `Unidade ${unidadeId.slice(-8)}`
   }
 
-  const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(valor)
-  }
 
-  const formatarData = (data: string) => {
-    return dateUtils.formatarDataUTC(data)
-  }
 
   const getStatusPeriodo = (status: string) => {
     const statusConfig = {
@@ -195,7 +187,7 @@ export function IndicadoresRelatorios({
                   Valor Total
                 </p>
                 <p className="text-base font-bold break-all text-blue-600 sm:text-xl">
-                  {formatarMoeda(valorTotal)}
+                  <CurrencyDisplay value={valorTotal} />
                 </p>
               </div>
               <div className="rounded-lg bg-green-50 p-3 text-center sm:p-4">
@@ -203,7 +195,7 @@ export function IndicadoresRelatorios({
                   Valor Executado
                 </p>
                 <p className="text-base font-bold break-all text-green-600 sm:text-xl">
-                  {formatarMoeda(valorExecutado)}
+                  <CurrencyDisplay value={valorExecutado} />
                 </p>
               </div>
             </div>
@@ -215,7 +207,7 @@ export function IndicadoresRelatorios({
                   VTM do Contrato
                 </p>
                 <p className="text-base font-bold break-all text-purple-600 sm:text-xl">
-                  {formatarMoeda(vtmTotalContrato)}
+                  <span className="font-mono">{currencyUtils.formatar(vtmTotalContrato)}/mês</span>
                 </p>
               </div>
               <div className="rounded-lg bg-orange-50 p-3 text-center sm:p-4">
@@ -223,7 +215,7 @@ export function IndicadoresRelatorios({
                   Saldo Atual
                 </p>
                 <p className="text-base font-bold break-all text-orange-600 sm:text-xl">
-                  {formatarMoeda(indicadores.saldoAtual)}
+                  <CurrencyDisplay value={indicadores.saldoAtual} />
                 </p>
               </div>
             </div>
@@ -254,7 +246,7 @@ export function IndicadoresRelatorios({
               </div>
               {gastoMedioPorDia > 0 && (
                 <p className="text-muted-foreground text-xs mt-2">
-                  Gasto médio: {formatarMoeda(gastoMedioPorDia)}/dia
+                  Gasto médio: <CurrencyDisplay value={gastoMedioPorDia} />/dia
                 </p>
               )}
             </div>
@@ -301,11 +293,11 @@ export function IndicadoresRelatorios({
                       {dadosEvolucao[mesHover].isReal ? ' (Real)' : ' (Projetado)'}
                     </p>
                     <p className="break-all">
-                      {formatarMoeda(dadosEvolucao[mesHover].valor)}
+                      <CurrencyDisplay value={dadosEvolucao[mesHover].valor} />
                     </p>
                     {dadosEvolucao[mesHover].isReal && (
                       <p className="text-xs text-gray-300 mt-1">
-                        Esperado: {formatarMoeda(dadosEvolucao[mesHover].valorEsperado)}
+                        Esperado: <CurrencyDisplay value={dadosEvolucao[mesHover].valorEsperado} />
                       </p>
                     )}
                   </div>
@@ -395,11 +387,11 @@ export function IndicadoresRelatorios({
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Início do Contrato</p>
-                <p className="font-semibold text-blue-600">{formatarData(contrato.dataInicio)}</p>
+                <p className="font-semibold text-blue-600"><DateDisplay value={contrato.dataInicio} /></p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Término Previsto</p>
-                <p className="font-semibold text-blue-600">{formatarData(contrato.dataTermino)}</p>
+                <p className="font-semibold text-blue-600"><DateDisplay value={contrato.dataTermino} /></p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Duração Total</p>
@@ -477,10 +469,10 @@ export function IndicadoresRelatorios({
                       </div>
                       <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
                         <p className="text-muted-foreground text-xs sm:text-sm">
-                          {formatarData(periodo.inicio)} - {formatarData(periodo.fim)}
+                          <DateDisplay value={periodo.inicio} /> - <DateDisplay value={periodo.fim} />
                         </p>
                         <p className="text-xs text-blue-600">
-                          Esperado: {periodo.percentualEsperado}% ({formatarMoeda(periodo.valorEsperado)})
+                          Esperado: {periodo.percentualEsperado}% (<CurrencyDisplay value={periodo.valorEsperado} />)
                         </p>
                       </div>
                     </div>
@@ -539,10 +531,10 @@ export function IndicadoresRelatorios({
             </div>
             <div className="text-muted-foreground mt-2 flex justify-between text-xs">
               <span className="break-all">
-                {formatarData(contrato.dataInicio)}
+                <DateDisplay value={contrato.dataInicio} />
               </span>
               <span className="break-all">
-                {formatarData(contrato.dataTermino)}
+                <DateDisplay value={contrato.dataTermino} />
               </span>
             </div>
           </div>
@@ -605,10 +597,10 @@ export function IndicadoresRelatorios({
                           {unidadesComputadas[unidadeHover].percentualValor}% do total
                         </p>
                         <p className="break-all">
-                          {formatarMoeda(unidadesComputadas[unidadeHover].valorTotalMensal)}/mês
+                          <CurrencyDisplay value={unidadesComputadas[unidadeHover].valorTotalMensal} />/mês
                         </p>
                         <p className="text-xs text-gray-300 mt-1">
-                          Valor atribuído: {formatarMoeda(unidadesComputadas[unidadeHover].valorAtribuido)}
+                          Valor atribuído: <CurrencyDisplay value={unidadesComputadas[unidadeHover].valorAtribuido} />
                         </p>
                       </div>
                     </motion.div>
@@ -720,11 +712,11 @@ export function IndicadoresRelatorios({
                                 {unidade.percentualValor}% do total
                               </span>
                               <span className="break-all">
-                                {formatarMoeda(unidade.valorTotalMensal)}/mês
+                                <CurrencyDisplay value={unidade.valorTotalMensal} />/mês
                               </span>
                             </div>
                             <div className="text-muted-foreground mt-1 text-xs">
-                              Valor atribuído: {formatarMoeda(unidade.valorAtribuido)}
+                              Valor atribuído: <CurrencyDisplay value={unidade.valorAtribuido} />
                             </div>
                           </div>
                         </div>
@@ -769,7 +761,7 @@ export function IndicadoresRelatorios({
                       VTM do Contrato
                     </p>
                     <p className="text-base font-bold break-all text-blue-600 sm:text-xl">
-                      {formatarMoeda(vtmTotalContrato)}/mês
+                      <CurrencyDisplay value={vtmTotalContrato} />/mês
                     </p>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
@@ -780,7 +772,7 @@ export function IndicadoresRelatorios({
                       Gasto Médio por Dia
                     </p>
                     <p className="text-base font-bold break-all text-green-600 sm:text-xl">
-                      {formatarMoeda(gastoMedioPorDia)}/dia
+                      <CurrencyDisplay value={gastoMedioPorDia} />/dia
                     </p>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">

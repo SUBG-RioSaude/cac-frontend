@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { UnidadeStatusBadge } from '@/components/ui/status-badge'
+import { parseStatusUnidade } from '@/types/status'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   ChevronLeft,
@@ -70,29 +71,6 @@ export function TabelaUnidades({
     )
   }
 
-  const getStatusBadge = (status: string = 'ativo') => {
-    const statusConfig = {
-      ativo: {
-        variant: 'default' as const,
-        label: 'Ativo',
-        className: 'bg-green-100 text-green-800 hover:bg-green-200',
-      },
-      inativo: {
-        variant: 'secondary' as const,
-        label: 'Inativo',
-        className: 'bg-red-100 text-red-800 hover:bg-red-200',
-      },
-    }
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
-
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        {config.label}
-      </Badge>
-    )
-  }
 
   const handleSelecionarUnidade = (id: string | number, selecionado: boolean) => {
     if (selecionado) {
@@ -209,7 +187,7 @@ export function TabelaUnidades({
                             </div>
                           </div>
                         </div>
-                        {getStatusBadge(unidade.status)}
+                        <UnidadeStatusBadge status={parseStatusUnidade(unidade.status)} />
                       </div>
 
                       <div className="mb-3 space-y-2">
@@ -345,7 +323,7 @@ export function TabelaUnidades({
                             {unidade.sigla}
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(unidade.status)}</TableCell>
+                        <TableCell><UnidadeStatusBadge status={parseStatusUnidade(unidade.status)} /></TableCell>
                         <TableCell>
                           <div className="text-center text-sm font-medium">
                             {unidade.contratosAtivos || 0}

@@ -9,7 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { FornecedorStatusBadge } from '@/components/ui/status-badge'
+import { parseStatusFornecedor } from '@/types/status'
+import { CurrencyDisplay, CNPJDisplay } from '@/components/ui/formatters'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Eye,
@@ -43,43 +45,8 @@ export function TabelaFornecedores({
     selecionarTodosFornecedores,
   } = useFornecedoresStore()
 
-  const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(valor)
-  }
 
-  const formatarCNPJ = (cnpj: string) => {
-    return cnpj.replace(
-      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
-      '$1.$2.$3/$4-$5',
-    )
-  }
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      ativo: {
-        variant: 'default' as const,
-        label: 'Ativo',
-        className: 'bg-green-100 text-green-800 hover:bg-green-200',
-      },
-      inativo: {
-        variant: 'secondary' as const,
-        label: 'Inativo',
-        className: 'bg-gray-100 text-gray-800 hover:bg-gray-200',
-      },
-      suspenso: {
-        variant: 'destructive' as const,
-        label: 'Suspenso',
-        className: 'bg-red-100 text-red-800 hover:bg-red-200',
-      },
-    }
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
-    return <Badge className={config.className}>{config.label}</Badge>
-  }
 
   const handleSelecionarTodos = (checked: boolean) => {
     selecionarTodosFornecedores(checked)
@@ -158,14 +125,14 @@ export function TabelaFornecedores({
                             }
                           />
                         </div>
-                        {getStatusBadge(fornecedor.status)}
+                        <FornecedorStatusBadge status={parseStatusFornecedor(fornecedor.status)} />
                       </div>
 
                       <div className="mb-3 space-y-2">
                         <div>
                           <p className="text-muted-foreground text-xs">CNPJ</p>
                           <p className="text-sm">
-                            {formatarCNPJ(fornecedor.cnpj)}
+                            <CNPJDisplay value={fornecedor.cnpj} />
                           </p>
                         </div>
 
@@ -183,7 +150,7 @@ export function TabelaFornecedores({
                               Valor Total
                             </p>
                             <p className="text-sm font-semibold">
-                              {formatarMoeda(fornecedor.valorTotalContratos)}
+                              <CurrencyDisplay value={fornecedor.valorTotalContratos} />
                             </p>
                           </div>
                         </div>
@@ -277,7 +244,7 @@ export function TabelaFornecedores({
                         </TableCell>
                         <TableCell>
                           <div className="font-mono text-sm">
-                            {formatarCNPJ(fornecedor.cnpj)}
+                            <CNPJDisplay value={fornecedor.cnpj} />
                           </div>
                         </TableCell>
                         <TableCell>
@@ -286,11 +253,11 @@ export function TabelaFornecedores({
                           </div>
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(fornecedor.status)}
+                          <FornecedorStatusBadge status={parseStatusFornecedor(fornecedor.status)} />
                         </TableCell>
                         <TableCell>
                           <div className="text-sm font-semibold">
-                            {formatarMoeda(fornecedor.valorTotalContratos)}
+                            <CurrencyDisplay value={fornecedor.valorTotalContratos} />
                           </div>
                         </TableCell>
                         <TableCell className="text-right">

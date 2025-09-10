@@ -8,14 +8,12 @@
 import { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ContratoStatusBadge, useContratoStatus } from '@/components/ui/status-badge'
+import { CurrencyDisplay } from '@/components/ui/formatters'
 import { 
   TrendingUp, 
   Eye, 
   Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   DollarSign,
   Building,
   Phone
@@ -59,36 +57,7 @@ export function FornecedorVisaoGeral({ fornecedor, contratos, isLoading }: Forne
     return contratosOrdenados.slice(0, 5) // Mostrar apenas os 5 mais relevantes
   }, [contratos])
 
-  const formatarMoeda = (valor: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2
-    }).format(valor)
-  }
 
-  const getStatusContrato = (contrato: Contrato) => {
-    const agora = new Date()
-    const em30Dias = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    
-    if (contrato.status === 'suspenso') {
-      return { label: 'Suspenso', color: 'bg-gray-100 text-gray-800', icon: null }
-    }
-    
-    if (!contrato.vigenciaFinal) {
-      return { label: 'Ativo', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-3 w-3" /> }
-    }
-    
-    const dataFim = new Date(contrato.vigenciaFinal)
-    
-    if (dataFim < agora) {
-      return { label: 'Vencido', color: 'bg-red-100 text-red-800', icon: <AlertTriangle className="h-3 w-3" /> }
-    } else if (dataFim <= em30Dias) {
-      return { label: 'Vencendo', color: 'bg-orange-100 text-orange-800', icon: <Clock className="h-3 w-3" /> }
-    } else {
-      return { label: 'Ativo', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-3 w-3" /> }
-    }
-  }
 
   const handleVisualizarContrato = (contrato: Contrato) => {
     navigate(`/contratos/${contrato.id}`)
@@ -102,7 +71,7 @@ export function FornecedorVisaoGeral({ fornecedor, contratos, isLoading }: Forne
           <Building className="h-5 w-5" />
           Informações da Empresa
         </h3>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-stretch">
           <div>
             <h4 className="text-md font-medium mb-3">Dados Principais</h4>
             <InformacoesFornecedor
@@ -113,7 +82,7 @@ export function FornecedorVisaoGeral({ fornecedor, contratos, isLoading }: Forne
             />
           </div>
           
-          <div>
+          <div className='flex-1 flex flex-col '>
             <h4 className="text-md font-medium mb-3">Endereço</h4>
             <EnderecoFornecedor
               logradouro={fornecedor.endereco}
@@ -206,61 +175,77 @@ export function FornecedorVisaoGeral({ fornecedor, contratos, isLoading }: Forne
           <Card>
             <CardContent className="p-6">
               <div className="space-y-4">
-                {contratosRelevantes.map((contrato) => {
-                  const status = getStatusContrato(contrato)
-                  
-                  return (
-                    <div 
-                      key={contrato.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-sm">
-                            {contrato.numeroContrato || 'Sem número'}
-                          </h4>
-                          <Badge className={`text-xs ${status.color}`}>
-                            {status.icon}
-                            <span className="ml-1">{status.label}</span>
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {contrato.descricaoObjeto || 'Descrição não disponível'}
-                        </p>
-                        
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            <span>{formatarMoeda(contrato.valorGlobal || 0)}</span>
-                          </div>
-                          
-                          <div className="flex-1">
-                            <VigenciaDisplay
-                              vigenciaInicio={contrato.vigenciaInicial}
-                              vigenciaFim={contrato.vigenciaFinal}
-                              compact
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleVisualizarContrato(contrato)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                })}
+                {contratosRelevantes.map((contrato) => (
+                  <ContratoRelevantItem 
+                    key={contrato.id} 
+                    contrato={contrato}
+                    onVisualizar={handleVisualizarContrato}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Componente para renderizar item de contrato relevante
+interface ContratoRelevantItemProps {
+  contrato: Contrato
+  onVisualizar: (contrato: Contrato) => void
+}
+
+function ContratoRelevantItem({ contrato, onVisualizar }: ContratoRelevantItemProps) {
+  const contratoStatus = useContratoStatus(
+    contrato.vigenciaInicial,
+    contrato.vigenciaFinal,
+    contrato.status
+  )
+  
+  return (
+    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-2">
+          <h4 className="font-semibold text-sm">
+            {contrato.numeroContrato || 'Sem número'}
+          </h4>
+          <ContratoStatusBadge 
+            status={contratoStatus} 
+            showIcon={true}
+            size="sm"
+          />
+        </div>
+        
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {contrato.descricaoObjeto || 'Descrição não disponível'}
+        </p>
+        
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <DollarSign className="h-3 w-3" />
+            <CurrencyDisplay value={contrato.valorGlobal || 0} />
+          </div>
+          
+          <div className="flex-1">
+            <VigenciaDisplay
+              vigenciaInicio={contrato.vigenciaInicial}
+              vigenciaFim={contrato.vigenciaFinal}
+              compact
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div className="ml-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onVisualizar(contrato)}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   )

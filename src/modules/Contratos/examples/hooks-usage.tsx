@@ -6,6 +6,8 @@
 import React, { useState } from 'react'
 import { useContratos, useCriarContrato, useUpdateContrato, useDeleteContrato, useToast } from '../hooks'
 import type { ContratoParametros } from '../services/contratos-service'
+import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/button-extended'
 
 // Exemplo 1: Lista de contratos com filtros
 function ContratosListExample() {
@@ -32,13 +34,14 @@ function ContratosListExample() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2>Contratos ({data?.totalRegistros})</h2>
-        <button 
-          onClick={() => refetch()} 
-          disabled={isFetching}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+        <LoadingButton
+          onClick={() => refetch()}
+          loading={isFetching}
+          loadingText="Recarregando..."
+          variant="info"
         >
-          {isFetching ? 'Recarregando...' : 'Atualizar'}
-        </button>
+          Atualizar
+        </LoadingButton>
       </div>
 
       <div className="grid gap-4">
@@ -53,21 +56,21 @@ function ContratosListExample() {
 
       {/* Paginação */}
       <div className="flex justify-between mt-4">
-        <button 
+        <Button
           onClick={() => setFiltros(prev => ({ ...prev, pagina: prev.pagina! - 1 }))}
           disabled={filtros.pagina === 1}
-          className="bg-gray-300 px-4 py-2 rounded"
+          variant="neutral"
         >
           Anterior
-        </button>
+        </Button>
         <span>Página {filtros.pagina} de {data?.totalPaginas}</span>
-        <button 
+        <Button
           onClick={() => setFiltros(prev => ({ ...prev, pagina: prev.pagina! + 1 }))}
           disabled={!data?.temProximaPagina}
-          className="bg-gray-300 px-4 py-2 rounded"
+          variant="neutral"
         >
           Próxima
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -160,13 +163,15 @@ function CreateContratoExample() {
         required
       />
 
-      <button 
-        type="submit" 
-        disabled={createMutation.isPending}
-        className="w-full bg-green-500 text-white p-2 rounded disabled:bg-gray-300"
+      <LoadingButton
+        type="submit"
+        loading={createMutation.isPending}
+        loadingText="Criando..."
+        variant="success"
+        className="w-full"
       >
-        {createMutation.isPending ? 'Criando...' : 'Criar Contrato'}
-      </button>
+        Criar Contrato
+      </LoadingButton>
 
       {createMutation.isError && (
         <div className="text-red-500 text-sm">
@@ -205,28 +210,33 @@ function ContratoActionsExample({ contratoId }: { contratoId: string }) {
 
   return (
     <div className="flex gap-2">
-      <button 
+      <LoadingButton
         onClick={handleUpdate}
-        disabled={updateMutation.isPending}
-        className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+        loading={updateMutation.isPending}
+        loadingText="Atualizando..."
+        variant="info"
+        size="sm"
       >
-        {updateMutation.isPending ? 'Atualizando...' : 'Atualizar'}
-      </button>
+        Atualizar
+      </LoadingButton>
 
-      <button 
+      <LoadingButton
         onClick={handleDelete}
-        disabled={deleteMutation.isPending}
-        className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+        loading={deleteMutation.isPending}
+        loadingText="Removendo..."
+        variant="destructive"
+        size="sm"
       >
-        {deleteMutation.isPending ? 'Removendo...' : 'Remover'}
-      </button>
+        Remover
+      </LoadingButton>
 
-      <button 
+      <Button
         onClick={handleCustomAction}
-        className="bg-purple-500 text-white px-3 py-1 rounded text-sm"
+        variant="default"
+        size="sm"
       >
         Ação Customizada
-      </button>
+      </Button>
     </div>
   )
 }

@@ -919,12 +919,14 @@ export const currencyUtils = {
       return 'R$ 0,00'
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    const formatted = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(numericValue)
+    // Substitui NBSP por espaço regular para facilitar matching em testes e consistência visual
+    return formatted.replace(/\u00a0/g, ' ')
   },
 
   /**
@@ -952,12 +954,13 @@ export const currencyUtils = {
     }
 
     // Formata como moeda
-    return new Intl.NumberFormat('pt-BR', {
+    const formatted = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(numeroEmReais)
+    return formatted.replace(/\u00a0/g, ' ')
   },
 
   /**
@@ -992,4 +995,129 @@ export const currencyUtils = {
   paraAPI: (value: number): string => {
     return value.toFixed(2)
   },
+}
+
+export const cepUtils = {
+  /**
+   * Remove todos os caracteres não numéricos de um CEP
+   * @param cep - CEP com ou sem formatação
+   * @returns CEP apenas com números
+   */
+  limpar: (cep: string): string => {
+    if (!cep) return ''
+    return cep.replace(/\D/g, '')
+  },
+
+  /**
+   * Formata CEP no padrão brasileiro (XXXXX-XXX)
+   * @param cep - CEP com ou sem formatação
+   * @returns CEP formatado como 12345-678
+   */
+  formatar: (cep: string): string => {
+    if (!cep) return ''
+    
+    const cepLimpo = cepUtils.limpar(cep)
+    
+    if (cepLimpo.length !== 8) {
+      return cep // Retorna original se não tiver 8 dígitos
+    }
+    
+    return cepLimpo.replace(/^(\d{5})(\d{3})/, '$1-$2')
+  },
+
+  /**
+   * Valida se um CEP é válido (8 dígitos)
+   * @param cep - CEP para validar
+   * @returns true se válido
+   */
+  validar: (cep: string): boolean => {
+    const cepLimpo = cepUtils.limpar(cep)
+    return cepLimpo.length === 8
+  },
+
+  /**
+   * Aplica máscara de CEP durante a digitação
+   * @param value - Valor atual do input
+   * @returns Valor com máscara aplicada
+   */
+  aplicarMascara: (value: string): string => {
+    const cepLimpo = cepUtils.limpar(value)
+    
+    // Limita a 8 dígitos
+    const cepLimitado = cepLimpo.slice(0, 8)
+    
+    if (cepLimitado.length <= 5) {
+      return cepLimitado
+    } else {
+      return cepLimitado.replace(/^(\d{5})(\d{0,3})/, '$1-$2')
+    }
+  }
+}
+
+export const phoneUtils = {
+  /**
+   * Remove todos os caracteres não numéricos de um telefone
+   * @param phone - Telefone com ou sem formatação
+   * @returns Telefone apenas com números
+   */
+  limpar: (phone: string): string => {
+    if (!phone) return ''
+    return phone.replace(/\D/g, '')
+  },
+
+  /**
+   * Formata telefone brasileiro (celular ou fixo)
+   * @param phone - Telefone com ou sem formatação
+   * @returns Telefone formatado
+   */
+  formatar: (phone: string): string => {
+    if (!phone) return ''
+    
+    const phoneLimpo = phoneUtils.limpar(phone)
+    
+    // Celular: (XX) 9XXXX-XXXX
+    if (phoneLimpo.length === 11) {
+      return phoneLimpo.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+    }
+    
+    // Fixo: (XX) XXXX-XXXX
+    if (phoneLimpo.length === 10) {
+      return phoneLimpo.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+    }
+    
+    // Retorna original se não seguir padrão
+    return phone
+  },
+
+  /**
+   * Valida se um telefone brasileiro é válido
+   * @param phone - Telefone para validar
+   * @returns true se válido (10 ou 11 dígitos)
+   */
+  validar: (phone: string): boolean => {
+    const phoneLimpo = phoneUtils.limpar(phone)
+    return phoneLimpo.length === 10 || phoneLimpo.length === 11
+  },
+
+  /**
+   * Aplica máscara de telefone durante a digitação
+   * @param value - Valor atual do input
+   * @returns Valor com máscara aplicada
+   */
+  aplicarMascara: (value: string): string => {
+    const phoneLimpo = phoneUtils.limpar(value)
+    
+    // Limita a 11 dígitos
+    const phoneLimitado = phoneLimpo.slice(0, 11)
+    
+    if (phoneLimitado.length <= 2) {
+      return phoneLimitado.length > 0 ? `(${phoneLimitado}` : phoneLimitado
+    } else if (phoneLimitado.length <= 6) {
+      return phoneLimitado.replace(/^(\d{2})(\d+)/, '($1) $2')
+    } else if (phoneLimitado.length <= 10) {
+      return phoneLimitado.replace(/^(\d{2})(\d{4})(\d+)/, '($1) $2-$3')
+    } else {
+      return phoneLimitado.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+    }
+  }
 }

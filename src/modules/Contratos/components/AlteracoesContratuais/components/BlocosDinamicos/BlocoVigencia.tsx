@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 import {
   Clock,
   Calendar,
@@ -243,7 +244,7 @@ export function BlocoVigencia({
                 <Label className="text-xs text-green-600">Data de Início</Label>
                 <p className="font-medium text-green-900">
                   {contractTerms.startDate 
-                    ? new Date(contractTerms.startDate).toLocaleDateString('pt-BR')
+                    ? <DateDisplay value={contractTerms.startDate} />
                     : 'Não informado'}
                 </p>
               </div>
@@ -251,7 +252,7 @@ export function BlocoVigencia({
                 <Label className="text-xs text-green-600">Data de Término</Label>
                 <p className="font-medium text-green-900">
                   {contractTerms.endDate 
-                    ? new Date(contractTerms.endDate).toLocaleDateString('pt-BR')
+                    ? <DateDisplay value={contractTerms.endDate} />
                     : 'Não informado'}
                 </p>
               </div>
@@ -320,7 +321,7 @@ export function BlocoVigencia({
                 <Label className="text-xs text-gray-500">Data de Término Atual</Label>
                 <p className="font-medium text-lg text-gray-900">
                   {contractTerms.endDate 
-                    ? new Date(contractTerms.endDate).toLocaleDateString('pt-BR')
+                    ? <DateDisplay value={contractTerms.endDate} />
                     : 'N/A'}
                 </p>
               </div>
@@ -336,7 +337,7 @@ export function BlocoVigencia({
                   dados.operacao === OperacaoVigencia.Diminuir ? 'text-red-600' : 'text-blue-600'
                 )}>
                   {dados.operacao === OperacaoVigencia.Substituir && dados.novaDataFinal ? 
-                    new Date(dados.novaDataFinal).toLocaleDateString('pt-BR') :
+                    <DateDisplay value={dados.novaDataFinal} /> :
                    (dados.valorTempo && dados.tipoUnidade !== undefined) ?
                     `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade]?.label?.toLowerCase()}` : 
                     'N/A'}
@@ -349,7 +350,7 @@ export function BlocoVigencia({
                   dados.operacao === OperacaoVigencia.Acrescentar ? 'text-green-600' :
                   dados.operacao === OperacaoVigencia.Diminuir ? 'text-red-600' : 'text-blue-600'
                 )}>
-                  {novaDataCalculada ? new Date(novaDataCalculada).toLocaleDateString('pt-BR') : 'N/A'}
+                  {novaDataCalculada ? <DateDisplay value={novaDataCalculada} /> : 'N/A'}
                 </p>
               </div>
             </div>
@@ -565,11 +566,11 @@ export function BlocoVigencia({
                       {vigenciaOriginal && dados.valorTempo && dados.tipoUnidade !== undefined && (
                         <div className="bg-blue-50 p-3 rounded-md text-sm">
                           <div className="space-y-1 text-blue-800">
-                            <div><strong>Data atual de término:</strong> {new Date(vigenciaOriginal.dataFim).toLocaleDateString('pt-BR')}</div>
+                            <div><strong>Data atual de término:</strong> <DateDisplay value={vigenciaOriginal.dataFim} /></div>
                             <div>
                               <strong>Operação:</strong> {OPERACOES_CONFIG[dados.operacao].label} {dados.valorTempo} {UNIDADES_TEMPO_CONFIG[dados.tipoUnidade].singular}{dados.valorTempo > 1 ? 's' : ''}
                             </div>
-                            <div><strong>Nova data de término:</strong> {novaDataCalculada ? new Date(novaDataCalculada).toLocaleDateString('pt-BR') : 'Calculando...'}</div>
+                            <div><strong>Nova data de término:</strong> {novaDataCalculada ? <DateDisplay value={novaDataCalculada} /> : 'Calculando...'}</div>
                           </div>
                         </div>
                       )}

@@ -1,7 +1,10 @@
+/// <reference types="vitest/globals" />
+/// <reference types="@testing-library/jest-dom" />
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@/tests/test-utils'
+import { render, screen } from '../../../../../tests/test-utils'
 import { IndicadoresRelatorios } from '../indicadores-relatorios'
 import type { ContratoDetalhado } from '../../../types/contrato'
+import React from 'react'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
@@ -206,7 +209,7 @@ describe('IndicadoresRelatorios', () => {
       />,
     )
 
-    expect(screen.getByText('R$ 1.250.000,00')).toBeInTheDocument()
+    expect(screen.getAllByText('R$ 1.250.000,00').length).toBeGreaterThan(0)
   })
 
   it('deve exibir valor executado calculado corretamente', () => {
@@ -221,7 +224,7 @@ describe('IndicadoresRelatorios', () => {
     )
 
     // Valor executado = valorTotal - saldoAtual = 1250000 - 750000 = 500000
-    expect(screen.getByText('R$ 500.000,00')).toBeInTheDocument()
+    expect(screen.getAllByText('R$ 500.000,00').length).toBeGreaterThan(0)
   })
 
   it('deve exibir saldo atual formatado corretamente', () => {
@@ -235,7 +238,8 @@ describe('IndicadoresRelatorios', () => {
       />,
     )
 
-    expect(screen.getByText('R$ 750.000,00')).toBeInTheDocument()
+    // Pode haver múltiplas ocorrências do mesmo valor (ex.: valor atribuído de unidade)
+    expect(screen.getAllByText('R$ 750.000,00').length).toBeGreaterThan(0)
   })
 
   it('deve calcular e exibir percentual de execução correto', () => {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 import {
   ExternalLink,
   Edit,
@@ -130,16 +131,6 @@ export function CardDocumento({
     onObservacoesChange?.(documento.id, novasObservacoes)
   }
 
-  const formatarData = (data?: string) => {
-    if (!data) return 'Não definida'
-    return new Date(data).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   return (
     <motion.div
@@ -238,7 +229,13 @@ export function CardDocumento({
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              <span>Upload: {formatarData(documento.dataUpload)}</span>
+              <span>Upload: <DateDisplay value={documento.dataUpload} options={{
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }} fallback="Não definida" /></span>
             </div>
             
             {documento.responsavel && (
@@ -251,7 +248,13 @@ export function CardDocumento({
             {documento.dataUltimaVerificacao && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Check className="h-4 w-4" />
-                <span>Última verificação: {formatarData(documento.dataUltimaVerificacao)}</span>
+                <span>Última verificação: <DateDisplay value={documento.dataUltimaVerificacao} options={{
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }} fallback="Não definida" /></span>
               </div>
             )}
           </div>

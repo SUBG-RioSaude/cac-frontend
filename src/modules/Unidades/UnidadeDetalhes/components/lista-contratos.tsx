@@ -1,11 +1,13 @@
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { ContratoStatusBadge } from "@/components/ui/status-badge"
+import { parseStatusContrato } from "@/types/status"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, FileText, Calendar, Building } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { currencyUtils } from "@/lib/utils"
 import type { ContratoVinculado } from "@/modules/Unidades/ListaUnidades/types/unidade"
+import { DateDisplay } from "@/components/ui/formatters"
 
 interface ListaContratosProps {
   contratos: ContratoVinculado[]
@@ -15,41 +17,7 @@ interface ListaContratosProps {
 export function ListaContratos({ contratos }: ListaContratosProps) {
   const navigate = useNavigate()
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      ativo: {
-        variant: "default" as const,
-        label: "Ativo",
-        className: "bg-green-100 text-green-800 hover:bg-green-200",
-      },
-      vencido: {
-        variant: "secondary" as const,
-        label: "Vencido",
-        className: "bg-red-100 text-red-800 hover:bg-red-200",
-      },
-      suspenso: {
-        variant: "secondary" as const,
-        label: "Suspenso",
-        className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
-      },
-    }
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
-
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        {config.label}
-      </Badge>
-    )
-  }
-
-  const formatarData = (data: string) => {
-    return new Date(data).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit", 
-      year: "numeric"
-    })
-  }
 
   const handleVisualizarContrato = (contratoId: number) => {
     navigate(`/contratos/${contratoId}`)
@@ -97,7 +65,7 @@ export function ListaContratos({ contratos }: ListaContratosProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold text-sm">{contrato.numero}</h4>
-                    {getStatusBadge(contrato.status)}
+                    <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Valor: {currencyUtils.formatar(contrato.valor)}
@@ -137,7 +105,7 @@ export function ListaContratos({ contratos }: ListaContratosProps) {
                   <div>
                     <p className="text-muted-foreground">Vigência</p>
                     <p className="font-medium text-foreground">
-                      {formatarData(contrato.vigenciaInicio)} - {formatarData(contrato.vigenciaFim)}
+                      <DateDisplay value={contrato.vigenciaInicio} format="custom" options={{day: "2-digit", month: "2-digit", year: "numeric"}} /> - <DateDisplay value={contrato.vigenciaFim} format="custom" options={{day: "2-digit", month: "2-digit", year: "numeric"}} />
                     </p>
                   </div>
                 </div>

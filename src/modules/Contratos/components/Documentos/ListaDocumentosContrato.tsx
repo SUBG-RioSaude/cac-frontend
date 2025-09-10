@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDocumentos, useDeleteDocumento } from '../../hooks';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertDialog,
@@ -91,7 +92,7 @@ export function ListaDocumentosContrato({ contratoId }: ListaDocumentosContratoP
                       {doc.nome}
                     </TableCell>
                     <TableCell>{doc.tipo}</TableCell>
-                    <TableCell>{doc.dataCadastro ? new Date(doc.dataCadastro).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                    <TableCell>{doc.dataCadastro ? <DateDisplay value={doc.dataCadastro} /> : '-'}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="icon" asChild>
                         <a href={doc.linkExterno || '#'} target="_blank" rel="noopener noreferrer">

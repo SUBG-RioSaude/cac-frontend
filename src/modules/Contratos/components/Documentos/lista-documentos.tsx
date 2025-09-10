@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { 
   FileText, 
@@ -111,10 +112,10 @@ export function ListaDocumentos({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm bg-teal-600 hover:bg-teal-700 text-white border border-teal-600 transition-colors font-medium">
+                    <Button variant="success" size="sm">
                       <Plus className="h-4 w-4" />
                       Adicionar
-                    </button>
+                    </Button>
                   </motion.div>
                 </NovoDocumentoDialog>
               )}

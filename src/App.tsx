@@ -18,6 +18,7 @@ import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoForne
 import {VisualizarContrato} from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
+import { DashboardPage } from './modules/Dashboard/pages/DashboardPage'
 
 function App() {
   return (
@@ -47,26 +48,17 @@ function App() {
       {/* Rota de troca de senha */}
       <Route path="/trocar-senha" element={<Navigate to="/auth/trocar-senha" replace />} />
 
-      {/* Rota raiz - redireciona baseado no estado de autenticação */}
+      {/* Rota raiz - Dashboard/Início */}
       <Route path="/" element={
         <ProtectedRoute requireAuth={true}>
           <LayoutAuthenticated>
-            <Navigate to="/dashboard" replace />
+            <DashboardPage />
           </LayoutAuthenticated>
         </ProtectedRoute>
       } />
 
-        {/* Rotas protegidas principais com layout */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute requireAuth={true}>
-            <LayoutAuthenticated>
-              <div className="p-8">
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <p>Bem-vindo ao sistema! Esta é uma rota protegida.</p>
-              </div>
-            </LayoutAuthenticated>
-          </ProtectedRoute>
-        } />
+        {/* Rota dashboard - redireciona para a raiz para manter compatibilidade */}
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
 
         {/* Rotas de Contratos */}
         <Route path="/contratos/cadastrar" element={

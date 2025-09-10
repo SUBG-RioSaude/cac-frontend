@@ -33,6 +33,7 @@ import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
+import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
@@ -459,7 +460,7 @@ function renderDetalhesAlteracao(
                       <SmartBadge result={nomeResult} variant="default" />
                       {typeof unidade === 'object' && unidade.valorAtribuido && (
                         <span className="ml-1 text-xs text-muted-foreground">
-                          ({new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(unidade.valorAtribuido)})
+                          (<CurrencyDisplay value={unidade.valorAtribuido} />)
                         </span>
                       )}
                     </div>
@@ -611,9 +612,6 @@ export function RegistroAlteracoes({
     return { nome, status: 'success' as const }
   }, [unidadesLookup.data, unidadesLookup.isLoading, unidadesLookup.error])
   
-  const formatarDataHora = (dataHora: string) => {
-    return new Date(dataHora).toLocaleString('pt-BR')
-  }
 
   const getStatusAlteracao = (alteracao: AlteracaoContrato) => {
     // Mapear status numéricos da API para texto legível
@@ -970,7 +968,7 @@ export function RegistroAlteracoes({
                             </h3>
                             <div className="flex items-center gap-2 mb-2">
                               <Badge variant="outline" className="text-xs">
-                                {formatarDataHora(entrada.dataHora)}
+                                <DateDisplay value={entrada.dataHora} format="datetime" />
                               </Badge>
                               <Badge 
                                 variant={entrada.origem === 'timeline' ? 'default' : 'secondary'} 

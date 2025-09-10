@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { parseStatusContrato } from '@/types/status'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -26,6 +28,8 @@ import {
 import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { CNPJDisplay, CEPDisplay, DateDisplay } from '@/components/ui/formatters'
+import { dateUtils } from '@/lib/utils'
 import { 
   EditableFieldWrapper,
   ConfirmEditModal,
@@ -136,34 +140,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     }).format(valor)
   }
 
-  const formatarData = (data: string) => {
-    // Evitar problemas de timezone formatando diretamente a string
-    if (!data) return ''
-    
-    // Se a data já vem no formato ISO (YYYY-MM-DD), converter para DD/MM/YYYY
-    if (data.includes('-')) {
-      const [year, month, day] = data.split('T')[0].split('-')
-      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
-    }
-    
-    // Se já está no formato DD/MM/YYYY, retornar como está
-    if (data.includes('/')) {
-      return data
-    }
-    
-    return data
-  }
 
-  const formatarCNPJ = (cnpj: string) => {
-    return cnpj.replace(
-      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
-      '$1.$2.$3/$4-$5',
-    )
-  }
 
-  const formatarCEP = (cep: string) => {
-    return cep.replace(/^(\d{5})(\d{3})/, '$1-$2')
-  }
 
   const isValidOriginalDate = (dateString?: string) => {
     return dateString && !dateString.startsWith('0001-01-01')
@@ -193,34 +171,6 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     return originalValue && currentValue && originalValue !== currentValue
   }
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      ativo: {
-        label: 'Ativo',
-        className: 'bg-green-100 text-green-800',
-      },
-      vencendo: {
-        label: 'Vencendo em Breve',
-        className: 'bg-yellow-100 text-yellow-800',
-      },
-      vencido: {
-        label: 'Vencido',
-        className: 'bg-red-100 text-red-800',
-      },
-      suspenso: {
-        label: 'Suspenso',
-        className: 'bg-gray-100 text-gray-800',
-      },
-      encerrado: {
-        label: 'Encerrado',
-        className: 'bg-blue-100 text-blue-800',
-      },
-    }
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
-    return <Badge className={config.className}>{config.label}</Badge>
-  }
 
   const getTipoContratacaoBadge = (tipo: string) => {
     return (
@@ -433,7 +383,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <div>
                         <p className="text-muted-foreground text-sm">Status</p>
                         <div className="mt-1">
-                          {getStatusBadge(contrato.status || '')}
+                          <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
                         </div>
                       </div>
                     </div>
@@ -465,7 +415,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                 Data de Início
                               </p>
                               <p className="font-semibold">
-                                {formatarData(contrato.dataInicio)}
+                                <DateDisplay value={contrato.dataInicio} />
                               </p>
                             </div>
                             <div>
@@ -473,7 +423,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                 Data de Término
                               </p>
                               <p className="font-semibold">
-                                {formatarData(contrato.dataTermino)}
+                                <DateDisplay value={contrato.dataTermino} />
                               </p>
                             </div>
                             <div>
@@ -523,7 +473,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                     </Badge>
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Vigência: {formatarData(contrato.dataInicio)} - {formatarData(contrato.dataTermino)}
+                                    Vigência: <DateDisplay value={contrato.dataInicio} /> - <DateDisplay value={contrato.dataTermino} />
                                   </div>
                                   <div className="text-sm text-gray-600">
                                     Valor: {formatarMoeda(contrato.valorTotal)}
@@ -553,11 +503,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                   </div>
                                   <div className="text-sm text-gray-600">
                                     Vigência: {contrato.vigenciaOriginalInicial ? 
-                                      formatarData(contrato.vigenciaOriginalInicial) : 
-                                      formatarData(contrato.dataInicio)
+                                      <DateDisplay value={contrato.vigenciaOriginalInicial} /> : 
+                                      <DateDisplay value={contrato.dataInicio} />
                                     } - {contrato.vigenciaOriginalFinal ? 
-                                      formatarData(contrato.vigenciaOriginalFinal) : 
-                                      formatarData(contrato.dataTermino)
+                                      <DateDisplay value={contrato.vigenciaOriginalFinal} /> : 
+                                      <DateDisplay value={contrato.dataTermino} />
                                     }
                                   </div>
                                   <div className="text-sm text-gray-600">
@@ -683,7 +633,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Data de Início
                           </p>
                           <p className="font-semibold">
-                            {formatarData(contrato.ccon.dataInicio)}
+                            <DateDisplay value={contrato.ccon.dataInicio} />
                           </p>
                         </div>
                         <div>
@@ -691,7 +641,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Data de Término
                           </p>
                           <p className="font-semibold">
-                            {formatarData(contrato.ccon.dataTermino)}
+                            <DateDisplay value={contrato.ccon.dataTermino} />
                           </p>
                         </div>
                       </div>
@@ -750,7 +700,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="h-6 w-full mt-1" />
                         ) : (
                           <p className="font-semibold">
-                            {formatarCNPJ(empresaData?.cnpj || contrato.fornecedor.cnpj)}
+                            <CNPJDisplay value={empresaData?.cnpj || contrato.fornecedor.cnpj} />
                           </p>
                         )}
                       </div>
@@ -910,7 +860,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <div>
                           <p className="text-muted-foreground text-sm">CEP</p>
                           <p className="font-semibold">
-                            {formatarCEP(empresaData?.cep || getEnderecoField('cep'))}
+                            <CEPDisplay value={empresaData?.cep || getEnderecoField('cep')} />
                           </p>
                         </div>
                         <div className="sm:col-span-2">
@@ -1184,7 +1134,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
               return formatarMoeda(value as number)
             }
             if (modalProps.fieldName === 'dataInicio' || modalProps.fieldName === 'dataTermino') {
-              return formatarData(value as string)
+              return dateUtils.formatarDataUTC(value as string)
             }
             return String(value)
           }}
