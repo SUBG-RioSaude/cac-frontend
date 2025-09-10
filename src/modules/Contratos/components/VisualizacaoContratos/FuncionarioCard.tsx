@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import type { Responsavel, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
-import { dateUtils } from '@/lib/utils'
+import { DateDisplay } from '@/components/ui/formatters'
 
 interface FuncionarioCardProps {
   responsavel?: Responsavel // dados básicos do contrato (legado)
@@ -50,10 +50,6 @@ export function FuncionarioCard({
 
   const config = variantConfig[variant]
   
-  // Função para formatar data no formato brasileiro
-  const formatarData = (data: string) => {
-    return dateUtils.formatarDataUTC(data)
-  }
 
   // Determinar situação funcional
   const getSituacaoFuncional = () => {
@@ -188,14 +184,14 @@ export function FuncionarioCard({
             {funcionario?.dataAdmissao && (
               <div className="flex items-center gap-2">
                 <Calendar className="h-3 w-3" />
-                <span>Admitido em {formatarData(funcionario.dataAdmissao)}</span>
+                <span>Admitido em <DateDisplay value={funcionario.dataAdmissao} /></span>
               </div>
             )}
             
             {responsavel?.dataDesignacao && (
               <div className="flex items-center gap-2">
                 <Calendar className="h-3 w-3" />
-                <span>Designado em {formatarData(responsavel.dataDesignacao)}</span>
+                <span>Designado em <DateDisplay value={responsavel.dataDesignacao} /></span>
               </div>
             )}
           </div>

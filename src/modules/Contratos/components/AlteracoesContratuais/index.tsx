@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { CurrencyDisplay } from '@/components/ui/formatters'
 import {
   ChevronRight,
   ChevronLeft,
@@ -652,7 +653,7 @@ export function AlteracoesContratuais({
                           <div>
                             <span className="font-medium text-gray-700">Valor de Ajuste:</span>
                             <p className="text-gray-600 font-mono">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(dados.blocos.valor.valorAjuste)}
+                              <CurrencyDisplay value={dados.blocos.valor.valorAjuste} />
                             </p>
                           </div>
                         )}
@@ -668,7 +669,7 @@ export function AlteracoesContratuais({
                           <div>
                             <span className="font-medium text-gray-700">Novo Valor Global:</span>
                             <p className="text-gray-600 font-mono">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(dados.blocos.valor.novoValorGlobal)}
+                              <CurrencyDisplay value={dados.blocos.valor.novoValorGlobal} />
                             </p>
                           </div>
                         )}

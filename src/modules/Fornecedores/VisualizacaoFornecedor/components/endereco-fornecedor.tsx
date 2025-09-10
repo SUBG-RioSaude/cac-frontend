@@ -12,21 +12,21 @@ interface EnderecoFornecedorProps {
 
 export function EnderecoFornecedor(props: EnderecoFornecedorProps) {
   return (
-    <Card>
+    <Card className='flex-1'>
       <CardHeader>
         <CardTitle>Endereço</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="space-y-1">
+      <CardContent className="text-lg tracking-wide space-y-2">
+        <div className="space-y-2 flex-1">
           <div className="flex flex-wrap gap-1">
             <span>{props.logradouro}</span>
             {props.numero && <span>, {props.numero}</span>}
             {props.complemento && <span>, {props.complemento}</span>}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-md text-muted-foreground">
             {props.bairro}, {props.cidade} - {props.estado}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-md text-muted-foreground">
             CEP: {props.cep}
           </div>
         </div>

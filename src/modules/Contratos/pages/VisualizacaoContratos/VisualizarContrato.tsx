@@ -11,7 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { parseStatusContrato } from '@/types/status'
 import { Separator } from '@/components/ui/separator'
 
 // Componentes das abas
@@ -79,41 +80,6 @@ export function VisualizarContrato() {
   //   }
   // })
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      ativo: {
-        variant: 'default' as const,
-        label: 'Ativo',
-        className:
-          'bg-green-100 text-green-800 px-3 py-1 text-sm font-semibold',
-      },
-      vencendo: {
-        variant: 'secondary' as const,
-        label: 'Vencendo em Breve',
-        className:
-          'bg-yellow-100 text-yellow-800 px-3 py-1 text-sm font-semibold',
-      },
-      vencido: {
-        variant: 'destructive' as const,
-        label: 'Vencido',
-        className: 'bg-red-100 text-red-800 px-3 py-1 text-sm font-semibold',
-      },
-      suspenso: {
-        variant: 'outline' as const,
-        label: 'Suspenso',
-        className: 'bg-gray-100 text-gray-800 px-3 py-1 text-sm font-semibold',
-      },
-      encerrado: {
-        variant: 'outline' as const,
-        label: 'Encerrado',
-        className: 'bg-blue-100 text-blue-800 px-3 py-1 text-sm font-semibold',
-      },
-    }
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
-    return <Badge className={config.className}>{config.label}</Badge>
-  }
 
   
 
@@ -371,7 +337,11 @@ export function VisualizarContrato() {
                   {contrato.numeroContrato}
                 </h1>
                 <div className="flex items-center gap-2">
-                  {getStatusBadge(contrato.status || '')}
+                  <ContratoStatusBadge 
+                    status={parseStatusContrato(contrato.status)} 
+                    size="lg"
+                    className="px-3 py-1 text-sm font-semibold"
+                  />
                 </div>
               </div>
               <p className="text-muted-foreground text-sm break-words sm:text-base">

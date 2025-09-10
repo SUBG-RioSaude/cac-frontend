@@ -10,7 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { parseStatusContrato } from '@/types/status'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Eye,
@@ -26,8 +27,8 @@ import {
 import type { Contrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
 import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cnpjUtils } from '@/lib/utils'
 import { VigenciaDisplay } from './VigenciaDisplay'
+import { CNPJDisplay } from '@/components/ui/formatters'
 
 interface TabelaContratosProps {
   contratos: Contrato[]
@@ -71,44 +72,7 @@ export function TabelaContratos({
     return 'N/A'
   }, [])
 
-  const formatarCNPJ = useCallback((cnpj: string | null | undefined) => {
-    if (!cnpj) return 'N/A'
-    return cnpjUtils.formatar(cnpj)
-  }, [])
 
-  const getStatusBadge = useCallback((status: string) => {
-    const statusConfig = {
-      'ativo': {
-        variant: 'default' as const,
-        label: 'Ativo',
-        className: 'bg-green-100 text-green-800 hover:bg-green-200 border-green-200',
-      },
-      'vencendo': {
-        variant: 'secondary' as const,
-        label: 'Vencendo',
-        className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200',
-      },
-      'vencido': {
-        variant: 'destructive' as const,
-        label: 'Vencido',
-        className: 'bg-red-100 text-red-800 hover:bg-red-200 border-red-200',
-      },
-      'suspenso': {
-        variant: 'outline' as const,
-        label: 'Suspenso',
-        className: 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200',
-      },
-      'encerrado': {
-        variant: 'outline' as const,
-        label: 'Encerrado',
-        className: 'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200',
-      },
-    }
-
-    const normalizedStatus = status?.toLowerCase() || 'ativo'
-    const config = statusConfig[normalizedStatus as keyof typeof statusConfig] || statusConfig.ativo
-    return <Badge className={config.className}>{config.label}</Badge>
-  }, [])
 
   const handleVisualizarContrato = (contrato: Contrato) => {
     navigate(`/contratos/${contrato.id}`)
@@ -170,14 +134,14 @@ export function TabelaContratos({
               <p className="text-xs text-muted-foreground">{obterProcessoPriorizado(contrato)}</p>
             </div>
           </div>
-          {getStatusBadge(contrato.status || 'indefinido')}
+          <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
         </CardHeader>
         <CardContent className="space-y-4 p-4">
           <div>
             {!hideContratadaColumn && (
               <>
                 <p className="font-semibold text-lg">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'Empresa não informada'}</p>
-                <p className="text-sm text-muted-foreground">CNPJ: {formatarCNPJ(contrato.empresaCnpj || contrato.contratada?.cnpj)}</p>
+                <p className="text-sm text-muted-foreground">CNPJ: <CNPJDisplay value={contrato.empresaCnpj || contrato.contratada?.cnpj} fallback="N/A" /></p>
               </>
             )}
             <p className="text-sm text-muted-foreground truncate" title={contrato.descricaoObjeto || ''}>
@@ -312,7 +276,7 @@ export function TabelaContratos({
                             <TableCell>
                               <div className="font-medium">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
                               <div className="text-xs text-muted-foreground">
-                                CNPJ: {formatarCNPJ(contrato.empresaCnpj || contrato.contratada?.cnpj)}
+                                CNPJ: <CNPJDisplay value={contrato.empresaCnpj || contrato.contratada?.cnpj} fallback="N/A" />
                               </div>
                             </TableCell>
                           )}
@@ -329,7 +293,7 @@ export function TabelaContratos({
                             />
                           </TableCell>
                           <TableCell className="text-right font-medium">{formatarMoeda(contrato.valorGlobal)}</TableCell>
-                          <TableCell>{getStatusBadge(contrato.status || 'indefinido')}</TableCell>
+                          <TableCell><ContratoStatusBadge status={parseStatusContrato(contrato.status)} /></TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="default"
@@ -416,7 +380,7 @@ export function TabelaContratos({
                           {!hideContratadaColumn && (
                             <TableCell>
                               <div className="font-medium truncate max-w-36">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
-                              <div className="text-xs text-muted-foreground">CNPJ: {formatarCNPJ(contrato.empresaCnpj || contrato.contratada?.cnpj)}</div>
+                              <div className="text-xs text-muted-foreground">CNPJ: <CNPJDisplay value={contrato.empresaCnpj || contrato.contratada?.cnpj} fallback="N/A" /></div>
                             </TableCell>
                           )}
                           <TableCell>
@@ -430,7 +394,7 @@ export function TabelaContratos({
                             />
                           </TableCell>
                           <TableCell className="text-right font-medium">{formatarMoeda(contrato.valorGlobal)}</TableCell>
-                          <TableCell>{getStatusBadge(contrato.status || 'ativo')}</TableCell>
+                          <TableCell><ContratoStatusBadge status={parseStatusContrato(contrato.status)} /></TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="default"

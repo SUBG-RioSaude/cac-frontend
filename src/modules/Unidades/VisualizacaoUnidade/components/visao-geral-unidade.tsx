@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { UnidadeStatusBadge } from '@/components/ui/status-badge'
 import { Building, Hash, Users } from 'lucide-react'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
 
@@ -8,17 +8,6 @@ interface VisaoGeralUnidadeProps {
 }
 
 export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
-  const getStatusBadge = (ativo: boolean) => {
-    return ativo ? (
-      <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
-        Ativo
-      </Badge>
-    ) : (
-      <Badge className="bg-red-100 text-red-800 hover:bg-red-200 border-red-200">
-        Inativo
-      </Badge>
-    )
-  }
 
   return (
     <div className="space-y-6">
@@ -45,7 +34,7 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
             <div>
               <label className="text-sm font-medium text-muted-foreground">Status</label>
               <div className="mt-1">
-                {getStatusBadge(unidade.ativo)}
+                <UnidadeStatusBadge status={unidade.ativo ? 'ativo' : 'inativo'} />
               </div>
             </div>
             <div>
@@ -83,7 +72,7 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
             <div>
               <label className="text-sm font-medium text-muted-foreground">Status do CAP</label>
               <div className="mt-1">
-                {getStatusBadge(unidade.cap.ativo)}
+                <UnidadeStatusBadge status={unidade.cap.ativo ? 'ativo' : 'inativo'} />
               </div>
             </div>
           </div>

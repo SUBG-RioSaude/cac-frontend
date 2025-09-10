@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { parseStatusContrato } from '@/types/status'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -26,6 +28,7 @@ import {
 import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { CNPJDisplay, CEPDisplay } from '@/components/ui/formatters'
 import { 
   EditableFieldWrapper,
   ConfirmEditModal,
@@ -154,16 +157,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     return data
   }
 
-  const formatarCNPJ = (cnpj: string) => {
-    return cnpj.replace(
-      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
-      '$1.$2.$3/$4-$5',
-    )
-  }
 
-  const formatarCEP = (cep: string) => {
-    return cep.replace(/^(\d{5})(\d{3})/, '$1-$2')
-  }
 
   const isValidOriginalDate = (dateString?: string) => {
     return dateString && !dateString.startsWith('0001-01-01')
@@ -193,34 +187,6 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     return originalValue && currentValue && originalValue !== currentValue
   }
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      ativo: {
-        label: 'Ativo',
-        className: 'bg-green-100 text-green-800',
-      },
-      vencendo: {
-        label: 'Vencendo em Breve',
-        className: 'bg-yellow-100 text-yellow-800',
-      },
-      vencido: {
-        label: 'Vencido',
-        className: 'bg-red-100 text-red-800',
-      },
-      suspenso: {
-        label: 'Suspenso',
-        className: 'bg-gray-100 text-gray-800',
-      },
-      encerrado: {
-        label: 'Encerrado',
-        className: 'bg-blue-100 text-blue-800',
-      },
-    }
-
-    const config =
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.ativo
-    return <Badge className={config.className}>{config.label}</Badge>
-  }
 
   const getTipoContratacaoBadge = (tipo: string) => {
     return (
@@ -433,7 +399,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       <div>
                         <p className="text-muted-foreground text-sm">Status</p>
                         <div className="mt-1">
-                          {getStatusBadge(contrato.status || '')}
+                          <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
                         </div>
                       </div>
                     </div>
@@ -750,7 +716,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="h-6 w-full mt-1" />
                         ) : (
                           <p className="font-semibold">
-                            {formatarCNPJ(empresaData?.cnpj || contrato.fornecedor.cnpj)}
+                            <CNPJDisplay value={empresaData?.cnpj || contrato.fornecedor.cnpj} />
                           </p>
                         )}
                       </div>
@@ -910,7 +876,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <div>
                           <p className="text-muted-foreground text-sm">CEP</p>
                           <p className="font-semibold">
-                            {formatarCEP(empresaData?.cep || getEnderecoField('cep'))}
+                            <CEPDisplay value={empresaData?.cep || getEnderecoField('cep')} />
                           </p>
                         </div>
                         <div className="sm:col-span-2">

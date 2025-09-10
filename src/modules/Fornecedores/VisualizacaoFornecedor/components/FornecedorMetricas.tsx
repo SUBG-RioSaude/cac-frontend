@@ -10,6 +10,7 @@ import {
   FileText, 
   DollarSign
 } from 'lucide-react'
+import { CurrencyDisplay } from '@/components/ui/formatters'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 interface FornecedorMetricasProps {
@@ -38,13 +39,6 @@ export function FornecedorMetricas({ contratos, isLoading }: FornecedorMetricasP
     }
   }
 
-  const formatarMoeda = (valor: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2
-    }).format(valor)
-  }
 
   if (isLoading) {
     return (
@@ -93,7 +87,7 @@ export function FornecedorMetricas({ contratos, isLoading }: FornecedorMetricasP
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-blue-600">
-            {formatarMoeda(metricas.valorTotal)}
+            <CurrencyDisplay value={metricas.valorTotal} />
           </div>
           <p className="text-xs text-muted-foreground">
             soma de todos os contratos
