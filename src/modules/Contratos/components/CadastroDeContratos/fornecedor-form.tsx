@@ -37,8 +37,8 @@ import {
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Empresas/hooks/use-empresas'
-import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
+import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Fornecedores/hooks/use-empresas'
+import type { EmpresaResponse } from '@/modules/Fornecedores/types/empresa'
 
 interface Contato {
   id: string

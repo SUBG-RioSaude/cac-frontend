@@ -34,7 +34,7 @@ import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alte
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
 import { cn, currencyUtils } from '@/lib/utils'
 import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
-import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import { useEmpresasByIds } from '@/modules/Fornecedores/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface RegistroAlteracoesProps {

@@ -6,7 +6,7 @@
 import { useQuery, useQueries } from '@tanstack/react-query'
 import { getContratoDetalhado } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
-import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import { useEmpresa } from '@/modules/Fornecedores/hooks/use-empresas'
 import { useUnidade } from '@/modules/Unidades/hooks/use-unidades'
 import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'

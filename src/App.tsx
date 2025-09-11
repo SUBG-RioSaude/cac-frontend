@@ -13,8 +13,9 @@ import Forbidden from './modules/http-codes/403'
 import ServiceUnavailable from './modules/http-codes/503'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
-import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
-import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/VisualizacaoFornecedorPage'
+import FornecedoresPage from './modules/Fornecedores/pages/ListaFornecedores/FornecedoresPage'
+import CadastroFornecedorPage from './modules/Fornecedores/pages/CadastroFornecedor/CadastroFornecedorPage'
+import VisualizacaoFornecedorPage from './modules/Fornecedores/pages/VisualizacaoFornecedor/VisualizacaoFornecedorPage'
 import {VisualizarContrato} from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
@@ -95,6 +96,13 @@ function App() {
           <ProtectedRoute requireAuth={true}>
             <LayoutAuthenticated>
               <FornecedoresPage />
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        } />
+        <Route path="/fornecedores/cadastrar" element={
+          <ProtectedRoute requireAuth={true}>
+            <LayoutAuthenticated>
+              <CadastroFornecedorPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
         } />

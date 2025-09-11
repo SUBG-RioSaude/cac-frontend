@@ -19,12 +19,12 @@ import {
   CheckCircle
 } from 'lucide-react'
 
-import { useFornecedoresResumo } from '@/modules/Empresas/hooks/use-empresas'
+import { useFornecedoresResumo } from '@/modules/Fornecedores/hooks/use-empresas'
 import type { 
   BlocoFornecedores as IBlocoFornecedores,
   FornecedorAlteracao 
 } from '../../../../types/alteracoes-contratuais'
-import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+import type { FornecedorResumoApi } from '@/modules/Fornecedores/types/empresa'
 
 interface TransformedFornecedor {
   id: string

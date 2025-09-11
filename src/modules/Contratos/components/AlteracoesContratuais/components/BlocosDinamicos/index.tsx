@@ -37,7 +37,7 @@ import {
   getBlocosObrigatorios,
   getBlocosOpcionais
 } from '../../../../types/alteracoes-contratuais'
-import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+import type { FornecedorResumoApi } from '@/modules/Fornecedores/types/empresa'
 
 interface TransformedUnidade {
   id: string

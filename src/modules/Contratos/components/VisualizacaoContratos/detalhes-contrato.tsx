@@ -26,7 +26,7 @@ import {
   Clock,
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
-import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import { useEmpresa } from '@/modules/Fornecedores/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 import { CNPJDisplay, CEPDisplay, DateDisplay } from '@/components/ui/formatters'
 import { dateUtils } from '@/lib/utils'

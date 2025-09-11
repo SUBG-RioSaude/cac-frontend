@@ -42,8 +42,8 @@ import {
 import { useContractContextInvalidation } from '../../hooks/use-contract-context-invalidation'
 import type { AlteracaoContratualForm, AlteracaoContratualResponse, AlertaLimiteLegal, FornecedorAlteracao, TipoAlteracao } from '../../types/alteracoes-contratuais'
 import { TIPOS_ALTERACAO_CONFIG } from '../../types/alteracoes-contratuais'
-import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
-import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import type { FornecedorResumoApi } from '@/modules/Fornecedores/types/empresa'
+import { useEmpresasByIds } from '@/modules/Fornecedores/hooks/use-empresas'
 
 interface ContractInfo {
   numeroContrato?: string

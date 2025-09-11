@@ -19,7 +19,7 @@ export {
   useCreateContato,
   useUpdateContato,
   useDeleteContato
-} from '@/modules/Empresas/hooks/use-empresas'
+} from '@/modules/Fornecedores/hooks/use-empresas'
 export { useDocumentos } from './use-documentos'
 
 // Hooks de Timeline

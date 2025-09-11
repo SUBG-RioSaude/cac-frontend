@@ -48,6 +48,10 @@ const data = {
       icon: Truck,
       items: [
         {
+          title: 'Cadastrar Fornecedor',
+          url: '/fornecedores/cadastrar',
+        },
+        {
           title: 'Lista de Fornecedores',
           url: '/fornecedores',
         },
