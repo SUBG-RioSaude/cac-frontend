@@ -39,13 +39,13 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
       try {
         // Só logar se for retry (não primeira tentativa)
         if (tentativa > 1) {
-          console.log(`[RETRY] ${operacaoNome} - Tentativa ${tentativa}/${MAX_RETRIES}`)
+          // Log do retry seria aqui
         }
         const resultado = await operacao()
         
         // Se chegou aqui, a operação foi bem-sucedida
         if (tentativa > 1) {
-          console.log(`[RETRY] ✅ ${operacaoNome} - Sucesso na tentativa ${tentativa}`)
+          // Log do sucesso após retry seria aqui
         }
         
         return resultado
@@ -68,7 +68,6 @@ export function useEmpenhosWithRetry(contratoId: string): UseEmpenhosWithRetryRe
         const isClientError = axiosError.response?.status && axiosError.response.status >= 400 && axiosError.response.status < 500
         
         if (isClientError) {
-          console.log(`[RETRY] 🚫 ${operacaoNome} - Erro de cliente (${axiosError.response?.status}), não será repetido`)
           break // Sai do loop imediatamente para erros 4xx
         }
         

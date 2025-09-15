@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { DatePicker } from '@/components/ui/date-picker'
 import {
   User,
   ArrowRight,
@@ -47,7 +49,7 @@ interface SubstituirFuncionarioModalProps {
     funcionarioNome?: string
     funcionarioId: string
   }
-  tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
+  tipoGerencia: 1 | 2 // 1=Fiscal, 2=Gestor
   funcionarioCompleto?: FuncionarioApi // Dados completos se disponível
 }
 
@@ -64,6 +66,8 @@ export function SubstituirFuncionarioModal({
   const [funcionarioNovo, setFuncionarioNovo] = useState<FuncionarioApi | null>(null)
   const [observacoes, setObservacoes] = useState('')
   const [etapaConfirmacao, setEtapaConfirmacao] = useState(false)
+  const [opcaoData, setOpcaoData] = useState<'hoje' | 'personalizada'>('hoje')
+  const [dataInicio, setDataInicio] = useState<Date>(new Date())
 
   const substituirMutation = useSubstituirFuncionarioContrato()
 
@@ -74,6 +78,8 @@ export function SubstituirFuncionarioModal({
     setFuncionarioNovo(null)
     setObservacoes('')
     setEtapaConfirmacao(false)
+    setOpcaoData('hoje')
+    setDataInicio(new Date())
     substituirMutation.reset()
     onFechar()
   }
@@ -93,6 +99,9 @@ export function SubstituirFuncionarioModal({
   const handleConfirmarSubstituicao = () => {
     if (!funcionarioNovo) return
 
+    // Determinar a data de início
+    const dataInicioFinal = opcaoData === 'hoje' ? new Date() : dataInicio
+
     substituirMutation.mutate(
       {
         contratoId,
@@ -100,6 +109,7 @@ export function SubstituirFuncionarioModal({
         funcionarioNovoId: funcionarioNovo.id,
         funcionarioNovoNome: funcionarioNovo.nomeCompleto,
         tipoGerencia,
+        dataInicio: dataInicioFinal.toISOString().slice(0, 10), // Formato YYYY-MM-DD
         observacoes: observacoes.trim() || undefined
       },
       {
@@ -190,6 +200,56 @@ export function SubstituirFuncionarioModal({
                   </AlertDescription>
                 </Alert>
               )}
+
+              {/* Seletor de data de início */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Data de Início</Label>
+
+                <RadioGroup
+                  value={opcaoData}
+                  onValueChange={(value) => setOpcaoData(value as 'hoje' | 'personalizada')}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="hoje" id="iniciar-hoje" />
+                    <Label
+                      htmlFor="iniciar-hoje"
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      Iniciar período hoje
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="personalizada" id="data-personalizada" />
+                    <Label
+                      htmlFor="data-personalizada"
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      Escolher data específica
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {opcaoData === 'personalizada' && (
+                  <div className="space-y-2 ml-6">
+                    <Label className="text-xs text-muted-foreground">
+                      Selecione a data de início do período:
+                    </Label>
+                    <DatePicker
+                      date={dataInicio}
+                      onDateChange={(date) => setDataInicio(date || new Date())}
+                      placeholder="Selecionar data de início"
+                      className="w-full"
+                    />
+                  </div>
+                )}
+
+                {opcaoData === 'hoje' && (
+                  <p className="text-xs text-muted-foreground ml-6">
+                    O período de {tipoLabel.toLowerCase()} iniciará hoje ({new Date().toLocaleDateString('pt-BR')})
+                  </p>
+                )}
+              </div>
 
               {/* Campo de observações */}
               <div>

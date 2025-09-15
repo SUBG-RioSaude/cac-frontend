@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,6 +8,7 @@ import { parseStatusContrato } from '@/types/status'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import {
   FileText,
   Building,
@@ -24,8 +25,15 @@ import {
   AlertTriangle,
   Check,
   Clock,
+  Plus,
+  Trash2,
+  RefreshCw
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
+import { 
+  getUnidadesDemandantes, 
+  getUnidadesGestoras
+} from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 import { CNPJDisplay, CEPDisplay, DateDisplay } from '@/components/ui/formatters'
@@ -37,7 +45,8 @@ import {
 } from '@/modules/Contratos/components/EditableFields'
 import { FuncionarioCard } from './FuncionarioCard'
 import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
-import { useFuncionariosByIds } from '@/modules/Funcionarios/hooks/use-funcionarios'
+import { AdicionarFuncionarioModal } from './AdicionarFuncionarioModal'
+import { useContratoTodosFuncionarios, useRemoverFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -54,6 +63,17 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const [modalSubstituicao, setModalSubstituicao] = useState<{
     aberto: boolean
     funcionario?: ContratoFuncionario & { funcionarioNome?: string; funcionarioId: string }
+    tipoGerencia?: 1 | 2
+  }>({ aberto: false })
+
+  const [modalAdicionar, setModalAdicionar] = useState<{
+    aberto: boolean
+    tipoGerencia?: 1 | 2
+  }>({ aberto: false })
+
+  const [modalRemover, setModalRemover] = useState<{
+    aberto: boolean
+    funcionario?: ContratoFuncionario
     tipoGerencia?: 1 | 2
   }>({ aberto: false })
   
@@ -92,19 +112,15 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     error: unidadesError 
   } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
 
-  // Organizar funcionários por tipo a partir dos dados já disponíveis no contrato
-  const funcionariosData = contrato.funcionarios || []
-  
-  // Separar fiscais e gestores
-  const fiscaisFromAPI = funcionariosData.filter(f => f.tipoGerencia === 2 && f.ativo)
-  const gestoresFromAPI = funcionariosData.filter(f => f.tipoGerencia === 1 && f.ativo)
+  // Buscar TODOS os funcionários do contrato em uma única request
+  const { data: todosFuncionarios = [], isLoading: funcionariosLoading } = useContratoTodosFuncionarios(contrato.id)
 
-  // Buscar dados completos dos funcionários para exibição mais rica
-  const funcionariosIds = funcionariosData.map(f => f.funcionarioId).filter(Boolean)
-  const { data: funcionariosCompletos = {} } = useFuncionariosByIds(
-    funcionariosIds,
-    { enabled: funcionariosIds.length > 0 }
-  )
+  // Separar por tipo e filtrar apenas funcionários ativos
+  const fiscaisAtivos = todosFuncionarios.filter(f => f.tipoGerencia === 1 && f.estaAtivo)
+  const gestoresAtivos = todosFuncionarios.filter(f => f.tipoGerencia === 2 && f.estaAtivo)
+
+  // Hook para remoção de funcionários
+  const removerMutation = useRemoverFuncionarioContrato()
 
   // Handlers do modal de substituição
   const handleAbrirModalSubstituicao = (funcionario: ContratoFuncionario & { funcionarioNome?: string; funcionarioId: string }, tipoGerencia: 1 | 2) => {
@@ -117,6 +133,50 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
 
   const handleFecharModalSubstituicao = () => {
     setModalSubstituicao({ aberto: false })
+  }
+
+  // Handlers do modal de adição
+  const handleAbrirModalAdicionar = (tipoGerencia: 1 | 2) => {
+    setModalAdicionar({
+      aberto: true,
+      tipoGerencia
+    })
+  }
+
+  const handleFecharModalAdicionar = () => {
+    setModalAdicionar({ aberto: false })
+  }
+
+  // Handlers do modal de remoção
+  const handleAbrirModalRemover = (funcionario: ContratoFuncionario, tipoGerencia: 1 | 2) => {
+    setModalRemover({
+      aberto: true,
+      funcionario,
+      tipoGerencia
+    })
+  }
+
+  const handleFecharModalRemover = () => {
+    setModalRemover({ aberto: false })
+  }
+
+  const handleConfirmarRemocao = () => {
+    const { funcionario, tipoGerencia } = modalRemover
+    if (!funcionario || !tipoGerencia) return
+
+    removerMutation.mutate(
+      {
+        contratoId: contrato.id,
+        funcionarioId: funcionario.funcionarioId,
+        funcionarioNome: funcionario.funcionarioNome,
+        tipoGerencia
+      },
+      {
+        onSuccess: () => {
+          handleFecharModalRemover()
+        }
+      }
+    )
   }
 
   // Helper para obter nome da unidade
@@ -457,7 +517,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             <div className="space-y-0">
                               {/* Item Atual - no topo */}
                               <div className="relative flex items-start gap-4 pb-8">
-                                {/* Ícone */}
+                                {/* Ãcone */}
                                 <div className="flex flex-col items-center relative">
                                   <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center z-10 relative">
                                     <Clock className="w-4 h-4 text-white" />
@@ -486,7 +546,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
 
                               {/* Item Original - embaixo */}
                               <div className="relative flex items-start gap-4">
-                                {/* Ícone */}
+                                {/* Ãcone */}
                                 <div className="flex flex-col items-center">
                                   <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center z-10">
                                     <Check className="w-4 h-4 text-white" />
@@ -502,7 +562,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                     </Badge>
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Vigência: {contrato.vigenciaOriginalInicial ? 
+                                    Vigência: {contrato.vigenciaOriginalInicial ?
                                       <DateDisplay value={contrato.vigenciaOriginalInicial} /> : 
                                       <DateDisplay value={contrato.dataInicio} />
                                     } - {contrato.vigenciaOriginalFinal ? 
@@ -530,33 +590,50 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
-                      Fiscais Administrativos
+                      Fiscais Administrativos ({fiscaisAtivos.length})
                     </CardTitle>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEditarCampo('fiscais')}
-                      className="h-8 w-8 p-0"
+                      onClick={() => handleAbrirModalAdicionar(1)}
+                      className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                      title="Adicionar Fiscal"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {fiscaisFromAPI.length === 0 ? (
+                    {funcionariosLoading ? (
+                      <div className="space-y-4">
+                        {[1, 2].map((i) => (
+                          <Skeleton key={i} className="h-32 w-full" />
+                        ))}
+                      </div>
+                    ) : fiscaisAtivos.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>Nenhum fiscal administrativo designado</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAbrirModalAdicionar(1)}
+                          className="mt-4"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Primeiro Fiscal
+                        </Button>
                       </div>
                     ) : (
-                      fiscaisFromAPI.map((fiscal) => (
+                      fiscaisAtivos.map((fiscal) => (
                         <FuncionarioCard
                           key={fiscal.id}
                           contratoFuncionario={fiscal}
-                          funcionario={funcionariosCompletos[fiscal.funcionarioId]}
                           variant="fiscal"
                           isLoading={false}
                           onSubstituir={() => handleAbrirModalSubstituicao(fiscal, 2)}
+                          onRemover={() => handleAbrirModalRemover(fiscal, 2)}
                           permitirSubstituicao={true}
+                          permitirRemocao={true}
                         />
                       ))
                     )}
@@ -568,33 +645,50 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Gestores do Contrato
+                      Gestores do Contrato ({gestoresAtivos.length})
                     </CardTitle>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEditarCampo('gestores')}
-                      className="h-8 w-8 p-0"
+                      onClick={() => handleAbrirModalAdicionar(2)}
+                      className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                      title="Adicionar Gestor"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {gestoresFromAPI.length === 0 ? (
+                    {funcionariosLoading ? (
+                      <div className="space-y-4">
+                        {[1, 2].map((i) => (
+                          <Skeleton key={i} className="h-32 w-full" />
+                        ))}
+                      </div>
+                    ) : gestoresAtivos.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>Nenhum gestor designado</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAbrirModalAdicionar(2)}
+                          className="mt-4"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Primeiro Gestor
+                        </Button>
                       </div>
                     ) : (
-                      gestoresFromAPI.map((gestor) => (
+                      gestoresAtivos.map((gestor) => (
                         <FuncionarioCard
                           key={gestor.id}
                           contratoFuncionario={gestor}
-                          funcionario={funcionariosCompletos[gestor.funcionarioId]}
                           variant="gestor"
                           isLoading={false}
                           onSubstituir={() => handleAbrirModalSubstituicao(gestor, 1)}
+                          onRemover={() => handleAbrirModalRemover(gestor, 1)}
                           permitirSubstituicao={true}
+                          permitirRemocao={true}
                         />
                       ))
                     )}
@@ -768,7 +862,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       </div>
                     ) : (empresaData?.contatos && empresaData.contatos.length > 0) ? (
                       empresaData.contatos.map((contato, index) => {
-                        // Detectar se é email ou telefone baseado no tipo ou valor
+                        // Detectar se Ã© email ou telefone baseado no tipo ou valor
                         const isEmail = contato.tipo?.toLowerCase().includes('email') || 
                                        contato.valor?.includes('@')
                         
@@ -943,16 +1037,39 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="h-7 w-3/4" />
                           <Skeleton className="h-4 w-full" />
                         </div>
-                      ) : (
-                        <>
-                          <p className="text-lg font-semibold">
-                            {getUnidadeNome(contratoComIds.unidadeDemandanteId)}
-                          </p>
-                          <p className="text-muted-foreground text-sm">
-                            Responsável pela demanda do contrato
-                          </p>
-                        </>
-                      )}
+                      ) : (() => {
+                        const unidadesDemandantes = getUnidadesDemandantes(contrato)
+                        if (unidadesDemandantes.length > 0) {
+                          return (
+                            <>
+                              <p className="text-muted-foreground text-xs mb-2">{unidadesDemandantes.length} unidade{unidadesDemandantes.length > 1 ? "s" : ""}</p>
+                              <div className="flex max-h-48 flex-wrap gap-2 overflow-auto pr-1">
+                                {unidadesDemandantes.map((u, idx) => {
+                                  const sigla = unidadesData?.[u.unidadeSaudeId]?.sigla
+                                  return (
+                                    <div key={`${u.unidadeSaudeId}-${idx}`} className="inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1">
+                                      <span className="text-sm font-medium">{u.unidadeSaudeNome}</span>
+                                      {sigla ? <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px] font-semibold uppercase">{sigla}</Badge> : null}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </>
+                          )
+                        } else {
+                          const id = contratoComIds.unidadeDemandanteId
+                          const nome = getUnidadeNome(id)
+                          const sigla = id ? unidadesData?.[id]?.sigla : undefined
+                          return (
+                            <div className="flex flex-wrap gap-2">
+                              <div className="inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1">
+                                <span className="text-sm font-medium">{nome}</span>
+                                {sigla ? <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px] font-semibold uppercase">{sigla}</Badge> : null}
+                              </div>
+                            </div>
+                          )
+                        }
+                      })()}
                     </CardContent>
                   </Card>
 
@@ -977,16 +1094,39 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="h-7 w-3/4" />
                           <Skeleton className="h-4 w-full" />
                         </div>
-                      ) : (
-                        <>
-                          <p className="text-lg font-semibold">
-                            {getUnidadeNome(contratoComIds.unidadeGestoraId)}
-                          </p>
-                          <p className="text-muted-foreground text-sm">
-                            Responsável pela gestão do contrato
-                          </p>
-                        </>
-                      )}
+                      ) : (() => {
+                        const unidadesGestoras = getUnidadesGestoras(contrato)
+                        if (unidadesGestoras.length > 0) {
+                          return (
+                            <>
+                              <p className="text-muted-foreground text-xs mb-2">{unidadesGestoras.length} unidade{unidadesGestoras.length > 1 ? "s" : ""}</p>
+                              <div className="flex max-h-48 flex-wrap gap-2 overflow-auto pr-1">
+                                {unidadesGestoras.map((u, idx) => {
+                                  const sigla = unidadesData?.[u.unidadeSaudeId]?.sigla
+                                  return (
+                                    <div key={`${u.unidadeSaudeId}-${idx}`} className="inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1">
+                                      <span className="text-sm font-medium">{u.unidadeSaudeNome}</span>
+                                      {sigla ? <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px] font-semibold uppercase">{sigla}</Badge> : null}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </>
+                          )
+                        } else {
+                          const id = contratoComIds.unidadeGestoraId
+                          const nome = getUnidadeNome(id)
+                          const sigla = id ? unidadesData?.[id]?.sigla : undefined
+                          return (
+                            <div className="flex flex-wrap gap-2">
+                              <div className="inline-flex items-center gap-2 rounded-full border bg-muted px-3 py-1">
+                                <span className="text-sm font-medium">{nome}</span>
+                                {sigla ? <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px] font-semibold uppercase">{sigla}</Badge> : null}
+                              </div>
+                            </div>
+                          )
+                        }
+                      })()}
                     </CardContent>
                   </Card>
                 </div>
@@ -1114,8 +1254,88 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
           contratoId={contrato.id}
           funcionarioAtual={modalSubstituicao.funcionario}
           tipoGerencia={modalSubstituicao.tipoGerencia}
-          funcionarioCompleto={funcionariosCompletos[modalSubstituicao.funcionario.funcionarioId]}
         />
+      )}
+
+      {/* Modal de adição de funcionário */}
+      {modalAdicionar.aberto && modalAdicionar.tipoGerencia && (
+        <AdicionarFuncionarioModal
+          aberto={modalAdicionar.aberto}
+          onFechar={handleFecharModalAdicionar}
+          contratoId={contrato.id}
+          tipoGerencia={modalAdicionar.tipoGerencia}
+          funcionariosExistentes={[
+            ...fiscaisAtivos.map(f => f.funcionarioId),
+            ...gestoresAtivos.map(g => g.funcionarioId)
+          ]}
+        />
+      )}
+
+      {/* Modal de confirmação de remoção */}
+      {modalRemover.aberto && modalRemover.funcionario && modalRemover.tipoGerencia && (
+        <Dialog open={modalRemover.aberto} onOpenChange={handleFecharModalRemover}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Trash2 className="h-5 w-5 text-red-600" />
+                Remover {modalRemover.tipoGerencia === 1 ? 'Fiscal' : 'Gestor'}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Tem certeza que deseja remover este funcionário do contrato?
+              </p>
+
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-red-600" />
+                  <span className="font-medium text-red-900">
+                    {modalRemover.funcionario.funcionarioNome}
+                  </span>
+                </div>
+                <p className="text-sm text-red-700 mt-1">
+                  {modalRemover.funcionario.funcionarioCargo}
+                </p>
+              </div>
+
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800">
+                  Esta ação não pode ser desfeita facilmente. O funcionário será removido
+                  do contrato mas permanecerá no histórico.
+                </AlertDescription>
+              </Alert>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={handleFecharModalRemover}
+                disabled={removerMutation.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmarRemocao}
+                disabled={removerMutation.isPending}
+              >
+                {removerMutation.isPending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Removendo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Confirmar remoção
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Modal de confirmação */}

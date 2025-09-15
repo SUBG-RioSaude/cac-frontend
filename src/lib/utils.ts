@@ -6,6 +6,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Normaliza texto para busca removendo acentos e caracteres especiais
+ * Útil para comparações de busca em português brasileiro
+ * @param text - Texto a ser normalizado
+ * @returns Texto normalizado (sem acentos, lowercase, trimmed)
+ */
+export function normalizeText(text: string): string {
+  if (!text) return ''
+  
+  return text
+    .normalize('NFD') // Decompõe caracteres acentuados
+    .replace(/[\u0300-\u036f]/g, '') // Remove marcas diacríticas (acentos)
+    .toLowerCase()
+    .trim()
+}
+
+/**
  * Utilitários para validação e formatação de CNPJ
  */
 export const cnpjUtils = {
@@ -1119,5 +1135,132 @@ export const phoneUtils = {
     } else {
       return phoneLimitado.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
     }
+  }
+}
+
+/**
+ * Utilitários para formatação e validação de percentuais
+ */
+export const percentualUtils = {
+  /**
+   * Formata um percentual removendo zeros à esquerda desnecessários
+   * @param valor - Valor numérico do percentual
+   * @returns Percentual formatado como string
+   */
+  formatar: (valor: number): string => {
+    if (isNaN(valor) || valor === null || valor === undefined) {
+      return '0'
+    }
+    
+    // Converte para número e formata com até 2 casas decimais
+    const numeroFormatado = Number(valor.toFixed(2))
+    
+    // Remove zeros desnecessários e retorna como string
+    return numeroFormatado.toString()
+  },
+
+  /**
+   * Valida se um valor de percentual é válido (0-100 com até 2 casas decimais)
+   * @param valor - Valor a ser validado (string ou number)
+   * @returns true se válido, false caso contrário
+   */
+  validar: (valor: string | number): boolean => {
+    const valorStr = valor.toString().replace(',', '.')
+    const numero = parseFloat(valorStr)
+    
+    if (isNaN(numero)) return false
+    if (numero < 0 || numero > 100) return false
+    
+    // Verifica se tem no máximo 2 casas decimais
+    const partesDecimais = valorStr.split('.')[1]
+    if (partesDecimais && partesDecimais.length > 2) {
+      return false
+    }
+    
+    return true
+  },
+
+  /**
+   * Valida percentual com mensagem de erro
+   * @param valor - Valor a ser validado
+   * @returns string vazia se válido, mensagem de erro se inválido
+   */
+  validarComMensagem: (valor: string | number): string => {
+    if (valor === '' || valor === null || valor === undefined) {
+      return 'Percentual é obrigatório'
+    }
+    
+    const valorStr = valor.toString().replace(',', '.')
+    const numero = parseFloat(valorStr)
+    
+    if (isNaN(numero)) {
+      return 'Percentual deve ser um número válido'
+    }
+    
+    if (numero < 0) {
+      return 'Percentual não pode ser negativo'
+    }
+    
+    if (numero > 100) {
+      return 'Percentual não pode ser maior que 100%'
+    }
+    
+    // Verifica se tem no máximo 2 casas decimais
+    const partesDecimais = valorStr.split('.')[1]
+    if (partesDecimais && partesDecimais.length > 2) {
+      return 'Percentual pode ter no máximo 2 casas decimais'
+    }
+    
+    return ''
+  },
+
+  /**
+   * Normaliza valor de percentual para formato brasileiro durante digitação
+   * @param valor - Valor digitado
+   * @returns Valor normalizado
+   */
+  normalizarEntrada: (valor: string): string => {
+    if (!valor) return ''
+    
+    // Remove caracteres não numéricos exceto vírgula e ponto
+    let valorLimpo = valor.replace(/[^0-9.,]/g, '')
+    
+    // Substitui vírgula por ponto
+    valorLimpo = valorLimpo.replace(',', '.')
+    
+    // Evita múltiplos pontos
+    const pontos = valorLimpo.split('.')
+    if (pontos.length > 2) {
+      valorLimpo = pontos[0] + '.' + pontos.slice(1).join('')
+    }
+    
+    // Limita a 2 casas decimais
+    if (valorLimpo.includes('.')) {
+      const [inteira, decimal] = valorLimpo.split('.')
+      const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
+      valorLimpo = inteira + (decimalLimitado ? '.' + decimalLimitado : '')
+    }
+    
+    // Limita valor máximo a 100
+    const numero = parseFloat(valorLimpo)
+    if (!isNaN(numero) && numero > 100) {
+      return '100'
+    }
+    
+    return valorLimpo
+  },
+
+  /**
+   * Converte string para número percentual
+   * @param valor - Valor em string
+   * @returns Número do percentual ou 0 se inválido
+   */
+  paraNumero: (valor: string): number => {
+    if (!valor) return 0
+    
+    const valorNormalizado = valor.replace(',', '.')
+    const numero = parseFloat(valorNormalizado)
+    
+    return isNaN(numero) ? 0 : numero
   }
 }

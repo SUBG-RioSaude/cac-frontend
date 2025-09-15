@@ -1,0 +1,202 @@
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Building,
+  Hash,
+  CheckCircle,
+  XCircle,
+  RefreshCw
+} from 'lucide-react'
+import type { Responsavel, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
+import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
+import { DateDisplay } from '@/components/ui/formatters'
+
+interface FuncionarioCardProps {
+  responsavel?: Responsavel // dados básicos do contrato (legado)
+  contratoFuncionario?: ContratoFuncionario // dados da nova API
+  funcionario?: FuncionarioApi // dados completos da API (opcional)
+  isLoading?: boolean
+  variant: 'fiscal' | 'gestor'
+  onSubstituir?: () => void // Callback para abrir modal de substituição
+  permitirSubstituicao?: boolean // Se deve mostrar botão de substituir
+}
+
+export function FuncionarioCard({ 
+  responsavel, 
+  contratoFuncionario,
+  funcionario, 
+  isLoading = false, 
+  variant,
+  onSubstituir,
+  permitirSubstituicao = true
+}: FuncionarioCardProps) {
+  const variantConfig = {
+    fiscal: {
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
+    },
+    gestor: {
+      bgColor: 'bg-green-100', 
+      iconColor: 'text-green-600',
+      badgeColor: 'bg-green-50 text-green-700 border-green-200'
+    }
+  }
+
+  const config = variantConfig[variant]
+  
+
+  // Determinar situação funcional
+  const getSituacaoFuncional = () => {
+    if (!funcionario) return null
+    // Considerar ativo se a flag ativo vier true, independentemente da situacao numérica
+    const isAtivo = funcionario.ativo || funcionario.situacao === 1
+    return {
+      ativo: isAtivo,
+      label: isAtivo ? 'Ativo' : 'Inativo',
+      icon: isAtivo ? CheckCircle : XCircle,
+      color: isAtivo ? 'text-green-600' : 'text-red-600'
+    }
+  }
+
+  const situacao = getSituacaoFuncional()
+
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border p-4">
+        <div className="flex items-start gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Usar dados da API se disponível, senão usar dados da nova API do contrato, depois dados legados
+  const nomeCompleto = funcionario?.nomeCompleto || contratoFuncionario?.funcionarioNome || responsavel?.nome || 'Nome não informado'
+  const cargo = funcionario?.cargo || contratoFuncionario?.funcionarioCargo || responsavel?.cargo || 'Cargo não informado'
+  const email = funcionario?.emailInstitucional || contratoFuncionario?.email || responsavel?.email || ''
+  const telefone = funcionario?.telefone || contratoFuncionario?.telefone || responsavel?.telefone || ''
+  const matricula = funcionario?.matricula || contratoFuncionario?.funcionarioMatricula
+
+  return (
+    <div className="rounded-lg border p-4">
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${config.bgColor}`}>
+          <User className={`h-5 w-5 ${config.iconColor}`} />
+        </div>
+        
+        {/* Conteúdo principal */}
+        <div className="flex-1">
+          {/* Header com nome e status */}
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-gray-900">{nomeCompleto}</h4>
+              <p className="text-muted-foreground text-sm">{cargo}</p>
+              {funcionario?.funcao && funcionario.funcao !== cargo && (
+                <p className="text-muted-foreground text-xs">({funcionario.funcao})</p>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Status de situação funcional */}
+              {situacao && (
+                <div className="flex items-center gap-1">
+                  <situacao.icon className={`h-4 w-4 ${situacao.color}`} />
+                  <span className={`text-xs ${situacao.color}`}>{situacao.label}</span>
+                </div>
+              )}
+
+              {/* Botão de substituir */}
+              {permitirSubstituicao && onSubstituir && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSubstituir}
+                  className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                  title={`Substituir ${variant}`}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Informações de identificação */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {matricula && (
+              <Badge variant="outline" className="text-xs">
+                <Hash className="mr-1 h-3 w-3" />
+                {matricula}
+              </Badge>
+            )}
+            {funcionario?.lotacaoSigla && (
+              <Badge variant="outline" className={`text-xs ${config.badgeColor}`}>
+                <Building className="mr-1 h-3 w-3" />
+                {funcionario.lotacaoSigla}
+              </Badge>
+            )}
+          </div>
+
+          {/* Informações de contato */}
+          <div className="mt-3 space-y-1">
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-3 w-3 text-muted-foreground" />
+              <span className="truncate">{email}</span>
+            </div>
+            
+            {telefone && (
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-3 w-3 text-muted-foreground" />
+                <span>{telefone}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Informações de lotação completa */}
+          {funcionario?.lotacaoNome && (
+            <div className="mt-2">
+              <div className="flex items-start gap-2 text-sm">
+                <Building className="mt-0.5 h-3 w-3 text-muted-foreground" />
+                <span className="text-muted-foreground text-xs leading-tight">
+                  {funcionario.lotacaoNome}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Datas importantes */}
+          <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+            {funcionario?.dataAdmissao && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-3 w-3" />
+                <span>Admitido em <DateDisplay value={funcionario.dataAdmissao} /></span>
+              </div>
+            )}
+            
+            {responsavel?.dataDesignacao && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-3 w-3" />
+                <span>Designado em <DateDisplay value={responsavel.dataDesignacao} /></span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+

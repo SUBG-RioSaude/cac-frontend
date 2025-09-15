@@ -10,6 +10,10 @@ import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidade } from '@/modules/Unidades/hooks/use-unidades'
 import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
+import {
+  getUnidadeDemandantePrincipal,
+  getUnidadeGestoraPrincipal
+} from '@/modules/Contratos/types/contrato'
 
 interface UseContractContextOptions {
   enabled?: boolean
@@ -73,9 +77,24 @@ export function useContractSuppliers(contratoId: string, options?: UseContractCo
 export function useContractUnits(contratoId: string, options?: UseContractContextOptions) {
   const { data: contract, ...queryResult } = useContractContext(contratoId, options)
   
-  // Buscar nomes das unidades por ID
-  const unidadeDemandanteId = contract?.unidadeDemandanteId as string | undefined
-  const unidadeGestoraId = contract?.unidadeGestoraId as string | undefined
+  // Priorizar dados do novo array unidadesResponsaveis, com fallback para campos legados
+  let unidadeDemandanteId: string | undefined
+  let unidadeGestoraId: string | undefined
+  
+  if (contract?.unidadesResponsaveis && contract.unidadesResponsaveis.length > 0) {
+    // Usar novo array de unidades responsáveis
+    const unidadeDemandante = getUnidadeDemandantePrincipal(contract)
+    const unidadeGestora = getUnidadeGestoraPrincipal(contract)
+    
+    unidadeDemandanteId = unidadeDemandante?.unidadeSaudeId
+    unidadeGestoraId = unidadeGestora?.unidadeSaudeId
+    
+  } else {
+    // Fallback para campos legados
+    unidadeDemandanteId = contract?.unidadeDemandanteId as string | undefined
+    unidadeGestoraId = contract?.unidadeGestoraId as string | undefined
+    
+  }
   
   const unidadeDemandanteQuery = useUnidade(unidadeDemandanteId || '', { 
     enabled: !!unidadeDemandanteId && (options?.enabled ?? true)
@@ -105,21 +124,25 @@ export function useContractUnits(contratoId: string, options?: UseContractContex
   const demandingUnitName = 
     // 1. Primeiro: dados da query da unidade específica
     unidadeDemandanteQuery.data?.nome ||
-    // 2. Fallback: nome já presente no contrato  
+    // 2. Novo: nome do array unidadesResponsaveis
+    (contract?.unidadesResponsaveis ? getUnidadeDemandantePrincipal(contract)?.unidadeSaudeNome : null) ||
+    // 3. Fallback: nome já presente no contrato  
     contract?.unidades?.demandante ||
-    // 3. Fallback: campo legado direto
+    // 4. Fallback: campo legado direto
     contract?.unidadeDemandante ||
-    // 4. Se não há nada, retorna null (será mostrado como "Não informado")
+    // 5. Se não há nada, retorna null (será mostrado como "Não informado")
     null
     
   const managingUnitName = 
     // 1. Primeiro: dados da query da unidade específica
     unidadeGestoraQuery.data?.nome ||
-    // 2. Fallback: nome já presente no contrato
+    // 2. Novo: nome do array unidadesResponsaveis
+    (contract?.unidadesResponsaveis ? getUnidadeGestoraPrincipal(contract)?.unidadeSaudeNome : null) ||
+    // 3. Fallback: nome já presente no contrato
     contract?.unidades?.gestora ||
-    // 3. Fallback: campo legado direto
+    // 4. Fallback: campo legado direto
     contract?.unidadeGestora ||
-    // 4. Se não há nada, retorna null (será mostrado como "Não informado")
+    // 5. Se não há nada, retorna null (será mostrado como "Não informado")
     null
   
   // Processar unidades vinculadas com detalhes da API

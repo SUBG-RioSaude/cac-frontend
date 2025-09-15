@@ -193,10 +193,8 @@ export function useContratoDetalhado(id: string, options?: { enabled?: boolean }
   return useQuery({
     queryKey: contratoKeys.detalhado(id),
     queryFn: async () => {
-      console.log('🎯 Hook: Iniciando busca para ID:', id)
       try {
         const resultado = await getContratoDetalhado(id)
-        console.log('🎯 Hook: Resultado obtido:', resultado)
         return resultado
       } catch (error) {
         console.error('🎯 Hook: Erro capturado:', error)

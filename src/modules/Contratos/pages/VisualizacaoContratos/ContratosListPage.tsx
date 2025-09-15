@@ -130,7 +130,6 @@ export function ContratosPage() {
   }
 
   const handleNovoContrato = () => {
-    console.log('Novo contrato')
   }
 
   const textoExportar =

@@ -2,8 +2,10 @@ import { executeWithFallback } from '@/lib/axios'
 import type { 
   Contrato, 
   ContratoDetalhado,
-  CriarContratoPayload
+  CriarContratoPayload,
+  CriarContratoPayloadLegado
 } from '@/modules/Contratos/types/contrato'
+import { transformLegacyPayloadToNew } from '@/modules/Contratos/types/contrato'
 
 
 export type ContratoParametros = {
@@ -85,16 +87,41 @@ export async function getContratos (
 }
 
 
+/**
+ * Verifica se um número de contrato já existe na base de dados
+ * @param numeroContrato - Número do contrato a ser verificado
+ * @returns Contrato existente ou null se não encontrado
+ */
+export async function getContratoByNumero(numeroContrato: string): Promise<Contrato | null> {
+  try {
+    const response = await executeWithFallback<Contrato>({
+      method: 'get',
+      url: `/contratos/numero/${numeroContrato}`,
+      baseURL: import.meta.env.VITE_API_URL_CONTRATOS
+    })
+    
+    return response.data
+  } catch (error: unknown) {
+    // 404 significa que o número está disponível (não é erro)
+    if (error && typeof error === 'object' && 'response' in error &&
+        typeof error.response === 'object' && error.response &&
+        'status' in error.response && error.response.status === 404) {
+      return null
+    }
+    
+    // Re-throw outros erros para tratamento no hook
+    throw error
+  }
+}
+
 // Função para buscar contrato detalhado por ID
 export async function getContratoDetalhado(id: string): Promise<ContratoDetalhado> {
-  console.log('🔍 getContratoDetalhado chamado para ID:', id)
   
   const response = await executeWithFallback<Contrato>({
     method: 'get',
     url: `/contratos/${id}`
   })
 
-  console.log('✅ API Response recebida:', response.data)
 
   // TEMPORÁRIO: bypass do mapeamento complexo para debug
   if (!response.data) {
@@ -148,6 +175,8 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
       gestora: response.data.unidadeGestora || null, // Será resolvido pelo hook  
       vinculadas: [],
     },
+    // Preservar unidadesResponsaveis da API (nova estrutura)
+    unidadesResponsaveis: response.data.unidadesResponsaveis || [],
     alteracoes: [],
     documentos: [],
     documentosChecklist: {
@@ -168,16 +197,14 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
     unidadesVinculadas: response.data.unidadesVinculadas || [],
   }
   
-  console.log('📦 Contrato simplificado criado:', contratoSimples)
   
   return contratoSimples as unknown as ContratoDetalhado
 }
 
 /**
- * Criar novo contrato
+ * Criar novo contrato (versão atualizada com unidadesResponsaveis)
  */
 export async function criarContrato(payload: CriarContratoPayload): Promise<Contrato> {
-  console.log('🚀 [SERVIÇO] Criando contrato com payload:', payload)
   
   try {
     const response = await executeWithFallback<Contrato>({
@@ -186,7 +213,6 @@ export async function criarContrato(payload: CriarContratoPayload): Promise<Cont
       data: payload
     })
 
-    console.log('✅ [SERVIÇO] Contrato criado com sucesso:', response.data)
     return response.data
   } catch (error: unknown) {
     console.error('❌ [SERVIÇO] Erro ao criar contrato:', error)
@@ -226,6 +252,20 @@ export async function criarContrato(payload: CriarContratoPayload): Promise<Cont
     
     throw customError
   }
+}
+
+/**
+ * Criar novo contrato (versão legado para compatibilidade)
+ * Converte automaticamente dados legados para novo formato com unidadesResponsaveis
+ */
+export async function criarContratoLegado(payloadLegado: CriarContratoPayloadLegado): Promise<Contrato> {
+  
+  // Converter payload legado para novo formato
+  const novoPayload = transformLegacyPayloadToNew(payloadLegado)
+  
+  
+  // Usar a função principal com o novo formato
+  return criarContrato(novoPayload)
 }
 
 /**
@@ -289,7 +329,6 @@ export async function getContratosVencendo(
   diasAntecipados: number = 30,
   filtros?: Omit<ContratoParametros, 'filtroStatus' | 'tamanhoPagina' | 'pagina'>
 ): Promise<PaginacaoResponse<Contrato>> {
-  console.log('🔍 [SERVIÇO] Buscando contratos vencendo em', diasAntecipados, 'dias')
   
   const parametros = {
     ...filtros,
@@ -317,19 +356,16 @@ export async function getContratosVencendo(
         temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
       }
       
-      console.log('✅ [SERVIÇO] Contratos vencendo encontrados:', paginatedResponse.totalRegistros)
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
     if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-      console.log('✅ [SERVIÇO] Contratos vencendo encontrados (formato completo):', response.data.totalRegistros)
       return response.data as PaginacaoResponse<Contrato>
     }
 
     // Fallback para array direto
     if (Array.isArray(response.data)) {
-      console.log('✅ [SERVIÇO] Contratos vencendo encontrados (array direto):', response.data.length)
       return {
         dados: response.data as Contrato[],
         paginaAtual: 1,
@@ -342,7 +378,6 @@ export async function getContratosVencendo(
     }
 
     // Fallback vazio
-    console.log('⚠️ [SERVIÇO] Nenhum contrato vencendo encontrado')
     return {
       dados: [],
       paginaAtual: 1,
@@ -364,7 +399,6 @@ export async function getContratosVencendo(
 export async function getContratosVencidos(
   filtros?: Omit<ContratoParametros, 'tamanhoPagina' | 'pagina'>
 ): Promise<PaginacaoResponse<Contrato>> {
-  console.log('🔍 [SERVIÇO] Buscando contratos vencidos')
   
   const parametros = {
     ...filtros
@@ -391,19 +425,16 @@ export async function getContratosVencidos(
         temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
       }
       
-      console.log('✅ [SERVIÇO] Contratos vencidos encontrados:', paginatedResponse.totalRegistros)
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
     if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-      console.log('✅ [SERVIÇO] Contratos vencidos encontrados (formato completo):', response.data.totalRegistros)
       return response.data as PaginacaoResponse<Contrato>
     }
 
     // Fallback para array direto
     if (Array.isArray(response.data)) {
-      console.log('✅ [SERVIÇO] Contratos vencidos encontrados (array direto):', response.data.length)
       return {
         dados: response.data as Contrato[],
         paginaAtual: 1,
@@ -416,7 +447,6 @@ export async function getContratosVencidos(
     }
 
     // Fallback vazio
-    console.log('⚠️ [SERVIÇO] Nenhum contrato vencido encontrado')
     return {
       dados: [],
       paginaAtual: 1,
@@ -439,7 +469,6 @@ export async function getContratosPorEmpresa(
   empresaId: string,
   filtros?: Omit<ContratoParametros, 'empresaId'>
 ): Promise<PaginacaoResponse<Contrato>> {
-  console.log('🔍 [SERVIÇO] Buscando contratos para empresa:', empresaId)
   
   const parametros: ContratoParametros = {
     ...filtros,
@@ -469,19 +498,16 @@ export async function getContratosPorEmpresa(
         temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
       }
       
-      console.log('✅ [SERVIÇO] Contratos da empresa encontrados:', paginatedResponse.totalRegistros)
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
     if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-      console.log('✅ [SERVIÇO] Contratos da empresa encontrados (formato completo):', response.data.totalRegistros)
       return response.data as PaginacaoResponse<Contrato>
     }
 
     // Fallback para array direto
     if (Array.isArray(response.data)) {
-      console.log('✅ [SERVIÇO] Contratos da empresa encontrados (array direto):', response.data.length)
       return {
         dados: response.data as Contrato[],
         paginaAtual: 1,
@@ -494,7 +520,6 @@ export async function getContratosPorEmpresa(
     }
 
     // Fallback vazio
-    console.log('⚠️ [SERVIÇO] Nenhum contrato encontrado para a empresa')
     return {
       dados: [],
       paginaAtual: 1,

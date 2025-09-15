@@ -19,6 +19,7 @@ import {VisualizarContrato} from './modules/Contratos/pages/VisualizacaoContrato
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
 import { DashboardPage } from './modules/Dashboard/pages/DashboardPage'
+import CadastroFuncionarioPage from './modules/Funcionarios/pages/CadastroFuncionarioPage'
 
 function App() {
   return (
@@ -65,6 +66,14 @@ function App() {
           <ProtectedRoute requireAuth={true}>
             <LayoutAuthenticated>
               <CadastrarContrato />
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        } />
+        {/* Rotas de Funcionários */}
+        <Route path="/funcionarios/cadastrar" element={
+          <ProtectedRoute requireAuth={true}>
+            <LayoutAuthenticated>
+              <CadastroFuncionarioPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
         } />

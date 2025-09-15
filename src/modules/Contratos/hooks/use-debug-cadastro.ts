@@ -80,13 +80,6 @@ export function useDebugCadastro() {
     setApiLogs(prev => [...prev, log])
     
     // Debug console
-    const emoji = status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳'
-    console.log(`${emoji} [DEBUG API] ${method.toUpperCase()} ${url}`, {
-      status,
-      duration: duration ? `${duration}ms` : undefined,
-      data,
-      error
-    })
   }, [])
 
   const clearLogs = useCallback(() => {
@@ -371,11 +364,21 @@ export function useDebugCadastro() {
       descricaoObjeto: `Contrato para ${categorias[categoriaIndex].toLowerCase()} - ID: ${String(timestamp).slice(-6)}`,
       tipoContratacao: ['Licitacao', 'Pregao', 'Dispensa', 'Inexigibilidade'][Math.floor(Math.random() * 4)] as 'Licitacao' | 'Pregao' | 'Dispensa' | 'Inexigibilidade',
       tipoContrato: ['Compra', 'Prestacao_Servico', 'Fornecimento', 'Manutencao'][categoriaIndex % 4] as 'Compra' | 'Prestacao_Servico' | 'Fornecimento' | 'Manutencao',
-      unidadeDemandante: unidadeDemandanteSelecionada,
-      unidadeGestora: unidadeGestoraSelecionada,
-      // IDs das unidades (reais da API ou mock como fallback)
-      unidadeDemandanteId: unidadeDemandanteIdSelecionado,
-      unidadeGestoraId: unidadeGestoraIdSelecionado,
+      // Array de unidades responsáveis (demandantes e gestoras)
+      unidadesResponsaveis: [
+        {
+          unidadeSaudeId: unidadeDemandanteIdSelecionado,
+          tipoResponsabilidade: 1, // Demandante
+          principal: true,
+          observacoes: ''
+        },
+        {
+          unidadeSaudeId: unidadeGestoraIdSelecionado,
+          tipoResponsabilidade: 2, // Gestora
+          principal: true,
+          observacoes: ''
+        }
+      ],
       contratacao: Math.random() > 0.5 ? 'Centralizada' : 'Descentralizada',
       vigenciaInicial: vigenciaInicial.toISOString().split('T')[0],
       vigenciaFinal: vigenciaFinal.toISOString().split('T')[0],

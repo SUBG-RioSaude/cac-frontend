@@ -25,6 +25,7 @@ import {
   BarChart3,
   AlertCircle,
   Loader2,
+  RotateCcw,
 } from 'lucide-react';
 
 import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
@@ -64,6 +65,7 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
 
   // Estados para confirmações
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Estado local dos documentos (todos os 7 tipos sempre)
@@ -149,6 +151,54 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
     setShowSaveConfirm(false)
     setHasUnsavedChanges(false)
   }, [contratoId, documentosLocais, updateMutation])
+
+  // Resetar alterações para estado original
+  const handleResetarAlteracoes = useCallback(() => {
+    setShowResetConfirm(true)
+  }, [])
+
+  // Confirmar e resetar todas as alterações
+  const confirmarResetarAlteracoes = useCallback(() => {
+    // Restaurar para o estado original da API
+    if (documentosApi.length > 0) {
+      setDocumentosLocais(prev =>
+        prev.map(local => {
+          const docApi = documentosApi.find(d => d.tipo === local.tipo.toString())
+          if (docApi) {
+            return {
+              ...local,
+              selecionado: docApi.status === 'conferido',
+              urlDocumento: docApi.linkExterno && docApi.linkExterno !== 'sem url' ? docApi.linkExterno : '',
+              observacoes: docApi.observacoes || '',
+              dataEntrega: docApi.dataAtualizacao || undefined
+            }
+          }
+          // Para documentos que não existem na API, resetar para vazio
+          return {
+            ...local,
+            selecionado: false,
+            urlDocumento: '',
+            observacoes: '',
+            dataEntrega: undefined
+          }
+        })
+      )
+    } else {
+      // Se não há dados da API, resetar tudo para vazio
+      setDocumentosLocais(prev =>
+        prev.map(doc => ({
+          ...doc,
+          selecionado: false,
+          urlDocumento: '',
+          observacoes: '',
+          dataEntrega: undefined
+        }))
+      )
+    }
+
+    setShowResetConfirm(false)
+    setHasUnsavedChanges(false)
+  }, [documentosApi])
 
 
   if (isLoading) {
@@ -286,16 +336,33 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
           ))}
         </div>
 
-        {/* Botão de salvamento */}
-        <div className="flex justify-end pt-4 border-t">
-          <div className="flex items-center gap-3">
+        {/* Botões de ação */}
+        <div className="flex justify-between items-center pt-4 border-t">
+          <div className="flex items-center">
             {hasUnsavedChanges && (
               <span className="text-sm text-orange-600 flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
                 Há alterações não salvas
               </span>
             )}
-            <Button 
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Botão de cancelar/resetar */}
+            {hasUnsavedChanges && (
+              <Button
+                onClick={handleResetarAlteracoes}
+                disabled={updateMutation.isPending}
+                variant="outline"
+                className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Cancelar Alterações
+              </Button>
+            )}
+
+            {/* Botão de salvar */}
+            <Button
               onClick={handleSalvarTodos}
               disabled={updateMutation.isPending || !hasUnsavedChanges}
               variant={hasUnsavedChanges ? "default" : "outline"}
@@ -311,7 +378,7 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
           </div>
         </div>
 
-        {/* Dialog de confirmação para save completo */}
+        {/* Dialog de confirmação para salvar */}
         <Dialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
           <DialogContent>
             <DialogHeader>
@@ -321,13 +388,13 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowSaveConfirm(false)}
               >
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={confirmarSalvarTodos}
                 disabled={updateMutation.isPending}
               >
@@ -335,6 +402,39 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
                 Salvar Tudo
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de confirmação para resetar */}
+        <Dialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <RotateCcw className="h-5 w-5 text-red-600" />
+                Cancelar Alterações
+              </DialogTitle>
+              <DialogDescription>
+                Deseja descartar todas as alterações não salvas? Todos os checkboxes, URLs e observações voltarão ao estado original.
+                <br /><br />
+                <strong>Esta ação não pode ser desfeita.</strong>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowResetConfirm(false)}
+              >
+                Manter Alterações
+              </Button>
+              <Button
+                onClick={confirmarResetarAlteracoes}
+                variant="destructive"
+                className="flex items-center gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Descartar Alterações
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -79,22 +79,68 @@ export async function deleteUnidade(id: string): Promise<void> {
 }
 
 export async function buscarUnidadesPorNome(nome: string): Promise<UnidadeSaudeApi[]> {
-  const response = await executeWithFallback<UnidadeSaudeApi[]>({
+  // A API espera o parâmetro 'nome' em /unidades?nome=...
+  // Fazemos fallback para ambos formatos de resposta: lista direta ou paginada (dados[])
+  const response = await executeWithFallback<{ dados?: UnidadeSaudeApi[] } | UnidadeSaudeApi[]>({
     method: 'get',
-    url: '/unidades/buscar',
+    url: '/unidades',
     params: { nome },
     baseURL: import.meta.env.VITE_API_URL
   })
 
-  return response.data
+  const data = response.data
+  if (Array.isArray(data)) return data as UnidadeSaudeApi[]
+  if (data && Array.isArray(data.dados)) return data.dados as UnidadeSaudeApi[]
+  return []
+}
+
+/**
+ * Busca unidades por nome ou sigla
+ * Realiza busca tanto no campo nome quanto na sigla da unidade
+ */
+export async function buscarUnidadesPorNomeOuSigla(termo: string): Promise<UnidadeSaudeApi[]> {
+  // Primeira busca: por nome
+  const unidadesPorNome = await buscarUnidadesPorNome(termo)
+  
+  // Se o termo é curto (possível sigla), busca também por sigla
+  if (termo.length <= 10) { // Siglas geralmente são curtas
+    try {
+      // Busca também por sigla usando o mesmo endpoint com parâmetro diferente
+      const response = await executeWithFallback<{ dados?: UnidadeSaudeApi[] } | UnidadeSaudeApi[]>({
+        method: 'get',
+        url: '/unidades',
+        params: { sigla: termo },
+        baseURL: import.meta.env.VITE_API_URL
+      })
+      
+      const data = response.data
+      let unidadesPorSigla: UnidadeSaudeApi[] = []
+      
+      if (Array.isArray(data)) {
+        unidadesPorSigla = data as UnidadeSaudeApi[]
+      } else if (data && Array.isArray(data.dados)) {
+        unidadesPorSigla = data.dados as UnidadeSaudeApi[]
+      }
+      
+      // Combinar resultados e remover duplicatas
+      const todasUnidades = [...unidadesPorNome, ...unidadesPorSigla]
+      const unidadesUnicas = todasUnidades.filter((unidade, index, self) => 
+        index === self.findIndex(u => u.id === unidade.id)
+      )
+      
+      return unidadesUnicas
+    } catch (error) {
+      // Se a busca por sigla falhar, retorna apenas os resultados por nome
+      return unidadesPorNome
+    }
+  }
+  
+  return unidadesPorNome
 }
 
 export const buscarUnidadePorId = async (id: string): Promise<UnidadeDetalhada> => {
   try {
-    console.log('[DEBUG] URL da API:', import.meta.env.VITE_API_URL)
-    console.log('[DEBUG] Fazendo requisição para:', `/unidades/${id}`)
     const response = await api.get<UnidadeDetalhada>(`/unidades/${id}`)
-    console.log('[DEBUG] Resposta recebida:', response.data)
     return response.data
   } catch (error) {
     console.error('Erro ao buscar unidade por ID:', error)
