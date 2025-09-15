@@ -43,7 +43,7 @@ interface AdicionarFuncionarioModalProps {
   aberto: boolean
   onFechar: () => void
   contratoId: string
-  tipoGerencia: 1 | 2 // 1=Fiscal, 2=Gestor
+  tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
   funcionariosExistentes?: string[] // IDs dos funcionários já vinculados
 }
 

@@ -246,7 +246,7 @@ export interface ContratoFuncionario {
   id: string
   contratoId: string
   funcionarioId: string
-  tipoGerencia: number // 1 = Fiscal, 2 = Gestor
+  tipoGerencia: number // 1 = Gestor, 2 = Fiscal
   tipoGerenciaDescricao: string
   dataInicio: string // ISO date
   dataFim: string | null
@@ -723,14 +723,14 @@ export interface UnidadeVinculadaPayload {
 // Interface para funcionÃ¡rios do contrato
 export interface FuncionarioContratoPayload {
   funcionarioId: string
-  tipoGerencia: typeof TipoGerencia[keyof typeof TipoGerencia] // 1=Fiscal, 2=Gestor
+  tipoGerencia: typeof TipoGerencia[keyof typeof TipoGerencia] // 1=Gestor, 2=Fiscal
   observacoes?: string
 }
 
 // Enum para tipo de gerÃªncia
 export const TipoGerencia = {
-  FISCAL: 1,
-  GESTOR: 2
+  GESTOR: 1,
+  FISCAL: 2
 } as const
 
 // ========== FUNÃ‡Ã•ES AUXILIARES PARA UNIDADES RESPONSÃVEIS ==========

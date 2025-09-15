@@ -289,7 +289,7 @@ export default function CadastrarContrato() {
         ?.filter(usuario => usuario.tipo !== null) // Só incluir usuários com tipo definido
         ?.map(usuario => ({
           funcionarioId: usuario.id,
-          tipoGerencia: usuario.tipo === 'fiscal' ? 1 : 2, // 1=Fiscal, 2=Gestor
+          tipoGerencia: usuario.tipo === 'fiscal' ? 2 : 1, // 1=Gestor, 2=Fiscal
           observacoes: usuario.observacoes || undefined
         })) || []
     }

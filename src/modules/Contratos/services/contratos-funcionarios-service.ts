@@ -11,7 +11,7 @@ import { api } from '@/lib/axios'
 
 export interface AdicionarFuncionarioPayload {
   funcionarioId: string
-  // 1 = Fiscal, 2 = Gestor
+  // 1 = Gestor, 2 = Fiscal
   tipoGerencia: 1 | 2
   dataInicio?: string // ISO date (YYYY-MM-DD)
   observacoes?: string
@@ -173,8 +173,8 @@ export async function obterPeriodosFuncionario(
  * Mapear tipo de gerência para texto legível
  */
 export function getTipoGerenciaLabel(tipo: 1 | 2): string {
-  // 1 = Fiscal, 2 = Gestor
-  return tipo === 1 ? 'Fiscal' : 'Gestor'
+  // 1 = Gestor, 2 = Fiscal
+  return tipo === 1 ? 'Gestor' : 'Fiscal'
 }
 
 /**

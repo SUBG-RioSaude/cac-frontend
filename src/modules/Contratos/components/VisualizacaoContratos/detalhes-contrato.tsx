@@ -116,8 +116,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const { data: todosFuncionarios = [], isLoading: funcionariosLoading } = useContratoTodosFuncionarios(contrato.id)
 
   // Separar por tipo e filtrar apenas funcionários ativos
-  const fiscaisAtivos = todosFuncionarios.filter(f => f.tipoGerencia === 1 && f.estaAtivo)
-  const gestoresAtivos = todosFuncionarios.filter(f => f.tipoGerencia === 2 && f.estaAtivo)
+  const fiscaisAtivos = todosFuncionarios.filter(f => f.tipoGerencia === 2 && f.estaAtivo)
+  const gestoresAtivos = todosFuncionarios.filter(f => f.tipoGerencia === 1 && f.estaAtivo)
 
   // Hook para remoção de funcionários
   const removerMutation = useRemoverFuncionarioContrato()
@@ -595,7 +595,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleAbrirModalAdicionar(1)}
+                      onClick={() => handleAbrirModalAdicionar(2)}
                       className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
                       title="Adicionar Fiscal"
                     >
@@ -616,7 +616,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleAbrirModalAdicionar(1)}
+                          onClick={() => handleAbrirModalAdicionar(2)}
                           className="mt-4"
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -650,7 +650,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleAbrirModalAdicionar(2)}
+                      onClick={() => handleAbrirModalAdicionar(1)}
                       className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
                       title="Adicionar Gestor"
                     >
@@ -671,7 +671,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleAbrirModalAdicionar(2)}
+                          onClick={() => handleAbrirModalAdicionar(1)}
                           className="mt-4"
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -1278,7 +1278,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Trash2 className="h-5 w-5 text-red-600" />
-                Remover {modalRemover.tipoGerencia === 1 ? 'Fiscal' : 'Gestor'}
+                Remover {modalRemover.tipoGerencia === 1 ? 'Gestor' : 'Fiscal'}
               </DialogTitle>
             </DialogHeader>
 

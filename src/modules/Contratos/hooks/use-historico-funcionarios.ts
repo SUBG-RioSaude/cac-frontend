@@ -17,7 +17,7 @@ import {
 export interface HistoricoFuncionario {
   id: string
   funcionarioId: string
-  tipoGerencia: number // 1 = Fiscal, 2 = Gestor
+  tipoGerencia: number // 1 = Gestor, 2 = Fiscal
   tipoGerenciaDescricao: string
   dataInicio: string
   dataFim: string | null

@@ -49,7 +49,7 @@ interface SubstituirFuncionarioModalProps {
     funcionarioNome?: string
     funcionarioId: string
   }
-  tipoGerencia: 1 | 2 // 1=Fiscal, 2=Gestor
+  tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
   funcionarioCompleto?: FuncionarioApi // Dados completos se disponível
 }
 

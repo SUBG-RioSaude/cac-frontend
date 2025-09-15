@@ -58,7 +58,7 @@ export interface CriarContratoData {
   }>
   funcionarios?: Array<{
     funcionarioId: string
-    tipoGerencia: 1 | 2 // 1=Fiscal, 2=Gestor
+    tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
     observacoes?: string
   }>
   // NOVO: Array de unidades responsáveis (preferencial sobre campos únicos)
