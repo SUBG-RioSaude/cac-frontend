@@ -26,9 +26,7 @@ export function UnidadeResponsavelItem({
   unidade,
   index,
   canRemove,
-  canSetPrincipal,
   onRemove,
-  onTogglePrincipal,
   onUpdateObservacoes
 }: UnidadeResponsavelItemProps) {
   const [showObservacoes, setShowObservacoes] = useState(false)

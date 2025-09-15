@@ -429,6 +429,12 @@ export default function ContratoForm({
       // Usar form.getValues() para obter todos os valores, incluindo os definidos via setValue
       const todosOsValores = form.getValues()
       
+      // Transformar unidades para garantir que principal seja sempre boolean
+      const unidadesResponsaveisTransformadas = (todosOsValores.unidadesResponsaveis || []).map(unidade => ({
+        ...unidade,
+        principal: unidade.principal ?? false
+      }))
+
       const dados = {
         numeroContrato: todosOsValores.numeroContrato || '',
         processos: todosOsValores.processos || [],
@@ -436,7 +442,7 @@ export default function ContratoForm({
         descricaoObjeto: todosOsValores.descricaoObjeto || '',
         tipoContratacao: todosOsValores.tipoContratacao || '',
         tipoContrato: todosOsValores.tipoContrato || '',
-        unidadesResponsaveis: todosOsValores.unidadesResponsaveis || [],
+        unidadesResponsaveis: unidadesResponsaveisTransformadas,
         contratacao: todosOsValores.contratacao || 'Centralizada',
         vigenciaInicial: todosOsValores.vigenciaInicial || '',
         vigenciaFinal: todosOsValores.vigenciaFinal || '',
@@ -460,19 +466,25 @@ export default function ContratoForm({
   }, [watchedValues, handleDataChange, onDataChange, form])
 
   const handleFormSubmit = (dados: FormDataContrato) => {
-    // Validar unidades responsáveis
+    // Transformar unidades para garantir que principal seja sempre boolean
     const unidadesResponsaveis = dados.unidadesResponsaveis || []
-    const validacao = validateUnidadesResponsaveis(unidadesResponsaveis)
-    
+    const unidadesComPrincipalDefinido = unidadesResponsaveis.map(unidade => ({
+      ...unidade,
+      principal: unidade.principal ?? false
+    }))
+
+    // Validar unidades responsáveis
+    const validacao = validateUnidadesResponsaveis(unidadesComPrincipalDefinido)
+
     if (!validacao.isValid) {
       toast.error(`Erro na validação das unidades: ${validacao.errors.join(', ')}`)
       return
     }
-    
+
     // Criar objeto DadosContrato diretamente dos dados do formulário
     const dadosContrato: DadosContrato = {
       ...dados,
-      unidadesResponsaveis
+      unidadesResponsaveis: unidadesComPrincipalDefinido
     }
 
 
@@ -1383,7 +1395,10 @@ export default function ContratoForm({
             render={({ field }) => (
               <FormItem>
                 <UnidadeResponsavelManager
-                  unidades={field.value || []}
+                  unidades={(field.value || []).map(unidade => ({
+                    ...unidade,
+                    principal: unidade.principal ?? false
+                  }))}
                   onChange={field.onChange}
                 />
                 <FormMessage />

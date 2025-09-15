@@ -81,7 +81,7 @@ export async function deleteUnidade(id: string): Promise<void> {
 export async function buscarUnidadesPorNome(nome: string): Promise<UnidadeSaudeApi[]> {
   // A API espera o parâmetro 'nome' em /unidades?nome=...
   // Fazemos fallback para ambos formatos de resposta: lista direta ou paginada (dados[])
-  const response = await executeWithFallback<any>({
+  const response = await executeWithFallback<{ dados?: UnidadeSaudeApi[] } | UnidadeSaudeApi[]>({
     method: 'get',
     url: '/unidades',
     params: { nome },
@@ -106,7 +106,7 @@ export async function buscarUnidadesPorNomeOuSigla(termo: string): Promise<Unida
   if (termo.length <= 10) { // Siglas geralmente são curtas
     try {
       // Busca também por sigla usando o mesmo endpoint com parâmetro diferente
-      const response = await executeWithFallback<any>({
+      const response = await executeWithFallback<{ dados?: UnidadeSaudeApi[] } | UnidadeSaudeApi[]>({
         method: 'get',
         url: '/unidades',
         params: { sigla: termo },

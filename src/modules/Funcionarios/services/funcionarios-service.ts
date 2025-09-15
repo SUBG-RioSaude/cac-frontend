@@ -8,8 +8,7 @@ import type {
   LotacoesPaginacaoResponse,
   BuscaFuncionarioResponse,
   BuscaLotacaoResponse,
-  FuncionarioCreateApi,
-  FuncionarioUpdateApi
+  FuncionarioCreateApi
 } from '@/modules/Funcionarios/types/funcionario-api'
 
 /**
@@ -288,9 +287,10 @@ export async function criarFuncionario(payload: FuncionarioCreateApi): Promise<F
   })
 
   // Normalizar possíveis wrappers
-  const data = (response.data && (response.data as any).dados)
-    ? (response.data as any).dados as FuncionarioApi
-    : response.data as FuncionarioApi
+  const responseData = response.data as { dados?: FuncionarioApi } | FuncionarioApi
+  const data = (responseData && typeof responseData === 'object' && 'dados' in responseData && responseData.dados)
+    ? responseData.dados as FuncionarioApi
+    : responseData as FuncionarioApi
 
   if (!data || !data.id) {
     // Algumas APIs de cadastro podem não retornar o objeto; nesse caso retornamos o payload mapeado

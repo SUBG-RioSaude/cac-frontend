@@ -361,7 +361,7 @@ export function useContratoFuncionarios(
           funcionarioMatricula: String(typedItem.funcionarioMatricula),
           funcionarioCargo: String(typedItem.funcionarioCargo),
           dataCadastro: String(typedItem.dataCadastro),
-          dataAtualizacao: typedItem.dataAtualizacao ? String(typedItem.dataAtualizacao) : null,
+          dataAtualizacao: typedItem.dataAtualizacao ? String(typedItem.dataAtualizacao) : '',
           ativo: Boolean(typedItem.ativo)
         }
       })

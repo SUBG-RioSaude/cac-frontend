@@ -18,7 +18,6 @@ import {
   Plus, 
   Building, 
   Users,
-  AlertTriangle 
 } from 'lucide-react'
 import { cn, normalizeText } from '@/lib/utils'
 import { useBuscarUnidades, useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
@@ -143,7 +142,6 @@ export function UnidadeResponsavelManager({
   }, [unidades, onChange])
   
   // Alternar principal removido (noop)
-  const alternarPrincipal = useCallback((_index: number) => {}, [])
 
   // Atualizar observações
   const atualizarObservacoes = useCallback((index: number, observacoes: string) => {

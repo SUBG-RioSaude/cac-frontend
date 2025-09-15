@@ -101,9 +101,11 @@ export async function getContratoByNumero(numeroContrato: string): Promise<Contr
     })
     
     return response.data
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 404 significa que o número está disponível (não é erro)
-    if (error?.response?.status === 404) {
+    if (error && typeof error === 'object' && 'response' in error &&
+        typeof error.response === 'object' && error.response &&
+        'status' in error.response && error.response.status === 404) {
       return null
     }
     

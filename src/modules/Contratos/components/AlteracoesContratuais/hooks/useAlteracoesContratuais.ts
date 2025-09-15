@@ -262,11 +262,6 @@ export function useAlteracoesContratuais({
     setErrors(novosErrors)
     const isValid = Object.keys(novosErrors).length === 0
     
-    if (!isValid) {
-      Object.entries(novosErrors).forEach(([campo, erro], index) => {
-      })
-    }
-    
     return isValid
   }, [dados])
 

@@ -30,7 +30,6 @@ import {
   Mail,
   Phone,
   CheckCircle,
-  XCircle
 } from 'lucide-react'
 import { BuscaFuncionarioField } from './BuscaFuncionarioField'
 import { useAdicionarFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'

@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { getContratos, getContratoDetalhado, getContratoByNumero, type ContratoParametros } from '@/modules/Contratos/services/contratos-service'
+import { getContratos, getContratoDetalhado, type ContratoParametros } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import { useErrorHandler } from '@/hooks/use-error-handler'

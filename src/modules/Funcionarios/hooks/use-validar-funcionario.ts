@@ -1,4 +1,3 @@
-import { useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@/hooks/use-debounce'
 import { getFuncionarioByCpf, getFuncionarioByMatricula } from '@/modules/Funcionarios/services/funcionarios-service'

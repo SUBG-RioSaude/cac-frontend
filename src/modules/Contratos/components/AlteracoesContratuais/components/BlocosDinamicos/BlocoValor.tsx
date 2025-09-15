@@ -141,7 +141,7 @@ export function BlocoValor({
       percentualImpacto,
       excedeLimite
     }
-  }, [dados.operacao, dados.valorAjuste, dados.novoValorGlobal, valorOriginal, limiteLegal, contractFinancials])
+  }, [dados.operacao, dados.valorAjuste, dados.novoValorGlobal, valorOriginal, limiteLegal])
 
   // Emitir alerta de limite legal
   useEffect(() => {

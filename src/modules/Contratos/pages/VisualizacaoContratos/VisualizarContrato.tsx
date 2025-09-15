@@ -85,7 +85,7 @@ export function VisualizarContrato() {
 
   // Handlers para integração com alterações contratuais
 
-  const handleSalvarAlteracao = useCallback(async (alteracao: AlteracaoContratualResponse) => {
+  const handleSalvarAlteracao = useCallback(async (_alteracao: AlteracaoContratualResponse) => {
     try {
       // Simular usuário atual
       // const autor = {

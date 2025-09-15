@@ -23,14 +23,16 @@ const schema = z.object({
     .min(11, 'CPF é obrigatório')
     .refine((cpf) => validarFormatoCpf(cpf), 'CPF inválido (formato)')
     .refine((cpf) => validarCpfCompleto(cpf), 'CPF inválido'),
-  matricula: z.preprocess(
-    (v) => (typeof v === 'string' ? v.trim() : v),
-    z
-      .string()
-      .min(3, 'A Matrícula deve ter entre 3 e 20 caracteres alfanuméricos.')
-      .max(20, 'A Matrícula deve ter entre 3 e 20 caracteres alfanuméricos.')
-      .regex(/^[A-Za-z0-9]+$/, 'A Matrícula deve conter apenas letras e números, sem espaços ou caracteres especiais.'),
-  ),
+  matricula: z
+    .string()
+    .transform((v) => v.trim())
+    .pipe(
+      z
+        .string()
+        .min(3, 'A Matrícula deve ter entre 3 e 20 caracteres alfanuméricos.')
+        .max(20, 'A Matrícula deve ter entre 3 e 20 caracteres alfanuméricos.')
+        .regex(/^[A-Za-z0-9]+$/, 'A Matrícula deve conter apenas letras e números, sem espaços ou caracteres especiais.')
+    ),
   cargo: z.string().min(2, 'Cargo é obrigatório'),
   funcao: z.string().min(2, 'Função é obrigatória'),
   situacao: z.string().min(1, 'Selecione a situação'),

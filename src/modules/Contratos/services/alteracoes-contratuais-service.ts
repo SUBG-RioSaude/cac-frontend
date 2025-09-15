@@ -134,7 +134,7 @@ export async function getAlteracaoContratualById(
  * Retorna HTTP 201 (sucesso) ou HTTP 202 (alerta de limite legal)
  */
 export async function criarAlteracaoContratual(
-  contratoId: string,
+  _contratoId: string,
   dados: AlteracaoContratualForm
 ): Promise<{
   alteracao: AlteracaoContratualResponse

@@ -4,7 +4,6 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { criarFuncionario } from '@/modules/Funcionarios/services/funcionarios-service'
 import { funcionarioKeys } from '@/modules/Funcionarios/lib/query-keys'
@@ -12,7 +11,6 @@ import type { FuncionarioApi, FuncionarioCreateApi } from '@/modules/Funcionario
 
 export function useCreateFuncionario() {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
 
   return useMutation({
     mutationFn: async (data: FuncionarioCreateApi): Promise<FuncionarioApi> => {
@@ -22,7 +20,7 @@ export function useCreateFuncionario() {
       const loadingToast = toast.loading('Cadastrando funcionário...')
       return { loadingToast }
     },
-    onSuccess: (data, _variables, context) => {
+    onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) toast.dismiss(context.loadingToast)
       // Toast removido - agora o feedback é via modal no formulário
       const invalidate = funcionarioKeys.invalidateOnCreate()

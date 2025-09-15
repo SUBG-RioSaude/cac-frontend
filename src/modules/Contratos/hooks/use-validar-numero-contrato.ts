@@ -8,7 +8,6 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { useState, useEffect, useRef } from 'react'
 import { getContratoByNumero } from '@/modules/Contratos/services/contratos-service'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
-import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 interface NumeroValidationState {
   isChecking: boolean

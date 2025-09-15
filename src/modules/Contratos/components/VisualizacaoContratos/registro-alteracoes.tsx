@@ -611,7 +611,7 @@ export function RegistroAlteracoes({
   })
 
   // Buscar histórico de funcionários
-  const { data: historicoFuncionarios = [], isLoading: isLoadingHistorico } = useHistoricoFuncionarios(contratoId)
+  const { data: historicoFuncionarios = [] } = useHistoricoFuncionarios(contratoId)
 
   // Build lookup of empresa IDs -> razão social to enrich fornecedores section
   const fornecedoresIds = useMemo(() => {

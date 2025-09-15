@@ -46,7 +46,7 @@ import {
 import { FuncionarioCard } from './FuncionarioCard'
 import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
 import { AdicionarFuncionarioModal } from './AdicionarFuncionarioModal'
-import { useContratoFiscais, useContratoGestores, useContratoTodosFuncionarios, useRemoverFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
+import { useContratoTodosFuncionarios, useRemoverFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado

@@ -311,7 +311,8 @@ export function AlteracoesContratuaisContainer({
 
             {/* Sub-aba: Histórico */}
             <TabsContent value="historico" className="mt-0 space-y-0">
-              <RegistroAlteracoes 
+              <RegistroAlteracoes
+                contratoId={contratoId}
                 alteracoes={alteracoes}
                 entradasTimeline={entradasTimeline}
               />
