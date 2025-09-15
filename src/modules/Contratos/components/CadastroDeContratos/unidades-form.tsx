@@ -86,21 +86,16 @@ export default function UnidadesFormMelhorado({
   // Função para obter o estado de travamento de uma unidade
   const getCamposTravados = (unidadeId: string) => {
     if (!unidadeId) {
-      console.log('❌ getCamposTravados: unidadeId é vazio')
       return { valor: false, percentual: false }
     }
     
     const estado = camposTravados[unidadeId] || { valor: false, percentual: false }
-    console.log('🔍 getCamposTravados para unidade:', unidadeId, 'estado:', estado, 'estadoCompleto:', camposTravados)
     return estado
   }
 
   // Função para atualizar o estado de travamento de uma unidade
   const setCamposTravadosUnidade = (unidadeId: string, campo: 'valor' | 'percentual', travado: boolean) => {
-    console.log('🔧 setCamposTravadosUnidade:', { unidadeId, campo, travado })
-    
     if (!unidadeId) {
-      console.log('❌ Erro: unidadeId é vazio')
       return
     }
     
@@ -114,47 +109,11 @@ export default function UnidadesFormMelhorado({
         }
       }
       
-      console.log('📊 Estado anterior:', prev)
-      console.log('📊 Estado atual da unidade:', estadoAtual)
-      console.log('📊 Novo estado:', novoEstado)
-      
       return novoEstado
     })
   }
 
-  // Debug: monitorar mudanças no valorTotalContrato
-  useEffect(() => {
-    console.log('valorTotalContrato mudou:', valorTotalContrato, 'tipo:', typeof valorTotalContrato)
-    
-    // Validar se o valor é válido
-    if (valorTotalContrato > 0) {
-      console.log('✅ valorTotalContrato válido:', valorTotalContrato)
-      
-      // Teste simples da lógica de cálculo
-      const valorTeste = 500
-      const percentualCalculado = (valorTeste / valorTotalContrato) * 100
-      console.log('🧪 Teste de cálculo:', {
-        valorTeste,
-        valorTotalContrato,
-        percentualCalculado: `${percentualCalculado.toFixed(2)}%`
-      })
-    } else {
-      console.log('❌ valorTotalContrato inválido:', valorTotalContrato)
-    }
-  }, [valorTotalContrato])
-
-  // Debug: monitorar mudanças no estado camposTravados
-  useEffect(() => {
-    console.log('🔒 Estado camposTravados mudou:', camposTravados)
-  }, [camposTravados])
-
   const handleUnidadeSelecionada = (unidade: UnidadeHospitalar) => {
-    console.log('🏥 handleUnidadeSelecionada chamado com unidade:', {
-      id: unidade.id,
-      nome: unidade.nome,
-      sigla: unidade.sigla
-    })
-    
     setUnidadeSelecionada(unidade)
     // Reset dos valores quando uma nova unidade é selecionada
     setValorAlocado("")
@@ -164,7 +123,6 @@ export default function UnidadesFormMelhorado({
     setCamposTravadosUnidade(unidade.id, 'valor', false)
     setCamposTravadosUnidade(unidade.id, 'percentual', false)
     
-    console.log('✅ Unidade selecionada, valores resetados e campos destravados')
   }
 
   const handleLimparSelecao = () => {
@@ -181,13 +139,6 @@ export default function UnidadesFormMelhorado({
 
   const adicionarUnidade = () => {
     if (!unidadeSelecionada) return
-
-    console.log('Adicionando unidade:', {
-      unidadeSelecionada: unidadeSelecionada.nome,
-      valorAlocado,
-      percentualContrato,
-      valorTotalContrato
-    })
 
     // Verifica se a unidade já foi adicionada
     const jaExiste = dadosUnidades.unidades.some((u) => u.unidadeHospitalar.id === unidadeSelecionada.id)
@@ -206,14 +157,12 @@ export default function UnidadesFormMelhorado({
       const valorNum = currencyUtils.paraNumero(valorAlocado)
       if (valorNum > 0) {
         percentualFinal = (valorNum / valorTotalContrato) * 100
-        console.log('✅ Calculando percentual ao adicionar unidade:', percentualFinal.toFixed(2))
       }
     }
     // Se percentual foi preenchido, calcular valor
     else if (percentualContrato > 0 && valorTotalContrato > 0) {
       const novoValor = (percentualContrato / 100) * valorTotalContrato
       valorFinal = currencyUtils.formatar(novoValor)
-      console.log('✅ Calculando valor ao adicionar unidade:', valorFinal)
     }
 
     const novaUnidade: UnidadeContrato = {
@@ -223,7 +172,6 @@ export default function UnidadesFormMelhorado({
       percentualContrato: percentualFinal || 0,
     }
 
-    console.log('Nova unidade criada:', novaUnidade)
 
     setDadosUnidades((prev) => ({
       ...prev,
@@ -234,7 +182,6 @@ export default function UnidadesFormMelhorado({
     setTimeout(() => {
       setCamposTravadosUnidade(novaUnidade.id, 'valor', true)
       setCamposTravadosUnidade(novaUnidade.id, 'percentual', true)
-      console.log('🔒 Campos da nova unidade travados:', novaUnidade.id)
     }, 50)
 
     // Limpa a seleção após adicionar
@@ -259,7 +206,6 @@ export default function UnidadesFormMelhorado({
     // Destravar campos para edição
     setCamposTravadosUnidade(id, 'valor', false)
     setCamposTravadosUnidade(id, 'percentual', false)
-    console.log('✏️ Iniciando edição da unidade:', id)
   }
 
   const cancelarEdicao = (id: string) => {
@@ -267,7 +213,6 @@ export default function UnidadesFormMelhorado({
     // Travar campos novamente
     setCamposTravadosUnidade(id, 'valor', true)
     setCamposTravadosUnidade(id, 'percentual', true)
-    console.log('❌ Cancelando edição da unidade:', id)
   }
 
   const salvarEdicao = (id: string) => {
@@ -275,15 +220,12 @@ export default function UnidadesFormMelhorado({
     // Travar campos após salvar
     setCamposTravadosUnidade(id, 'valor', true)
     setCamposTravadosUnidade(id, 'percentual', true)
-    console.log('💾 Salvando edição da unidade:', id)
   }
 
   const atualizarUnidade = (id: string, campo: "valorAlocado" | "percentualContrato", valor: string | number) => {
-    console.log('atualizarUnidade:', { id, campo, valor, valorTotalContrato, unidadeEmEdicao })
     
     // Só permite atualização se a unidade estiver em modo de edição
     if (unidadeEmEdicao !== id) {
-      console.log('❌ Tentativa de atualizar unidade fora do modo de edição:', id)
       return
     }
     
@@ -298,7 +240,6 @@ export default function UnidadesFormMelhorado({
             const valorNum = currencyUtils.paraNumero(valor as string)
             if (valorNum > 0) {
               unidadeAtualizada.percentualContrato = (valorNum / valorTotalContrato) * 100
-              console.log('✅ Percentual recalculado para unidade em edição:', id, 'novo percentual:', unidadeAtualizada.percentualContrato.toFixed(2))
             }
           }
 
@@ -308,7 +249,6 @@ export default function UnidadesFormMelhorado({
             if (percentualNum > 0) {
               const novoValor = (percentualNum / 100) * valorTotalContrato
               unidadeAtualizada.valorAlocado = currencyUtils.formatar(novoValor)
-              console.log('✅ Valor recalculado para unidade em edição:', id, 'novo valor:', unidadeAtualizada.valorAlocado)
             }
           }
 
@@ -349,13 +289,6 @@ export default function UnidadesFormMelhorado({
   }
 
   const handleValorAlocadoChange = (valor: string) => {
-    console.log('💰 handleValorAlocadoChange chamado com:', {
-      valorOriginal: valor,
-      valorTotalContrato,
-      unidadeSelecionadaId: unidadeSelecionada?.id,
-      camposTravadosAtuais: getCamposTravados(unidadeSelecionada?.id || '')
-    })
-
     const valorMascarado = currencyUtils.aplicarMascara(valor)
     setValorAlocado(valorMascarado)
 
@@ -363,53 +296,22 @@ export default function UnidadesFormMelhorado({
     if (valorMascarado && valorTotalContrato > 0 && unidadeSelecionada?.id) {
       const valorNum = currencyUtils.paraNumero(valorMascarado)
       
-      console.log('💱 Valor convertido para número:', valorNum)
-      
       if (valorNum > 0) {
         const novoPercentual = (valorNum / valorTotalContrato) * 100
-        
-        console.log('🧮 Calculando percentual:', {
-          valorNum,
-          valorTotalContrato,
-          novoPercentual: novoPercentual.toFixed(2)
-        })
-        
         setPercentualContrato(novoPercentual)
         
         // Travar campo de percentual
         setCamposTravadosUnidade(unidadeSelecionada.id, 'valor', false)
         setCamposTravadosUnidade(unidadeSelecionada.id, 'percentual', true)
-        
-        console.log('✅ Campo percentual travado, campo valor destravado para unidade:', unidadeSelecionada.id)
-        
-        // Aguardar um pouco e verificar o estado
-        setTimeout(() => {
-          console.log('🔍 Verificação após travamento:', getCamposTravados(unidadeSelecionada.id))
-        }, 100)
       }
     } else if ((!valorMascarado || valorMascarado === 'R$ 0,00') && unidadeSelecionada?.id) {
       // Se o valor foi limpo, destravar campo de percentual
       setCamposTravadosUnidade(unidadeSelecionada.id, 'percentual', false)
       setPercentualContrato(0)
-      console.log('🔄 Campo percentual destravado, percentual resetado para unidade:', unidadeSelecionada.id)
-    } else {
-      console.log('⚠️ Condições não atendidas para cálculo:', {
-        valorMascarado,
-        valorTotalContrato,
-        temUnidadeSelecionada: !!unidadeSelecionada?.id,
-        unidadeId: unidadeSelecionada?.id
-      })
     }
   }
 
   const handlePercentualChange = (percentual: number) => {
-    console.log('🔄 handlePercentualChange chamado com:', {
-      percentual,
-      valorTotalContrato,
-      unidadeSelecionadaId: unidadeSelecionada?.id,
-      camposTravadosAtuais: getCamposTravados(unidadeSelecionada?.id || '')
-    })
-
     // Validar percentual
     const erroValidacao = percentualUtils.validarComMensagem(percentual)
     setErroPercentual(erroValidacao)
@@ -419,38 +321,16 @@ export default function UnidadesFormMelhorado({
     // Se o percentual foi preenchido e temos valor total, calcular valor
     if (percentual > 0 && valorTotalContrato > 0 && unidadeSelecionada?.id) {
       const novoValor = (percentual / 100) * valorTotalContrato
-      
-      console.log('🧮 Calculando valor:', {
-        percentual,
-        valorTotalContrato,
-        novoValor: novoValor.toFixed(2)
-      })
-      
       setValorAlocado(currencyUtils.formatar(novoValor))
       
       // Travar campo de valor
       setCamposTravadosUnidade(unidadeSelecionada.id, 'valor', true)
       setCamposTravadosUnidade(unidadeSelecionada.id, 'percentual', false)
       
-      console.log('✅ Campo valor travado, campo percentual destravado para unidade:', unidadeSelecionada.id)
-      
-      // Aguardar um pouco e verificar o estado
-      setTimeout(() => {
-        console.log('🔍 Verificação após travamento:', getCamposTravados(unidadeSelecionada.id))
-      }, 100)
-      
     } else if (percentual === 0 && unidadeSelecionada?.id) {
       // Se o percentual foi limpo, destravar campo de valor
       setCamposTravadosUnidade(unidadeSelecionada.id, 'valor', false)
       setValorAlocado("")
-      console.log('🔄 Campo valor destravado, valor resetado para unidade:', unidadeSelecionada.id)
-    } else {
-      console.log('⚠️ Condições não atendidas para cálculo:', {
-        percentual,
-        valorTotalContrato,
-        temUnidadeSelecionada: !!unidadeSelecionada?.id,
-        unidadeId: unidadeSelecionada?.id
-      })
     }
   }
 

@@ -58,7 +58,7 @@ export interface CriarContratoData {
   }>
   funcionarios?: Array<{
     funcionarioId: string
-    tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
+    tipoGerencia: 1 | 2 // 1=Fiscal, 2=Gestor
     observacoes?: string
   }>
   // NOVO: Array de unidades responsáveis (preferencial sobre campos únicos)
@@ -80,8 +80,6 @@ export function useCriarContrato() {
   return useMutation({
     mutationFn: async (payload: CriarContratoData) => {
       // Debug: verificar payload original
-      console.log('🔍 [DEBUG] Payload original recebido:', payload)
-      console.log('🔍 [DEBUG] Campos do payload original:', Object.keys(payload))
       
       // Determinar se usar novo formato ou legado
       let unidadesResponsaveis: CriarUnidadeResponsavelPayload[] = []
@@ -89,14 +87,12 @@ export function useCriarContrato() {
       if (payload.unidadesResponsaveis && payload.unidadesResponsaveis.length > 0) {
         // Usar array fornecido diretamente
         unidadesResponsaveis = payload.unidadesResponsaveis
-        console.log('🔄 [DEBUG] Usando array unidadesResponsaveis fornecido:', unidadesResponsaveis)
       } else if (payload.unidadeDemandanteId && payload.unidadeGestoraId) {
         // Converter campos legados para array
         unidadesResponsaveis = transformLegacyToUnidadesResponsaveis(
           payload.unidadeDemandanteId,
           payload.unidadeGestoraId
         )
-        console.log('🔄 [DEBUG] Convertendo campos legados para array:', unidadesResponsaveis)
       } else {
         throw new Error('É necessário fornecer unidadesResponsaveis ou unidadeDemandanteId/unidadeGestoraId')
       }
@@ -145,36 +141,9 @@ export function useCriarContrato() {
           observacoes: unidade.observacoes
         }))
       }
-
-      console.log('📦 [HOOK] Payload preparado para API:', payloadAPI)
-      console.log('🔍 [HOOK] Detalhes do payload:', {
-        numeroContrato: payloadAPI.numeroContrato,
-        empresaId: payloadAPI.empresaId,
-        vigenciaInicial: payloadAPI.vigenciaInicial,
-        vigenciaFinal: payloadAPI.vigenciaFinal,
-        valorGlobal: payloadAPI.valorGlobal,
-        unidadesResponsaveis: payloadAPI.unidadesResponsaveis?.length || 0,
-        unidadesVinculadas: payloadAPI.unidadesVinculadas?.length || 0,
-        funcionarios: payloadAPI.funcionarios?.length || 0
-      })
-      
-      // Debug específico para unidades responsáveis
-      console.log('🏢 [DEBUG] Unidades responsáveis no payload final:', {
-        quantidade: payloadAPI.unidadesResponsaveis?.length || 0,
-        detalhes: payloadAPI.unidadesResponsaveis?.map(u => ({
-          unidadeSaudeId: u.unidadeSaudeId,
-          tipoResponsabilidade: u.tipoResponsabilidade,
-          principal: u.principal,
-          observacoes: u.observacoes
-        })) || [],
-        // Campos legados para compatibilidade com logs antigos
-        unidadeDemandanteId: payload.unidadeDemandanteId,
-        unidadeGestoraId: payload.unidadeGestoraId
-      })
       return await criarContrato(payloadAPI)
     },
-    onSuccess: (data) => {
-      console.log('✅ [HOOK] Contrato criado com sucesso:', data)
+    onSuccess: () => {
       
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: contratoKeys.all })

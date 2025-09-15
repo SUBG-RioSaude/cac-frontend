@@ -454,7 +454,6 @@ export default function ContratoForm({
       const currentDataString = JSON.stringify(dados)
       if (previousDataRef.current !== currentDataString) {
         previousDataRef.current = currentDataString
-        console.log('🔄 [DEBUG] onDataChange chamado com dados:', dados)
         handleDataChange(dados)
       }
     }
@@ -476,10 +475,6 @@ export default function ContratoForm({
       unidadesResponsaveis
     }
 
-    console.log('📝 [DEBUG] handleFormSubmit - dados do schema:', dados)
-    console.log('🏢 [DEBUG] handleFormSubmit - unidades responsáveis:', unidadesResponsaveis)
-    console.log('✅ [DEBUG] handleFormSubmit - validação unidades:', validacao)
-    console.log('📝 [DEBUG] handleFormSubmit - dadosContrato final:', dadosContrato)
 
     const submitOperation = async () => {
       if (onAdvanceRequest) {

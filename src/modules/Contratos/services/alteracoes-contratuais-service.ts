@@ -144,10 +144,6 @@ export async function criarAlteracaoContratual(
   // Usar transformação para converter dados do frontend para payload da API
   const payload = transformToApiPayload(dados)
   
-  console.log('🔧 Criando alteração contratual:')
-  console.log('   - contratoId:', contratoId)
-  console.log('   - dados originais:', dados)
-  console.log('   - payload para API:', payload)
 
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'post',
@@ -159,7 +155,6 @@ export async function criarAlteracaoContratual(
   // Status 202 indica alerta de limite legal
   // O alertaLimiteLegal já vem no próprio response, não precisamos fazer chamada adicional
   if (response.status === 202) {
-    console.log('⚠️ Alerta de limite legal detectado no response')
     return {
       alteracao: response.data,
       alertaLimiteLegal: {

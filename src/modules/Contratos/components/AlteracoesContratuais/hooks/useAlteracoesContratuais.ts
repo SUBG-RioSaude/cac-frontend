@@ -127,46 +127,27 @@ export function useAlteracoesContratuais({
   const validarCamposObrigatorios = useCallback((): boolean => {
     const novosErrors: Record<string, string> = {}
 
-    console.log('🔍 Iniciando validação de campos obrigatórios')
-    console.log('🔍 Dados completos:', dados)
-    console.log('🔍 Estrutura dos blocos:', dados.blocos)
-    console.log('🔍 Tipos alteração:', dados.tiposAlteracao)
-    console.log('🔍 Data efeito:', dados.dataEfeito)
 
     // Validar campos básicos
     if (!dados.tiposAlteracao || dados.tiposAlteracao.length === 0) {
       novosErrors.tiposAlteracao = 'Selecione ao menos um tipo de alteração'
-      console.log('❌ Tipos de alteração:', dados.tiposAlteracao)
-    } else {
-      console.log('✅ Tipos de alteração OK:', dados.tiposAlteracao)
     }
 
     if (!dados.dadosBasicos?.justificativa || dados.dadosBasicos.justificativa.trim().length < 10) {
       novosErrors['dadosBasicos.justificativa'] = 'Justificativa deve ter pelo menos 10 caracteres'
-      console.log('❌ Justificativa:', dados.dadosBasicos?.justificativa?.length, 'caracteres')
-    } else {
-      console.log('✅ Justificativa OK:', dados.dadosBasicos?.justificativa?.length, 'caracteres')
     }
 
     if (!dados.dataEfeito || dados.dataEfeito === '') {
       novosErrors['dataEfeito'] = 'Data de efeito é obrigatória'
-      console.log('❌ Data de efeito:', dados.dataEfeito)
-    } else {
-      console.log('✅ Data de efeito OK:', dados.dataEfeito)
     }
 
     // Validar blocos obrigatórios
     if (dados.tiposAlteracao && dados.tiposAlteracao.length > 0) {
       const blocosObrigatorios = getBlocosObrigatorios(dados.tiposAlteracao)
-      console.log('🔧 Blocos obrigatórios:', Array.from(blocosObrigatorios))
-      console.log('🔧 Blocos disponíveis:', dados.blocos)
 
       // Validar bloco vigência
       if (blocosObrigatorios.has('vigencia')) {
-        console.log('🔍 Validando bloco VIGÊNCIA...')
-        console.log('   - dados.blocos?.vigencia:', dados.blocos?.vigencia)
         if (!dados.blocos?.vigencia) {
-          console.log('   ❌ Bloco vigência não encontrado')
           novosErrors['blocos.vigencia.operacao'] = 'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
           const vigencia = dados.blocos.vigencia
@@ -199,51 +180,32 @@ export function useAlteracoesContratuais({
 
       // Validar bloco valor
       if (blocosObrigatorios.has('valor')) {
-        console.log('🔍 Validando bloco VALOR...')
         if (!dados.blocos?.valor) {
           novosErrors['blocos.valor.operacao'] = 'Bloco Valor é obrigatório para os tipos selecionados'
-          console.log('❌ Bloco valor ausente')
         } else {
           const valor = dados.blocos.valor as BlocoValor
-          console.log('🔧 Dados do bloco valor:', valor)
           
           if (valor.operacao === undefined) {
             novosErrors['blocos.valor.operacao'] = 'Operação de valor é obrigatória'
-            console.log('❌ Operação não definida')
-          } else {
-            console.log('✅ Operação definida:', valor.operacao)
           }
 
           // Validações específicas por operação
           if (valor.operacao !== undefined) {
             const operacao = valor.operacao
-            console.log('🔧 Validando operação:', operacao, '(Substituir =', OperacaoValor.Substituir, ')')
             
             if (operacao === OperacaoValor.Substituir) {
               // Para substituir, precisa do novo valor global
               if (!valor.novoValorGlobal || valor.novoValorGlobal <= 0) {
                 novosErrors['blocos.valor.novoValorGlobal'] = 'Novo valor global é obrigatório e deve ser maior que zero'
-                console.log('❌ Novo valor global:', valor.novoValorGlobal)
-              } else {
-                console.log('✅ Novo valor global OK:', valor.novoValorGlobal)
               }
             } else {
               // Para acrescentar/diminuir, precisa de valor de ajuste OU percentual
               const temValorAjuste = valor.valorAjuste && valor.valorAjuste > 0
               const temPercentual = valor.percentualAjuste && valor.percentualAjuste > 0
               
-              console.log('🔧 Validação Valor Ajuste:')
-              console.log('   - valorAjuste:', valor.valorAjuste, '(tipo:', typeof valor.valorAjuste, ')')
-              console.log('   - percentualAjuste:', valor.percentualAjuste, '(tipo:', typeof valor.percentualAjuste, ')')
-              console.log('   - temValorAjuste:', temValorAjuste)
-              console.log('   - temPercentual:', temPercentual)
               
               if (!temValorAjuste && !temPercentual) {
                 novosErrors['blocos.valor.valorAjuste'] = 'Informe o valor de ajuste ou percentual'
-                console.log('❌ Erro: Nenhum valor informado (ajuste ou percentual)')
-                console.log('❌ Dados completos do valor:', JSON.stringify(valor, null, 2))
-              } else {
-                console.log('✅ Valor informado:', temValorAjuste ? 'ajuste' : 'percentual')
               }
             }
           }
@@ -300,12 +262,8 @@ export function useAlteracoesContratuais({
     setErrors(novosErrors)
     const isValid = Object.keys(novosErrors).length === 0
     
-    console.log('📊 Resultado da validação:', isValid ? '✅ VÁLIDO' : '❌ INVÁLIDO')
-    console.log('📊 Total de erros:', Object.keys(novosErrors).length)
     if (!isValid) {
-      console.log('📊 Lista completa de erros encontrados:')
       Object.entries(novosErrors).forEach(([campo, erro], index) => {
-        console.log(`   ${index + 1}. ${campo}: ${erro}`)
       })
     }
     

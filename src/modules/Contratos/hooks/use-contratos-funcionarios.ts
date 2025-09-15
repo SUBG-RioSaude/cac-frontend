@@ -5,17 +5,19 @@
  * Hooks para mutations de funcionários vinculados a contratos
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   adicionarFuncionarioContrato,
   removerFuncionarioContrato,
   substituirFuncionarioContrato,
+  listarFuncionariosContrato,
   validarSubstituicaoFuncionario,
   getTipoGerenciaLabel,
   type AdicionarFuncionarioPayload
 } from '../services/contratos-funcionarios-service'
 import { contratoKeys } from '../lib/query-keys'
+import type { ContratoFuncionario } from '../types/contrato'
 
 // ========== INTERFACES ==========
 
@@ -25,6 +27,7 @@ interface SubstituirFuncionarioPayload {
   funcionarioNovoId: string
   funcionarioNovoNome: string // Para exibição no toast
   tipoGerencia: 1 | 2
+  dataInicio?: string // ISO date (YYYY-MM-DD)
   observacoes?: string
 }
 
@@ -38,6 +41,47 @@ interface RemoverFuncionarioPayload {
   funcionarioId: string
   funcionarioNome?: string // Para exibição no toast
   tipoGerencia: 1 | 2
+}
+
+// ========== UTILITÁRIOS ==========
+
+/**
+ * Detecta se o erro é um conflito de período baseado na mensagem
+ */
+function isConflitoPeriodoError(errorMessage: string): boolean {
+  const messageLower = errorMessage.toLowerCase()
+  return messageLower.includes('se sobrepõe') ||
+         messageLower.includes('sobrepor') ||
+         (messageLower.includes('período') && messageLower.includes('conflito'))
+}
+
+/**
+ * Cria toast de erro personalizado baseado no tipo de erro
+ */
+function createErrorToast(
+  error: unknown,
+  tipoGerencia: 1 | 2,
+  operacao: 'adicionar' | 'remover' | 'substituir',
+  toastId?: string | number
+) {
+  const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+  const isConflitoPeriodo = isConflitoPeriodoError(errorMessage)
+
+  const toastConfig = {
+    id: toastId,
+    description: isConflitoPeriodo
+      ? `${errorMessage}. Verifique as datas e tente novamente.`
+      : errorMessage
+  }
+
+  if (isConflitoPeriodo) {
+    toast.error('Conflito de Período', toastConfig)
+  } else {
+    toast.error(
+      `Erro ao ${operacao} ${getTipoGerenciaLabel(tipoGerencia).toLowerCase()}`,
+      toastConfig
+    )
+  }
 }
 
 // ========== HOOKS ==========
@@ -79,19 +123,25 @@ export function useAdicionarFuncionarioContrato() {
       queryClient.invalidateQueries({
         queryKey: contratoKeys.all
       })
+      // Invalidar especificamente as queries de funcionários
+      queryClient.invalidateQueries({
+        queryKey: ['contrato-funcionarios', variables.contratoId]
+      })
+      // Invalidar queries de histórico de funcionários
+      queryClient.invalidateQueries({
+        queryKey: ['historico-funcionarios', variables.contratoId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['funcionarios-ativos-em', variables.contratoId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['periodos-funcionario', variables.contratoId]
+      })
     },
 
     onError: (error, variables, context) => {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-      
       if (context?.loadingToast) {
-        toast.error(
-          `Erro ao adicionar ${getTipoGerenciaLabel(variables.tipoGerencia).toLowerCase()}`,
-          {
-            id: context.loadingToast,
-            description: errorMessage
-          }
-        )
+        createErrorToast(error, variables.tipoGerencia, 'adicionar', context.loadingToast)
       }
     }
   })
@@ -134,19 +184,25 @@ export function useRemoverFuncionarioContrato() {
       queryClient.invalidateQueries({
         queryKey: contratoKeys.all
       })
+      // Invalidar especificamente as queries de funcionários
+      queryClient.invalidateQueries({
+        queryKey: ['contrato-funcionarios', variables.contratoId]
+      })
+      // Invalidar queries de histórico de funcionários
+      queryClient.invalidateQueries({
+        queryKey: ['historico-funcionarios', variables.contratoId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['funcionarios-ativos-em', variables.contratoId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['periodos-funcionario', variables.contratoId]
+      })
     },
 
     onError: (error, variables, context) => {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-      
       if (context?.loadingToast) {
-        toast.error(
-          `Erro ao remover ${getTipoGerenciaLabel(variables.tipoGerencia).toLowerCase()}`,
-          {
-            id: context.loadingToast,
-            description: errorMessage
-          }
-        )
+        createErrorToast(error, variables.tipoGerencia, 'remover', context.loadingToast)
       }
     }
   })
@@ -172,14 +228,15 @@ export function useSubstituirFuncionarioContrato() {
         throw new Error(validacao.erro)
       }
 
-      const { contratoId, funcionarioAntigoId, funcionarioNovoId, tipoGerencia, observacoes } = payload
+      const { contratoId, funcionarioAntigoId, funcionarioNovoId, tipoGerencia, observacoes, dataInicio } = payload
 
       return await substituirFuncionarioContrato(
         contratoId,
         funcionarioAntigoId,
         funcionarioNovoId,
         tipoGerencia,
-        observacoes
+        observacoes,
+        dataInicio
       )
     },
 
@@ -212,19 +269,25 @@ export function useSubstituirFuncionarioContrato() {
       queryClient.invalidateQueries({
         queryKey: contratoKeys.all
       })
+      // Invalidar especificamente as queries de funcionários
+      queryClient.invalidateQueries({
+        queryKey: ['contrato-funcionarios', variables.contratoId]
+      })
+      // Invalidar queries de histórico de funcionários
+      queryClient.invalidateQueries({
+        queryKey: ['historico-funcionarios', variables.contratoId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['funcionarios-ativos-em', variables.contratoId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['periodos-funcionario', variables.contratoId]
+      })
     },
 
     onError: (error, variables, context) => {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-      
       if (context?.loadingToast) {
-        toast.error(
-          `Erro ao substituir ${getTipoGerenciaLabel(variables.tipoGerencia).toLowerCase()}`,
-          {
-            id: context.loadingToast,
-            description: errorMessage
-          }
-        )
+        createErrorToast(error, variables.tipoGerencia, 'substituir', context.loadingToast)
       }
     }
   })
@@ -257,4 +320,72 @@ export function useContratosFuncionarios() {
       substituirMutation.reset()
     }
   }
+}
+
+// ========== HOOKS DE QUERY ==========
+
+/**
+ * Hook para listar funcionários de um contrato
+ * Otimizado para usar endpoint único em vez de múltiplas requests
+ */
+export function useContratoFuncionarios(
+  contratoId: string,
+  tipoGerencia?: 1 | 2,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: ['contrato-funcionarios', contratoId, tipoGerencia],
+    queryFn: () => listarFuncionariosContrato(contratoId, tipoGerencia),
+    enabled: !!contratoId && (options?.enabled !== false),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    select: (data: unknown[]): ContratoFuncionario[] => {
+      // Mapear dados da API para interface padronizada
+      return data.map((item: unknown) => {
+        const typedItem = item as Record<string, unknown>
+        return {
+          id: String(typedItem.id),
+          contratoId: String(typedItem.contratoId),
+          funcionarioId: String(typedItem.funcionarioId),
+          tipoGerencia: Number(typedItem.tipoGerencia),
+          tipoGerenciaDescricao: String(typedItem.tipoGerenciaDescricao),
+          dataInicio: String(typedItem.dataInicio),
+          dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
+          motivoAlteracao: Number(typedItem.motivoAlteracao),
+          motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
+          documentoDesignacao: typedItem.documentoDesignacao ? String(typedItem.documentoDesignacao) : null,
+          observacoes: typedItem.observacoes ? String(typedItem.observacoes) : null,
+          estaAtivo: Boolean(typedItem.estaAtivo),
+          diasNaFuncao: Number(typedItem.diasNaFuncao),
+          periodoFormatado: String(typedItem.periodoFormatado),
+          funcionarioNome: String(typedItem.funcionarioNome),
+          funcionarioMatricula: String(typedItem.funcionarioMatricula),
+          funcionarioCargo: String(typedItem.funcionarioCargo),
+          dataCadastro: String(typedItem.dataCadastro),
+          dataAtualizacao: typedItem.dataAtualizacao ? String(typedItem.dataAtualizacao) : null,
+          ativo: Boolean(typedItem.ativo)
+        }
+      })
+    }
+  })
+}
+
+/**
+ * Hook para listar fiscais de um contrato
+ */
+export function useContratoFiscais(contratoId: string, options?: { enabled?: boolean }) {
+  return useContratoFuncionarios(contratoId, 1, options)
+}
+
+/**
+ * Hook para listar gestores de um contrato
+ */
+export function useContratoGestores(contratoId: string, options?: { enabled?: boolean }) {
+  return useContratoFuncionarios(contratoId, 2, options)
+}
+
+/**
+ * Hook para listar todos os funcionários (fiscais + gestores) de um contrato
+ */
+export function useContratoTodosFuncionarios(contratoId: string, options?: { enabled?: boolean }) {
+  return useContratoFuncionarios(contratoId, undefined, options)
 }

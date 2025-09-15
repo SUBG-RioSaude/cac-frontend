@@ -246,12 +246,24 @@ export interface ContratoFuncionario {
   id: string
   contratoId: string
   funcionarioId: string
-  tipoGerencia: number // 1 = Gestor, 2 = Fiscal
+  tipoGerencia: number // 1 = Fiscal, 2 = Gestor
   tipoGerenciaDescricao: string
-  ativo: boolean
+  dataInicio: string // ISO date
+  dataFim: string | null
+  motivoAlteracao: number
+  motivoAlteracaoDescricao: string
+  documentoDesignacao: string | null
+  observacoes: string | null
+  estaAtivo: boolean
+  diasNaFuncao: number
+  periodoFormatado: string
   funcionarioNome: string
   funcionarioMatricula: string
   funcionarioCargo: string
+  dataCadastro: string // ISO date-time
+  dataAtualizacao: string // ISO date-time
+  ativo: boolean
+  // Campos opcionais para compatibilidade
   email?: string
   telefone?: string
 }

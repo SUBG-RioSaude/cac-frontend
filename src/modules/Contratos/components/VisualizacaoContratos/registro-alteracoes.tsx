@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +28,8 @@ import {
   ArrowDown,
   RotateCcw,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
@@ -36,8 +38,10 @@ import { cn, currencyUtils } from '@/lib/utils'
 import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { useHistoricoFuncionarios, type HistoricoFuncionario } from '@/modules/Contratos/hooks/use-historico-funcionarios'
 
 interface RegistroAlteracoesProps {
+  contratoId: string // Necessário para buscar histórico de funcionários
   alteracoes: AlteracaoContrato[]
   entradasTimeline?: TimelineEntry[] // Entradas vindas do sistema de timeline/alterações contratuais
   onMarcarChatComoAlteracao?: (chatId: string) => void
@@ -61,6 +65,12 @@ interface DadosMilestone {
   percentualCompleto?: number
 }
 
+interface DadosFuncionario {
+  funcionario: HistoricoFuncionario
+  acao: 'adicionado' | 'removido' | 'substituido'
+  funcionarioAnterior?: HistoricoFuncionario // Para casos de substituição
+}
+
 // Tipo unificado para exibição
 interface EntradaUnificada {
   id: string
@@ -69,8 +79,8 @@ interface EntradaUnificada {
   descricao: string
   dataHora: string
   responsavel: string
-  origem: 'contrato' | 'timeline' | 'chat'
-  dados?: DadosAlteracaoContratual | DadosMilestone | AlteracaoContrato
+  origem: 'contrato' | 'timeline' | 'chat' | 'funcionario'
+  dados?: DadosAlteracaoContratual | DadosMilestone | AlteracaoContrato | DadosFuncionario
   prioridade?: 'baixa' | 'media' | 'alta' | 'critica'
   tags?: string[]
   status?: string
@@ -247,6 +257,63 @@ function renderDetalhesAlteracao(
   getEmpresaNome: (id: string) => { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string },
   getUnidadeNome: (id: string) => { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string }
 ) {
+  // Se for uma entrada de funcionário, renderizar detalhes específicos
+  if (entrada.origem === 'funcionario') {
+    const dadosFuncionario = entrada.dados as DadosFuncionario
+    if (!dadosFuncionario) return null
+
+    const funcionario = dadosFuncionario.funcionario
+    const acao = dadosFuncionario.acao
+    const funcionarioAnterior = dadosFuncionario.funcionarioAnterior
+
+    return (
+      <div className="bg-muted/30 rounded-lg p-3 mb-3 text-sm">
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span className="text-muted-foreground font-medium">Funcionário:</span>
+              <p className="text-sm">{funcionario.funcionarioNome}</p>
+              <p className="text-xs text-muted-foreground">
+                Matrícula: {funcionario.funcionarioMatricula} | Cargo: {funcionario.funcionarioCargo}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground font-medium">Função:</span>
+              <p className="text-sm">{funcionario.tipoGerenciaDescricao}</p>
+              <p className="text-xs text-muted-foreground">
+                Período: {funcionario.periodoFormatado} ({funcionario.diasNaFuncao} dias)
+              </p>
+            </div>
+          </div>
+
+          {acao === 'substituido' && funcionarioAnterior && (
+            <div className="mt-3 pt-2 border-t border-muted-foreground/20">
+              <span className="text-muted-foreground font-medium">Funcionário Anterior:</span>
+              <p className="text-sm">{funcionarioAnterior.funcionarioNome}</p>
+              <p className="text-xs text-muted-foreground">
+                Matrícula: {funcionarioAnterior.funcionarioMatricula} | Cargo: {funcionarioAnterior.funcionarioCargo}
+              </p>
+            </div>
+          )}
+
+          {funcionario.motivoAlteracaoDescricao && (
+            <div className="mt-2">
+              <span className="text-muted-foreground font-medium">Motivo:</span>
+              <p className="text-sm">{funcionario.motivoAlteracaoDescricao}</p>
+            </div>
+          )}
+
+          {funcionario.observacoes && (
+            <div className="mt-2">
+              <span className="text-muted-foreground font-medium">Observações:</span>
+              <p className="text-sm">{funcionario.observacoes}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   // Se for uma entrada da timeline antiga ou de outro tipo, usar o formato antigo
   if (entrada.origem === 'timeline' || entrada.origem === 'chat') {
     if (entrada.dados && 'valorOriginal' in entrada.dados && entrada.dados.valorOriginal) {
@@ -527,8 +594,9 @@ function renderDetalhesAlteracao(
   return sections.length > 0 ? <div className="space-y-2">{sections}</div> : null
 }
 
-export function RegistroAlteracoes({ 
-  alteracoes, 
+export function RegistroAlteracoes({
+  contratoId,
+  alteracoes,
   entradasTimeline = [],
   onMarcarChatComoAlteracao,
   onAdicionarObservacao,
@@ -536,7 +604,15 @@ export function RegistroAlteracoes({
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [filtroStatus, setFiltroStatus] = useState<string>('todos')
   const [termoPesquisa, setTermoPesquisa] = useState('')
-  
+  const [paginacao, setPaginacao] = useState({
+    paginaAtual: 1,
+    itensPorPagina: 15,
+    totalItens: 0
+  })
+
+  // Buscar histórico de funcionários
+  const { data: historicoFuncionarios = [], isLoading: isLoadingHistorico } = useHistoricoFuncionarios(contratoId)
+
   // Build lookup of empresa IDs -> razão social to enrich fornecedores section
   const fornecedoresIds = useMemo(() => {
     const ids: string[] = []
@@ -649,7 +725,9 @@ export function RegistroAlteracoes({
     const titulos: Record<string | number, string> = {
       // Tipos originais do contrato
       criacao: 'Criação do Contrato',
-      designacao_fiscais: 'Designação de Fiscais', 
+      designacao_fiscais: 'Designação de Fiscal/Gestor',
+      remocao_fiscais: 'Remoção de Fiscal/Gestor',
+      substituicao_fiscais: 'Substituição de Fiscal/Gestor',
       primeiro_pagamento: 'Primeiro Pagamento',
       atualizacao_documentos: 'Atualização de Documentos',
       alteracao_valor: 'Aditivo de Quantidade',
@@ -706,7 +784,7 @@ export function RegistroAlteracoes({
     status: getStatusAlteracao(alt) // Adicionar status para filtragem
   }))
 
-  // Converter entradas da timeline para formato unificado  
+  // Converter entradas da timeline para formato unificado
   const timelineUnificadas: EntradaUnificada[] = entradasTimeline.map(entry => ({
     id: entry.id,
     tipo: entry.categoria === 'alteracao' ? 'alteracao_contratual' : entry.categoria,
@@ -720,41 +798,154 @@ export function RegistroAlteracoes({
     tags: entry.tags
   }))
 
-  // Unificar todas as entradas
-  const todasEntradas = useMemo(() => {
-    const entradas = [...alteracoesUnificadas, ...timelineUnificadas]
-    
+  // Converter histórico de funcionários para formato unificado
+  const funcionariosUnificados: EntradaUnificada[] = useMemo(() => {
+    if (!historicoFuncionarios || historicoFuncionarios.length === 0) return []
+
+    // Criar entradas baseadas nas mudanças de funcionários
+    const entradas: EntradaUnificada[] = []
+
+    // Agrupar por funcionário e tipo para detectar padrões
+    const funcionariosPorTipo = historicoFuncionarios.reduce((acc, hist) => {
+      const key = `${hist.funcionarioId}-${hist.tipoGerencia}`
+      if (!acc[key]) acc[key] = []
+      acc[key].push(hist)
+      return acc
+    }, {} as Record<string, HistoricoFuncionario[]>)
+
+    // Para cada funcionário/tipo, criar eventos baseados nas transições
+    Object.values(funcionariosPorTipo).forEach(periodos => {
+      // Ordenar por data de início
+      const periodosOrdenados = periodos.sort((a, b) =>
+        new Date(a.dataInicio).getTime() - new Date(b.dataInicio).getTime()
+      )
+
+      periodosOrdenados.forEach((periodo, index) => {
+        const tipoLabel = periodo.tipoGerenciaDescricao
+        const funcionarioNome = periodo.funcionarioNome
+        const matricula = periodo.funcionarioMatricula
+
+        // Entrada para adição/início do período
+        if (index === 0 || !periodosOrdenados[index - 1] ||
+            new Date(periodosOrdenados[index - 1].dataFim || '').getTime() < new Date(periodo.dataInicio).getTime() - 86400000) {
+          // Novo período (não é continuação)
+          entradas.push({
+            id: `func-add-${periodo.id}`,
+            tipo: 'designacao_fiscais',
+            titulo: `${tipoLabel} Designado`,
+            descricao: `${funcionarioNome} (${matricula}) foi designado como ${tipoLabel.toLowerCase()}`,
+            dataHora: periodo.dataInicio,
+            responsavel: 'Sistema',
+            origem: 'funcionario' as const,
+            dados: {
+              funcionario: periodo,
+              acao: 'adicionado'
+            } as DadosFuncionario,
+            status: periodo.estaAtivo ? 'ativo' : 'inativo'
+          })
+        }
+
+        // Entrada para remoção/fim do período
+        if (periodo.dataFim) {
+          entradas.push({
+            id: `func-rem-${periodo.id}`,
+            tipo: 'remocao_fiscais',
+            titulo: `${tipoLabel} Removido`,
+            descricao: `${funcionarioNome} (${matricula}) foi removido da função de ${tipoLabel.toLowerCase()}${periodo.motivoAlteracaoDescricao ? ` - ${periodo.motivoAlteracaoDescricao}` : ''}`,
+            dataHora: periodo.dataFim,
+            responsavel: 'Sistema',
+            origem: 'funcionario' as const,
+            dados: {
+              funcionario: periodo,
+              acao: 'removido'
+            } as DadosFuncionario,
+            status: 'removido'
+          })
+        }
+
+        // Detectar substituições (quando há um período seguinte imediatamente)
+        const proximoPeriodo = periodosOrdenados[index + 1]
+        if (proximoPeriodo && periodo.dataFim &&
+            Math.abs(new Date(proximoPeriodo.dataInicio).getTime() - new Date(periodo.dataFim).getTime()) < 86400000) {
+          // É uma substituição
+          entradas.push({
+            id: `func-subst-${periodo.id}-${proximoPeriodo.id}`,
+            tipo: 'substituicao_fiscais',
+            titulo: `${tipoLabel} Substituído`,
+            descricao: `${funcionarioNome} (${matricula}) foi substituído por ${proximoPeriodo.funcionarioNome} (${proximoPeriodo.funcionarioMatricula})`,
+            dataHora: proximoPeriodo.dataInicio,
+            responsavel: 'Sistema',
+            origem: 'funcionario' as const,
+            dados: {
+              funcionario: proximoPeriodo,
+              acao: 'substituido',
+              funcionarioAnterior: periodo
+            } as DadosFuncionario,
+            status: 'substituido'
+          })
+        }
+      })
+    })
+
+    return entradas
+  }, [historicoFuncionarios])
+
+  // Unificar e filtrar todas as entradas
+  const entradasFiltradas = useMemo(() => {
+    const entradas = [...alteracoesUnificadas, ...timelineUnificadas, ...funcionariosUnificados]
+
     // Filtrar por tipo
-    let entradasFiltradas = filtroTipo === 'todos' 
-      ? entradas 
+    let resultado = filtroTipo === 'todos'
+      ? entradas
       : entradas.filter(e => e.tipo === filtroTipo)
-    
+
     // Filtrar por status
     if (filtroStatus !== 'todos') {
-      entradasFiltradas = entradasFiltradas.filter(e => e.status === filtroStatus)
+      resultado = resultado.filter(e => e.status === filtroStatus)
     }
-    
+
     // Filtrar por termo de pesquisa
     if (termoPesquisa) {
       const termo = termoPesquisa.toLowerCase()
-      entradasFiltradas = entradasFiltradas.filter(e => 
+      resultado = resultado.filter(e =>
         e.titulo.toLowerCase().includes(termo) ||
         e.descricao.toLowerCase().includes(termo) ||
         e.responsavel.toLowerCase().includes(termo)
       )
     }
-    
+
     // Ordenar por data (mais recente primeiro)
-    return entradasFiltradas.sort((a, b) => 
+    return resultado.sort((a, b) =>
       new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime()
     )
-  }, [alteracoesUnificadas, timelineUnificadas, filtroTipo, filtroStatus, termoPesquisa])
+  }, [alteracoesUnificadas, timelineUnificadas, funcionariosUnificados, filtroTipo, filtroStatus, termoPesquisa])
+
+  // Aplicar paginação nas entradas filtradas
+  const { entradasPaginadas, totalPaginas } = useMemo(() => {
+    const total = entradasFiltradas.length
+    const inicio = (paginacao.paginaAtual - 1) * paginacao.itensPorPagina
+    const fim = inicio + paginacao.itensPorPagina
+
+    return {
+      entradasPaginadas: entradasFiltradas.slice(inicio, fim),
+      totalPaginas: Math.ceil(total / paginacao.itensPorPagina)
+    }
+  }, [entradasFiltradas, paginacao.paginaAtual, paginacao.itensPorPagina])
+
+  // Reset da paginação quando filtros mudarem
+  useEffect(() => {
+    setPaginacao(prev => ({
+      ...prev,
+      paginaAtual: 1,
+      totalItens: entradasFiltradas.length
+    }))
+  }, [filtroTipo, filtroStatus, termoPesquisa, entradasFiltradas.length])
 
   // Tipos únicos para o filtro
   const tiposDisponiveis = useMemo(() => {
-    const tipos = new Set(todasEntradas.map(e => e.tipo))
+    const tipos = new Set(entradasFiltradas.map(e => e.tipo))
     return Array.from(tipos)
-  }, [todasEntradas])
+  }, [entradasFiltradas])
 
   // Status únicos para o filtro (apenas de alterações de contrato)
   const statusDisponiveis = useMemo(() => {
@@ -771,6 +962,8 @@ export function RegistroAlteracoes({
       // Tipos originais do contrato
       criacao: FileText,
       designacao_fiscais: Users,
+      remocao_fiscais: Users,
+      substituicao_fiscais: Users,
       primeiro_pagamento: DollarSign,
       atualizacao_documentos: FileText,
       alteracao_valor: DollarSign,
@@ -813,6 +1006,8 @@ export function RegistroAlteracoes({
       // Tipos originais do contrato
       criacao: 'bg-blue-100 text-blue-600',
       designacao_fiscais: 'bg-green-100 text-green-600',
+      remocao_fiscais: 'bg-red-100 text-red-600',
+      substituicao_fiscais: 'bg-orange-100 text-orange-600',
       primeiro_pagamento: 'bg-yellow-100 text-yellow-600',
       atualizacao_documentos: 'bg-purple-100 text-purple-600',
       alteracao_valor: 'bg-orange-100 text-orange-600',
@@ -847,7 +1042,7 @@ export function RegistroAlteracoes({
               <Clock className="h-5 w-5" />
               Registro de Alterações
               <Badge variant="secondary" className="ml-2">
-                {todasEntradas.length}
+                {entradasFiltradas.length}
               </Badge>
             </CardTitle>
             {onAdicionarObservacao && (
@@ -922,7 +1117,7 @@ export function RegistroAlteracoes({
             <div className="bg-border absolute top-0 bottom-0 left-6 w-0.5"></div>
 
             <div className="space-y-6">
-              {todasEntradas.length === 0 ? (
+              {entradasPaginadas.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -943,7 +1138,7 @@ export function RegistroAlteracoes({
                   </div>
                 </motion.div>
               ) : (
-                todasEntradas.map((entrada, index) => (
+                entradasPaginadas.map((entrada, index) => (
                   <motion.div
                     key={entrada.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -974,8 +1169,9 @@ export function RegistroAlteracoes({
                                 variant={entrada.origem === 'timeline' ? 'default' : 'secondary'} 
                                 className="text-xs"
                               >
-                                {entrada.origem === 'contrato' ? 'Sistema' : 
-                                 entrada.origem === 'timeline' ? 'Alteração' : 'Chat'}
+                                {entrada.origem === 'contrato' ? 'Sistema' :
+                                 entrada.origem === 'timeline' ? 'Alteração' :
+                                 entrada.origem === 'funcionario' ? 'Funcionários' : 'Chat'}
                               </Badge>
                               {entrada.status && entrada.origem === 'contrato' && (
                                 <Badge 
@@ -1071,6 +1267,105 @@ export function RegistroAlteracoes({
                 ))
               )}
             </div>
+
+            {/* Paginação */}
+            {entradasFiltradas.length > 0 && (
+              <div className="mt-8 flex flex-col items-center gap-4">
+                {/* Indicador de itens e seletor de itens por página */}
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando{' '}
+                    <span className="font-medium">
+                      {Math.min((paginacao.paginaAtual - 1) * paginacao.itensPorPagina + 1, entradasFiltradas.length)}
+                    </span>
+                    {' '}a{' '}
+                    <span className="font-medium">
+                      {Math.min(paginacao.paginaAtual * paginacao.itensPorPagina, entradasFiltradas.length)}
+                    </span>
+                    {' '}de{' '}
+                    <span className="font-medium">{entradasFiltradas.length}</span>
+                    {' '}entradas
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Itens por página:</span>
+                    <Select
+                      value={String(paginacao.itensPorPagina)}
+                      onValueChange={(value) => setPaginacao(prev => ({
+                        ...prev,
+                        itensPorPagina: Number(value),
+                        paginaAtual: 1
+                      }))}
+                    >
+                      <SelectTrigger className="w-16 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="15">15</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Controles de navegação */}
+                {totalPaginas > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPaginacao(prev => ({ ...prev, paginaAtual: prev.paginaAtual - 1 }))}
+                    disabled={paginacao.paginaAtual === 1}
+                    className="flex items-center gap-2"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Anterior</span>
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                      // Calcular as páginas a mostrar (máximo 5)
+                      let startPage = Math.max(1, paginacao.paginaAtual - 2)
+                      const endPage = Math.min(totalPaginas, startPage + 4)
+
+                      // Ajustar se estivermos próximo do fim
+                      if (endPage - startPage < 4) {
+                        startPage = Math.max(1, endPage - 4)
+                      }
+
+                      const pageNum = startPage + i
+                      if (pageNum > endPage) return null
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={paginacao.paginaAtual === pageNum ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setPaginacao(prev => ({ ...prev, paginaAtual: pageNum }))}
+                          className="h-8 w-8 p-0"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPaginacao(prev => ({ ...prev, paginaAtual: prev.paginaAtual + 1 }))}
+                    disabled={paginacao.paginaAtual === totalPaginas}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="hidden sm:inline">Próxima</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -1086,7 +1381,7 @@ export function RegistroAlteracoes({
         <CardContent>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {tiposDisponiveis.map((tipo, index) => {
-              const count = todasEntradas.filter(e => e.tipo === tipo).length
+              const count = entradasFiltradas.filter(e => e.tipo === tipo).length
               return (
                 <motion.div
                   key={tipo}

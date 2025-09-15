@@ -89,7 +89,6 @@ export function ContractChat({
 
   const handleMarcarComoAlteracao = useCallback((mensagem: ChatMessage) => {
     onMarcarComoAlteracao?.(mensagem)
-    console.log('Mensagem marcada como alteração:', mensagem)
   }, [onMarcarComoAlteracao])
 
   const formatarHorario = (dataHora: string) => {

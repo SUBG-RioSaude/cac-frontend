@@ -89,19 +89,11 @@ export function useContractUnits(contratoId: string, options?: UseContractContex
     unidadeDemandanteId = unidadeDemandante?.unidadeSaudeId
     unidadeGestoraId = unidadeGestora?.unidadeSaudeId
     
-    console.log('🔄 [CONTEXT] Usando unidadesResponsaveis:', {
-      demandante: unidadeDemandante,
-      gestora: unidadeGestora
-    })
   } else {
     // Fallback para campos legados
     unidadeDemandanteId = contract?.unidadeDemandanteId as string | undefined
     unidadeGestoraId = contract?.unidadeGestoraId as string | undefined
     
-    console.log('🔄 [CONTEXT] Usando campos legados:', {
-      unidadeDemandanteId,
-      unidadeGestoraId
-    })
   }
   
   const unidadeDemandanteQuery = useUnidade(unidadeDemandanteId || '', { 

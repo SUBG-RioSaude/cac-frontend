@@ -62,20 +62,12 @@ export function VisualizarContrato() {
     data: historicoAlteracoes = []
   } = useHistoricoAlteracoes(id || '', !!id)
 
-  console.log('🔍 VisualizarContrato Debug:', { 
-    id, 
-    contrato, 
-    loading, 
-    isError, 
-    error 
-  })
 
   
   // Integração com timeline - temporariamente comentado
   // const { criarEntradaAlteracao, criarMarcosAlteracao, atualizarStatusAlteracao } = useTimelineIntegration({
   //   contratoId: contrato?.id || '',
   //   onAdicionarEntrada: (entrada) => {
-  //     console.log('Nova entrada adicionada à timeline:', entrada)
   //     // Atualizar estado local das entradas
   //     setEntradasTimeline(prev => [entrada, ...prev])
   //   }
@@ -89,7 +81,6 @@ export function VisualizarContrato() {
   }
 
   const handleExportar = () => {
-    console.log('Exportar contrato:', contrato)
   }
 
   // Handlers para integração com alterações contratuais
@@ -109,7 +100,6 @@ export function VisualizarContrato() {
       // TODO: Criar marcos relacionados se necessário  
       // criarMarcosAlteracao(alteracao)
       
-      console.log('Alteração salva e integrada à timeline:', alteracao)
     } catch (error) {
       console.error('Erro ao salvar alteração:', error)
     }
@@ -124,7 +114,6 @@ export function VisualizarContrato() {
         // atualizarStatusAlteracao(alteracao.id, 'submetida')
       }
       
-      console.log('Alteração submetida:', alteracao)
     } catch (error) {
       console.error('Erro ao submeter alteração:', error)
     }
@@ -156,7 +145,6 @@ export function VisualizarContrato() {
     // Adicionar à timeline
     setEntradasTimeline(prev => [entradaChat, ...prev])
     
-    console.log('Mensagem do chat marcada como alteração:', entradaChat)
   }, [contrato])
 
   // Função para validar mudança de aba
@@ -440,8 +428,9 @@ export function VisualizarContrato() {
 
                 {isTabEnabled('alteracoes') && (
                   <TabsContent value="alteracoes" className="mt-0 w-full">
-                    <RegistroAlteracoes 
-                      alteracoes={historicoAlteracoes} 
+                    <RegistroAlteracoes
+                      contratoId={id!}
+                      alteracoes={historicoAlteracoes}
                       entradasTimeline={entradasTimeline}
                     />
                   </TabsContent>

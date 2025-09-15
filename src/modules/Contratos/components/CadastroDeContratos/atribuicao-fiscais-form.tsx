@@ -74,20 +74,11 @@ export default function AtribuicaoFiscaisForm({
   const todosUsuarios = useMemo(() => {
     if (!funcionariosApi) return []
     
-    // Debug: Log dos dados recebidos da API
-    console.log('Funcionários da API:', funcionariosApi)
-    
     // Filtrar apenas funcionários aptos para fiscalização
     const funcionariosAptos = filtrarFuncionariosParaFiscalizacao(funcionariosApi)
     
-    // Debug: Log dos funcionários após filtro
-    console.log('Funcionários aptos:', funcionariosAptos)
-    
     // Converter para formato de usuário
     const usuarios = mapearFuncionariosParaUsuarios(funcionariosAptos)
-    
-    // Debug: Log dos usuários mapeados
-    console.log('Usuários mapeados:', usuarios)
     
     return usuarios
   }, [funcionariosApi])
@@ -391,4 +382,5 @@ export default function AtribuicaoFiscaisForm({
     </div>
   )
 }
+
 

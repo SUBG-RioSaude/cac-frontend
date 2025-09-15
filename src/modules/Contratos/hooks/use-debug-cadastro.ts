@@ -80,13 +80,6 @@ export function useDebugCadastro() {
     setApiLogs(prev => [...prev, log])
     
     // Debug console
-    const emoji = status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳'
-    console.log(`${emoji} [DEBUG API] ${method.toUpperCase()} ${url}`, {
-      status,
-      duration: duration ? `${duration}ms` : undefined,
-      data,
-      error
-    })
   }, [])
 
   const clearLogs = useCallback(() => {

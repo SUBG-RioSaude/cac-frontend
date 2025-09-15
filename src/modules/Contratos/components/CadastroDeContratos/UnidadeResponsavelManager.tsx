@@ -49,7 +49,7 @@ export function UnidadeResponsavelManager({
   const [searchGestora, setSearchGestora] = useState('')
   const [submittedGestora, setSubmittedGestora] = useState('')
   
-  // Buscar unidades demandantes apenas quando hÃ¡ termo de busca
+  // Buscar unidades demandantes apenas quando há termo de busca
   const { 
     data: unidadesDemandantes, 
     isLoading: loadingDemandantes, 
@@ -58,7 +58,7 @@ export function UnidadeResponsavelManager({
     enabled: submittedDemandante.trim().length >= 2
   })
   
-  // Buscar unidades gestoras apenas quando hÃ¡ termo de busca  
+  // Buscar unidades gestoras apenas quando há termo de busca  
   const { 
     data: unidadesGestoras, 
     isLoading: loadingGestoras, 
@@ -74,7 +74,7 @@ export function UnidadeResponsavelManager({
     return { demandantes, gestoras }
   }, [unidades])
 
-  // Buscar detalhes das unidades selecionadas para exibir nomes estÃ¡veis
+  // Buscar detalhes das unidades selecionadas para exibir nomes estáveis
   const selectedIdsForDetails = useMemo(() => unidades.map(u => u.unidadeSaudeId), [unidades])
   const { data: unidadesSelecionadasMap } = useUnidadesByIds(selectedIdsForDetails)
 
@@ -101,7 +101,7 @@ export function UnidadeResponsavelManager({
     })
   }, [unidades, todasUnidadesEncontradas, unidadesSelecionadasMap])
 
-  // Unidades jÃ¡ selecionadas (nÃ£o pode selecionar novamente)
+  // Unidades já selecionadas (não pode selecionar novamente)
   const unidadesSelecionadasIds = useMemo(() => 
     unidades.map(u => u.unidadeSaudeId),
     [unidades]
@@ -109,7 +109,7 @@ export function UnidadeResponsavelManager({
 
   // Adicionar nova unidade
   const adicionarUnidade = useCallback((tipoResponsabilidade: 1 | 2, unidadeSaudeId: string) => {
-    // Verificar se unidade jÃ¡ foi selecionada
+    // Verificar se unidade já foi selecionada
     if (unidadesSelecionadasIds.includes(unidadeSaudeId)) {
       return
     }
@@ -145,19 +145,19 @@ export function UnidadeResponsavelManager({
   // Alternar principal removido (noop)
   const alternarPrincipal = useCallback((_index: number) => {}, [])
 
-  // Atualizar observaÃ§Ãµes
+  // Atualizar observações
   const atualizarObservacoes = useCallback((index: number, observacoes: string) => {
     const novasUnidades = [...unidades]
     novasUnidades[index].observacoes = observacoes
     onChange(novasUnidades)
   }, [unidades, onChange])
 
-  // Verificar se pode remover (mÃ­nimo 1 por tipo)
+  // Verificar se pode remover (mínimo 1 por tipo)
   const podeRemover = useCallback((_unidade: CriarUnidadeResponsavelPayload) => {
     return true
   }, [])
 
-  // ValidaÃ§Ãµes
+  // Validações
   const temDemandante = demandantes.length > 0
   const temGestora = gestoras.length > 0
 
@@ -166,7 +166,7 @@ export function UnidadeResponsavelManager({
       {/* Header */}
       <div className="space-y-2">
         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Unidades ResponsÃ¡veis *
+          Unidades Responsáveis *
         </label>
         <p className="text-xs text-muted-foreground">
           Selecione as unidades demandantes e gestoras do contrato.
@@ -176,7 +176,7 @@ export function UnidadeResponsavelManager({
         </p>
       </div>
 
-      {/* SeÃ§Ã£o Demandantes */}
+      {/* Seção Demandantes */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export function UnidadeResponsavelManager({
             <PopoverContent className="w-80 p-0" align="end">
               <Command>
                 <CommandInput 
-                  placeholder="Digite e pressione Enter para buscar unidade demandante..." 
+                  placeholder="Digite nome ou sigla e pressione Enter para buscar unidade demandante..." 
                   value={searchDemandante}
                   onValueChange={setSearchDemandante}
                   onKeyDown={(e) => {
@@ -208,7 +208,7 @@ export function UnidadeResponsavelManager({
                 <CommandList>
                   {!searchDemandante ? (
                     <div className="py-6 text-center text-sm text-muted-foreground">
-                      Digite o nome da unidade e pressione Enter para buscar
+                      Digite o nome ou sigla da unidade e pressione Enter para buscar
                     </div>
                   ) : searchDemandante.length < 2 ? (
                     <div className="py-6 text-center text-sm text-muted-foreground">
@@ -290,7 +290,7 @@ export function UnidadeResponsavelManager({
         </div>
       </div>
 
-      {/* SeÃ§Ã£o Gestoras */}
+      {/* Seção Gestoras */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -310,7 +310,7 @@ export function UnidadeResponsavelManager({
             <PopoverContent className="w-80 p-0" align="end">
               <Command>
                 <CommandInput
-                  placeholder="Digite e pressione Enter para buscar unidade gestora..."
+                  placeholder="Digite nome ou sigla e pressione Enter para buscar unidade gestora..."
                   value={searchGestora}
                   onValueChange={setSearchGestora}
                   onKeyDown={(e) => {
@@ -322,7 +322,7 @@ export function UnidadeResponsavelManager({
                 <CommandList>
                   {!searchGestora ? (
                     <div className="py-6 text-center text-sm text-muted-foreground">
-                      Digite o nome da unidade e pressione Enter para buscar
+                      Digite o nome ou sigla da unidade e pressione Enter para buscar
                     </div>
                   ) : searchGestora.length < 2 ? (
                     <div className="py-6 text-center text-sm text-muted-foreground">
@@ -404,7 +404,6 @@ export function UnidadeResponsavelManager({
         </div>
       </div>
 
-      {/* Debug info (remover em produÃ§Ã£o) */}
       
     </div>
   )
