@@ -10,6 +10,8 @@
 export type {
   FuncionarioApi,
   LotacaoApi,
+  FuncionarioCreateApi,
+  FuncionarioUpdateApi,
   Usuario,
   UsuarioAtribuido,
   FuncionarioParametros,
@@ -60,6 +62,10 @@ export {
   useGetLotacoesAtivas,
   useFuncionariosParaAtribuicao
 } from './hooks/use-funcionarios'
+
+export {
+  useCreateFuncionario,
+} from './hooks/use-funcionarios-mutations'
 
 // Query keys
 export {

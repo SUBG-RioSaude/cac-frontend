@@ -182,8 +182,7 @@ export default function CadastrarContrato() {
 
   const handleContratoSubmit = (dados: DadosContrato) => {
     console.log("📝 [DEBUG] handleContratoSubmit chamado com dados:", dados)
-    console.log("📝 [DEBUG] unidadeDemandanteId nos dados:", dados.unidadeDemandanteId)
-    console.log("📝 [DEBUG] unidadeGestoraId nos dados:", dados.unidadeGestoraId)
+    console.log("📝 [DEBUG] unidadesResponsaveis nos dados:", dados.unidadesResponsaveis)
     
     setDadosCompletos((prev) => {
       const novosDados = { ...prev, contrato: dados }
@@ -224,21 +223,28 @@ export default function CadastrarContrato() {
     console.log('🔍 [DEBUG] Dados do fornecedor:', fornecedor)
     console.log('🔍 [DEBUG] Dados do contrato:', contrato)
     console.log('🔍 [DEBUG] empresaId do fornecedor:', fornecedor.empresaId)
-    console.log('🔍 [DEBUG] unidadeDemandanteId:', contrato.unidadeDemandanteId)
-    console.log('🔍 [DEBUG] unidadeGestoraId:', contrato.unidadeGestoraId)
-
-    // Validação de campos obrigatórios
+    console.log('🔍 [DEBUG] unidadesResponsaveis:', contrato.unidadesResponsaveis)
+    
+            // Exigir pelo menos um funcion�rio com cargo definido (Fiscal ou Gestor)
+    const atribuicoes = atribuicao?.usuariosAtribuidos || []
+    const comTipo = atribuicoes.filter(u => u.tipo === 'fiscal' || u.tipo === 'gestor')
+    if (comTipo.length === 0) {
+      throw new Error('Atribua pelo menos um Fiscal ou Gestor ao contrato antes de finalizar.')
+    }
+// Validar: todos os usu�rios atribu�dos devem ter tipo definido (fiscal/gestor)
+    const usuariosAtribuidos = atribuicao?.usuariosAtribuidos || []
+    const usuariosSemTipo = usuariosAtribuidos.filter(u => u.tipo !== 'fiscal' && u.tipo !== 'gestor')
+    if (usuariosSemTipo.length > 0) {
+      throw new Error('Defina o cargo (Fiscal ou Gestor) para todos os usu�rios atribu�dos antes de continuar.')
+    }
+// Valida��oção de campos obrigatórios
     if (!fornecedor.empresaId) {
       throw new Error('ID da empresa não encontrado. Verifique se a empresa foi cadastrada corretamente.')
     }
     
-    if (!contrato.unidadeDemandanteId) {
-      throw new Error('ID da unidade demandante não encontrado. Verifique se a unidade foi selecionada corretamente.')
-    }
     
-    if (!contrato.unidadeGestoraId) {
-      throw new Error('ID da unidade gestora não encontrado. Verifique se a unidade foi selecionada corretamente.')
-    }
+    
+    
 
     // Converter valor global para número
     const valorGlobal = (() => {
@@ -276,8 +282,7 @@ export default function CadastrarContrato() {
       descricaoObjeto: contrato.descricaoObjeto || undefined,
       tipoContratacao: contrato.tipoContratacao || undefined,
       tipoContrato: contrato.tipoContrato || undefined,
-      unidadeDemandanteId: contrato.unidadeDemandanteId || undefined,
-      unidadeGestoraId: contrato.unidadeGestoraId || undefined,
+      unidadesResponsaveis: contrato.unidadesResponsaveis || [],
       contratacao: contrato.contratacao || undefined,
       vigenciaInicial: contrato.vigenciaInicial || '',
       vigenciaFinal: contrato.vigenciaFinal || '',
@@ -607,3 +612,6 @@ export default function CadastrarContrato() {
     </LayoutPagina>
   )
 }
+
+
+

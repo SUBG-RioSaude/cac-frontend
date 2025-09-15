@@ -1,4 +1,4 @@
-import { Building2, Home, PenBoxIcon, Settings2, Truck } from 'lucide-react'
+import { Building2, Home, PenBoxIcon, Settings2, Truck, Users } from 'lucide-react'
 
 import {
   Sidebar,
@@ -61,6 +61,17 @@ const data = {
         {
           title: 'Lista de Unidades',
           url: '/unidades',
+        },
+      ],
+    },
+    {
+      title: 'Funcionários',
+      url: '/funcionarios',
+      icon: Users,
+      items: [
+        {
+          title: 'Cadastro de Funcionários',
+          url: '/funcionarios/cadastrar',
         },
       ],
     },

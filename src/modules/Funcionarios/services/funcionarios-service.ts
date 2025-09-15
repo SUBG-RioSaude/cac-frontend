@@ -7,7 +7,9 @@ import type {
   FuncionariosPaginacaoResponse,
   LotacoesPaginacaoResponse,
   BuscaFuncionarioResponse,
-  BuscaLotacaoResponse
+  BuscaLotacaoResponse,
+  FuncionarioCreateApi,
+  FuncionarioUpdateApi
 } from '@/modules/Funcionarios/types/funcionario-api'
 
 /**
@@ -273,4 +275,44 @@ export async function buscarLotacoesPorNome(nome: string, limit = 20): Promise<L
   })
 
   return response.dados
+}
+
+/**
+ * Criar novo funcionário
+ */
+export async function criarFuncionario(payload: FuncionarioCreateApi): Promise<FuncionarioApi> {
+  const response = await executeWithFallback<FuncionarioApi | { dados: FuncionarioApi }>({
+    method: 'post',
+    url: '/Funcionarios',
+    data: payload,
+  })
+
+  // Normalizar possíveis wrappers
+  const data = (response.data && (response.data as any).dados)
+    ? (response.data as any).dados as FuncionarioApi
+    : response.data as FuncionarioApi
+
+  if (!data || !data.id) {
+    // Algumas APIs de cadastro podem não retornar o objeto; nesse caso retornamos o payload mapeado
+    return {
+      id: '',
+      matricula: payload.matricula,
+      cpf: payload.cpf,
+      nomeCompleto: payload.nomeCompleto,
+      emailInstitucional: payload.emailInstitucional,
+      telefone: payload.telefone,
+      cargo: payload.cargo,
+      funcao: payload.funcao,
+      situacao: payload.situacao,
+      vinculo: payload.vinculo,
+      dataAdmissao: payload.dataAdmissao,
+      dataExoneracao: payload.dataExoneracao ?? null,
+      ativo: payload.situacao === 1,
+      lotacaoId: payload.lotacaoId,
+      lotacaoNome: '',
+      dataCadastro: new Date().toISOString(),
+    }
+  }
+
+  return data
 }

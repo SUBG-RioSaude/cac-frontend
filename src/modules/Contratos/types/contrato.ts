@@ -1,8 +1,8 @@
-/**
+﻿/**
  * ==========================================
  * TIPAGEM CENTRALIZADA DE CONTRATOS - API
  * ==========================================
- * Fonte única da verdade para entidades de contrato
+ * Fonte Ãºnica da verdade para entidades de contrato
  * Baseada no modelo da API do backend
  */
 
@@ -36,11 +36,29 @@ export type StatusDocumento =
 
 // ========== ENTIDADES RELACIONADAS ==========
 
+export interface UnidadeResponsavel {
+  id: string
+  contratoId: string
+  unidadeSaudeId: string
+  unidadeSaudeNome: string
+  tipoResponsabilidade: number // 1 = Demandante, 2 = Gestora
+  tipoResponsabilidadeDescricao: string // "Demandante" | "Gestora"
+  principal: boolean // Se Ã© a unidade principal para esse tipo
+  observacoes?: string
+  ativo: boolean
+  dataCadastro: string
+  dataAtualizacao: string
+  usuarioCadastroId: string
+  usuarioAtualizacaoId: string
+  usuarioCadastroNome?: string | null
+  usuarioAtualizacaoNome?: string | null
+}
+
 export interface ContratoUnidadeSaudeDto {
   id: string
   contratoId: string
-  unidadeSaudeId: string // Corrigido: API retorna unidadeSaudeId, não unidadeId
-  nomeUnidade?: string // Opcional: pode não vir da API
+  unidadeSaudeId: string // Corrigido: API retorna unidadeSaudeId, nÃ£o unidadeId
+  nomeUnidade?: string // Opcional: pode nÃ£o vir da API
   valorAtribuido: number
   percentualValor?: number
   vigenciaInicialUnidade?: string
@@ -60,8 +78,8 @@ export interface DocumentoApiResponse {
   id: string
   contratoId: string
   tipoDocumento: string // Nome do tipo ("TermoReferencia", "Homologacao", etc.)
-  tipoDocumentoNumero: number // Número do tipo (pode estar incorreto na API)
-  nomeTipoDocumento: string // nome amigável do tipo
+  tipoDocumentoNumero: number // NÃºmero do tipo (pode estar incorreto na API)
+  nomeTipoDocumento: string // nome amigÃ¡vel do tipo
   urlDocumento: string
   dataEntrega: string // ISO date-time
   observacoes?: string
@@ -72,7 +90,7 @@ export interface DocumentoApiResponse {
   usuarioAtualizacaoId: string
 }
 
-// DTO para criação via API
+// DTO para criaÃ§Ã£o via API
 export interface CreateDocumentoApiPayload {
   contratoId: string
   tipoDocumento: number // 1-7
@@ -81,14 +99,14 @@ export interface CreateDocumentoApiPayload {
   observacoes?: string
 }
 
-// DTO para atualização via API
+// DTO para atualizaÃ§Ã£o via API
 export interface UpdateDocumentoApiPayload {
   urlDocumento: string
   dataEntrega?: string // ISO date-time
   observacoes?: string
 }
 
-// DTO para gestão múltipla de documentos
+// DTO para gestÃ£o mÃºltipla de documentos
 export interface DocumentoMultiplo {
   tipoDocumento: number // 1-7 conforme API
   urlDocumento: string
@@ -103,13 +121,13 @@ export interface SaveDocumentosMultiplosPayload {
 
 // Mapeamento de tipos de documento da API (1-7)
 export const TIPOS_DOCUMENTO_API = {
-  1: { nome: 'TermoReferencia', descricao: 'Termo de Referência/Edital' },
-  2: { nome: 'Homologacao', descricao: 'Homologação' },
-  3: { nome: 'AtaRegistroPrecos', descricao: 'Ata de Registro de Preços' },
+  1: { nome: 'TermoReferencia', descricao: 'Termo de ReferÃªncia/Edital' },
+  2: { nome: 'Homologacao', descricao: 'HomologaÃ§Ã£o' },
+  3: { nome: 'AtaRegistroPrecos', descricao: 'Ata de Registro de PreÃ§os' },
   4: { nome: 'GarantiaContratual', descricao: 'Garantia Contratual' },
   5: { nome: 'Contrato', descricao: 'Contrato' },
-  6: { nome: 'PublicacaoPNCP', descricao: 'Publicação PNCP' },
-  7: { nome: 'PublicacaoExtrato', descricao: 'Publicação de Extrato Contratual' },
+  6: { nome: 'PublicacaoPNCP', descricao: 'PublicaÃ§Ã£o PNCP' },
+  7: { nome: 'PublicacaoExtrato', descricao: 'PublicaÃ§Ã£o de Extrato Contratual' },
 } as const
 
 // Interface legada para compatibilidade (mantida para componente atual)
@@ -117,7 +135,7 @@ export interface DocumentoContratoDto {
   id: string | null
   contratoId: string
   nome: string
-  tipo: string // número como string para compatibilidade
+  tipo: string // nÃºmero como string para compatibilidade
   categoria: 'obrigatorio' | 'opcional'
   linkExterno?: string | null
   status: string // baseado no ativo da API
@@ -204,16 +222,17 @@ export interface Contrato {
   dataAtualizacao: string // ISO date-time
   unidadesVinculadas?: ContratoUnidadeSaudeDto[] | null
   documentos?: DocumentoContratoDto[] | null
+  unidadesResponsaveis?: UnidadeResponsavel[] | null // Novo campo para unidades responsÃ¡veis
   valorTotalAtribuido: number
   valorDisponivel: number
-  vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
+  vtmTotalContrato: number // Valor Total MÃ©dio do contrato (valor mensal mÃ©dio)
   quantidadeUnidadesVinculadas: number
   quantidadeDocumentos: number
 }
 
 // ========== INTERFACES ESTENDIDAS ==========
 
-// Responsáveis (legado - para tela de visualização)
+// ResponsÃ¡veis (legado - para tela de visualizaÃ§Ã£o)
 export interface Responsavel {
   id: string
   nome: string
@@ -335,28 +354,28 @@ export interface PeriodoVigencia {
   status: 'concluido' | 'em_andamento' | 'pendente'
 }
 
-// Contrato Detalhado (para tela de visualização - combina API + campos legado)
+// Contrato Detalhado (para tela de visualizaÃ§Ã£o - combina API + campos legado)
 export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
   // Campos legado para compatibilidade
-  numeroContrato: string // override para obrigatório
+  numeroContrato: string // override para obrigatÃ³rio
   objeto: string // mapeado de descricaoObjeto
   dataInicio: string // mapeado de vigenciaInicial
   dataTermino: string // mapeado de vigenciaFinal
   valorTotal: number // mapeado de valorGlobal
-  vtmTotalContrato: number // Valor Total Médio do contrato (valor mensal médio)
+  vtmTotalContrato: number // Valor Total MÃ©dio do contrato (valor mensal mÃ©dio)
   
   // IDs das unidades para busca de nomes
   unidadeDemandanteId?: string | null
   unidadeGestoraId?: string | null
 
-  // Informações CCon
+  // InformaÃ§Ãµes CCon
   ccon?: {
     numero: string
     dataInicio: string
     dataTermino: string
   }
 
-  // Responsáveis
+  // ResponsÃ¡veis
   responsaveis: {
     fiscaisAdministrativos: Responsavel[]
     gestores: Responsavel[]
@@ -379,14 +398,14 @@ export interface ContratoDetalhado extends Omit<Contrato, 'documentos'> {
     vinculadas: UnidadeVinculada[]
   }
 
-  // Alterações
+  // AlteraÃ§Ãµes
   alteracoes: AlteracaoContrato[]
 
   // Documentos (tipo legado para compatibilidade - override do tipo da API)
   documentos: DocumentoContrato[]
   documentosChecklist: ChecklistData
 
-  // Funcionários vinculados ao contrato (nova API)
+  // FuncionÃ¡rios vinculados ao contrato (nova API)
   funcionarios?: ContratoFuncionario[]
 
   // Indicadores
@@ -417,7 +436,7 @@ export interface ChecklistData {
 
 // ========== INTERFACES PARA UI ==========
 
-// Interface para listagem (versão simplificada)
+// Interface para listagem (versÃ£o simplificada)
 export interface ContratoLista {
   id: string
   numeroContrato?: string | null
@@ -452,7 +471,7 @@ export interface PaginacaoParams {
   total: number
 }
 
-// ========== ESTATÍSTICAS E FILTROS ==========
+// ========== ESTATÃSTICAS E FILTROS ==========
 
 export interface FiltroDocumento {
   categoria?: 'obrigatorio' | 'opcional' | 'todos'
@@ -470,7 +489,7 @@ export interface EstatisticaDocumentos {
   obrigatoriosPendentes: number
 }
 
-// ========== TIPOS DE DOCUMENTOS PADRÃO ==========
+// ========== TIPOS DE DOCUMENTOS PADRÃƒO ==========
 
 export const TIPOS_DOCUMENTO: TipoDocumento[] = [
   {
@@ -478,8 +497,8 @@ export const TIPOS_DOCUMENTO: TipoDocumento[] = [
     nome: 'Edital',
     icone: 'FileText',
     cor: 'blue',
-    descricaoDetalhada: 'Documento de licitação que estabelece as regras do processo',
-    exemplos: ['Edital de Pregão', 'Edital de Concorrência']
+    descricaoDetalhada: 'Documento de licitaÃ§Ã£o que estabelece as regras do processo',
+    exemplos: ['Edital de PregÃ£o', 'Edital de ConcorrÃªncia']
   },
   {
     id: 'proposta',
@@ -487,7 +506,7 @@ export const TIPOS_DOCUMENTO: TipoDocumento[] = [
     icone: 'DollarSign',
     cor: 'green',
     descricaoDetalhada: 'Proposta apresentada pelo fornecedor',
-    exemplos: ['Proposta de Preços', 'Proposta Técnica']
+    exemplos: ['Proposta de PreÃ§os', 'Proposta TÃ©cnica']
   },
   {
     id: 'contrato',
@@ -501,44 +520,44 @@ export const TIPOS_DOCUMENTO: TipoDocumento[] = [
     nome: 'Garantia Contratual',
     icone: 'Shield',
     cor: 'orange',
-    descricaoDetalhada: 'Garantia apresentada para execução do contrato',
-    exemplos: ['Seguro Garantia', 'Fiança Bancária', 'Depósito em Dinheiro']
+    descricaoDetalhada: 'Garantia apresentada para execuÃ§Ã£o do contrato',
+    exemplos: ['Seguro Garantia', 'FianÃ§a BancÃ¡ria', 'DepÃ³sito em Dinheiro']
   },
   {
     id: 'documentos_habilitacao',
-    nome: 'Documentos de Habilitação',
+    nome: 'Documentos de HabilitaÃ§Ã£o',
     icone: 'Award',
     cor: 'teal',
-    descricaoDetalhada: 'Documentos que comprovam a habilitação da empresa',
-    exemplos: ['Certidões Negativas', 'Balanço Patrimonial', 'Atestados']
+    descricaoDetalhada: 'Documentos que comprovam a habilitaÃ§Ã£o da empresa',
+    exemplos: ['CertidÃµes Negativas', 'BalanÃ§o Patrimonial', 'Atestados']
   },
   {
     id: 'aditivo',
     nome: 'Termo Aditivo',
     icone: 'FilePlus',
     cor: 'indigo',
-    descricaoDetalhada: 'Documentos de alteração do contrato original'
+    descricaoDetalhada: 'Documentos de alteraÃ§Ã£o do contrato original'
   },
   {
     id: 'apostila',
     nome: 'Apostila',
     icone: 'FileSignature',
     cor: 'pink',
-    descricaoDetalhada: 'Averbação de alterações não substanciais'
+    descricaoDetalhada: 'AverbaÃ§Ã£o de alteraÃ§Ãµes nÃ£o substanciais'
   },
   {
     id: 'ordem_servico',
-    nome: 'Ordem de Serviço',
+    nome: 'Ordem de ServiÃ§o',
     icone: 'Play',
     cor: 'emerald',
-    descricaoDetalhada: 'Autorização para início dos trabalhos'
+    descricaoDetalhada: 'AutorizaÃ§Ã£o para inÃ­cio dos trabalhos'
   },
   {
     id: 'nota_fiscal',
     nome: 'Notas Fiscais',
     icone: 'Receipt',
     cor: 'amber',
-    descricaoDetalhada: 'Documentos fiscais de cobrança'
+    descricaoDetalhada: 'Documentos fiscais de cobranÃ§a'
   },
   {
     id: 'outros',
@@ -566,7 +585,7 @@ export interface Empenho {
   dataAtualizacao: string
 }
 
-// Interface para criação de empenho via API
+// Interface para criaÃ§Ã£o de empenho via API
 export interface CriarEmpenhoPayload {
   contratoId: string
   unidadeSaudeId: string
@@ -576,14 +595,14 @@ export interface CriarEmpenhoPayload {
   observacao?: string
 }
 
-// Interface para atualização de empenho via API
+// Interface para atualizaÃ§Ã£o de empenho via API
 export interface AtualizarEmpenhoPayload {
   valor: number
   dataEmpenho: string
   observacao?: string
 }
 
-// Interface para formulário de empenho
+// Interface para formulÃ¡rio de empenho
 export interface EmpenhoForm {
   id?: string
   unidadeSaudeId: string
@@ -593,7 +612,7 @@ export interface EmpenhoForm {
   observacao: string
 }
 
-// Interface para validação de empenho
+// Interface para validaÃ§Ã£o de empenho
 export interface ValidacaoEmpenho {
   numeroEmpenho: {
     valido: boolean
@@ -617,10 +636,44 @@ export interface ValidacaoEmpenho {
   }
 }
 
-// ========== TIPOS PARA CRIAÇÃO DE CONTRATOS ==========
+// ========== TIPOS PARA CRIAÃ‡ÃƒO DE CONTRATOS ==========
 
-// Interface para criação de contrato via API
+// Interface para criaÃ§Ã£o de unidade responsÃ¡vel no payload
+export interface CriarUnidadeResponsavelPayload {
+  unidadeSaudeId: string
+  tipoResponsabilidade: number // 1 = Demandante, 2 = Gestora
+  principal: boolean
+  observacoes?: string
+}
+
+// Interface NOVA para criaÃ§Ã£o de contrato via API (usando unidadesResponsaveis)
 export interface CriarContratoPayload {
+  numeroContrato: string
+  processoSei?: string
+  processoRio?: string
+  processoLegado?: string
+  categoriaObjeto: string
+  descricaoObjeto: string
+  tipoContratacao: string
+  tipoContrato: string
+  unidadesResponsaveis: CriarUnidadeResponsavelPayload[] // NOVO: array de unidades responsÃ¡veis
+  contratacao: string
+  vigenciaInicial: string // ISO date-time
+  vigenciaFinal: string // ISO date-time
+  prazoInicialMeses: number
+  valorGlobal: number
+  formaPagamento: string
+  tipoTermoReferencia: string
+  termoReferencia: string
+  vinculacaoPCA: string
+  empresaId: string
+  ativo: boolean
+  unidadesVinculadas: UnidadeVinculadaPayload[]
+  funcionarios: FuncionarioContratoPayload[]
+}
+
+// Interface LEGADA para compatibilidade (serÃ¡ removida futuramente)
+export interface CriarContratoPayloadLegado {
   numeroContrato: string
   processoSei?: string
   processoRio?: string
@@ -655,15 +708,236 @@ export interface UnidadeVinculadaPayload {
   observacoes?: string
 }
 
-// Interface para funcionários do contrato
+// Interface para funcionÃ¡rios do contrato
 export interface FuncionarioContratoPayload {
   funcionarioId: string
   tipoGerencia: typeof TipoGerencia[keyof typeof TipoGerencia] // 1=Fiscal, 2=Gestor
   observacoes?: string
 }
 
-// Enum para tipo de gerência
+// Enum para tipo de gerÃªncia
 export const TipoGerencia = {
   FISCAL: 1,
   GESTOR: 2
 } as const
+
+// ========== FUNÃ‡Ã•ES AUXILIARES PARA UNIDADES RESPONSÃVEIS ==========
+
+/**
+ * Extrai a unidade demandante principal de um contrato
+ * @param contrato - Contrato com campo unidadesResponsaveis
+ * @returns Unidade demandante principal ou undefined
+ */
+export function getUnidadeDemandantePrincipal(contrato: Contrato | ContratoDetalhado): UnidadeResponsavel | undefined {
+  if (!contrato.unidadesResponsaveis || contrato.unidadesResponsaveis.length === 0) {
+    return undefined
+  }
+  
+  return contrato.unidadesResponsaveis.find(
+    unidade => unidade.tipoResponsabilidade === 1 && // 1 = Demandante
+               unidade.principal === true &&
+               unidade.ativo === true
+  )
+}
+
+/**
+ * Extrai a unidade gestora principal de um contrato
+ * @param contrato - Contrato com campo unidadesResponsaveis
+ * @returns Unidade gestora principal ou undefined
+ */
+export function getUnidadeGestoraPrincipal(contrato: Contrato | ContratoDetalhado): UnidadeResponsavel | undefined {
+  if (!contrato.unidadesResponsaveis || contrato.unidadesResponsaveis.length === 0) {
+    return undefined
+  }
+  
+  return contrato.unidadesResponsaveis.find(
+    unidade => unidade.tipoResponsabilidade === 2 && // 2 = Gestora
+               unidade.principal === true &&
+               unidade.ativo === true
+  )
+}
+
+/**
+ * ObtÃ©m todas as unidades demandantes de um contrato
+ * @param contrato - Contrato com campo unidadesResponsaveis
+ * @returns Array de unidades demandantes ativas
+ */
+export function getUnidadesDemandantes(contrato: Contrato | ContratoDetalhado): UnidadeResponsavel[] {
+  if (!contrato.unidadesResponsaveis || contrato.unidadesResponsaveis.length === 0) {
+    return []
+  }
+  
+  return contrato.unidadesResponsaveis.filter(
+    unidade => unidade.tipoResponsabilidade === 1 && // 1 = Demandante
+               unidade.ativo === true
+  )
+}
+
+/**
+ * ObtÃ©m todas as unidades gestoras de um contrato
+ * @param contrato - Contrato com campo unidadesResponsaveis
+ * @returns Array de unidades gestoras ativas
+ */
+export function getUnidadesGestoras(contrato: Contrato | ContratoDetalhado): UnidadeResponsavel[] {
+  if (!contrato.unidadesResponsaveis || contrato.unidadesResponsaveis.length === 0) {
+    return []
+  }
+  
+  return contrato.unidadesResponsaveis.filter(
+    unidade => unidade.tipoResponsabilidade === 2 && // 2 = Gestora
+               unidade.ativo === true
+  )
+}
+
+/**
+ * Compatibilidade: extrai nome da unidade demandante principal para uso legado
+ * @param contrato - Contrato com campo unidadesResponsaveis
+ * @returns Nome da unidade demandante principal ou string vazia
+ */
+export function getLegacyUnidadeDemandante(contrato: Contrato | ContratoDetalhado): string {
+  // Priorizar campo legado se existir
+  if (contrato.unidadeDemandante) {
+    return contrato.unidadeDemandante
+  }
+  
+  // Buscar na nova estrutura
+  const unidadePrincipal = getUnidadeDemandantePrincipal(contrato)
+  return unidadePrincipal?.unidadeSaudeNome || ''
+}
+
+/**
+ * Compatibilidade: extrai nome da unidade gestora principal para uso legado
+ * @param contrato - Contrato com campo unidadesResponsaveis
+ * @returns Nome da unidade gestora principal ou string vazia
+ */
+export function getLegacyUnidadeGestora(contrato: Contrato | ContratoDetalhado): string {
+  // Priorizar campo legado se existir
+  if (contrato.unidadeGestora) {
+    return contrato.unidadeGestora
+  }
+  
+  // Buscar na nova estrutura
+  const unidadePrincipal = getUnidadeGestoraPrincipal(contrato)
+  return unidadePrincipal?.unidadeSaudeNome || ''
+}
+
+// ========== TRANSFORMERS PARA CONVERSÃƒO BIDIRECIONAL ==========
+
+/**
+ * Converte dados do formulÃ¡rio legado (campos Ãºnicos) para array unidadesResponsaveis
+ * @param unidadeDemandanteId - ID da unidade demandante
+ * @param unidadeGestoraId - ID da unidade gestora  
+ * @returns Array de unidades responsÃ¡veis para o payload da API
+ */
+export function transformLegacyToUnidadesResponsaveis(
+  unidadeDemandanteId: string, 
+  unidadeGestoraId: string
+): CriarUnidadeResponsavelPayload[] {
+  const unidadesResponsaveis: CriarUnidadeResponsavelPayload[] = []
+  
+  // Adicionar unidade demandante se fornecida
+  if (unidadeDemandanteId && unidadeDemandanteId.trim() !== '') {
+    unidadesResponsaveis.push({
+      unidadeSaudeId: unidadeDemandanteId,
+      tipoResponsabilidade: 1, // 1 = Demandante
+      principal: false,
+      observacoes: 'Unidade demandante'
+    })
+  }
+  
+  // Adicionar unidade gestora se fornecida
+  if (unidadeGestoraId && unidadeGestoraId.trim() !== '') {
+    unidadesResponsaveis.push({
+      unidadeSaudeId: unidadeGestoraId,
+      tipoResponsabilidade: 2, // 2 = Gestora
+      principal: false,
+      observacoes: 'Unidade gestora'
+    })
+  }
+  
+  return unidadesResponsaveis
+}
+
+/**
+ * Converte array unidadesResponsaveis de volta para campos Ãºnicos (para compatibilidade)
+ * @param unidadesResponsaveis - Array de unidades responsÃ¡veis da API
+ * @returns Objeto com IDs das unidades demandante e gestora principais
+ */
+export function transformUnidadesResponsaveisToLegacy(
+  unidadesResponsaveis?: UnidadeResponsavel[]
+): { unidadeDemandanteId?: string; unidadeGestoraId?: string } {
+  if (!unidadesResponsaveis || unidadesResponsaveis.length === 0) {
+    return {}
+  }
+  
+  const unidadeDemandante = unidadesResponsaveis.find(
+    u => u.tipoResponsabilidade === 1 && u.principal && u.ativo
+  )
+  
+  const unidadeGestora = unidadesResponsaveis.find(
+    u => u.tipoResponsabilidade === 2 && u.principal && u.ativo
+  )
+  
+  return {
+    unidadeDemandanteId: unidadeDemandante?.unidadeSaudeId,
+    unidadeGestoraId: unidadeGestora?.unidadeSaudeId
+  }
+}
+
+/**
+ * Converte payload legado para novo formato da API
+ * @param payloadLegado - Payload no formato antigo com campos Ãºnicos
+ * @returns Payload no novo formato com array unidadesResponsaveis
+ */
+export function transformLegacyPayloadToNew(
+  payloadLegado: CriarContratoPayloadLegado
+): CriarContratoPayload {
+  const { unidadeDemandanteId, unidadeGestoraId, ...restPayload } = payloadLegado
+  
+  return {
+    ...restPayload,
+    unidadesResponsaveis: transformLegacyToUnidadesResponsaveis(
+      unidadeDemandanteId, 
+      unidadeGestoraId
+    )
+  }
+}
+
+/**
+ * Valida se o array de unidades responsÃ¡veis tem pelo menos uma demandante e uma gestora
+ * @param unidadesResponsaveis - Array de unidades responsÃ¡veis
+ * @returns Objeto com resultado da validaÃ§Ã£o
+ */
+export function validateUnidadesResponsaveis(
+  unidadesResponsaveis: CriarUnidadeResponsavelPayload[]
+): {
+  isValid: boolean
+  errors: string[]
+  temDemandante: boolean
+  temGestora: boolean
+} {
+  const errors: string[] = []
+  
+  const demandantes = unidadesResponsaveis.filter(u => u.tipoResponsabilidade === 1)
+  const gestoras = unidadesResponsaveis.filter(u => u.tipoResponsabilidade === 2)
+  
+  const temDemandante = demandantes.length > 0
+  const temGestora = gestoras.length > 0
+  
+  if (!temDemandante) {
+    errors.push('unidade demandante é obrigatória')
+  }
+  
+  if (!temGestora) {
+    errors.push('unidade gestora é obrigatória')
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    temDemandante,
+    temGestora
+  }
+}
+
+

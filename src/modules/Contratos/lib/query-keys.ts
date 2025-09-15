@@ -28,13 +28,16 @@ export const contratoKeys = {
   byEmpresa: (empresaId: string) => [...contratoKeys.all, 'empresa', empresaId] as const,
   porEmpresa: (empresaId: string, filtros?: Partial<ContratoParametros>) => [...contratoKeys.all, 'porEmpresa', empresaId, filtros] as const,
   byUnidade: (unidadeId: string) => [...contratoKeys.all, 'unidade', unidadeId] as const,
+  byNumero: (numero: string) => [...contratoKeys.all, 'numero', numero] as const,
   vencendo: (dias?: number) => [...contratoKeys.all, 'vencendo', dias] as const,
   vencidos: () => [...contratoKeys.all, 'vencidos'] as const,
   
   // Para mutations - keys que devem ser invalidadas
   invalidateOnCreate: () => [
     contratoKeys.lists(),
-    contratoKeys.all
+    contratoKeys.all,
+    // Invalidar todas as verificações de número após criação
+    [...contratoKeys.all, 'numero']
   ] as const,
   
   invalidateOnUpdate: (id: string) => [

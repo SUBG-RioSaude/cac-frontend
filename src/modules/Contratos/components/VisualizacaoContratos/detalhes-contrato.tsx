@@ -26,6 +26,12 @@ import {
   Clock,
 } from 'lucide-react'
 import type { ContratoDetalhado, Endereco, ContratoFuncionario } from '@/modules/Contratos/types/contrato'
+import { 
+  getUnidadesDemandantes, 
+  getUnidadesGestoras,
+  getUnidadeDemandantePrincipal,
+  getUnidadeGestoraPrincipal
+} from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 import { CNPJDisplay, CEPDisplay, DateDisplay } from '@/components/ui/formatters'
@@ -943,16 +949,50 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="h-7 w-3/4" />
                           <Skeleton className="h-4 w-full" />
                         </div>
-                      ) : (
-                        <>
-                          <p className="text-lg font-semibold">
-                            {getUnidadeNome(contratoComIds.unidadeDemandanteId)}
-                          </p>
-                          <p className="text-muted-foreground text-sm">
-                            Responsável pela demanda do contrato
-                          </p>
-                        </>
-                      )}
+                      ) : (() => {
+                        // Usar dados do novo array unidadesResponsaveis quando disponível
+                        const unidadesDemandantes = getUnidadesDemandantes(contrato)
+                        const unidadePrincipal = getUnidadeDemandantePrincipal(contrato)
+                        
+                        if (unidadesDemandantes.length > 0) {
+                          // Usar dados do novo array
+                          const nomeUnidade = unidadePrincipal?.unidadeSaudeNome || unidadesDemandantes[0].unidadeSaudeNome
+                          const totalUnidades = unidadesDemandantes.length
+                          
+                          return (
+                            <>
+                              <p className="text-lg font-semibold">
+                                {nomeUnidade}
+                              </p>
+                              <p className="text-muted-foreground text-sm">
+                                {totalUnidades === 1 
+                                  ? 'Responsável pela demanda do contrato' 
+                                  : `Principal entre ${totalUnidades} unidades demandantes`
+                                }
+                              </p>
+                              {totalUnidades > 1 && (
+                                <div className="mt-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{totalUnidades - 1} outras unidades
+                                  </Badge>
+                                </div>
+                              )}
+                            </>
+                          )
+                        } else {
+                          // Fallback para implementação legacy
+                          return (
+                            <>
+                              <p className="text-lg font-semibold">
+                                {getUnidadeNome(contratoComIds.unidadeDemandanteId)}
+                              </p>
+                              <p className="text-muted-foreground text-sm">
+                                Responsável pela demanda do contrato
+                              </p>
+                            </>
+                          )
+                        }
+                      })()}
                     </CardContent>
                   </Card>
 
@@ -977,16 +1017,50 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="h-7 w-3/4" />
                           <Skeleton className="h-4 w-full" />
                         </div>
-                      ) : (
-                        <>
-                          <p className="text-lg font-semibold">
-                            {getUnidadeNome(contratoComIds.unidadeGestoraId)}
-                          </p>
-                          <p className="text-muted-foreground text-sm">
-                            Responsável pela gestão do contrato
-                          </p>
-                        </>
-                      )}
+                      ) : (() => {
+                        // Usar dados do novo array unidadesResponsaveis quando disponível
+                        const unidadesGestoras = getUnidadesGestoras(contrato)
+                        const unidadePrincipal = getUnidadeGestoraPrincipal(contrato)
+                        
+                        if (unidadesGestoras.length > 0) {
+                          // Usar dados do novo array
+                          const nomeUnidade = unidadePrincipal?.unidadeSaudeNome || unidadesGestoras[0].unidadeSaudeNome
+                          const totalUnidades = unidadesGestoras.length
+                          
+                          return (
+                            <>
+                              <p className="text-lg font-semibold">
+                                {nomeUnidade}
+                              </p>
+                              <p className="text-muted-foreground text-sm">
+                                {totalUnidades === 1 
+                                  ? 'Responsável pela gestão do contrato' 
+                                  : `Principal entre ${totalUnidades} unidades gestoras`
+                                }
+                              </p>
+                              {totalUnidades > 1 && (
+                                <div className="mt-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{totalUnidades - 1} outras unidades
+                                  </Badge>
+                                </div>
+                              )}
+                            </>
+                          )
+                        } else {
+                          // Fallback para implementação legacy
+                          return (
+                            <>
+                              <p className="text-lg font-semibold">
+                                {getUnidadeNome(contratoComIds.unidadeGestoraId)}
+                              </p>
+                              <p className="text-muted-foreground text-sm">
+                                Responsável pela gestão do contrato
+                              </p>
+                            </>
+                          )
+                        }
+                      })()}
                     </CardContent>
                   </Card>
                 </div>

@@ -58,6 +58,16 @@ describe('ContratoForm', () => {
       isLoading: false,
       error: null,
     })),
+    useBuscarUnidades: vi.fn(() => ({
+      data: [],
+      isLoading: false,
+      error: null,
+    })),
+    useUnidadesByIds: vi.fn(() => ({
+      data: [],
+      isLoading: false,
+      error: null,
+    })),
   }))
 
   // Função helper para renderizar com QueryClient

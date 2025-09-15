@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -30,6 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { VigenciaDisplay } from './VigenciaDisplay'
 import { CNPJDisplay } from '@/components/ui/formatters'
 import { cnpjUtils } from '@/lib/utils'
+import { ModalUnidadesResponsaveis } from './ModalUnidadesResponsaveis'
 
 interface TabelaContratosProps {
   contratos: Contrato[]
@@ -56,6 +57,10 @@ export function TabelaContratos({
   hideContratadaColumn = false,
 }: TabelaContratosProps) {
   const navigate = useNavigate()
+  
+  // Estado para modal de unidades
+  const [modalUnidadesAberto, setModalUnidadesAberto] = useState(false)
+  const [contratoSelecionado, setContratoSelecionado] = useState<Contrato | null>(null)
 
   const formatarMoeda = useMemo(() => {
     const formatter = new Intl.NumberFormat('pt-BR', {
@@ -77,6 +82,21 @@ export function TabelaContratos({
 
   const handleVisualizarContrato = (contrato: Contrato) => {
     navigate(`/contratos/${contrato.id}`)
+  }
+
+  const handleMostrarUnidades = (contrato: Contrato) => {
+    setContratoSelecionado(contrato)
+    setModalUnidadesAberto(true)
+  }
+
+  const handleFecharModalUnidades = () => {
+    setModalUnidadesAberto(false)
+    setContratoSelecionado(null)
+  }
+
+  const obterTotalUnidades = (contrato: Contrato) => {
+    if (!contrato.unidadesResponsaveis) return 0
+    return contrato.unidadesResponsaveis.filter(u => u.ativo).length
   }
 
   const inicio = (paginacao.pagina - 1) * paginacao.itensPorPagina
@@ -163,7 +183,25 @@ export function TabelaContratos({
               />
             </div>
             <InfoItem icon={Briefcase} label="Contratação" value={contrato.contratacao || 'N/A'} />
-            <InfoItem icon={Building} label="Unidade Gestora" value={contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'} />
+            <div className="flex items-center gap-2 text-sm">
+              <Building className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold">Unidades:</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleMostrarUnidades(contrato)}
+                className="h-auto p-1 font-normal hover:bg-muted/50 ml-auto"
+                disabled={obterTotalUnidades(contrato) === 0}
+              >
+                {obterTotalUnidades(contrato) === 0 ? (
+                  <span className="text-muted-foreground text-xs">Nenhuma</span>
+                ) : (
+                  <span className="text-primary text-xs">
+                    Ver ({obterTotalUnidades(contrato)})
+                  </span>
+                )}
+              </Button>
+            </div>
             <InfoItem icon={FileText} label="Processo" value={obterProcessoPriorizado(contrato)} />
             <InfoItem icon={Archive} label="Vínculo PCA" value={contrato.vinculacaoPCA || 'N/A'} />
           </div>
@@ -225,7 +263,7 @@ export function TabelaContratos({
                     <TableHead className="font-semibold">Contrato</TableHead>
                     {!hideContratadaColumn && <TableHead className="font-semibold">Contratada</TableHead>}
                     <TableHead className="font-semibold">Tipo Contratação</TableHead>
-                    <TableHead className="font-semibold">Unidade Gestora</TableHead>
+                    <TableHead className="font-semibold">Unidades</TableHead>
                     <TableHead className="font-semibold">Período de Vigência</TableHead>
                     <TableHead className="font-semibold text-right">Valor Global</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -289,7 +327,25 @@ export function TabelaContratos({
                             <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">{contrato.unidadeGestoraNomeCompleto || contrato.unidadeGestora || 'N/A'}</div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMostrarUnidades(contrato)}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-60"
+                              disabled={obterTotalUnidades(contrato) === 0}
+                            >
+                              {obterTotalUnidades(contrato) === 0 ? (
+                                <span className="text-muted-foreground">Nenhuma unidade</span>
+                              ) : (
+                                <>
+                                  <Building className="h-4 w-4 text-gray-600" />
+                                  <span className="font-medium text-gray-800">Mostrar</span>
+                                  <span className="rounded-full bg-gray-100 text-gray-800 px-2 py-0.5 text-xs font-medium">
+                                    {obterTotalUnidades(contrato)}
+                                  </span>
+                                </>
+                              )}
+                            </Button>
                           </TableCell>
                           <TableCell>
                             <VigenciaDisplay 
@@ -339,6 +395,7 @@ export function TabelaContratos({
                     <TableHead className="font-semibold">Contrato</TableHead>
                     {!hideContratadaColumn && <TableHead className="font-semibold">Contratada</TableHead>}
                     <TableHead className="font-semibold">Contratação</TableHead>
+                    <TableHead className="font-semibold">Unidades</TableHead>
                     <TableHead className="font-semibold">Vigência</TableHead>
                     <TableHead className="font-semibold text-right">Valor</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -353,6 +410,7 @@ export function TabelaContratos({
                           <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                           {!hideContratadaColumn && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -396,6 +454,27 @@ export function TabelaContratos({
                           )}
                           <TableCell>
                             <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMostrarUnidades(contrato)}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-60"
+                              disabled={obterTotalUnidades(contrato) === 0}
+                            >
+                              {obterTotalUnidades(contrato) === 0 ? (
+                                <span className="text-muted-foreground text-xs">Nenhuma unidade</span>
+                              ) : (
+                                <>
+                                  <Building className="h-4 w-4 text-gray-600" />
+                                  <span className="font-medium text-gray-800">Mostrar</span>
+                                  <span className="rounded-full bg-gray-100 text-gray-800 px-2 py-0.5 text-xs font-medium">
+                                    {obterTotalUnidades(contrato)}
+                                  </span>
+                                </>
+                              )}
+                            </Button>
                           </TableCell>
                           <TableCell>
                             <VigenciaDisplay 
@@ -500,6 +579,14 @@ export function TabelaContratos({
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Unidades Responsáveis */}
+      <ModalUnidadesResponsaveis
+        isOpen={modalUnidadesAberto}
+        onClose={handleFecharModalUnidades}
+        unidades={contratoSelecionado?.unidadesResponsaveis || []}
+        numeroContrato={contratoSelecionado?.numeroContrato || 'N/A'}
+      />
     </motion.div>
   )
 }

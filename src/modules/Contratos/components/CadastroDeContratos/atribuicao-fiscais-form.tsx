@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+﻿import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -139,18 +139,17 @@ export default function AtribuicaoFiscaisForm({
 
 
   const handleSubmit = () => {
-    // Validar se fiscais e gestores têm URL da nomeação
+    // Permitir finalizar mesmo com tipo não definido (null)
+    // Validar somente URL para aqueles com tipo definido fiscal/gestor
     const usuariosSemUrl = usuariosAtribuidos.filter(
-      usuario => (usuario.tipo === "fiscal" || usuario.tipo === "gestor") && (!usuario.urlNomeacao || usuario.urlNomeacao.trim() === "")
+      (usuario) => (usuario.tipo === "fiscal" || usuario.tipo === "gestor") && (!usuario.urlNomeacao || usuario.urlNomeacao.trim() === "")
     )
-    
     if (usuariosSemUrl.length > 0) {
       toast.error("Todos os fiscais e gestores devem ter a URL da nomeação preenchida.", {
         description: "Verifique se todos os fiscais e gestores têm a URL da nomeação preenchida antes de continuar."
       })
       return
     }
-    
     const dados: DadosAtribuicao = {
       usuariosAtribuidos,
     }
@@ -392,3 +391,4 @@ export default function AtribuicaoFiscaisForm({
     </div>
   )
 }
+

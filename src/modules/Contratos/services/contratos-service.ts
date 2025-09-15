@@ -2,8 +2,10 @@ import { executeWithFallback } from '@/lib/axios'
 import type { 
   Contrato, 
   ContratoDetalhado,
-  CriarContratoPayload
+  CriarContratoPayload,
+  CriarContratoPayloadLegado
 } from '@/modules/Contratos/types/contrato'
+import { transformLegacyPayloadToNew } from '@/modules/Contratos/types/contrato'
 
 
 export type ContratoParametros = {
@@ -85,6 +87,31 @@ export async function getContratos (
 }
 
 
+/**
+ * Verifica se um número de contrato já existe na base de dados
+ * @param numeroContrato - Número do contrato a ser verificado
+ * @returns Contrato existente ou null se não encontrado
+ */
+export async function getContratoByNumero(numeroContrato: string): Promise<Contrato | null> {
+  try {
+    const response = await executeWithFallback<Contrato>({
+      method: 'get',
+      url: `/contratos/numero/${numeroContrato}`,
+      baseURL: import.meta.env.VITE_API_URL_CONTRATOS
+    })
+    
+    return response.data
+  } catch (error: any) {
+    // 404 significa que o número está disponível (não é erro)
+    if (error?.response?.status === 404) {
+      return null
+    }
+    
+    // Re-throw outros erros para tratamento no hook
+    throw error
+  }
+}
+
 // Função para buscar contrato detalhado por ID
 export async function getContratoDetalhado(id: string): Promise<ContratoDetalhado> {
   console.log('🔍 getContratoDetalhado chamado para ID:', id)
@@ -148,6 +175,8 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
       gestora: response.data.unidadeGestora || null, // Será resolvido pelo hook  
       vinculadas: [],
     },
+    // Preservar unidadesResponsaveis da API (nova estrutura)
+    unidadesResponsaveis: response.data.unidadesResponsaveis || [],
     alteracoes: [],
     documentos: [],
     documentosChecklist: {
@@ -174,7 +203,7 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
 }
 
 /**
- * Criar novo contrato
+ * Criar novo contrato (versão atualizada com unidadesResponsaveis)
  */
 export async function criarContrato(payload: CriarContratoPayload): Promise<Contrato> {
   console.log('🚀 [SERVIÇO] Criando contrato com payload:', payload)
@@ -226,6 +255,22 @@ export async function criarContrato(payload: CriarContratoPayload): Promise<Cont
     
     throw customError
   }
+}
+
+/**
+ * Criar novo contrato (versão legado para compatibilidade)
+ * Converte automaticamente dados legados para novo formato com unidadesResponsaveis
+ */
+export async function criarContratoLegado(payloadLegado: CriarContratoPayloadLegado): Promise<Contrato> {
+  console.log('🔄 [SERVIÇO] Convertendo payload legado para novo formato:', payloadLegado)
+  
+  // Converter payload legado para novo formato
+  const novoPayload = transformLegacyPayloadToNew(payloadLegado)
+  
+  console.log('✨ [SERVIÇO] Payload convertido:', novoPayload)
+  
+  // Usar a função principal com o novo formato
+  return criarContrato(novoPayload)
 }
 
 /**

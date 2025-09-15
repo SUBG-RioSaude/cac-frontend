@@ -79,14 +79,19 @@ export async function deleteUnidade(id: string): Promise<void> {
 }
 
 export async function buscarUnidadesPorNome(nome: string): Promise<UnidadeSaudeApi[]> {
-  const response = await executeWithFallback<UnidadeSaudeApi[]>({
+  // A API espera o parâmetro 'nome' em /unidades?nome=...
+  // Fazemos fallback para ambos formatos de resposta: lista direta ou paginada (dados[])
+  const response = await executeWithFallback<any>({
     method: 'get',
-    url: '/unidades/buscar',
+    url: '/unidades',
     params: { nome },
     baseURL: import.meta.env.VITE_API_URL
   })
 
-  return response.data
+  const data = response.data
+  if (Array.isArray(data)) return data as UnidadeSaudeApi[]
+  if (data && Array.isArray(data.dados)) return data.dados as UnidadeSaudeApi[]
+  return []
 }
 
 export const buscarUnidadePorId = async (id: string): Promise<UnidadeDetalhada> => {

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Trash2, Plus, Building2, CheckCircle, Edit3, ArrowRight } from "lucide-react"
 import { useState } from "react"
-import { currencyUtils } from "@/lib/utils"
+import { currencyUtils, percentualUtils } from "@/lib/utils"
 import BuscaUnidadeInteligente from "./busca-unidade-inteligente"
 import type { UnidadeHospitalar } from "@/modules/Contratos/types/unidades"
 
@@ -79,6 +79,9 @@ export default function UnidadesFormMelhorado({
 
   // Estado para controlar qual unidade está sendo editada
   const [unidadeEmEdicao, setUnidadeEmEdicao] = useState<string | null>(null)
+  
+  // Estado para erros de validação de percentual
+  const [erroPercentual, setErroPercentual] = useState<string>("")
 
   // Função para obter o estado de travamento de uma unidade
   const getCamposTravados = (unidadeId: string) => {
@@ -156,6 +159,7 @@ export default function UnidadesFormMelhorado({
     // Reset dos valores quando uma nova unidade é selecionada
     setValorAlocado("")
     setPercentualContrato(0)
+    setErroPercentual("")
     // Limpar campos travados da unidade anterior
     setCamposTravadosUnidade(unidade.id, 'valor', false)
     setCamposTravadosUnidade(unidade.id, 'percentual', false)
@@ -167,6 +171,7 @@ export default function UnidadesFormMelhorado({
     setUnidadeSelecionada(null)
     setValorAlocado("")
     setPercentualContrato(0)
+    setErroPercentual("")
     // Limpar campos travados da unidade selecionada
     if (unidadeSelecionada) {
       setCamposTravadosUnidade(unidadeSelecionada.id, 'valor', false)
@@ -405,6 +410,10 @@ export default function UnidadesFormMelhorado({
       camposTravadosAtuais: getCamposTravados(unidadeSelecionada?.id || '')
     })
 
+    // Validar percentual
+    const erroValidacao = percentualUtils.validarComMensagem(percentual)
+    setErroPercentual(erroValidacao)
+
     setPercentualContrato(percentual)
 
     // Se o percentual foi preenchido e temos valor total, calcular valor
@@ -455,7 +464,7 @@ export default function UnidadesFormMelhorado({
     }
   }
 
-  const podeAdicionarUnidade = unidadeSelecionada && (valorAlocado || percentualContrato > 0)
+  const podeAdicionarUnidade = unidadeSelecionada && (valorAlocado || percentualContrato > 0) && !erroPercentual
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -488,11 +497,11 @@ export default function UnidadesFormMelhorado({
             <div className="text-center">
               <span className="font-medium text-slate-700">Percentual Total</span>
               <p className={`text-lg font-semibold mt-1 ${validarPercentualTotal() ? 'text-green-600' : 'text-red-600'}`}>
-                {calcularTotalPercentual().toFixed(2)}%
+                {percentualUtils.formatar(calcularTotalPercentual())}%
               </p>
               {!validarPercentualTotal() && (
                 <p className="text-xs text-red-500 mt-1">
-                  Faltam: {(100 - calcularTotalPercentual()).toFixed(2)}%
+                  Faltam: {percentualUtils.formatar(100 - calcularTotalPercentual())}%
                 </p>
               )}
             </div>
@@ -555,15 +564,21 @@ export default function UnidadesFormMelhorado({
                 <Input
                   id="percentual-contrato"
                   type="number"
-                  step="0.1"
+                  step="0.01"
                   min="0"
                   max="100"
-                  value={percentualContrato}
-                  onChange={(e) => handlePercentualChange(Number.parseFloat(e.target.value) || 0)}
-                  placeholder="0.0"
+                  value={percentualUtils.formatar(percentualContrato)}
+                  onChange={(e) => {
+                    const valor = percentualUtils.normalizarEntrada(e.target.value)
+                    handlePercentualChange(percentualUtils.paraNumero(valor))
+                  }}
+                  placeholder="0,00"
                   disabled={getCamposTravados(unidadeSelecionada.id).percentual}
-                  className={getCamposTravados(unidadeSelecionada.id).percentual ? "bg-gray-100 cursor-not-allowed" : ""}
+                  className={`${getCamposTravados(unidadeSelecionada.id).percentual ? "bg-gray-100 cursor-not-allowed" : ""} ${erroPercentual ? "border-red-500" : ""}`}
                 />
+                {erroPercentual && !getCamposTravados(unidadeSelecionada.id).percentual && (
+                  <p className="text-xs text-red-600">{erroPercentual}</p>
+                )}
                 {getCamposTravados(unidadeSelecionada.id).percentual && (
                   <p className="text-xs text-blue-600">
                     🔒 Campo travado - use o campo de valor para alterar
@@ -681,14 +696,15 @@ export default function UnidadesFormMelhorado({
                   <Input
                     id={`percentual-${unidade.id}`}
                     type="number"
-                    step="0.1"
+                    step="0.01"
                     min="0"
                     max="100"
-                    value={unidade.percentualContrato}
-                    onChange={(e) =>
-                      atualizarUnidade(unidade.id, "percentualContrato", Number.parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.0"
+                    value={percentualUtils.formatar(unidade.percentualContrato)}
+                    onChange={(e) => {
+                      const valor = percentualUtils.normalizarEntrada(e.target.value)
+                      atualizarUnidade(unidade.id, "percentualContrato", percentualUtils.paraNumero(valor))
+                    }}
+                    placeholder="0,00"
                     disabled={getCamposTravados(unidade.id).percentual && unidadeEmEdicao !== unidade.id}
                     className={getCamposTravados(unidade.id).percentual && unidadeEmEdicao !== unidade.id ? "bg-gray-100 cursor-not-allowed" : ""}
                   />

@@ -9,6 +9,7 @@ lerna-debug.log*
 
 
 .claude
+.cursor
 
 CLAUDE.md
 CLAUDE.sessions.md

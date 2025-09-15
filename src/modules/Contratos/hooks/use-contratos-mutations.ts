@@ -12,6 +12,12 @@ import type {
   Contrato,
 } from '@/modules/Contratos/types/contrato'
 import { criarContrato, calcularPrazoMeses, converterDataParaISO, gerarNumeroContratoUnico } from '@/modules/Contratos/services/contratos-service'
+import { 
+  transformLegacyToUnidadesResponsaveis
+} from '@/modules/Contratos/types/contrato'
+import type {
+  CriarUnidadeResponsavelPayload
+} from '@/modules/Contratos/types/contrato'
 
 // Tipos para as mutations
 
@@ -55,6 +61,8 @@ export interface CriarContratoData {
     tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
     observacoes?: string
   }>
+  // NOVO: Array de unidades responsáveis (preferencial sobre campos únicos)
+  unidadesResponsaveis?: CriarUnidadeResponsavelPayload[]
 }
 
 interface AtualizarContratoData extends Partial<CriarContratoData> {
@@ -75,6 +83,24 @@ export function useCriarContrato() {
       console.log('🔍 [DEBUG] Payload original recebido:', payload)
       console.log('🔍 [DEBUG] Campos do payload original:', Object.keys(payload))
       
+      // Determinar se usar novo formato ou legado
+      let unidadesResponsaveis: CriarUnidadeResponsavelPayload[] = []
+      
+      if (payload.unidadesResponsaveis && payload.unidadesResponsaveis.length > 0) {
+        // Usar array fornecido diretamente
+        unidadesResponsaveis = payload.unidadesResponsaveis
+        console.log('🔄 [DEBUG] Usando array unidadesResponsaveis fornecido:', unidadesResponsaveis)
+      } else if (payload.unidadeDemandanteId && payload.unidadeGestoraId) {
+        // Converter campos legados para array
+        unidadesResponsaveis = transformLegacyToUnidadesResponsaveis(
+          payload.unidadeDemandanteId,
+          payload.unidadeGestoraId
+        )
+        console.log('🔄 [DEBUG] Convertendo campos legados para array:', unidadesResponsaveis)
+      } else {
+        throw new Error('É necessário fornecer unidadesResponsaveis ou unidadeDemandanteId/unidadeGestoraId')
+      }
+      
       // Preparar dados para API
       const payloadAPI = {
         // Campos obrigatórios
@@ -83,8 +109,8 @@ export function useCriarContrato() {
         descricaoObjeto: payload.descricaoObjeto || '',
         tipoContratacao: payload.tipoContratacao || '',
         tipoContrato: payload.tipoContrato || '',
-        unidadeDemandanteId: payload.unidadeDemandanteId || '',
-        unidadeGestoraId: payload.unidadeGestoraId || '',
+        // NOVO: Usar array de unidades responsáveis
+        unidadesResponsaveis,
         contratacao: payload.contratacao || '',
         vigenciaInicial: converterDataParaISO(payload.vigenciaInicial),
         vigenciaFinal: converterDataParaISO(payload.vigenciaFinal),
@@ -124,23 +150,26 @@ export function useCriarContrato() {
       console.log('🔍 [HOOK] Detalhes do payload:', {
         numeroContrato: payloadAPI.numeroContrato,
         empresaId: payloadAPI.empresaId,
-        unidadeDemandanteId: payloadAPI.unidadeDemandanteId,
-        unidadeGestoraId: payloadAPI.unidadeGestoraId,
         vigenciaInicial: payloadAPI.vigenciaInicial,
         vigenciaFinal: payloadAPI.vigenciaFinal,
         valorGlobal: payloadAPI.valorGlobal,
+        unidadesResponsaveis: payloadAPI.unidadesResponsaveis?.length || 0,
         unidadesVinculadas: payloadAPI.unidadesVinculadas?.length || 0,
         funcionarios: payloadAPI.funcionarios?.length || 0
       })
       
-      // Debug específico para IDs das unidades
-      console.log('🏢 [DEBUG] IDs das unidades no payload final:', {
-        unidadeDemandanteId: payloadAPI.unidadeDemandanteId,
-        unidadeGestoraId: payloadAPI.unidadeGestoraId,
-        tipoUnidadeDemandanteId: typeof payloadAPI.unidadeDemandanteId,
-        tipoUnidadeGestoraId: typeof payloadAPI.unidadeGestoraId,
-        valorOriginalUnidadeDemandanteId: payload.unidadeDemandanteId,
-        valorOriginalUnidadeGestoraId: payload.unidadeGestoraId
+      // Debug específico para unidades responsáveis
+      console.log('🏢 [DEBUG] Unidades responsáveis no payload final:', {
+        quantidade: payloadAPI.unidadesResponsaveis?.length || 0,
+        detalhes: payloadAPI.unidadesResponsaveis?.map(u => ({
+          unidadeSaudeId: u.unidadeSaudeId,
+          tipoResponsabilidade: u.tipoResponsabilidade,
+          principal: u.principal,
+          observacoes: u.observacoes
+        })) || [],
+        // Campos legados para compatibilidade com logs antigos
+        unidadeDemandanteId: payload.unidadeDemandanteId,
+        unidadeGestoraId: payload.unidadeGestoraId
       })
       return await criarContrato(payloadAPI)
     },
