@@ -77,7 +77,11 @@ export interface FiltrosUnidadesApi {
   tamanhoPagina?: number
   ordenarPor?: string
   direcaoOrdenacao?: 'asc' | 'desc'
-  nome?: string // para busca por nome
+  nome?: string // busca parcial por nome
+  sigla?: string // busca exata por sigla
+  cnes?: string // busca exata por CNES
+  bairro?: string // busca exata por bairro
+  ativo?: boolean // filtro por status ativo/inativo
 }
 
 // ========== MAPEAMENTO PARA INTERFACE LEGADA ==========

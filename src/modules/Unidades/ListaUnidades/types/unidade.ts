@@ -26,6 +26,7 @@ export interface PaginacaoParamsUnidade {
   pagina: number
   itensPorPagina: number
   total: number
+  
 }
 
 export interface FiltrosUnidade {

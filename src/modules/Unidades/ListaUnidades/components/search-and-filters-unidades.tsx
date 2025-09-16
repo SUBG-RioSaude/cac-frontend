@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
   Filter,
   X,
-  Building2,
   MapPin,
   ChevronDown,
   ChevronRight,
+  Loader2,
+  FileText,
 } from 'lucide-react'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,89 +27,176 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
+import type { FiltrosUnidadesApi } from '../../types/unidade-api'
+
+// Função para detectar se o termo é nome ou sigla
+function detectarTipoPesquisa(termo: string): Partial<FiltrosUnidadesApi> {
+  if (!termo || termo.trim() === '') {
+    return {}
+  }
+
+  // Se parece com sigla (letras maiúsculas, underscores, hífens, slashes)
+  if (/^[A-Z0-9/_-]+$/.test(termo.trim())) {
+    return { sigla: termo.trim() }
+  }
+
+  // Caso contrário, é nome
+  return { nome: termo.trim() }
+}
+
+const FILTROS_IGNORADOS: Array<keyof FiltrosUnidadesApi> = [
+  'pagina',
+  'tamanhoPagina',
+]
+
+function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
+  if (!filtros || typeof filtros !== 'object') {
+    return {}
+  }
+  return (Object.entries(filtros) as Array<
+    [keyof FiltrosUnidadesApi, FiltrosUnidadesApi[keyof FiltrosUnidadesApi]]
+  >).reduce<FiltrosUnidadesApi>((acc, [key, value]) => {
+    if (FILTROS_IGNORADOS.includes(key)) {
+      return acc
+    }
+
+    if (key === 'nome' || key === 'sigla' || key === 'cnes' || key === 'bairro') {
+      if (value === undefined) {
+        acc[key] = undefined
+        return acc
+      }
+      if (value === null || (typeof value === 'string' && value.trim() === '')) {
+        return acc
+      }
+    }
+
+    if (value === undefined || value === null) {
+      return acc
+    }
+
+    if (typeof value === 'string' && value.trim() === '') {
+      return acc
+    }
+
+    acc[key] = value as any
+    return acc
+  }, {} as FiltrosUnidadesApi)
+}
+
+function shallowEqualFiltros(
+  a: FiltrosUnidadesApi,
+  b: FiltrosUnidadesApi,
+): boolean {
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+
+  if (keysA.length !== keysB.length) {
+    return false
+  }
+
+  return keysA.every((key) => {
+    const typedKey = key as keyof FiltrosUnidadesApi
+    return a[typedKey] === b[typedKey]
+  })
+}
 
 interface SearchAndFiltersUnidadesProps {
-  termoPesquisa: string
-  onTermoPesquisaChange: (termo: string) => void
-  filtros?: {
-    status?: string
-    sigla?: string
-    tipo?: string
-  }
-  onFiltrosChange?: (filtros: { status?: string, sigla?: string, tipo?: string }) => void
+  onFiltrosChange: (filtros: FiltrosUnidadesApi) => void
+  filtrosAtivos: FiltrosUnidadesApi
+  isLoading?: boolean
 }
 
 export function SearchAndFiltersUnidades({
-  termoPesquisa,
-  onTermoPesquisaChange,
-  filtros = { status: "todos", sigla: "", tipo: "todos" },
   onFiltrosChange,
+  filtrosAtivos,
+  isLoading = false
 }: SearchAndFiltersUnidadesProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
-  // Estados para controlar o colapso de cada seção de filtros
+  // Estados locais para UI
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [siglaExpanded, setSiglaExpanded] = useState(false)
-  const [tipoExpanded, setTipoExpanded] = useState(false)
+  const filtrosBase = useMemo(() => sanitizeFiltros(filtrosAtivos), [filtrosAtivos])
+  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(filtrosAtivos.nome || filtrosAtivos.sigla || '')
+  const [filtrosLocais, setFiltrosLocais] = useState<FiltrosUnidadesApi>(filtrosBase)
+
+  // Debounce para pesquisa (500ms)
+  const termoPesquisaDebounced = useDebounce(termoPesquisaLocal, 500)
+  const filtrosAplicadosRef = useRef<string>('')
+
+  // Estado para mostrar loading durante debounce
+  const isSearching = termoPesquisaLocal !== termoPesquisaDebounced && termoPesquisaLocal !== ''
+
+  useEffect(() => {
+    setFiltrosLocais((prev: FiltrosUnidadesApi) =>
+      shallowEqualFiltros(prev, filtrosBase) ? prev : filtrosBase,
+    )
+  }, [filtrosBase])
+
+  // Efeito para enviar pesquisa debounced
+  useEffect(() => {
+    // Só processa se há termo de pesquisa debounced ou se mudaram outros filtros
+    const temPesquisa = termoPesquisaDebounced.trim() !== ''
+
+    const filtrosNormalizados = sanitizeFiltros(filtrosLocais)
+
+    // Se não tem pesquisa, remove explicitamente nome e sigla
+    const pesquisaDetectada = temPesquisa ? detectarTipoPesquisa(termoPesquisaDebounced) : {
+      nome: undefined,
+      sigla: undefined
+    }
+
+    const filtrosParaEnviar: FiltrosUnidadesApi = {
+      ...filtrosNormalizados,
+      ...pesquisaDetectada,
+    }
+
+    const filtrosSerializados = JSON.stringify(filtrosParaEnviar)
+    if (filtrosSerializados === filtrosAplicadosRef.current) {
+      return
+    }
+
+    filtrosAplicadosRef.current = filtrosSerializados
+    onFiltrosChange(filtrosParaEnviar)
+  }, [filtrosLocais, termoPesquisaDebounced, onFiltrosChange])
 
   const statusOptions = [
     { value: 'ativo', label: 'Ativo', color: 'bg-green-100 text-green-800' },
     { value: 'inativo', label: 'Inativo', color: 'bg-gray-100 text-gray-800' },
   ]
 
-  const tipoOptions = [
-    { value: 'ubs', label: 'UBS' },
-    { value: 'hospital', label: 'Hospital' },
-    { value: 'caps', label: 'CAPS' },
-    { value: 'upa', label: 'UPA' },
-    { value: 'centro', label: 'Centro Especializado' },
-  ]
 
-  const handleStatusChange = (status: string, checked: boolean) => {
-    const newStatus = checked ? status : undefined
-
-    onFiltrosChange?.({
-      ...filtros,
-      status: newStatus,
+  const handleStatusChange = useCallback((status: string, checked: boolean) => {
+    setFiltrosLocais((prev: FiltrosUnidadesApi) => {
+      if (checked) {
+        return { ...prev, ativo: status === 'ativo' }
+      }
+      const { ativo, ...rest } = prev
+      return rest as FiltrosUnidadesApi
     })
-  }
+  }, [])
 
-  const handleTipoChange = (tipo: string) => {
-    onFiltrosChange?.({
-      ...filtros,
-      tipo: tipo !== "todos" ? tipo : undefined,
-    })
-  }
-
-  const handleSiglaChange = (sigla: string) => {
-    onFiltrosChange?.({
-      ...filtros,
-      sigla: sigla || undefined,
-    })
-  }
-
-  const limparFiltros = () => {
-    onTermoPesquisaChange("")
-    onFiltrosChange?.({ status: undefined, sigla: undefined, tipo: undefined })
-  }
-
-  const contarFiltrosAtivos = () => {
+  const contarFiltrosAtivos = useCallback(() => {
     let count = 0
-    if (filtros.status && filtros.status !== "todos") count++
-    if (filtros.sigla) count++
-    if (filtros.tipo && filtros.tipo !== "todos") count++
-    if (termoPesquisa) count++
+    if (filtrosLocais.ativo !== undefined) count++
+    if (filtrosLocais.sigla) count++
+    if (filtrosLocais.cnes) count++
+    if (filtrosLocais.bairro) count++
+    if (termoPesquisaLocal) count++
     return count
-  }
+  }, [filtrosLocais, termoPesquisaLocal])
 
-  const filtrosAtivos = contarFiltrosAtivos()
+  const filtrosAtivosCount = contarFiltrosAtivos()
+
+  const limparFiltros = useCallback(() => {
+    setTermoPesquisaLocal('')
+    setFiltrosLocais({})
+    setStatusExpanded(false)
+    setSiglaExpanded(false)
+    // Força o reset enviando apenas paginação
+    onFiltrosChange({ pagina: 1, tamanhoPagina: 10, ativo: true })
+  }, [onFiltrosChange])
 
   return (
     <div role="search" className="flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -119,18 +208,79 @@ export function SearchAndFiltersUnidades({
         transition={{ duration: 0.3 }}
       >
         <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+          {isSearching || isLoading ? (
+            <Loader2 className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform animate-spin" />
+          ) : (
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+          )}
           <Input
-            placeholder="Pesquisar por nome, sigla, UO, UG ou endereço..."
-            value={termoPesquisa}
-            onChange={(e) => onTermoPesquisaChange(e.target.value)}
+            placeholder="Digite nome ou sigla da unidade..."
+            value={termoPesquisaLocal}
+            onChange={(e) => {
+              const novoTermo = e.target.value
+              setTermoPesquisaLocal(novoTermo)
+
+              // Se o campo foi limpo, reset imediato dos filtros de pesquisa
+              if (novoTermo.trim() === '') {
+                // Remove nome e sigla dos filtros locais também
+                setFiltrosLocais((prev: FiltrosUnidadesApi) => {
+                  const filtrosSemPesquisa = { ...prev }
+                  delete filtrosSemPesquisa.nome
+                  delete filtrosSemPesquisa.sigla
+                  return filtrosSemPesquisa
+                })
+
+                const filtrosParaEnviar = {
+                  pagina: 1,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  // Preserva outros filtros ativos (status, cnes, bairro)
+                  ...(filtrosLocais.ativo !== undefined && { ativo: filtrosLocais.ativo }),
+                  ...(filtrosLocais.cnes && { cnes: filtrosLocais.cnes }),
+                  ...(filtrosLocais.bairro && { bairro: filtrosLocais.bairro }),
+                  // Explicitamente define nome e sigla como undefined
+                  nome: undefined,
+                  sigla: undefined,
+                }
+
+                // Atualiza referência para evitar conflitos
+                filtrosAplicadosRef.current = JSON.stringify(filtrosParaEnviar)
+                onFiltrosChange(filtrosParaEnviar)
+              }
+            }}
             className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 w-full lg:w-full"
+            disabled={isLoading}
           />
-          {termoPesquisa && (
+          {termoPesquisaLocal && !isSearching && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onTermoPesquisaChange('')}
+              onClick={() => {
+                setTermoPesquisaLocal('')
+
+                // Remove nome e sigla dos filtros locais também
+                setFiltrosLocais((prev: FiltrosUnidadesApi) => {
+                  const filtrosSemPesquisa = { ...prev }
+                  delete filtrosSemPesquisa.nome
+                  delete filtrosSemPesquisa.sigla
+                  return filtrosSemPesquisa
+                })
+
+                const filtrosParaEnviar = {
+                  pagina: 1,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  // Preserva outros filtros ativos (status, cnes, bairro)
+                  ...(filtrosLocais.ativo !== undefined && { ativo: filtrosLocais.ativo }),
+                  ...(filtrosLocais.cnes && { cnes: filtrosLocais.cnes }),
+                  ...(filtrosLocais.bairro && { bairro: filtrosLocais.bairro }),
+                  // Explicitamente define nome e sigla como undefined
+                  nome: undefined,
+                  sigla: undefined,
+                }
+
+                // Atualiza referência para evitar conflitos
+                filtrosAplicadosRef.current = JSON.stringify(filtrosParaEnviar)
+                onFiltrosChange(filtrosParaEnviar)
+              }}
               className="hover:bg-muted absolute top-1/2 right-2 h-6 w-6 -translate-y-1/2 transform p-0"
             >
               <X className="h-3 w-3" />
@@ -153,9 +303,9 @@ export function SearchAndFiltersUnidades({
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
-              {filtrosAtivos > 0 && (
+              {filtrosAtivosCount > 0 && (
                 <Badge className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-                  {filtrosAtivos}
+                  {filtrosAtivosCount}
                 </Badge>
               )}
             </Button>
@@ -174,7 +324,7 @@ export function SearchAndFiltersUnidades({
                   <Filter className="h-4 w-4" />
                   <h3 className="font-semibold">Filtros Avançados</h3>
                 </div>
-                {filtrosAtivos > 0 && (
+                {filtrosAtivosCount > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -200,7 +350,7 @@ export function SearchAndFiltersUnidades({
                     className="h-auto w-full cursor-pointer justify-between p-0 hover:bg-transparent"
                   >
                     <div className="flex items-center gap-2">
-                      <Building2 className="text-muted-foreground h-4 w-4" />
+                      <FileText className="text-muted-foreground h-4 w-4" />
                       <Label className="cursor-pointer text-sm font-medium">
                         Status da Unidade
                       </Label>
@@ -221,7 +371,7 @@ export function SearchAndFiltersUnidades({
                       >
                         <Checkbox
                           id={`status-${option.value}`}
-                          checked={filtros.status === option.value}
+                          checked={filtrosLocais.ativo === (option.value === 'ativo')}
                           onCheckedChange={(checked) =>
                             handleStatusChange(option.value, checked as boolean)
                           }
@@ -268,8 +418,17 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: UBS, CAPS..."
-                      value={filtros.sigla || ''}
-                      onChange={(e) => handleSiglaChange(e.target.value)}
+                      value={filtrosLocais.sigla || ''}
+                      onChange={(e) => {
+                        const valor = e.target.value
+                        setFiltrosLocais((prev: FiltrosUnidadesApi) => {
+                          if (valor === '') {
+                            const { sigla, ...rest } = prev
+                            return rest as FiltrosUnidadesApi
+                          }
+                          return { ...prev, sigla: valor }
+                        })
+                      }}
                       className="h-9"
                     />
                   </div>
@@ -278,50 +437,82 @@ export function SearchAndFiltersUnidades({
 
               <Separator />
 
-              {/* Tipo de Unidade - Colapsível */}
-              <Collapsible
-                open={tipoExpanded}
-                onOpenChange={setTipoExpanded}
-              >
+              {/* CNES - Colapsível */}
+              <Collapsible>
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
                     className="h-auto w-full cursor-pointer justify-between p-0 hover:bg-transparent"
                   >
                     <div className="flex items-center gap-2">
-                      <Building2 className="text-muted-foreground h-4 w-4" />
+                      <FileText className="text-muted-foreground h-4 w-4" />
                       <Label className="cursor-pointer text-sm font-medium">
-                        Tipo de Unidade
+                        CNES
                       </Label>
                     </div>
-                    {tipoExpanded ? (
-                      <ChevronDown className="text-muted-foreground h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="text-muted-foreground h-4 w-4" />
-                    )}
+                    <ChevronRight className="text-muted-foreground h-4 w-4" />
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-3 space-y-3">
                   <div className="ml-6">
-                    <Select
-                      value={filtros.tipo || "todos"}
-                      onValueChange={handleTipoChange}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Todos os tipos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos os tipos</SelectItem>
-                        {tipoOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      placeholder="Ex: 2269311, 7654321..."
+                      value={filtrosLocais.cnes || ''}
+                      onChange={(e) => {
+                        const valor = e.target.value
+                        setFiltrosLocais((prev: FiltrosUnidadesApi) => {
+                          if (valor === '') {
+                            const { cnes, ...rest } = prev
+                            return rest as FiltrosUnidadesApi
+                          }
+                          return { ...prev, cnes: valor }
+                        })
+                      }}
+                      className="h-9"
+                    />
                   </div>
                 </CollapsibleContent>
               </Collapsible>
+
+              <Separator />
+
+              {/* Bairro - Colapsível */}
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-auto w-full cursor-pointer justify-between p-0 hover:bg-transparent"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MapPin className="text-muted-foreground h-4 w-4" />
+                      <Label className="cursor-pointer text-sm font-medium">
+                        Bairro
+                      </Label>
+                    </div>
+                    <ChevronRight className="text-muted-foreground h-4 w-4" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <div className="ml-6">
+                    <Input
+                      placeholder="Ex: Centro, Copacabana..."
+                      value={filtrosLocais.bairro || ''}
+                      onChange={(e) => {
+                        const valor = e.target.value
+                        setFiltrosLocais((prev: FiltrosUnidadesApi) => {
+                          if (valor === '') {
+                            const { bairro, ...rest } = prev
+                            return rest as FiltrosUnidadesApi
+                          }
+                          return { ...prev, bairro: valor }
+                        })
+                      }}
+                      className="h-9"
+                    />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
             </motion.div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -329,7 +520,7 @@ export function SearchAndFiltersUnidades({
 
       {/* Active Filters Display */}
       <AnimatePresence>
-        {filtrosAtivos > 0 && (
+        {filtrosAtivosCount > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -337,8 +528,8 @@ export function SearchAndFiltersUnidades({
             className="flex items-center gap-2"
           >
             <span className="text-muted-foreground text-sm">
-              {filtrosAtivos} filtro{filtrosAtivos > 1 ? 's' : ''} ativo
-              {filtrosAtivos > 1 ? 's' : ''}
+              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''} ativo
+              {filtrosAtivosCount > 1 ? 's' : ''}
             </span>
           </motion.div>
         )}

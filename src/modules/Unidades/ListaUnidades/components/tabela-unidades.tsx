@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -100,13 +100,9 @@ export function TabelaUnidades({
     onVisualizarUnidade(unidade)
   }
 
-  // Paginação
-  const unidadesPaginadas = unidades.slice(
-    (paginacao.pagina - 1) * paginacao.itensPorPagina,
-    paginacao.pagina * paginacao.itensPorPagina,
-  )
-
-  const totalPaginas = Math.ceil(unidades.length / paginacao.itensPorPagina)
+  // Com server-side pagination, os dados já vêm paginados da API
+  const unidadesPaginadas = unidades
+  const totalPaginas = Math.ceil(paginacao.total / paginacao.itensPorPagina)
 
   const todasUnidadesSelecionadas =
     unidadesPaginadas.length > 0 &&
@@ -132,9 +128,11 @@ export function TabelaUnidades({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      animate={{
+        opacity: 1,
+        filter: isLoading ? 'blur(1px)' : 'blur(0px)'
+      }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <Card className="bg-card/50 border-0 shadow-sm backdrop-blur">
         <CardHeader className="px-3 pb-4 sm:px-6">
@@ -144,7 +142,7 @@ export function TabelaUnidades({
                 Lista de Unidades
               </CardTitle>
               <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-                {unidades.length} unidades encontradas
+                {isLoading ? 'Carregando...' : `${paginacao.total} unidades encontradas`}
               </p>
             </div>
           </div>
@@ -153,16 +151,29 @@ export function TabelaUnidades({
         <CardContent className="p-0">
           <div className="mx-3 mb-3 sm:mx-6 sm:mb-6">
             {/* Versão mobile - Cards */}
-            <div className="block space-y-3 lg:hidden">
-              <AnimatePresence>
-                {unidadesPaginadas.map((unidade, index) => (
-                  <motion.div
-                    key={`mobile-${unidade.id}-${index}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
+            <motion.div
+              className="block space-y-3 lg:hidden"
+              animate={{ opacity: 1 }}
+              transition={{
+                duration: 0.4,
+                ease: "easeOut",
+                staggerChildren: 0.05
+              }}
+            >
+              {unidadesPaginadas.map((unidade, index) => (
+                <motion.div
+                  key={unidade.id}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    ease: "easeOut",
+                    delay: index * 0.02
+                  }}
+                >
                     <Card
                       className="hover:bg-muted/30 cursor-pointer p-4 transition-all hover:shadow-md"
                       onClick={() => handleVisualizarUnidade(unidade)}
@@ -226,8 +237,7 @@ export function TabelaUnidades({
                     </Card>
                   </motion.div>
                 ))}
-              </AnimatePresence>
-            </div>
+            </motion.div>
 
             {/* Versão desktop - Tabela */}
             <div className="bg-background/50 hidden overflow-hidden rounded-lg border lg:block">
@@ -241,7 +251,7 @@ export function TabelaUnidades({
                       />
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[350px] min-w-[300px]"
                       onClick={() => onOrdenacao('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -250,7 +260,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[180px]"
                       onClick={() => onOrdenacao('sigla')}
                     >
                       <div className="flex items-center gap-2">
@@ -259,7 +269,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[120px]"
                       onClick={() => onOrdenacao('status')}
                     >
                       <div className="flex items-center gap-2">
@@ -268,7 +278,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[120px]"
                       onClick={() => onOrdenacao('contratosAtivos')}
                     >
                       <div className="flex items-center gap-2">
@@ -277,7 +287,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors"
+                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[150px]"
                       onClick={() => onOrdenacao('valorTotalContratado')}
                     >
                       <div className="flex items-center gap-2">
@@ -291,17 +301,21 @@ export function TabelaUnidades({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <AnimatePresence>
-                    {unidadesPaginadas.map((unidade, index) => (
-                      <motion.tr
-                        key={`desktop-${unidade.id}-${index}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="group hover:bg-muted/30 cursor-pointer transition-colors"
-                        onClick={() => handleVisualizarUnidade(unidade)}
-                      >
+                  {unidadesPaginadas.map((unidade, index) => (
+                    <motion.tr
+                      key={unidade.id}
+                      animate={{
+                        opacity: 1,
+                        y: 0
+                      }}
+                      transition={{
+                        duration: 0.3,
+                        ease: "easeOut",
+                        delay: index * 0.03
+                      }}
+                      className="group hover:bg-muted/30 cursor-pointer transition-colors"
+                      onClick={() => handleVisualizarUnidade(unidade)}
+                    >
                         <TableCell>
                           <Checkbox
                             checked={unidadesSelecionadas.includes(unidade.id)}
@@ -313,23 +327,23 @@ export function TabelaUnidades({
                             }
                           />
                         </TableCell>
-                        <TableCell>
-                          <div className="line-clamp-2 max-w-[200px] text-sm font-medium" data-testid={`unidade-nome-${unidade.id}`}>
+                        <TableCell className="w-[350px] min-w-[300px]">
+                          <div className="text-sm font-medium leading-relaxed" data-testid={`unidade-nome-${unidade.id}`}>
                             {unidade.nome}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[180px]">
                           <div className="font-mono text-sm">
                             {unidade.sigla}
                           </div>
                         </TableCell>
-                        <TableCell><UnidadeStatusBadge status={parseStatusUnidade(unidade.status)} /></TableCell>
-                        <TableCell>
+                        <TableCell className="w-[120px]"><UnidadeStatusBadge status={parseStatusUnidade(unidade.status)} /></TableCell>
+                        <TableCell className="w-[120px]">
                           <div className="text-center text-sm font-medium">
                             {unidade.contratosAtivos || 0}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[150px]">
                           <div className="text-right text-sm font-medium">
                             {currencyUtils.formatar(
                               unidade.valorTotalContratado || 0,
@@ -349,7 +363,6 @@ export function TabelaUnidades({
                         </TableCell>
                       </motion.tr>
                     ))}
-                  </AnimatePresence>
                 </TableBody>
               </Table>
             </div>
@@ -362,9 +375,9 @@ export function TabelaUnidades({
               a{' '}
               {Math.min(
                 paginacao.pagina * paginacao.itensPorPagina,
-                unidades.length,
+                paginacao.total,
               )}{' '}
-              de {unidades.length} unidades
+              de {paginacao.total} unidades
             </div>
 
             <div className="flex items-center justify-center gap-2">
@@ -372,7 +385,7 @@ export function TabelaUnidades({
                 variant="outline"
                 size="sm"
                 onClick={paginaAnterior}
-                disabled={paginacao.pagina === 1}
+                disabled={paginacao.pagina <= 1 || isLoading}
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -380,31 +393,64 @@ export function TabelaUnidades({
               </Button>
 
               <div className="flex items-center gap-1">
-                {totalPaginas > 0 && Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                  const pageNum = i + 1
-                  return (
-                    <Button
-                      key={`page-${pageNum}`}
-                      variant={
-                        paginacao.pagina === pageNum ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      onClick={() =>
-                        onPaginacaoChange({ ...paginacao, pagina: pageNum })
-                      }
-                      className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
+                {/* Renderizar páginas de forma inteligente */}
+                {(() => {
+                  const maxVisiblePages = 5
+                  const currentPage = paginacao.pagina
+                  const totalPages = totalPaginas
+
+                  if (totalPages <= maxVisiblePages) {
+                    // Se há poucas páginas, mostra todas
+                    return Array.from({ length: totalPages }, (_, i) => {
+                      const pageNum = i + 1
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          size="sm"
+                          disabled={isLoading}
+                          onClick={() => {
+                            const novaPaginacao = { ...paginacao, pagina: pageNum }
+                            onPaginacaoChange(novaPaginacao)
+                          }}
+                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })
+                  } else {
+                    // Lógica mais avançada para muitas páginas
+                    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+                    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                      const pageNum = startPage + i
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          size="sm"
+                          disabled={isLoading}
+                          onClick={() => {
+                            const novaPaginacao = { ...paginacao, pagina: pageNum }
+                            onPaginacaoChange(novaPaginacao)
+                          }}
+                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })
+                  }
+                })()}
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
                 onClick={proximaPagina}
-                disabled={paginacao.pagina === totalPaginas}
+                disabled={paginacao.pagina >= totalPaginas || totalPaginas === 0 || isLoading}
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <span className="xs:inline hidden">Próxima</span>

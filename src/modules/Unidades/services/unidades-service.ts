@@ -28,7 +28,12 @@ export async function getUnidades(
       pagina: filtros?.pagina || 1,
       tamanhoPagina: filtros?.tamanhoPagina || 10,
       ordenarPor: filtros?.ordenarPor,
-      direcaoOrdenacao: filtros?.direcaoOrdenacao
+      direcaoOrdenacao: filtros?.direcaoOrdenacao,
+      nome: filtros?.nome,
+      sigla: filtros?.sigla,
+      cnes: filtros?.cnes,
+      bairro: filtros?.bairro,
+      ativo: filtros?.ativo ?? true // Por padrão, buscar apenas unidades ativas
     },
     baseURL: import.meta.env.VITE_API_URL
   })
