@@ -79,7 +79,8 @@ function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
       return acc
     }
 
-    acc[key] = value as any
+    // Type assertion needed due to generic nature of reduce operation
+    (acc as Record<string, unknown>)[key] = value
     return acc
   }, {} as FiltrosUnidadesApi)
 }
