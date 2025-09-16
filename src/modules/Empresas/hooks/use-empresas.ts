@@ -139,6 +139,32 @@ export function useCadastrarEmpresa() {
     },
 
     onSuccess: (data, variables, context) => {
+      // Debug: Log detalhado da resposta do hook
+      console.log('✅ [HOOK] Empresa cadastrada - dados recebidos:', data)
+      console.log('🔍 [HOOK] ID da empresa:', data?.id)
+      console.log('🔍 [HOOK] Tipo do ID:', typeof data?.id)
+      console.log('🔍 [HOOK] Dados completos:', JSON.stringify(data, null, 2))
+
+      // Validação robusta do ID
+      if (!data?.id) {
+        console.error('❌ [HOOK] ERRO CRÍTICO: ID não encontrado na resposta!')
+        console.error('❌ [HOOK] Dados recebidos:', data)
+
+        if (context?.loadingToast) {
+          toast.error('Erro no cadastro da empresa', {
+            id: context.loadingToast,
+            description: 'ID da empresa não foi retornado pela API',
+            duration: 5000,
+          })
+        } else {
+          mutation.error('cadastrar empresa', new Error('ID da empresa não retornado'))
+        }
+        return
+      }
+
+      // ID validado com sucesso
+      console.log('🎉 [HOOK] ID validado com sucesso:', data.id)
+
       if (context?.loadingToast) {
         toast.success('Empresa cadastrada com sucesso', {
           id: context.loadingToast,

@@ -25,13 +25,63 @@ import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedo
 export async function cadastrarEmpresa(
   dadosEmpresa: EmpresaRequest,
 ): Promise<EmpresaResponse> {
-  const response = await executeWithFallback<EmpresaResponse>({
+  console.log('🚀 [API] Enviando dados para cadastro de empresa:', dadosEmpresa)
+
+  // A API retorna apenas o ID como string, não um objeto
+  const response = await executeWithFallback<string>({
     method: 'post',
     url: '/Empresas',
     data: dadosEmpresa,
     baseURL: import.meta.env.VITE_API_URL_EMPRESA,
   })
-  return response.data
+
+  // Debug: Log detalhado da resposta da API
+  console.log('🔍 [API] Response completo:', response)
+  console.log('🔍 [API] Response.data (ID string):', response.data)
+  console.log('🔍 [API] Response.status:', response.status)
+  console.log('🔍 [API] Tipo da response:', typeof response.data)
+
+  // A API retorna o ID como string simples
+  const empresaId = response.data
+
+  if (!empresaId || typeof empresaId !== 'string') {
+    console.error('❌ [API] ERRO: ID não é uma string válida!')
+    console.error('❌ [API] Valor recebido:', empresaId)
+    console.error('❌ [API] Tipo recebido:', typeof empresaId)
+    throw new Error('API não retornou um ID válido')
+  }
+
+  console.log('✅ [API] ID capturado com sucesso:', empresaId)
+
+  // Construir objeto EmpresaResponse usando dados enviados + ID retornado
+  const empresaResponse: EmpresaResponse = {
+    id: empresaId,
+    cnpj: dadosEmpresa.cnpj,
+    razaoSocial: dadosEmpresa.razaoSocial,
+    nomeFantasia: null,
+    inscricaoEstadual: dadosEmpresa.inscricaoEstadual || null,
+    inscricaoMunicipal: dadosEmpresa.inscricaoMunicipal || null,
+    endereco: dadosEmpresa.endereco,
+    numero: null,
+    complemento: null,
+    bairro: dadosEmpresa.bairro,
+    cidade: dadosEmpresa.cidade,
+    estado: dadosEmpresa.estado,
+    cep: dadosEmpresa.cep,
+    usuarioCadastroId: dadosEmpresa.usuarioCadastroId,
+    ativo: true,
+    contatos: dadosEmpresa.contatos.map(contato => ({
+      id: `temp-${Date.now()}-${Math.random()}`, // ID temporário para contatos
+      nome: contato.nome,
+      valor: contato.valor,
+      tipo: contato.tipo,
+      ativo: true
+    }))
+  }
+
+  console.log('🏭 [API] Objeto EmpresaResponse construído:', empresaResponse)
+
+  return empresaResponse
 }
 
 /**
