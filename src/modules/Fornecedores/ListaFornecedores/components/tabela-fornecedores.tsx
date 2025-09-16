@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -39,6 +39,7 @@ export function TabelaFornecedores({
   onAbrirFornecedor,
   isLoading = false,
 }: TabelaFornecedoresProps) {
+
   const {
     fornecedoresSelecionados,
     selecionarFornecedor,
@@ -61,15 +62,18 @@ export function TabelaFornecedores({
 
   const totalPaginas = Math.ceil(paginacao.total / paginacao.itensPorPagina)
 
+
   const paginaAnterior = () => {
     if (paginacao.pagina > 1) {
-      onPaginacaoChange({ ...paginacao, pagina: paginacao.pagina - 1 })
+      const novaPaginacao = { ...paginacao, pagina: paginacao.pagina - 1 }
+      onPaginacaoChange(novaPaginacao)
     }
   }
 
   const proximaPagina = () => {
     if (paginacao.pagina < totalPaginas) {
-      onPaginacaoChange({ ...paginacao, pagina: paginacao.pagina + 1 })
+      const novaPaginacao = { ...paginacao, pagina: paginacao.pagina + 1 }
+      onPaginacaoChange(novaPaginacao)
     }
   }
 
@@ -79,9 +83,11 @@ export function TabelaFornecedores({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      animate={{
+        opacity: 1,
+        filter: isLoading ? 'blur(1px)' : 'blur(0px)'
+      }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <Card className="bg-card/50 border-0 shadow-sm backdrop-blur">
         <CardHeader className="px-3 pb-4 sm:px-6">
@@ -100,16 +106,29 @@ export function TabelaFornecedores({
         <CardContent className="p-0">
           <div className="mx-3 mb-3 sm:mx-6 sm:mb-6">
             {/* Versão mobile - Cards */}
-            <div className="block space-y-3 lg:hidden">
-              <AnimatePresence>
-                {fornecedores.map((fornecedor, index) => (
-                  <motion.div
-                    key={fornecedor.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
+            <motion.div
+              className="block space-y-3 lg:hidden"
+              animate={{ opacity: 1 }}
+              transition={{
+                duration: 0.4,
+                ease: "easeOut",
+                staggerChildren: 0.05
+              }}
+            >
+              {fornecedores.map((fornecedor, index) => (
+                <motion.div
+                  key={fornecedor.id}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    ease: "easeOut",
+                    delay: index * 0.02
+                  }}
+                >
                     <Card className="p-4 transition-shadow hover:shadow-md">
                       <div className="mb-3 flex items-start justify-between">
                         <div className="flex items-center gap-2">
@@ -180,8 +199,7 @@ export function TabelaFornecedores({
                     </Card>
                   </motion.div>
                 ))}
-              </AnimatePresence>
-            </div>
+            </motion.div>
 
             {/* Versão desktop - Tabela */}
             <div className="bg-background/50 hidden overflow-hidden rounded-lg border lg:block">
@@ -209,16 +227,20 @@ export function TabelaFornecedores({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <AnimatePresence>
-                    {fornecedores.map((fornecedor, index) => (
-                      <motion.tr
-                        key={fornecedor.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="group hover:bg-muted/30 transition-colors"
-                      >
+                  {fornecedores.map((fornecedor, index) => (
+                    <motion.tr
+                      key={fornecedor.id}
+                      animate={{
+                        opacity: 1,
+                        y: 0
+                      }}
+                      transition={{
+                        duration: 0.3,
+                        ease: "easeOut",
+                        delay: index * 0.03
+                      }}
+                      className="group hover:bg-muted/30 transition-colors"
+                    >
                         <TableCell>
                           <Checkbox
                             checked={fornecedoresSelecionados.includes(
@@ -274,7 +296,6 @@ export function TabelaFornecedores({
                         </TableCell>
                       </motion.tr>
                     ))}
-                  </AnimatePresence>
                 </TableBody>
               </Table>
             </div>
@@ -296,7 +317,7 @@ export function TabelaFornecedores({
                 variant="outline"
                 size="sm"
                 onClick={paginaAnterior}
-                disabled={paginacao.pagina === 1}
+                disabled={paginacao.pagina <= 1 || isLoading}
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -304,31 +325,65 @@ export function TabelaFornecedores({
               </Button>
 
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                  const pageNum = i + 1
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={
-                        paginacao.pagina === pageNum ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      onClick={() =>
-                        onPaginacaoChange({ ...paginacao, pagina: pageNum })
-                      }
-                      className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
+                {/* Renderizar páginas de forma inteligente */}
+                {(() => {
+                  const maxVisiblePages = 5
+                  const currentPage = paginacao.pagina
+                  const totalPages = totalPaginas
+
+
+                  if (totalPages <= maxVisiblePages) {
+                    // Se há poucas páginas, mostra todas
+                    return Array.from({ length: totalPages }, (_, i) => {
+                      const pageNum = i + 1
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          size="sm"
+                          disabled={isLoading}
+                          onClick={() => {
+                            const novaPaginacao = { ...paginacao, pagina: pageNum }
+                                                  onPaginacaoChange(novaPaginacao)
+                          }}
+                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })
+                  } else {
+                    // Lógica mais avançada para muitas páginas
+                    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+                    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+                      const pageNum = startPage + i
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          size="sm"
+                          disabled={isLoading}
+                          onClick={() => {
+                            const novaPaginacao = { ...paginacao, pagina: pageNum }
+                                                  onPaginacaoChange(novaPaginacao)
+                          }}
+                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })
+                  }
+                })()}
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
                 onClick={proximaPagina}
-                disabled={paginacao.pagina === totalPaginas}
+                disabled={paginacao.pagina >= totalPaginas || totalPaginas === 0 || isLoading}
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <span className="xs:inline hidden">Próxima</span>

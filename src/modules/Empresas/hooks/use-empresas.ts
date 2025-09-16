@@ -497,19 +497,23 @@ export function useFornecedoresResumo(
   const { query: toastQuery } = useToast()
   const { handleApiError } = useErrorHandler()
 
+
+  const queryKey = empresaKeys.fornecedoresResumo(filtros)
+
   return useQuery({
-    queryKey: empresaKeys.fornecedoresResumo(filtros),
+    queryKey,
     queryFn: async () => {
-      return await getFornecedoresResumo(filtros)
+      const result = await getFornecedoresResumo(filtros)
+      return result
     },
-    
+
     enabled: options?.enabled ?? true,
     placeholderData: options?.keepPreviousData ? (prev) => prev : undefined,
     refetchOnMount: options?.refetchOnMount ?? true,
-    
-    // Cache por 2 minutos para dados de resumo
-    staleTime: 2 * 60 * 1000,
-    
+
+    // Cache reduzido para debug - originalmente 2 minutos
+    staleTime: 0, // Desabilitado temporariamente para debug
+
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
@@ -523,7 +527,7 @@ export function useFornecedoresResumo(
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
-        
+
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
           return true

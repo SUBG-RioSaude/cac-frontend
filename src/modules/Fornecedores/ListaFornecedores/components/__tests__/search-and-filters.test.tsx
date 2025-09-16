@@ -41,7 +41,7 @@ describe('SearchAndFiltersFornecedores', () => {
 
   it('deve renderizar o campo de pesquisa', () => {
     render(<SearchAndFiltersFornecedores onFiltrosChange={mockOnFiltrosChange} filtrosAtivos={mockFiltrosAtivos} />)
-    expect(screen.getByPlaceholderText('Pesquisar fornecedores...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Digite CNPJ ou Razão Social do fornecedor...')).toBeInTheDocument()
   })
 
   it('deve renderizar o botão de filtros', () => {
@@ -55,7 +55,7 @@ describe('SearchAndFiltersFornecedores', () => {
   it('deve exibir ícone de pesquisa no campo de busca', () => {
     render(<SearchAndFiltersFornecedores onFiltrosChange={mockOnFiltrosChange} filtrosAtivos={mockFiltrosAtivos} />)
     
-    const campoPesquisa = screen.getByPlaceholderText('Pesquisar fornecedores...')
+    const campoPesquisa = screen.getByPlaceholderText('Digite CNPJ ou Razão Social do fornecedor...')
     expect(campoPesquisa).toBeInTheDocument()
   })
 
@@ -76,7 +76,7 @@ describe('SearchAndFiltersFornecedores', () => {
   it('deve ter campo de pesquisa com tamanho responsivo', () => {
     render(<SearchAndFiltersFornecedores onFiltrosChange={mockOnFiltrosChange} filtrosAtivos={mockFiltrosAtivos} />)
     
-    const campoPesquisa = screen.getByPlaceholderText('Pesquisar fornecedores...')
+    const campoPesquisa = screen.getByPlaceholderText('Digite CNPJ ou Razão Social do fornecedor...')
     expect(campoPesquisa).toHaveClass('w-full', 'lg:w-full')
   })
 
@@ -106,7 +106,7 @@ describe('SearchAndFiltersFornecedores', () => {
   it('deve ter campo de pesquisa com placeholder descritivo', () => {
     render(<SearchAndFiltersFornecedores onFiltrosChange={mockOnFiltrosChange} filtrosAtivos={mockFiltrosAtivos} />)
     
-    const campoPesquisa = screen.getByPlaceholderText('Pesquisar fornecedores...')
+    const campoPesquisa = screen.getByPlaceholderText('Digite CNPJ ou Razão Social do fornecedor...')
     expect(campoPesquisa).toBeInTheDocument()
   })
 
@@ -126,7 +126,7 @@ describe('SearchAndFiltersFornecedores', () => {
   it('deve ter acessibilidade adequada', () => {
     render(<SearchAndFiltersFornecedores onFiltrosChange={mockOnFiltrosChange} filtrosAtivos={mockFiltrosAtivos} />)
     
-    const campoPesquisa = screen.getByPlaceholderText('Pesquisar fornecedores...')
+    const campoPesquisa = screen.getByPlaceholderText('Digite CNPJ ou Razão Social do fornecedor...')
     const botaoFiltros = screen.getByText('Filtros')
     
     expect(campoPesquisa).toBeInTheDocument()

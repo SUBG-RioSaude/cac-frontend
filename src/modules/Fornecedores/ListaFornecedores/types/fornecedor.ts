@@ -35,6 +35,12 @@ export interface FornecedorApi {
   estado: string
 }
 
+// Interface para dados resumidos da API que podem ter estrutura similar
+export interface FornecedorResumoApi extends Pick<FornecedorApi, 'id' | 'razaoSocial' | 'cnpj' | 'contratosAtivos' | 'status' | 'valorTotal' | 'cidade' | 'estado'> {
+  // Permite propriedades adicionais que podem vir da API
+  [key: string]: unknown
+}
+
 export interface FiltrosFornecedor {
   status?: string[]
   valorMinimo?: number
@@ -45,7 +51,8 @@ export interface FiltrosFornecedor {
 
 // Filtros para usar com a API (server-side)
 export interface FiltrosFornecedorApi {
-  pesquisa?: string
+  cnpj?: string 
+  razaoSocial?: string
   status?: string
   cidade?: string
   estado?: string
@@ -58,7 +65,10 @@ export interface FiltrosFornecedorApi {
 }
 
 // Função para mapear dados da API para interface Fornecedor
-export function mapearFornecedorApi(apiData: FornecedorApi): Fornecedor {
+// NOTA: Aceita tanto FornecedorApi quanto FornecedorResumoApi (tipos compatíveis)
+export function mapearFornecedorApi(apiData: FornecedorApi | FornecedorResumoApi): Fornecedor {
+  // console.log('🔍 [mapearFornecedorApi] Dados recebidos:', apiData)
+
   return {
     id: apiData.id,
     razaoSocial: apiData.razaoSocial,

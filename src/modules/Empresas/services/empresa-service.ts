@@ -197,22 +197,27 @@ export async function deleteContato(
 export async function getFornecedoresResumo(
   filtros?: FiltrosFornecedorApi
 ): Promise<PaginacaoFornecedoresApi> {
+  const params = {
+    pagina: filtros?.pagina || 1,
+    tamanhoPagina: filtros?.tamanhoPagina || 10,
+    ...(filtros?.cnpj && { cnpj: filtros.cnpj }),
+    ...(filtros?.razaoSocial && { razaoSocial: filtros.razaoSocial }),
+    ...(filtros?.status && { status: filtros.status }),
+    ...(filtros?.cidade && { cidade: filtros.cidade }),
+    ...(filtros?.estado && { estado: filtros.estado }),
+    ...(filtros?.valorMinimo && { valorMinimo: filtros.valorMinimo }),
+    ...(filtros?.valorMaximo && { valorMaximo: filtros.valorMaximo }),
+    ...(filtros?.contratosMinimo && { contratosMinimo: filtros.contratosMinimo }),
+    ...(filtros?.contratosMaximo && { contratosMaximo: filtros.contratosMaximo }),
+  }
+
+
   const response = await executeWithFallback<PaginacaoFornecedoresApi>({
     method: 'get',
     url: '/empresas/resumo-contratos',
-    params: {
-      pagina: filtros?.pagina || 1,
-      tamanhoPagina: filtros?.tamanhoPagina || 10,
-      ...(filtros?.pesquisa && { pesquisa: filtros.pesquisa }),
-      ...(filtros?.status && { status: filtros.status }),
-      ...(filtros?.cidade && { cidade: filtros.cidade }),
-      ...(filtros?.estado && { estado: filtros.estado }),
-      ...(filtros?.valorMinimo && { valorMinimo: filtros.valorMinimo }),
-      ...(filtros?.valorMaximo && { valorMaximo: filtros.valorMaximo }),
-      ...(filtros?.contratosMinimo && { contratosMinimo: filtros.contratosMinimo }),
-      ...(filtros?.contratosMaximo && { contratosMaximo: filtros.contratosMaximo }),
-    },
+    params,
     baseURL: import.meta.env.VITE_API_URL_EMPRESA,
   })
+
   return response.data
 }
