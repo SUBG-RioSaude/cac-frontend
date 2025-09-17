@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+# Hook do Husky para validação de commit messages
+# Verifica se a mensagem segue o padrão Conventional Commits
+
+echo "🔍 Validando mensagem de commit..."
+
+# Executar commitlint para validar a mensagem
+pnpm exec commitlint --edit $1
+
+# Se chegou até aqui, a validação passou
+echo "✅ Mensagem de commit válida!"
