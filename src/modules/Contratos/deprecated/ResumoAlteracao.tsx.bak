@@ -1,0 +1,449 @@
+import { useMemo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import {
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  DollarSign,
+  Users,
+  Building2,
+  FileText,
+  ArrowRight,
+  Info,
+  AlertTriangle
+} from 'lucide-react'
+
+import type { 
+  AlteracaoContratualForm
+} from '../types/alteracoes-contratuais'
+import { 
+  TIPOS_ALTERACAO_CONFIG,
+  OperacaoValor,
+  OperacaoVigencia 
+} from '../types/alteracoes-contratuais'
+
+interface ResumoAlteracaoProps {
+  dados: Partial<AlteracaoContratualForm>
+  valorOriginal?: number
+  vigenciaOriginal?: {
+    dataInicio: string
+    dataFim: string
+  }
+  numeroContrato?: string
+}
+
+export function ResumoAlteracao({
+  dados,
+  valorOriginal = 0,
+  vigenciaOriginal,
+  numeroContrato
+}: ResumoAlteracaoProps) {
+  // Calcular impactos da alteração
+  const impactos = useMemo(() => {
+    const resultado = {
+      valor: {
+        original: valorOriginal,
+        ajuste: 0,
+        final: valorOriginal,
+        percentual: 0,
+        operacao: ''
+      },
+      vigencia: {
+        original: vigenciaOriginal?.dataFim,
+        final: vigenciaOriginal?.dataFim,
+        diasAlterados: 0,
+        operacao: ''
+      },
+      fornecedores: {
+        vinculados: 0,
+        desvinculados: 0
+      },
+      unidades: {
+        vinculadas: 0,
+        desvinculadas: 0
+      }
+    }
+
+    // Calcular impacto no valor
+    if (dados.valor && valorOriginal > 0) {
+      if (dados.valor.operacao === OperacaoValor.Substituir) {
+        resultado.valor.final = dados.valor.novoValorGlobal || valorOriginal
+        resultado.valor.ajuste = resultado.valor.final - valorOriginal
+        resultado.valor.operacao = 'Novo valor global'
+      } else {
+        const valorAjuste = dados.valor.valorAjuste || 0
+        if (dados.valor.operacao === OperacaoValor.Acrescentar) {
+          resultado.valor.final = valorOriginal + valorAjuste
+          resultado.valor.ajuste = valorAjuste
+          resultado.valor.operacao = 'Acréscimo'
+        } else if (dados.valor.operacao === OperacaoValor.Diminuir) {
+          resultado.valor.final = valorOriginal - valorAjuste
+          resultado.valor.ajuste = -valorAjuste
+          resultado.valor.operacao = 'Redução'
+        }
+      }
+      resultado.valor.percentual = (resultado.valor.ajuste / valorOriginal) * 100
+    }
+
+    // Calcular impacto na vigência
+    if (dados.vigencia && vigenciaOriginal) {
+      const dataOriginal = new Date(vigenciaOriginal.dataFim)
+      
+      if (dados.vigencia.novaDataFinal) {
+        const novaData = new Date(dados.vigencia.novaDataFinal)
+        resultado.vigencia.final = dados.vigencia.novaDataFinal
+        resultado.vigencia.diasAlterados = Math.ceil(
+          (novaData.getTime() - dataOriginal.getTime()) / (1000 * 60 * 60 * 24)
+        )
+        
+        if (dados.vigencia.operacao === OperacaoVigencia.Acrescentar) {
+          resultado.vigencia.operacao = 'Prorrogação'
+        } else if (dados.vigencia.operacao === OperacaoVigencia.Diminuir) {
+          resultado.vigencia.operacao = 'Redução'
+        } else if (dados.vigencia.operacao === OperacaoVigencia.Substituir) {
+          resultado.vigencia.operacao = 'Nova data'
+        }
+      } else if (dados.vigencia.operacao === OperacaoVigencia.SuspenderIndeterminado) {
+        resultado.vigencia.operacao = 'Suspensão indeterminada'
+      } else if (dados.vigencia.operacao === OperacaoVigencia.SuspenderDeterminado) {
+        resultado.vigencia.operacao = `Suspensão por ${dados.vigencia.valorTempo} dia(s)/mês(es)`
+      }
+    }
+
+    // Contar fornecedores
+    if (dados.fornecedores) {
+      resultado.fornecedores.vinculados = dados.fornecedores.fornecedoresVinculados?.length || 0
+      resultado.fornecedores.desvinculados = dados.fornecedores.fornecedoresDesvinculados?.length || 0
+    }
+
+    // Contar unidades
+    if (dados.unidades) {
+      resultado.unidades.vinculadas = dados.unidades.unidadesVinculadas?.length || 0
+      resultado.unidades.desvinculadas = dados.unidades.unidadesDesvinculadas?.length || 0
+    }
+
+    return resultado
+  }, [dados, valorOriginal, vigenciaOriginal])
+
+  // Nomes dos tipos selecionados
+  const tiposSelecionados = useMemo(() => {
+    return dados.tiposAlteracao?.map((tipo: number) => (TIPOS_ALTERACAO_CONFIG as any)[tipo]?.label).filter(Boolean) || []
+  }, [dados.tiposAlteracao])
+
+  // Formatador de moeda
+  const formatarMoeda = (valor: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor)
+  }
+
+  // Formatador de data
+  const formatarData = (data: string) => {
+    return new Date(data).toLocaleDateString('pt-BR')
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Cabeçalho */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5" />
+            Resumo Antes/Depois
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Visualize o impacto desta alteração no contrato
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Informações básicas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <div className="text-sm font-medium text-gray-700">Contrato</div>
+              <div className="text-sm">{numeroContrato || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-700">Data de efeito</div>
+              <div className="text-sm">
+                {dados.dataEfeito ? formatarData(dados.dataEfeito) : 'N/A'}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-700">Tipos de alteração</div>
+              <div className="flex flex-wrap gap-1">
+                {tiposSelecionados.map((tipo: any, index: number) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tipo}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Impactos financeiros */}
+      {impactos.valor.ajuste !== 0 && (
+        <Card className="border-green-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <DollarSign className="h-5 w-5" />
+              Impacto Financeiro
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Antes */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">Valor Original</div>
+                <div className="text-2xl font-bold">
+                  {formatarMoeda(impactos.valor.original)}
+                </div>
+              </div>
+
+              {/* Alteração */}
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <div className="flex items-center gap-2 mb-2">
+                    {impactos.valor.ajuste > 0 ? (
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <TrendingDown className="h-5 w-5 text-red-600" />
+                    )}
+                    <span className="text-sm font-medium">{impactos.valor.operacao}</span>
+                  </div>
+                  
+                  <div className={cn(
+                    'text-lg font-bold',
+                    impactos.valor.ajuste > 0 ? 'text-green-600' : 'text-red-600'
+                  )}>
+                    {impactos.valor.ajuste > 0 ? '+' : ''}{formatarMoeda(impactos.valor.ajuste)}
+                  </div>
+                  
+                  <div className="text-sm text-gray-600">
+                    ({impactos.valor.percentual > 0 ? '+' : ''}{impactos.valor.percentual.toFixed(2)}%)
+                  </div>
+                </div>
+              </div>
+
+              {/* Depois */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">Novo Valor</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatarMoeda(impactos.valor.final)}
+                </div>
+              </div>
+            </div>
+
+            {/* Alerta de limite legal */}
+            {Math.abs(impactos.valor.percentual) > 25 && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-800">
+                    Alteração excede 25% do valor original
+                  </span>
+                </div>
+                <p className="text-xs text-amber-700 mt-1">
+                  Esta alteração pode necessitar de justificativas adicionais ou aprovações especiais.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Impactos de vigência */}
+      {impactos.vigencia.operacao && (
+        <Card className="border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-700">
+              <Calendar className="h-5 w-5" />
+              Impacto na Vigência
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Data original */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">Data Final Original</div>
+                <div className="text-lg font-medium">
+                  {impactos.vigencia.original ? formatarData(impactos.vigencia.original) : 'N/A'}
+                </div>
+              </div>
+
+              {/* Alteração */}
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ArrowRight className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium">{impactos.vigencia.operacao}</span>
+                  </div>
+                  
+                  {impactos.vigencia.diasAlterados !== 0 && (
+                    <div className={cn(
+                      'text-sm font-medium',
+                      impactos.vigencia.diasAlterados > 0 ? 'text-green-600' : 'text-red-600'
+                    )}>
+                      {impactos.vigencia.diasAlterados > 0 ? '+' : ''}{impactos.vigencia.diasAlterados} dias
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Nova data */}
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">Nova Data Final</div>
+                <div className="text-lg font-medium text-blue-600">
+                  {impactos.vigencia.final ? formatarData(impactos.vigencia.final) : 
+                   impactos.vigencia.operacao.includes('Suspensão') ? 'Indeterminada' : 'N/A'}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alterações de fornecedores */}
+      {(impactos.fornecedores.vinculados > 0 || impactos.fornecedores.desvinculados > 0) && (
+        <Card className="border-purple-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-700">
+              <Users className="h-5 w-5" />
+              Alterações de Fornecedores
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center gap-8">
+              {impactos.fornecedores.vinculados > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    +{impactos.fornecedores.vinculados}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Fornecedor{impactos.fornecedores.vinculados > 1 ? 'es' : ''} vinculado{impactos.fornecedores.vinculados > 1 ? 's' : ''}
+                  </div>
+                </div>
+              )}
+
+              {impactos.fornecedores.desvinculados > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">
+                    -{impactos.fornecedores.desvinculados}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Fornecedor{impactos.fornecedores.desvinculados > 1 ? 'es' : ''} desvinculado{impactos.fornecedores.desvinculados > 1 ? 's' : ''}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alterações de unidades */}
+      {(impactos.unidades.vinculadas > 0 || impactos.unidades.desvinculadas > 0) && (
+        <Card className="border-teal-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-teal-700">
+              <Building2 className="h-5 w-5" />
+              Alterações de Unidades
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center gap-8">
+              {impactos.unidades.vinculadas > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    +{impactos.unidades.vinculadas}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Unidade{impactos.unidades.vinculadas > 1 ? 's' : ''} vinculada{impactos.unidades.vinculadas > 1 ? 's' : ''}
+                  </div>
+                </div>
+              )}
+
+              {impactos.unidades.desvinculadas > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">
+                    -{impactos.unidades.desvinculadas}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Unidade{impactos.unidades.desvinculadas > 1 ? 's' : ''} desvinculada{impactos.unidades.desvinculadas > 1 ? 's' : ''}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cláusulas alteradas */}
+      {dados.clausulas && (dados.clausulas.clausulasAlteradas || dados.clausulas.clausulasIncluidas || dados.clausulas.clausulasExcluidas) && (
+        <Card className="border-gray-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-gray-700">
+              <FileText className="h-5 w-5" />
+              Alterações Contratuais
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {dados.clausulas.clausulasExcluidas && (
+              <div>
+                <div className="text-sm font-medium text-red-700 mb-1">Cláusulas Excluídas</div>
+                <div className="text-sm text-gray-600 bg-red-50 p-2 rounded border-l-4 border-red-200">
+                  {dados.clausulas.clausulasExcluidas}
+                </div>
+              </div>
+            )}
+
+            {dados.clausulas.clausulasIncluidas && (
+              <div>
+                <div className="text-sm font-medium text-green-700 mb-1">Cláusulas Incluídas</div>
+                <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border-l-4 border-green-200">
+                  {dados.clausulas.clausulasIncluidas}
+                </div>
+              </div>
+            )}
+
+            {dados.clausulas.clausulasAlteradas && (
+              <div>
+                <div className="text-sm font-medium text-blue-700 mb-1">Cláusulas Alteradas</div>
+                <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded border-l-4 border-blue-200">
+                  {dados.clausulas.clausulasAlteradas}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Justificativa */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Justificativa
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gray-50 p-4 rounded-md">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              {dados.justificativa || 'Nenhuma justificativa fornecida'}
+            </p>
+          </div>
+          
+          {dados.documento && (
+            <div className="mt-3">
+              <div className="text-sm font-medium text-gray-700">Documento de referência</div>
+              <div className="text-sm text-gray-600">{dados.documento}</div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

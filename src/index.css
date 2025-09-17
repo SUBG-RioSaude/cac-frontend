@@ -1,7 +1,9 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
+
+/* Escopo customizado só para a sidebar */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -39,6 +41,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans:
+    Roboto, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 :root {
@@ -66,14 +71,18 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.404 0.017 264.376); /* bg-neutral-500 */
+  --sidebar-foreground: oklch(1 0 0); /* texto branco */
+  --sidebar-primary: oklch(0.709 0.142 213.68); /* #43B9EB para item ativo */
+  --sidebar-primary-foreground: oklch(1 0 0); /* texto branco */
+  --sidebar-accent: oklch(
+    1 0 0 / 0.1
+  ); /* efeito glass transparente para hover */
+  --sidebar-accent-foreground: oklch(
+    0.709 0.142 213.68
+  ); /* #43B9EB para texto ativo */
+  --sidebar-border: oklch(0.5 0 0); /* borda mais escura */
+  --sidebar-ring: oklch(0.709 0.142 213.68); /* anel de foco #43B9EB */
 }
 
 .dark {
@@ -100,14 +109,18 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.404 0.017 264.376); /* bg-neutral-500 mantido no dark */
+  --sidebar-foreground: oklch(1 0 0); /* texto branco */
+  --sidebar-primary: oklch(0.709 0.142 213.68); /* #43B9EB para item ativo */
+  --sidebar-primary-foreground: oklch(1 0 0); /* texto branco */
+  --sidebar-accent: oklch(
+    1 0 0 / 0.1
+  ); /* efeito glass transparente para hover */
+  --sidebar-accent-foreground: oklch(
+    0.709 0.142 213.68
+  ); /* #43B9EB para texto ativo */
+  --sidebar-border: oklch(0.5 0 0); /* borda mais escura */
+  --sidebar-ring: oklch(0.709 0.142 213.68); /* anel de foco #43B9EB */
 }
 
 @layer base {
@@ -116,5 +129,68 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Melhorias visuais para o SidebarTrigger */
+  [data-sidebar='trigger'] {
+    @apply relative;
+  }
+
+  [data-sidebar='trigger']:hover {
+    @apply scale-105;
+  }
+
+  [data-sidebar='trigger']:active {
+    @apply scale-95;
+  }
+
+  [data-sidebar='trigger']:focus-visible {
+    @apply ring-sidebar-ring ring-2 ring-offset-2;
+  }
+
+  /* Melhorias visuais para a logo da sidebar */
+  .group\/logo:focus-visible {
+    @apply ring-sidebar-primary ring-offset-sidebar rounded-xl ring-2 ring-offset-2;
+  }
+
+  .group\/logo:active .logo-container {
+    @apply scale-95;
+  }
+
+  /* Removido efeito shimmer da logo */
+
+  /* Efeitos especiais para a badge CAC */
+  .group\/logo:hover .badge-cac {
+    @apply scale-105 shadow-xl;
+  }
+
+  .badge-cac {
+    @apply transition-all duration-300;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%) rotate(45deg);
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(100%) rotate(45deg);
+      opacity: 0;
+    }
+  }
+
+  /* Logo sem animações - limpa e estática */
+  .logo-container {
+    /* Removidas todas as animações de pulsação e brilho */
+  }
+
+  /* Animação de spin customizada para a logo da badge */
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
   }
 }

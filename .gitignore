@@ -8,6 +8,18 @@ pnpm-debug.log*
 lerna-debug.log*
 
 
+.claude
+.cursor
+
+CLAUDE.md
+CLAUDE.sessions.md
+AGENTS.md
+
+
+.tanstack
+.github
+.vscode
+
 
 .env
 

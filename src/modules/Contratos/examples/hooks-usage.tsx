@@ -1,0 +1,297 @@
+/**
+ * Exemplos de uso dos hooks de contratos com React Query
+ * Este arquivo demonstra as melhores práticas de implementação
+ */
+
+import React, { useState } from 'react'
+import { useContratos, useCriarContrato, useUpdateContrato, useDeleteContrato, useToast } from '../hooks'
+import type { ContratoParametros } from '../services/contratos-service'
+import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/button-extended'
+
+// Exemplo 1: Lista de contratos com filtros
+function ContratosListExample() {
+  const [filtros, setFiltros] = useState<ContratoParametros>({
+    pagina: 1,
+    tamanhoPagina: 20
+  })
+
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    isFetching, 
+    refetch 
+  } = useContratos(filtros, {
+    keepPreviousData: true, // Mantém dados anteriores durante paginação
+    refetchOnMount: true
+  })
+
+  if (isLoading) return <div>Carregando contratos...</div>
+  if (error) return <div>Erro ao carregar contratos</div>
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2>Contratos ({data?.totalRegistros})</h2>
+        <LoadingButton
+          onClick={() => refetch()}
+          loading={isFetching}
+          loadingText="Recarregando..."
+          variant="info"
+        >
+          Atualizar
+        </LoadingButton>
+      </div>
+
+      <div className="grid gap-4">
+        {data?.dados.map(contrato => (
+          <div key={contrato.id} className="border p-4 rounded">
+            <h3>{contrato.numeroContrato}</h3>
+            <p>{contrato.descricaoObjeto}</p>
+            <p>Valor: R$ {contrato.valorGlobal.toLocaleString('pt-BR')}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Paginação */}
+      <div className="flex justify-between mt-4">
+        <Button
+          onClick={() => setFiltros(prev => ({ ...prev, pagina: prev.pagina! - 1 }))}
+          disabled={filtros.pagina === 1}
+          variant="neutral"
+        >
+          Anterior
+        </Button>
+        <span>Página {filtros.pagina} de {data?.totalPaginas}</span>
+        <Button
+          onClick={() => setFiltros(prev => ({ ...prev, pagina: prev.pagina! + 1 }))}
+          disabled={!data?.temProximaPagina}
+          variant="neutral"
+        >
+          Próxima
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Exemplo 2: Formulário de criação de contrato
+function CreateContratoExample() {
+  const [formData, setFormData] = useState({
+    numeroContrato: '',
+    descricaoObjeto: '',
+    valorGlobal: 0,
+    vigenciaInicial: '',
+    vigenciaFinal: '',
+    prazoInicialMeses: 12,
+    empresaId: '',
+    ativo: true
+  })
+
+  const createMutation = useCriarContrato()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validação básica
+    if (!formData.numeroContrato || !formData.empresaId) {
+      alert('Preencha os campos obrigatórios')
+      return
+    }
+
+    // Executar mutation - toast e redirecionamento são automáticos
+    createMutation.mutate({
+      ...formData,
+      vigenciaInicial: new Date(formData.vigenciaInicial).toISOString(),
+      vigenciaFinal: new Date(formData.vigenciaFinal).toISOString()
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <h2 className="text-xl font-bold">Criar Novo Contrato</h2>
+      
+      <input
+        type="text"
+        placeholder="Número do Contrato *"
+        value={formData.numeroContrato}
+        onChange={(e) => setFormData(prev => ({ ...prev, numeroContrato: e.target.value }))}
+        className="w-full border p-2 rounded"
+        required
+      />
+
+      <textarea
+        placeholder="Descrição do Objeto"
+        value={formData.descricaoObjeto}
+        onChange={(e) => setFormData(prev => ({ ...prev, descricaoObjeto: e.target.value }))}
+        className="w-full border p-2 rounded"
+        rows={3}
+      />
+
+      <input
+        type="number"
+        placeholder="Valor Global *"
+        value={formData.valorGlobal || ''}
+        onChange={(e) => setFormData(prev => ({ ...prev, valorGlobal: Number(e.target.value) }))}
+        className="w-full border p-2 rounded"
+        required
+      />
+
+      <input
+        type="date"
+        value={formData.vigenciaInicial}
+        onChange={(e) => setFormData(prev => ({ ...prev, vigenciaInicial: e.target.value }))}
+        className="w-full border p-2 rounded"
+        required
+      />
+
+      <input
+        type="date"
+        value={formData.vigenciaFinal}
+        onChange={(e) => setFormData(prev => ({ ...prev, vigenciaFinal: e.target.value }))}
+        className="w-full border p-2 rounded"
+        required
+      />
+
+      <input
+        type="text"
+        placeholder="ID da Empresa *"
+        value={formData.empresaId}
+        onChange={(e) => setFormData(prev => ({ ...prev, empresaId: e.target.value }))}
+        className="w-full border p-2 rounded"
+        required
+      />
+
+      <LoadingButton
+        type="submit"
+        loading={createMutation.isPending}
+        loadingText="Criando..."
+        variant="success"
+        className="w-full"
+      >
+        Criar Contrato
+      </LoadingButton>
+
+      {createMutation.isError && (
+        <div className="text-red-500 text-sm">
+          Erro ao criar contrato. Verifique os dados e tente novamente.
+        </div>
+      )}
+    </form>
+  )
+}
+
+// Exemplo 3: Ações do contrato (atualizar, deletar, suspender)
+function ContratoActionsExample({ contratoId }: { contratoId: string }) {
+  const updateMutation = useUpdateContrato()
+  const deleteMutation = useDeleteContrato()
+  const { success } = useToast()
+
+  const handleUpdate = () => {
+    updateMutation.mutate({
+      id: contratoId,
+      // Apenas os campos que mudaram
+      descricaoObjeto: 'Objeto atualizado',
+      valorGlobal: 50000
+    })
+  }
+
+  const handleDelete = () => {
+    if (confirm('Tem certeza que deseja remover este contrato?')) {
+      deleteMutation.mutate(contratoId)
+    }
+  }
+
+  const handleCustomAction = () => {
+    // Exemplo de toast manual para ações customizadas
+    success('Ação personalizada executada com sucesso!')
+  }
+
+  return (
+    <div className="flex gap-2">
+      <LoadingButton
+        onClick={handleUpdate}
+        loading={updateMutation.isPending}
+        loadingText="Atualizando..."
+        variant="info"
+        size="sm"
+      >
+        Atualizar
+      </LoadingButton>
+
+      <LoadingButton
+        onClick={handleDelete}
+        loading={deleteMutation.isPending}
+        loadingText="Removendo..."
+        variant="destructive"
+        size="sm"
+      >
+        Remover
+      </LoadingButton>
+
+      <Button
+        onClick={handleCustomAction}
+        variant="default"
+        size="sm"
+      >
+        Ação Customizada
+      </Button>
+    </div>
+  )
+}
+
+// Exemplo 4: Como usar os hooks em diferentes cenários
+function DifferentScenariosExample() {
+  // Cenário 1: Lista sem cache (sempre fresh data)
+  const freshContratos = useContratos({}, {
+    refetchOnMount: true,
+    enabled: true
+  })
+
+  // Cenário 2: Lista condicional (carrega apenas quando necessário)
+  const [shouldLoadContratos, setShouldLoadContratos] = useState(false)
+  const conditionalContratos = useContratos({}, {
+    enabled: shouldLoadContratos
+  })
+
+  // Cenário 3: Lista com filtros complexos
+  const filteredContratos = useContratos({
+    filtroStatus: 'ativo',
+    valorMinimo: 10000,
+    dataInicialDe: '2024-01-01',
+    termoPesquisa: 'equipamentos'
+  })
+
+  return (
+    <div className="space-y-6">
+      <section>
+        <h3 className="font-bold">Contratos Fresh (sem cache)</h3>
+        <p>Status: {freshContratos.isLoading ? 'Carregando...' : 'Pronto'}</p>
+      </section>
+
+      <section>
+        <h3 className="font-bold">Contratos Condicionais</h3>
+        <button 
+          onClick={() => setShouldLoadContratos(!shouldLoadContratos)}
+          className="bg-yellow-500 text-white px-3 py-1 rounded"
+        >
+          {shouldLoadContratos ? 'Parar' : 'Carregar'} Contratos
+        </button>
+        <p>Status: {conditionalContratos.isLoading ? 'Carregando...' : 'Pronto'}</p>
+      </section>
+
+      <section>
+        <h3 className="font-bold">Contratos Filtrados</h3>
+        <p>Total encontrado: {filteredContratos.data?.totalRegistros || 0}</p>
+      </section>
+    </div>
+  )
+}
+
+export {
+  ContratosListExample,
+  CreateContratoExample, 
+  ContratoActionsExample,
+  DifferentScenariosExample
+}

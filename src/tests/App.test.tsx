@@ -1,16 +1,24 @@
 // src/App.test.tsx
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
+import { BrowserRouter } from 'react-router-dom'
 import App from '@/App'
 
 describe('App', () => {
-  it('deve renderizar o botão', () => {
-    render(<App />)
+  it('deve renderizar a página de login', () => {
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    )
 
-    expect(screen.getByRole('button')).toHaveTextContent('Click me')
-
-    // Use o texto que seu App renderiza.
-    // Exemplo, se você tiver um <h1>Olá Mundo</h1> no seu App.
-    // expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Olá Mundo');
+    // Verifica se a página de login está sendo renderizada
+    expect(screen.getByText('Bem-Vindo(a)!')).toBeInTheDocument()
+    expect(screen.getByText('Insira suas credenciais')).toBeInTheDocument()
+    
+    // Verifica se os campos de login estão presentes
+    expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
+    expect(screen.getByLabelText('Senha')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument()
   })
 })

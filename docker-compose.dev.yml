@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Frontend CAC - Desenvolvimento
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: cac-frontend-dev
+    ports:
+      - "80:80"
+    volumes:
+      # Mount do código para hot reload
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    networks:
+      - cac-dev-network
+
+networks:
+  cac-dev-network:
+    driver: bridge
+    name: cac-dev-network

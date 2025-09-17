@@ -1,0 +1,181 @@
+---
+alwaysApply: true
+---
+
+# Diretrizes de Desenvolvimento Front-End
+
+Este documento estabelece as diretrizes e padrões para o desenvolvimento front-end utilizando a stack tecnológica definida para o projeto. O objetivo é garantir consistência, qualidade, manutenibilidade e escalabilidade do código, além de promover uma experiência de desenvolvimento eficiente e colaborativa.
+
+## 1. Stack Tecnológica
+
+O projeto é construído sobre uma stack moderna e robusta, focada em performance, tipagem e experiência do desenvolvedor. A seguir, detalhamos os principais componentes:
+
+### 1.1. React (com Vite)
+
+**React** é a biblioteca principal para a construção da interface de usuário, permitindo a criação de componentes reutilizáveis e uma abordagem declarativa para o desenvolvimento de UIs. O **Vite** é utilizado como ferramenta de build e servidor de desenvolvimento, proporcionando um ambiente de desenvolvimento extremamente rápido e otimizado.
+
+- **Versão React:** 19.1.0
+- **Build Tool:** Vite 7.0.4
+- **Plugin Vite:** `@vitejs/plugin-react-swc` (para React com SWC)
+
+### 1.2. TypeScript
+
+**TypeScript** é um superset do JavaScript que adiciona tipagem estática ao código. Isso melhora a detecção de erros em tempo de desenvolvimento, a legibilidade do código e a refatoração, resultando em aplicações mais robustas e fáceis de manter.
+
+- **Versão TypeScript:** 5.8.3
+
+### 1.3. TailwindCSS
+
+**TailwindCSS** é um framework CSS utility-first que permite construir designs personalizados diretamente no markup HTML, sem a necessidade de escrever CSS tradicional. Ele promove um desenvolvimento rápido e consistente, com classes utilitárias que podem ser combinadas para criar qualquer estilo.
+
+- **Versão TailwindCSS:** 4.1.11
+- **Plugin Vite:** `@tailwindcss/vite`
+
+### 1.4. React Router DOM
+
+Para o roteamento da aplicação, utilizamos o **React Router DOM**, a biblioteca padrão para roteamento declarativo em aplicações React. Ele permite gerenciar a navegação entre diferentes páginas e componentes de forma eficiente e intuitiva.
+
+- **Versão React Router DOM:** 6.28.1
+
+### 1.5. Zustand
+
+**Zustand** é uma biblioteca leve e performática para gerenciamento de estado global. É a escolha preferencial para estados que precisam ser compartilhados entre múltiplos componentes ou que são semanticamente apropriados para um contexto global. Antes de implementar um estado global com Zustand, é **obrigatório** perguntar e obter aprovação para garantir que o uso é justificado e alinhado com a arquitetura do projeto.
+
+- **Versão Zustand:** 5.0.7
+
+### 1.6. Outras Bibliotecas e Ferramentas
+
+Além das tecnologias principais, o projeto utiliza uma série de outras bibliotecas para otimizar o desenvolvimento e a qualidade do código:
+
+- **Sistema de Componentes UI:** `shadcn/ui` (construído sobre Radix UI e TailwindCSS), `Radix UI` (primitivos de componentes unstyled e acessíveis), `Lucide React` (ícones SVG).
+- **Formulários e Validação:** `React Hook Form` (formulários performáticos), `Zod` (validação de schema TypeScript-first), `Hookform Resolvers` (resolvers para React Hook Form).
+- **Styling e Design:** `Class Variance Authority` (APIs de componentes com variantes), `Tailwind Merge` (merge inteligente de classes TailwindCSS), `Next Themes` (abstração para temas), `Motion` (animações para React).
+- **Utilitários:** `CLSX` (construção condicional de strings de classe), `Date-fns` (manipulação de datas), `React Day Picker` (seleção de datas), `Input OTP` (entrada de códigos OTP/PIN), `CMDK` (command menu), `Embla Carousel React` (carousel), `React Resizable Panels` (painéis redimensionáveis), `Recharts` (gráficos), `Sonner` (toast/notificação), `Vaul` (drawer unstyled).
+- **Desenvolvimento e Testes:** `Vitest` (framework de testes unitários), `Testing Library` (React Testing Library, Jest DOM, User Event), `ESLint` (linter), `Prettier` (formatador de código), `JSDOM` (implementação JavaScript pura do DOM para testes).
+
+## 2. Diretrizes de Codificação
+
+As seguintes diretrizes devem ser rigorosamente seguidas para garantir a padronização e a qualidade do código em todo o projeto.
+
+### 2.1. Idioma
+
+Todo o código, incluindo nomes de variáveis, funções, componentes, arquivos, pastas e comentários, **deve ser escrito em português brasileiro**. Isso se aplica também aos nomes das páginas e rotas da aplicação.
+
+### 2.2. Nomenclatura de Páginas e Rotas
+
+Os nomes das páginas e suas respectivas rotas devem ser claros, descritivos e seguir a convenção de nomenclatura em português brasileiro. Por exemplo, `src/pages/dashboard/Dashboard.tsx` e a rota `/painel-de-controle`.
+
+### 2.3. Estilo de Código
+
+- **Early Returns:** Utilize `early returns` sempre que possível para melhorar a legibilidade do código, evitando aninhamento excessivo de condicionais.
+- **TailwindCSS:** O estilo de todos os elementos HTML deve ser feito exclusivamente com classes TailwindCSS. **É proibido** o uso de CSS tradicional (arquivos `.css` ou tags `<style>`) ou estilos inline, a menos que haja uma justificativa excepcional e aprovada.
+- **Condicionais em Classes:** Prefira o uso da sintaxe `class:` (ou `clsx` para condicionais mais complexas) em vez do operador ternário diretamente nas tags de classe, quando aplicável. Exemplo: `<div class:text-red-500={erro}>`.
+- **Nomes Descritivos:** Variáveis, funções e constantes devem ter nomes descritivos que reflitam claramente seu propósito e conteúdo. Evite abreviações ambíguas.
+- **Funções de Evento:** Funções que lidam com eventos (e.g., `onClick`, `onKeyDown`) devem ser prefixadas com `handle`. Exemplo: `const handleClick = () => { ... };`.
+- **Constantes para Funções:** Prefira declarar funções como constantes (`const minhaFuncao = () => { ... };`) em vez de usar a sintaxe `function minhaFuncao() { ... }`.
+- **Tipagem:** Sempre que possível, defina tipos explícitos para variáveis, parâmetros de função e retornos, utilizando o TypeScript para garantir a segurança e clareza do código.
+
+### 2.4. Acessibilidade (A11y)
+
+A acessibilidade é uma prioridade. Todos os elementos interativos devem incluir atributos de acessibilidade apropriados para garantir que a aplicação seja utilizável por pessoas com deficiência. Exemplos:
+
+- \*\*`tabindex=
+
+="0"`:\*\* Para elementos que devem ser focáveis via teclado.
+
+- **`aria-label`:** Para fornecer um rótulo descritivo para leitores de tela, especialmente para elementos sem texto visível.
+- **Manipuladores de Eventos:** Para elementos interativos, além de `onClick`, sempre inclua `onKeyDown` para permitir interação via teclado.
+
+### 2.5. Testes Unitários
+
+Todo componente gerado **deve vir acompanhado de um teste unitário** utilizando **Vitest** como framework de testes e **JSDOM** para simular o ambiente do navegador. Os testes devem cobrir os casos de uso principais do componente, suas interações e renderização condicional. A **React Testing Library** deve ser utilizada para escrever testes que simulem o comportamento do usuário, focando na funcionalidade do componente do ponto de vista do usuário, e não em detalhes de implementação.
+
+### 2.6. Gerenciamento de Estado Global (Zustand)
+
+Conforme mencionado na seção de Stack Tecnológica, o **Zustand** é a biblioteca designada para gerenciamento de estado global. Antes de criar ou modificar um `store` global com Zustand, é **mandatório** que o chat **pergunte e justifique** a necessidade de um estado global para a funcionalidade em questão. Isso evita o uso excessivo de estado global, que pode levar a complexidade desnecessária e dificuldades de manutenção. O estado global deve ser reservado para dados que são verdadeiramente globais ou que precisam ser acessados por muitas partes da aplicação de forma desacoplada.
+
+### 2.7. Validação e Formatação de CNPJ
+
+Para qualquer operação envolvendo CNPJ (validação, formatação, limpeza ou aplicação de máscara), **sempre utilize as funções globais disponíveis em `@/lib/utils`** através do objeto `cnpjUtils`. **Nunca crie novas funções** para manipular CNPJ, sempre reutilize as existentes.
+
+#### Funções Disponíveis:
+
+- **`cnpjUtils.limpar(cnpj)`:** Remove todos os caracteres não numéricos
+- **`cnpjUtils.formatar(cnpj)`:** Aplica formatação XX.XXX.XXX/XXXX-XX
+- **`cnpjUtils.validar(cnpj)`:** Valida se o CNPJ é válido (retorna boolean)
+- **`cnpjUtils.validarComMensagem(cnpj)`:** Valida e retorna mensagem de erro
+- **`cnpjUtils.aplicarMascara(valor)`:** Aplica máscara durante a digitação
+
+#### Exemplo de Uso:
+
+```typescript
+import { cnpjUtils } from '@/lib/utils'
+
+// Validação com Zod
+const esquema = z.object({
+  cnpj: z.string()
+    .min(1, 'CNPJ é obrigatório')
+    .refine(cnpjUtils.validar, 'CNPJ inválido')
+})
+
+// Formatação em componente
+const cnpjFormatado = cnpjUtils.formatar(dadosEmpresa.cnpj)
+
+// Aplicação de máscara em input
+const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const valorMascarado = cnpjUtils.aplicarMascara(e.target.value)
+  setCnpj(valorMascarado)
+}
+```
+
+**Importante:** Esta diretriz garante consistência, evita duplicação de código e mantém a validação de CNPJ centralizada e testada.
+
+## 3. Estrutura do Projeto
+
+A estrutura de pastas e arquivos deve seguir o padrão estabelecido para facilitar a navegação e a organização do código:
+
+```
+src/
+├── componentes/       # Componentes reutilizáveis (anteriormente `components`)
+│   └── ui/          # Componentes shadcn/ui
+├── hooks/           # Hooks customizados
+├── lib/             # Utilitários e configurações
+├── paginas/           # Páginas e rotas (anteriormente `pages`)
+└── testes/           # Configuração de testes (anteriormente `tests`)
+```
+
+**Observação:** As pastas `components` e `pages` foram renomeadas para `componentes` e `paginas`, respectivamente, para aderir à diretriz de idioma português brasileiro.
+
+## 4. Scripts Disponíveis
+
+Os scripts de desenvolvimento e build permanecem os mesmos, utilizando `pnpm` como gerenciador de pacotes:
+
+```bash
+# Desenvolvimento
+pnpm dev              # Inicia servidor de desenvolvimento
+
+# Build
+pnpm build            # Compila TypeScript e gera build de produção
+pnpm preview          # Preview do build de produção
+
+# Qualidade de código
+pnpm lint             # Executa ESLint
+pnpm format           # Formata código com Prettier
+pnpm format:check     # Verifica formatação sem modificar
+
+# Testes
+pnpm test             # Executa testes com Vitest
+```
+
+## 5. Configurações
+
+As configurações do projeto são mantidas para garantir a consistência e a eficiência do desenvolvimento:
+
+- **Path Mapping:** Configurado alias `@/*` para `./src/*`
+- **TailwindCSS:** Configurado com variáveis CSS e estilo New York
+- **TypeScript:** Configuração modular com referências separadas
+- **Vite:** Plugins configurados para React (SWC) e TailwindCSS
+
+---
+
+Este documento será atualizado conforme novas necessidades e melhores práticas surgirem. A adesão a estas diretrizes é fundamental para o sucesso e a qualidade do projeto.
