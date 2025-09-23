@@ -54,9 +54,14 @@ const FILTROS_IGNORADOS: Array<keyof FiltrosFornecedorApi> = [
 ]
 
 function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
-  return (Object.entries(filtros) as Array<
-    [keyof FiltrosFornecedorApi, FiltrosFornecedorApi[keyof FiltrosFornecedorApi]]
-  >).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
+  return (
+    Object.entries(filtros) as Array<
+      [
+        keyof FiltrosFornecedorApi,
+        FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
+      ]
+    >
+  ).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
     }
@@ -66,7 +71,10 @@ function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
         acc[key] = undefined
         return acc
       }
-      if (value === null || (typeof value === 'string' && value.trim() === '')) {
+      if (
+        value === null ||
+        (typeof value === 'string' && value.trim() === '')
+      ) {
         return acc
       }
     }
@@ -83,7 +91,6 @@ function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
     return acc
   }, {} as FiltrosFornecedorApi)
 }
-
 
 function shallowEqualFiltros(
   a: FiltrosFornecedorApi,
@@ -111,7 +118,7 @@ interface SearchAndFiltersFornecedoresProps {
 export function SearchAndFiltersFornecedores({
   onFiltrosChange,
   filtrosAtivos,
-  isLoading = false
+  isLoading = false,
 }: SearchAndFiltersFornecedoresProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
@@ -119,16 +126,23 @@ export function SearchAndFiltersFornecedores({
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [contratosExpanded, setContratosExpanded] = useState(false)
-  const filtrosBase = useMemo(() => sanitizeFiltros(filtrosAtivos), [filtrosAtivos])
-  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(filtrosAtivos.cnpj || filtrosAtivos.razaoSocial || '')
-  const [filtrosLocais, setFiltrosLocais] = useState<FiltrosFornecedorApi>(filtrosBase)
+  const filtrosBase = useMemo(
+    () => sanitizeFiltros(filtrosAtivos),
+    [filtrosAtivos],
+  )
+  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(
+    filtrosAtivos.cnpj || filtrosAtivos.razaoSocial || '',
+  )
+  const [filtrosLocais, setFiltrosLocais] =
+    useState<FiltrosFornecedorApi>(filtrosBase)
 
   // Debounce para pesquisa (500ms)
   const termoPesquisaDebounced = useDebounce(termoPesquisaLocal, 500)
   const filtrosAplicadosRef = useRef<string>('')
 
   // Estado para mostrar loading durante debounce
-  const isSearching = termoPesquisaLocal !== termoPesquisaDebounced && termoPesquisaLocal !== ''
+  const isSearching =
+    termoPesquisaLocal !== termoPesquisaDebounced && termoPesquisaLocal !== ''
 
   useEffect(() => {
     setFiltrosLocais((prev) =>
@@ -144,10 +158,12 @@ export function SearchAndFiltersFornecedores({
     const filtrosNormalizados = sanitizeFiltros(filtrosLocais)
 
     // Se não tem pesquisa, remove explicitamente cnpj e razaoSocial
-    const pesquisaDetectada = temPesquisa ? detectarTipoPesquisa(termoPesquisaDebounced) : {
-      cnpj: undefined,
-      razaoSocial: undefined
-    }
+    const pesquisaDetectada = temPesquisa
+      ? detectarTipoPesquisa(termoPesquisaDebounced)
+      : {
+          cnpj: undefined,
+          razaoSocial: undefined,
+        }
 
     const filtrosParaEnviar: FiltrosFornecedorApi = {
       ...filtrosNormalizados,
@@ -201,7 +217,10 @@ export function SearchAndFiltersFornecedores({
   }, [onFiltrosChange])
 
   return (
-    <div role="search" className="flex flex-col gap-4 lg:flex-row lg:items-center">
+    <div
+      role="search"
+      className="flex flex-col gap-4 lg:flex-row lg:items-center"
+    >
       {/* Search Bar */}
       <motion.div
         className="relative max-w-md flex-1"
@@ -225,7 +244,7 @@ export function SearchAndFiltersFornecedores({
               // Se o campo foi limpo, reset imediato dos filtros de pesquisa
               if (novoTermo.trim() === '') {
                 // Remove cnpj e razaoSocial dos filtros locais também
-                setFiltrosLocais(prev => {
+                setFiltrosLocais((prev) => {
                   const filtrosSemPesquisa = { ...prev }
                   delete filtrosSemPesquisa.cnpj
                   delete filtrosSemPesquisa.razaoSocial
@@ -237,10 +256,18 @@ export function SearchAndFiltersFornecedores({
                   tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
                   // Preserva outros filtros ativos (status, valor, contratos)
                   ...(filtrosLocais.status && { status: filtrosLocais.status }),
-                  ...(filtrosLocais.valorMinimo && { valorMinimo: filtrosLocais.valorMinimo }),
-                  ...(filtrosLocais.valorMaximo && { valorMaximo: filtrosLocais.valorMaximo }),
-                  ...(filtrosLocais.contratosMinimo && { contratosMinimo: filtrosLocais.contratosMinimo }),
-                  ...(filtrosLocais.contratosMaximo && { contratosMaximo: filtrosLocais.contratosMaximo }),
+                  ...(filtrosLocais.valorMinimo && {
+                    valorMinimo: filtrosLocais.valorMinimo,
+                  }),
+                  ...(filtrosLocais.valorMaximo && {
+                    valorMaximo: filtrosLocais.valorMaximo,
+                  }),
+                  ...(filtrosLocais.contratosMinimo && {
+                    contratosMinimo: filtrosLocais.contratosMinimo,
+                  }),
+                  ...(filtrosLocais.contratosMaximo && {
+                    contratosMaximo: filtrosLocais.contratosMaximo,
+                  }),
                   // Explicitamente define cnpj e razaoSocial como undefined
                   cnpj: undefined,
                   razaoSocial: undefined,
@@ -251,7 +278,7 @@ export function SearchAndFiltersFornecedores({
                 onFiltrosChange(filtrosParaEnviar)
               }
             }}
-            className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 w-full lg:w-full"
+            className="bg-background focus:border-primary h-11 w-full border-2 pr-4 pl-10 shadow-sm transition-all duration-200 lg:w-full"
             disabled={isLoading}
           />
           {termoPesquisaLocal && !isSearching && (
@@ -262,7 +289,7 @@ export function SearchAndFiltersFornecedores({
                 setTermoPesquisaLocal('')
 
                 // Remove cnpj e razaoSocial dos filtros locais também
-                setFiltrosLocais(prev => {
+                setFiltrosLocais((prev) => {
                   const filtrosSemPesquisa = { ...prev }
                   delete filtrosSemPesquisa.cnpj
                   delete filtrosSemPesquisa.razaoSocial
@@ -274,10 +301,18 @@ export function SearchAndFiltersFornecedores({
                   tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
                   // Preserva outros filtros ativos (status, valor, contratos)
                   ...(filtrosLocais.status && { status: filtrosLocais.status }),
-                  ...(filtrosLocais.valorMinimo && { valorMinimo: filtrosLocais.valorMinimo }),
-                  ...(filtrosLocais.valorMaximo && { valorMaximo: filtrosLocais.valorMaximo }),
-                  ...(filtrosLocais.contratosMinimo && { contratosMinimo: filtrosLocais.contratosMinimo }),
-                  ...(filtrosLocais.contratosMaximo && { contratosMaximo: filtrosLocais.contratosMaximo }),
+                  ...(filtrosLocais.valorMinimo && {
+                    valorMinimo: filtrosLocais.valorMinimo,
+                  }),
+                  ...(filtrosLocais.valorMaximo && {
+                    valorMaximo: filtrosLocais.valorMaximo,
+                  }),
+                  ...(filtrosLocais.contratosMinimo && {
+                    contratosMinimo: filtrosLocais.contratosMinimo,
+                  }),
+                  ...(filtrosLocais.contratosMaximo && {
+                    contratosMaximo: filtrosLocais.contratosMaximo,
+                  }),
                   // Explicitamente define cnpj e razaoSocial como undefined
                   cnpj: undefined,
                   razaoSocial: undefined,
@@ -305,7 +340,7 @@ export function SearchAndFiltersFornecedores({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-11 cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 w-full lg:w-auto hover:bg-slate-600"
+              className="h-11 w-full cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 hover:bg-slate-600 lg:w-auto"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
@@ -317,7 +352,11 @@ export function SearchAndFiltersFornecedores({
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-96 p-0" align="start" sideOffset={8}>
+          <DropdownMenuContent
+            className="w-96 p-0"
+            align="start"
+            sideOffset={8}
+          >
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -561,8 +600,6 @@ export function SearchAndFiltersFornecedores({
         </DropdownMenu>
       </motion.div>
 
-
-
       {/* Active Filters Display */}
       <AnimatePresence>
         {filtrosAtivosCount > 0 && (
@@ -573,7 +610,8 @@ export function SearchAndFiltersFornecedores({
             className="flex items-center gap-2"
           >
             <span className="text-muted-foreground text-sm">
-              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''} ativo
+              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''}{' '}
+              ativo
               {filtrosAtivosCount > 1 ? 's' : ''}
             </span>
           </motion.div>

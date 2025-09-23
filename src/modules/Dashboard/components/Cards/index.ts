@@ -4,7 +4,13 @@
  * ==========================================
  */
 
-export { MetricCard, LoadingMetricCard, CurrencyMetricCard, PercentageMetricCard, StatusMetricCard } from './MetricCard'
+export {
+  MetricCard,
+  LoadingMetricCard,
+  CurrencyMetricCard,
+  PercentageMetricCard,
+  StatusMetricCard,
+} from './MetricCard'
 export { TotalContractsCard } from './TotalContractsCard'
 export { ActiveContractsCard } from './ActiveContractsCard'
 export { ExpiringContractsCard } from './ExpiringContractsCard'

@@ -28,14 +28,14 @@ const MockedAppSidebar = () => (
 describe('AppSidebar', () => {
   it('deve renderizar corretamente', () => {
     render(<MockedAppSidebar />)
-    
+
     // Verifica se o sidebar está presente através da logo
     expect(screen.getByAltText('Logo Prefeitura')).toBeInTheDocument()
   })
 
   it('deve renderizar a logo principal', () => {
     render(<MockedAppSidebar />)
-    
+
     const logo = screen.getByAltText('Logo Prefeitura')
     expect(logo).toBeInTheDocument()
     expect(logo).toHaveAttribute('src', '/logo certa.png')
@@ -44,7 +44,7 @@ describe('AppSidebar', () => {
 
   it('deve renderizar a logo CAC', () => {
     render(<MockedAppSidebar />)
-    
+
     const cacLogo = screen.getByAltText('Logo CAC')
     expect(cacLogo).toBeInTheDocument()
     expect(cacLogo).toHaveAttribute('src', '/logos-cac/3.png')
@@ -53,14 +53,14 @@ describe('AppSidebar', () => {
 
   it('deve renderizar o link para a página inicial na logo', () => {
     render(<MockedAppSidebar />)
-    
+
     const homeLink = screen.getByRole('link')
     expect(homeLink).toHaveAttribute('href', '/dashboard')
   })
 
   it('deve ter as classes corretas para sidebar', () => {
     render(<MockedAppSidebar />)
-    
+
     // Verificar através do elemento sidebar que tem o data-slot
     const sidebar = document.querySelector('[data-slot="sidebar"]')
     expect(sidebar).toBeInTheDocument()
@@ -74,16 +74,16 @@ describe('AppSidebar', () => {
             <AppSidebar data-testid="custom-sidebar" />
           </SidebarProvider>
         </BrowserRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     )
-    
+
     // Verificar através de elementos presentes
     expect(screen.getByAltText('Logo Prefeitura')).toBeInTheDocument()
   })
 
   it('deve mostrar o separador entre header e conteúdo', () => {
     render(<MockedAppSidebar />)
-    
+
     // O separador está presente na DOM
     const separator = document.querySelector('.bg-sidebar-border\\/50')
     expect(separator).toBeInTheDocument()

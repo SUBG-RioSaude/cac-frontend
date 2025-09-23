@@ -15,7 +15,11 @@ import {
 } from '../select'
 
 describe('Select Components', () => {
-  const TestSelect = ({ onValueChange, value, disabled = false }: {
+  const TestSelect = ({
+    onValueChange,
+    value,
+    disabled = false,
+  }: {
     onValueChange?: (value: string) => void
     value?: string
     disabled?: boolean
@@ -30,7 +34,9 @@ describe('Select Components', () => {
           <SelectItem value="apple">Maçã</SelectItem>
           <SelectItem value="banana">Banana</SelectItem>
           <SelectSeparator />
-          <SelectItem value="orange" disabled>Laranja</SelectItem>
+          <SelectItem value="orange" disabled>
+            Laranja
+          </SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
@@ -39,23 +45,26 @@ describe('Select Components', () => {
   describe('Select', () => {
     it('deve renderizar corretamente', () => {
       render(<TestSelect />)
-      
+
       expect(screen.getByTestId('select-trigger')).toBeInTheDocument()
       expect(screen.getByText('Selecione uma opção')).toBeInTheDocument()
     })
 
     it('deve aplicar data-slot corretamente', () => {
       const { container } = render(<TestSelect />)
-      
+
       // Verifica se o trigger tem o data-slot correto
-      expect(screen.getByTestId('select-trigger')).toHaveAttribute('data-slot', 'select-trigger')
+      expect(screen.getByTestId('select-trigger')).toHaveAttribute(
+        'data-slot',
+        'select-trigger',
+      )
     })
   })
 
   describe('SelectTrigger', () => {
     it('deve renderizar com classes padrão', () => {
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       expect(trigger).toHaveAttribute('data-slot', 'select-trigger')
       expect(trigger).toHaveAttribute('data-size', 'default')
@@ -68,7 +77,7 @@ describe('Select Components', () => {
         'gap-2',
         'rounded-md',
         'border',
-        'bg-transparent'
+        'bg-transparent',
       )
     })
 
@@ -78,9 +87,9 @@ describe('Select Components', () => {
           <SelectTrigger size="sm" data-testid="small-trigger">
             <SelectValue />
           </SelectTrigger>
-        </Select>
+        </Select>,
       )
-      
+
       const trigger = screen.getByTestId('small-trigger')
       expect(trigger).toHaveAttribute('data-size', 'sm')
     })
@@ -88,19 +97,22 @@ describe('Select Components', () => {
     it('deve aplicar className personalizada', () => {
       render(
         <Select>
-          <SelectTrigger className="custom-trigger" data-testid="custom-trigger">
+          <SelectTrigger
+            className="custom-trigger"
+            data-testid="custom-trigger"
+          >
             <SelectValue />
           </SelectTrigger>
-        </Select>
+        </Select>,
       )
-      
+
       const trigger = screen.getByTestId('custom-trigger')
       expect(trigger).toHaveClass('custom-trigger', 'border-input')
     })
 
     it('deve mostrar ícone de seta', () => {
       render(<TestSelect />)
-      
+
       const chevron = document.querySelector('.size-4.opacity-50')
       expect(chevron).toBeInTheDocument()
     })
@@ -109,13 +121,13 @@ describe('Select Components', () => {
   describe('SelectValue', () => {
     it('deve mostrar placeholder quando nenhum valor está selecionado', () => {
       render(<TestSelect />)
-      
+
       expect(screen.getByText('Selecione uma opção')).toBeInTheDocument()
     })
 
     it('deve mostrar valor selecionado', () => {
       render(<TestSelect value="apple" />)
-      
+
       expect(screen.getByText('Maçã')).toBeInTheDocument()
     })
   })
@@ -124,15 +136,18 @@ describe('Select Components', () => {
     it('deve renderizar conteúdo quando aberto', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       // Aguarda o conteúdo aparecer com timeout maior
-      await waitFor(() => {
-        expect(screen.getByText('Frutas')).toBeInTheDocument()
-      }, { timeout: 3000 })
-      
+      await waitFor(
+        () => {
+          expect(screen.getByText('Frutas')).toBeInTheDocument()
+        },
+        { timeout: 3000 },
+      )
+
       expect(screen.getByText('Maçã')).toBeInTheDocument()
       expect(screen.getByText('Banana')).toBeInTheDocument()
     })
@@ -140,15 +155,18 @@ describe('Select Components', () => {
     it('deve aplicar classes corretas', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
-      await waitFor(() => {
-        const content = document.querySelector('[data-slot="select-content"]')
-        expect(content).toBeInTheDocument()
-      }, { timeout: 3000 })
-      
+
+      await waitFor(
+        () => {
+          const content = document.querySelector('[data-slot="select-content"]')
+          expect(content).toBeInTheDocument()
+        },
+        { timeout: 3000 },
+      )
+
       const content = document.querySelector('[data-slot="select-content"]')
       expect(content).toHaveClass(
         'bg-popover',
@@ -160,7 +178,7 @@ describe('Select Components', () => {
         'overflow-y-auto',
         'rounded-md',
         'border',
-        'shadow-md'
+        'shadow-md',
       )
     })
   })
@@ -170,23 +188,23 @@ describe('Select Components', () => {
       const user = userEvent.setup()
       const onValueChange = vi.fn()
       render(<TestSelect onValueChange={onValueChange} />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       const appleItem = screen.getByText('Maçã')
       await user.click(appleItem)
-      
+
       expect(onValueChange).toHaveBeenCalledWith('apple')
     })
 
     it('deve aplicar classes corretas', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       const items = document.querySelectorAll('[data-slot="select-item"]')
       expect(items[0]).toHaveClass(
         'relative',
@@ -196,19 +214,21 @@ describe('Select Components', () => {
         'items-center',
         'gap-2',
         'rounded-sm',
-        'select-none'
+        'select-none',
       )
     })
 
     it('deve mostrar indicador quando selecionado', async () => {
       const user = userEvent.setup()
       render(<TestSelect value="apple" />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       // O indicador é mostrado automaticamente pelo Radix UI quando o item está selecionado
-      const checkIcon = document.querySelector('[data-slot="select-item"] .size-4')
+      const checkIcon = document.querySelector(
+        '[data-slot="select-item"] .size-4',
+      )
       expect(checkIcon).toBeInTheDocument()
     })
 
@@ -216,13 +236,13 @@ describe('Select Components', () => {
       const user = userEvent.setup()
       const onValueChange = vi.fn()
       render(<TestSelect onValueChange={onValueChange} />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       const orangeItem = screen.getByText('Laranja')
       await user.click(orangeItem)
-      
+
       // Não deve chamar onValueChange para item desabilitado
       expect(onValueChange).not.toHaveBeenCalled()
     })
@@ -232,17 +252,17 @@ describe('Select Components', () => {
     it('deve renderizar label', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       const label = screen.getByText('Frutas')
       expect(label).toBeInTheDocument()
       expect(label.closest('[data-slot="select-label"]')).toHaveClass(
         'text-muted-foreground',
         'px-2',
         'py-1.5',
-        'text-xs'
+        'text-xs',
       )
     })
   })
@@ -251,10 +271,10 @@ describe('Select Components', () => {
     it('deve renderizar separador', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       const separator = document.querySelector('[data-slot="select-separator"]')
       expect(separator).toBeInTheDocument()
       expect(separator).toHaveClass(
@@ -262,7 +282,7 @@ describe('Select Components', () => {
         'pointer-events-none',
         '-mx-1',
         'my-1',
-        'h-px'
+        'h-px',
       )
     })
   })
@@ -271,21 +291,21 @@ describe('Select Components', () => {
     it('deve fechar quando item é selecionado', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
+
       expect(screen.getByText('Maçã')).toBeInTheDocument()
-      
+
       await user.click(screen.getByText('Maçã'))
-      
+
       // O conteúdo deve desaparecer após seleção
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100))
     })
 
     it('deve estar desabilitado quando prop disabled é true', () => {
       render(<TestSelect disabled />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       expect(trigger).toBeDisabled()
     })
@@ -296,13 +316,13 @@ describe('Select Components', () => {
           <SelectTrigger aria-invalid data-testid="error-trigger">
             <SelectValue />
           </SelectTrigger>
-        </Select>
+        </Select>,
       )
-      
+
       const trigger = screen.getByTestId('error-trigger')
       expect(trigger).toHaveClass(
         'aria-invalid:ring-destructive/20',
-        'aria-invalid:border-destructive'
+        'aria-invalid:border-destructive',
       )
     })
   })
@@ -311,20 +331,22 @@ describe('Select Components', () => {
     it('deve aplicar data-slot corretamente', async () => {
       const user = userEvent.setup()
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
       await user.click(trigger)
-      
-      expect(document.querySelector('[data-slot="select-group"]')).toBeInTheDocument()
+
+      expect(
+        document.querySelector('[data-slot="select-group"]'),
+      ).toBeInTheDocument()
     })
   })
 
   describe('Navegação por teclado', () => {
     it('deve ter atributos de acessibilidade corretos', () => {
       render(<TestSelect />)
-      
+
       const trigger = screen.getByTestId('select-trigger')
-      
+
       // Verifica se o trigger tem os atributos corretos
       expect(trigger).toHaveAttribute('role', 'combobox')
       expect(trigger).toHaveAttribute('aria-expanded', 'false')

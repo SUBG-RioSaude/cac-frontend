@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  BadgeCheck,
-  ChevronsUpDown,
-  LogOut,
-} from 'lucide-react'
+import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -24,8 +20,10 @@ import {
 } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/lib/auth/auth-store'
 import { useState, useRef, useEffect } from 'react'
+import { createComponentLogger } from '@/lib/logger'
 
 export function NavUser() {
+  const logger = createComponentLogger('NavUser', 'navigation')
   const { isMobile } = useSidebar()
   const { usuario, logoutTodasSessoes } = useAuthStore()
   const [fazendoLogout, setFazendoLogout] = useState(false)
@@ -39,26 +37,63 @@ export function NavUser() {
 
   // Debug: log dos dados do usuário
   useEffect(() => {
-    console.log('NavUser - Dados do usuário:', usuario)
-  }, [usuario])
+    logger.debug(
+      {
+        userId: usuario?.id,
+        userName: usuario?.nomeCompleto,
+        hasUser: !!usuario,
+      },
+      'NavUser dados do usuário carregados',
+    )
+  }, [logger, usuario])
 
   // Se não há usuário autenticado, não renderiza o componente
   if (!usuario) {
-    console.log('NavUser - Usuário não encontrado, não renderizando componente')
+    logger.debug(
+      {
+        hasUser: false,
+        component: 'not-rendered',
+      },
+      'NavUser usuário não encontrado, componente não renderizado',
+    )
     return null
   }
 
   const handleLogout = async () => {
     try {
       setFazendoLogout(true)
-      
+
+      logger.info(
+        {
+          userId: usuario.id,
+          action: 'logout_initiated',
+        },
+        'Logout iniciado pelo usuário',
+      )
+
       // Chama a API de logout para invalidar TODOS os tokens no servidor
       await logoutTodasSessoes()
-      
+
+      logger.info(
+        {
+          userId: usuario.id,
+          action: 'logout_completed',
+        },
+        'Logout completado com sucesso',
+      )
+
       // O logout já foi tratado no store (limpa cookies, estado, etc.)
       // Redirecionamento será feito automaticamente pelo middleware
     } catch (erro) {
-      console.error('Erro ao fazer logout:', erro)
+      logger.error(
+        {
+          userId: usuario.id,
+          action: 'logout_error',
+          error: erro instanceof Error ? erro.message : String(erro),
+        },
+        'Erro ao fazer logout',
+      )
+
       // Mesmo com erro, força o logout local para garantir segurança
       logoutTodasSessoes()
     } finally {
@@ -76,7 +111,7 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group/user relative overflow-hidden bg-gray-600 h-15 py-4 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01] mt-5 mb-3"
+              className="group/user relative mt-5 mb-3 h-15 overflow-hidden bg-gray-600 py-4 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01]"
             >
               {/* Efeito de brilho animado */}
               <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full"></div>
@@ -184,7 +219,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground"
               onClick={handleLogout}
               disabled={fazendoLogout}

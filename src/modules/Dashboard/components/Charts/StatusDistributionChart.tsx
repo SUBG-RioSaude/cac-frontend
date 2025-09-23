@@ -8,7 +8,13 @@
 import { useMemo } from 'react'
 import { PieChart, Pie, Cell } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PieChart as PieChartIcon } from 'lucide-react'
 import { useDashboardCharts } from '../../hooks/useDashboardData'
@@ -19,35 +25,38 @@ interface StatusDistributionChartProps {
   className?: string
 }
 
-export function StatusDistributionChart({ filters, className }: StatusDistributionChartProps) {
+export function StatusDistributionChart({
+  filters,
+  className,
+}: StatusDistributionChartProps) {
   const { statusDistribution, isLoading, error } = useDashboardCharts(filters)
 
   // Configuração do gráfico
   const chartConfig = useMemo(() => {
     const config: Record<string, { label: string; color: string }> = {}
-    
+
     statusDistribution.forEach((item) => {
       config[item.name] = {
         label: item.name,
-        color: item.color
+        color: item.color,
       }
     })
-    
+
     return config
   }, [statusDistribution])
 
   // Preparar dados para o gráfico
-  const chartData = statusDistribution.map(item => ({
+  const chartData = statusDistribution.map((item) => ({
     name: item.name,
     value: item.value,
     percentage: item.percentage,
-    fill: item.color
+    fill: item.color,
   }))
 
   // Estados de carregamento e erro
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card className={className} data-testid="status-distribution-chart">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PieChartIcon className="h-5 w-5" />
@@ -58,7 +67,7 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
           <div className="space-y-4">
             <Skeleton className="h-64 w-full" />
             <div className="flex justify-center gap-4">
-              {[1, 2, 3, 4].map(i => (
+              {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-center gap-2">
                   <Skeleton className="h-3 w-3 rounded-sm" />
                   <Skeleton className="h-4 w-16" />
@@ -73,7 +82,7 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
 
   if (error) {
     return (
-      <Card className={className}>
+      <Card className={className} data-testid="status-distribution-chart">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-700">
             <PieChartIcon className="h-5 w-5" />
@@ -81,7 +90,7 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-64 items-center justify-center text-sm">
             Erro ao carregar dados do gráfico
           </div>
         </CardContent>
@@ -91,7 +100,7 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
 
   if (chartData.length === 0) {
     return (
-      <Card className={className}>
+      <Card className={className} data-testid="status-distribution-chart">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PieChartIcon className="h-5 w-5" />
@@ -99,7 +108,7 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-64 items-center justify-center text-sm">
             Nenhum registro encontrado
           </div>
         </CardContent>
@@ -108,7 +117,7 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
   }
 
   return (
-    <Card className={className}>
+    <Card className={className} data-testid="status-distribution-chart">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <PieChartIcon className="h-5 w-5" />
@@ -142,14 +151,14 @@ export function StatusDistributionChart({ filters, className }: StatusDistributi
             />
           </PieChart>
         </ChartContainer>
-        
+
         {/* Estatísticas detalhadas */}
-        <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
           {chartData.map((item) => (
             <div key={item.name} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-sm"
+                <div
+                  className="h-3 w-3 rounded-sm"
                   style={{ backgroundColor: item.fill }}
                 />
                 <span>{item.name}</span>

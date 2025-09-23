@@ -15,10 +15,12 @@ import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
  */
 export function useUnidadesBatch(
   ids: string[],
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   const queryClient = useQueryClient()
-  const [unidadesData, setUnidadesData] = useState<Record<string, UnidadeSaudeApi>>({})
+  const [unidadesData, setUnidadesData] = useState<
+    Record<string, UnidadeSaudeApi>
+  >({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
@@ -43,7 +45,9 @@ export function useUnidadesBatch(
 
         // Verificar cache primeiro
         for (const id of uniqueIds) {
-          const cached = queryClient.getQueryData<UnidadeSaudeApi>(unidadeKeys.detail(id))
+          const cached = queryClient.getQueryData<UnidadeSaudeApi>(
+            unidadeKeys.detail(id),
+          )
           if (cached) {
             resultMap[id] = cached
           } else {
@@ -66,9 +70,13 @@ export function useUnidadesBatch(
           })
 
           const results = await Promise.allSettled(promises)
-          
+
           results.forEach((result) => {
-            if (result.status === 'fulfilled' && result.value.success && result.value.data) {
+            if (
+              result.status === 'fulfilled' &&
+              result.value.success &&
+              result.value.data
+            ) {
               resultMap[result.value.id] = result.value.data
             }
           })
@@ -93,7 +101,7 @@ export function useUnidadesBatch(
     // Helper para obter nome da unidade
     getNome: (id: string) => unidadesData[id]?.nome || `Unidade ${id}`,
     // Verificar se uma unidade específica está carregando
-    isUnidadeLoading: (id: string) => isLoading && !unidadesData[id]
+    isUnidadeLoading: (id: string) => isLoading && !unidadesData[id],
   }
 }
 
@@ -101,17 +109,16 @@ export function useUnidadesBatch(
  * Hook individual otimizado que usa o cache compartilhado
  * Para casos onde apenas uma unidade é necessária
  */
-export function useUnidadeSingle(
-  id: string,
-  options?: { enabled?: boolean }
-) {
+export function useUnidadeSingle(id: string, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient()
-  
+
   return useQuery({
     queryKey: unidadeKeys.detail(id),
     queryFn: async () => {
       // Verificar se já está em cache de outro hook
-      const cached = queryClient.getQueryData<UnidadeSaudeApi>(unidadeKeys.detail(id))
+      const cached = queryClient.getQueryData<UnidadeSaudeApi>(
+        unidadeKeys.detail(id),
+      )
       if (cached) {
         return cached
       }
@@ -124,6 +131,6 @@ export function useUnidadeSingle(
     refetchOnReconnect: false,
     refetchOnMount: false,
     retry: 1,
-    networkMode: 'online'
+    networkMode: 'online',
   })
 }

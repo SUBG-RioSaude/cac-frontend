@@ -27,9 +27,13 @@ export function FiltrosContratos({
 }: FiltrosContratosProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const { data: unidadesData, isLoading: unidadesLoading, error: unidadesError } = useUnidades({
+  const {
+    data: unidadesData,
+    isLoading: unidadesLoading,
+    error: unidadesError,
+  } = useUnidades({
     pagina: 1,
-    tamanhoPagina: 100
+    tamanhoPagina: 100,
   })
 
   const statusOptions = [
@@ -255,18 +259,24 @@ export function FiltrosContratos({
               <div className="grid max-h-40 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {unidadesLoading ? (
                   Array.from({ length: 6 }).map((_, index) => (
-                    <div key={`skeleton-${index}`} className="flex items-center space-x-2">
+                    <div
+                      key={`skeleton-${index}`}
+                      className="flex items-center space-x-2"
+                    >
                       <Skeleton className="h-4 w-4" />
                       <Skeleton className="h-4 w-32" />
                     </div>
                   ))
                 ) : unidadesError ? (
-                  <div className="col-span-2 text-center py-4 text-sm text-red-600">
+                  <div className="col-span-2 py-4 text-center text-sm text-red-600">
                     Erro ao carregar unidades: {unidadesError.message}
                   </div>
                 ) : unidadesData?.dados && unidadesData.dados.length > 0 ? (
                   unidadesData.dados.map((unidade) => (
-                    <div key={unidade.id} className="flex items-center space-x-2">
+                    <div
+                      key={unidade.id}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={`unidade-${unidade.id}`}
                         checked={filtros.unidade?.includes(unidade.id) || false}
@@ -283,7 +293,7 @@ export function FiltrosContratos({
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-2 text-center py-4 text-sm text-gray-500">
+                  <div className="col-span-2 py-4 text-center text-sm text-gray-500">
                     Nenhuma unidade encontrada
                   </div>
                 )}

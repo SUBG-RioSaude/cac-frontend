@@ -1,284 +1,297 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useIsMobile } from '../use-mobile'
 
-// Mock window.matchMedia
-const createMockMatchMedia = (matches: boolean) => {
-  return vi.fn().mockImplementation((query: string) => ({
-    matches,
-    media: query,
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(), // Para compatibilidade com versões antigas
-    removeListener: vi.fn(), // Para compatibilidade com versões antigas
-  }))
-}
+// Mock do window.matchMedia
+const mockMatchMedia = vi.fn()
 
 describe('useIsMobile', () => {
-  const originalMatchMedia = window.matchMedia
-  const originalInnerWidth = window.innerWidth
-
   beforeEach(() => {
-    // Reset window.innerWidth para um valor padrão
+    // Reset mock
+    mockMatchMedia.mockClear()
+
+    // Mock window.matchMedia
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: mockMatchMedia,
+    })
+
+    // Mock window.innerWidth
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
-      configurable: true,
-      value: 1024,
+      value: 1024, // Desktop por padrão
     })
   })
 
   afterEach(() => {
-    // Restaura os valores originais
-    window.matchMedia = originalMatchMedia
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: originalInnerWidth,
-    })
+    vi.restoreAllMocks()
   })
 
-  it('deve retornar false para telas desktop (>= 768px)', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    })
-
-    window.matchMedia = createMockMatchMedia(false)
-
-    const { result } = renderHook(() => useIsMobile())
-    
-    expect(result.current).toBe(false)
-  })
-
-  it('deve retornar true para telas mobile (< 768px)', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 375,
-    })
-
-    window.matchMedia = createMockMatchMedia(true)
-
-    const { result } = renderHook(() => useIsMobile())
-    
-    expect(result.current).toBe(true)
-  })
-
-  it('deve retornar false para exatamente 768px (breakpoint)', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 768,
-    })
-
-    window.matchMedia = createMockMatchMedia(false)
-
-    const { result } = renderHook(() => useIsMobile())
-    
-    expect(result.current).toBe(false)
-  })
-
-  it('deve retornar true para 767px (logo abaixo do breakpoint)', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 767,
-    })
-
-    window.matchMedia = createMockMatchMedia(true)
-
-    const { result } = renderHook(() => useIsMobile())
-    
-    expect(result.current).toBe(true)
-  })
-
-  it('deve configurar matchMedia com query correta', () => {
-    const mockMatchMedia = createMockMatchMedia(false)
-    window.matchMedia = mockMatchMedia
-
-    renderHook(() => useIsMobile())
-
-    expect(mockMatchMedia).toHaveBeenCalledWith('(max-width: 767px)')
-  })
-
-  it('deve adicionar event listener para mudanças de media query', () => {
-    const mockAddEventListener = vi.fn()
-    const mockMatchMedia = vi.fn().mockReturnValue({
-      matches: false,
-      media: '(max-width: 767px)',
-      addEventListener: mockAddEventListener,
-      removeEventListener: vi.fn(),
-    })
-
-    window.matchMedia = mockMatchMedia
-
-    renderHook(() => useIsMobile())
-
-    expect(mockAddEventListener).toHaveBeenCalledWith('change', expect.any(Function))
-  })
-
-  it('deve remover event listener na cleanup', () => {
-    const mockRemoveEventListener = vi.fn()
-    const mockMatchMedia = vi.fn().mockReturnValue({
-      matches: false,
-      media: '(max-width: 767px)',
-      addEventListener: vi.fn(),
-      removeEventListener: mockRemoveEventListener,
-    })
-
-    window.matchMedia = mockMatchMedia
-
-    const { unmount } = renderHook(() => useIsMobile())
-    
-    unmount()
-
-    expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function))
-  })
-
-  it('deve atualizar quando window.innerWidth muda', () => {
-    let changeHandler: (() => void) | null = null
-    const mockAddEventListener = vi.fn((event, handler) => {
-      if (event === 'change') {
-        changeHandler = handler
+  describe('Detecção inicial', () => {
+    it('deve retornar false para tela desktop (>=768px)', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
       }
-    })
+      mockMatchMedia.mockReturnValue(mockMql)
 
-    const mockMatchMedia = vi.fn().mockReturnValue({
-      matches: false,
-      media: '(max-width: 767px)',
-      addEventListener: mockAddEventListener,
-      removeEventListener: vi.fn(),
-    })
-
-    window.matchMedia = mockMatchMedia
-
-    // Inicia com tela desktop
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    })
-
-    const { result } = renderHook(() => useIsMobile())
-    expect(result.current).toBe(false)
-
-    // Simula mudança para mobile
-    act(() => {
+      // Simular tela desktop
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
-        configurable: true,
-        value: 375,
-      })
-      
-      if (changeHandler) {
-        changeHandler()
-      }
-    })
-
-    expect(result.current).toBe(true)
-
-    // Simula mudança de volta para desktop
-    act(() => {
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
         value: 1024,
       })
-      
-      if (changeHandler) {
-        changeHandler()
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(false)
+    })
+
+    it('deve retornar true para tela mobile (<768px)', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
       }
-    })
+      mockMatchMedia.mockReturnValue(mockMql)
 
-    expect(result.current).toBe(false)
-  })
-
-  it('deve lidar com estado inicial undefined', () => {
-    // Mock que simula o estado antes do useEffect rodar
-    const mockMatchMedia = vi.fn().mockReturnValue({
-      matches: false,
-      media: '(max-width: 767px)',
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    })
-
-    window.matchMedia = mockMatchMedia
-
-    const { result } = renderHook(() => useIsMobile())
-
-    // Deve converter undefined para false com !!
-    expect(typeof result.current).toBe('boolean')
-    expect(result.current).toBe(false)
-  })
-
-  it('deve funcionar mesmo sem matchMedia disponível', () => {
-    // Simula ambiente sem matchMedia
-    window.matchMedia = undefined as unknown as typeof window.matchMedia
-
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 375,
-    })
-
-    expect(() => {
-      renderHook(() => useIsMobile())
-    }).toThrow() // Deve lançar erro se matchMedia não estiver disponível
-  })
-
-  it('deve usar o valor correto de MOBILE_BREAKPOINT', () => {
-    const mockMatchMedia = createMockMatchMedia(false)
-    window.matchMedia = mockMatchMedia
-
-    renderHook(() => useIsMobile())
-
-    // Verifica se a query usa 767px (768 - 1)
-    expect(mockMatchMedia).toHaveBeenCalledWith('(max-width: 767px)')
-  })
-
-  it('deve re-renderizar apenas quando o estado muda', () => {
-    let changeHandler: (() => void) | null = null
-    const mockAddEventListener = vi.fn((event, handler) => {
-      if (event === 'change') {
-        changeHandler = handler
-      }
-    })
-
-    const mockMatchMedia = vi.fn().mockReturnValue({
-      matches: false,
-      media: '(max-width: 767px)',
-      addEventListener: mockAddEventListener,
-      removeEventListener: vi.fn(),
-    })
-
-    window.matchMedia = mockMatchMedia
-
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    })
-
-    const { result } = renderHook(() => useIsMobile())
-    const initialResult = result.current
-
-    // Simula mudança que mantém o mesmo estado (ainda desktop)
-    act(() => {
+      // Simular tela mobile
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
-        configurable: true,
-        value: 800, // Ainda acima do breakpoint
+        value: 600,
       })
-      
-      if (changeHandler) {
-        changeHandler()
-      }
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(true)
     })
 
-    // Deve manter o mesmo valor
-    expect(result.current).toBe(initialResult)
-    expect(result.current).toBe(false)
+    it('deve considerar 767px como mobile (borda)', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 767,
+      })
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(true)
+    })
+
+    it('deve considerar 768px como desktop (borda)', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 768,
+      })
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(false)
+    })
+  })
+
+  describe('Configuração do MediaQueryList', () => {
+    it('deve configurar media query corretamente', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      renderHook(() => useIsMobile())
+
+      expect(mockMatchMedia).toHaveBeenCalledWith('(max-width: 767px)')
+    })
+
+    it('deve adicionar event listener para mudanças', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      renderHook(() => useIsMobile())
+
+      expect(mockMql.addEventListener).toHaveBeenCalledWith(
+        'change',
+        expect.any(Function),
+      )
+    })
+
+    it('deve remover event listener no cleanup', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      const { unmount } = renderHook(() => useIsMobile())
+
+      unmount()
+
+      expect(mockMql.removeEventListener).toHaveBeenCalledWith(
+        'change',
+        expect.any(Function),
+      )
+    })
+  })
+
+  describe('Mudanças de tamanho de tela', () => {
+    it('deve atualizar quando tela muda de desktop para mobile', () => {
+      let changeHandler: (() => void) | undefined
+
+      const mockMql = {
+        addEventListener: vi.fn((event, handler) => {
+          if (event === 'change') {
+            changeHandler = handler
+          }
+        }),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      // Iniciar como desktop
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 1024,
+      })
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(false)
+
+      // Simular mudança para mobile
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          value: 600,
+        })
+        if (changeHandler) {
+          changeHandler()
+        }
+      })
+
+      expect(result.current).toBe(true)
+    })
+
+    it('deve atualizar quando tela muda de mobile para desktop', () => {
+      let changeHandler: (() => void) | undefined
+
+      const mockMql = {
+        addEventListener: vi.fn((event, handler) => {
+          if (event === 'change') {
+            changeHandler = handler
+          }
+        }),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      // Iniciar como mobile
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 600,
+      })
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(true)
+
+      // Simular mudança para desktop
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          value: 1024,
+        })
+        if (changeHandler) {
+          changeHandler()
+        }
+      })
+
+      expect(result.current).toBe(false)
+    })
+  })
+
+  describe('Estados extremos', () => {
+    it('deve lidar com window.innerWidth = 0', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 0,
+      })
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(true)
+    })
+
+    it('deve lidar com valores muito grandes', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 9999,
+      })
+
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(result.current).toBe(false)
+    })
+  })
+
+  describe('Estado undefined inicial', () => {
+    it('deve retornar false quando isMobile é undefined (conversão !!)', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      // Simular estado onde useState ainda não foi inicializado
+      const { result } = renderHook(() => useIsMobile())
+
+      // O hook sempre retorna boolean devido ao !!isMobile
+      expect(typeof result.current).toBe('boolean')
+    })
+  })
+
+  describe('Múltiplas instâncias', () => {
+    it('deve funcionar corretamente com múltiplas instâncias do hook', () => {
+      const mockMql = {
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }
+      mockMatchMedia.mockReturnValue(mockMql)
+
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        value: 600,
+      })
+
+      const { result: result1 } = renderHook(() => useIsMobile())
+      const { result: result2 } = renderHook(() => useIsMobile())
+
+      expect(result1.current).toBe(true)
+      expect(result2.current).toBe(true)
+      expect(result1.current).toBe(result2.current)
+    })
   })
 })

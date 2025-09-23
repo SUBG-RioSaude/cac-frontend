@@ -24,34 +24,36 @@ __tests__/
 
 ### Componentes Testados
 
-| Componente | Cobertura | Descrição |
-|------------|-----------|-----------|
-| `TabelaFornecedores` | ✅ Completa | Tabela principal com listagem, paginação e ações |
-| `SearchAndFiltersFornecedores` | ✅ Completa | Campo de busca e botão de filtros |
-| `ModalConfirmacaoExportacao` | ✅ Completa | Modal de confirmação para exportação |
-| `ModalNovoFornecedor` | ✅ Completa | Modal de cadastro com validações |
-| `FiltrosFornecedores` | ✅ Completa | Painel de filtros avançados |
+| Componente                     | Cobertura   | Descrição                                        |
+| ------------------------------ | ----------- | ------------------------------------------------ |
+| `TabelaFornecedores`           | ✅ Completa | Tabela principal com listagem, paginação e ações |
+| `SearchAndFiltersFornecedores` | ✅ Completa | Campo de busca e botão de filtros                |
+| `ModalConfirmacaoExportacao`   | ✅ Completa | Modal de confirmação para exportação             |
+| `ModalNovoFornecedor`          | ✅ Completa | Modal de cadastro com validações                 |
+| `FiltrosFornecedores`          | ✅ Completa | Painel de filtros avançados                      |
 
 ### Páginas Testadas
 
-| Página | Cobertura | Descrição |
-|--------|-----------|-----------|
+| Página             | Cobertura   | Descrição                                 |
+| ------------------ | ----------- | ----------------------------------------- |
 | `FornecedoresPage` | ✅ Completa | Página principal com todos os componentes |
 
 ### Store Testado
 
-| Store | Cobertura | Descrição |
-|-------|-----------|-----------|
+| Store                  | Cobertura   | Descrição                           |
+| ---------------------- | ----------- | ----------------------------------- |
 | `useFornecedoresStore` | ✅ Completa | Gerenciamento de estado com Zustand |
 
 ## 🚀 Como Executar os Testes
 
 ### Executar Todos os Testes
+
 ```bash
 pnpm test src/modules/Fornecedores/ListaFornecedores/__tests__/
 ```
 
 ### Executar Testes Específicos
+
 ```bash
 # Testes de componentes
 pnpm test src/modules/Fornecedores/ListaFornecedores/components/__tests__/
@@ -64,6 +66,7 @@ pnpm test src/modules/Fornecedores/ListaFornecedores/store/__tests__/
 ```
 
 ### Executar com Cobertura
+
 ```bash
 pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 ```
@@ -71,6 +74,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 ## 📋 Casos de Teste
 
 ### TabelaFornecedores
+
 - ✅ Renderização com fornecedores
 - ✅ Exibição de informações corretas
 - ✅ Badges de status
@@ -85,6 +89,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 - ✅ Formatação de data
 
 ### SearchAndFiltersFornecedores
+
 - ✅ Renderização do campo de pesquisa
 - ✅ Botões de filtros e limpar
 - ✅ Layout responsivo
@@ -92,6 +97,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 - ✅ Acessibilidade
 
 ### ModalConfirmacaoExportacao
+
 - ✅ Renderização condicional
 - ✅ Exibição de total de fornecedores
 - ✅ Texto singular/plural
@@ -103,6 +109,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 - ✅ Z-index e backdrop
 
 ### ModalNovoFornecedor
+
 - ✅ Renderização do trigger
 - ✅ Abertura do modal
 - ✅ Campos obrigatórios
@@ -114,6 +121,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 - ✅ Layout responsivo
 
 ### FiltrosFornecedores
+
 - ✅ Abertura do painel
 - ✅ Campos de filtro
 - ✅ Opções de status
@@ -126,6 +134,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 - ✅ Layout responsivo
 
 ### FornecedoresPage
+
 - ✅ Renderização do título
 - ✅ Botões de ação
 - ✅ Componentes filhos
@@ -135,6 +144,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 - ✅ Estrutura semântica
 
 ### useFornecedoresStore
+
 - ✅ Inicialização com dados padrão
 - ✅ Definição de termo de pesquisa
 - ✅ Filtros por diferentes critérios
@@ -149,6 +159,7 @@ pnpm test --coverage src/modules/Fornecedores/ListaFornecedores/__tests__/
 ## 🔧 Mocks Utilizados
 
 ### Framer Motion
+
 ```typescript
 vi.mock('framer-motion', () => ({
   motion: {
@@ -160,6 +171,7 @@ vi.mock('framer-motion', () => ({
 ```
 
 ### Store
+
 ```typescript
 vi.mock('../../store/fornecedores-store', () => ({
   useFornecedoresStore: vi.fn(() => ({
@@ -169,6 +181,7 @@ vi.mock('../../store/fornecedores-store', () => ({
 ```
 
 ### Hooks
+
 ```typescript
 vi.mock('@/hooks/use-cep', () => ({
   useCEP: vi.fn(() => ({
@@ -180,12 +193,19 @@ vi.mock('@/hooks/use-cep', () => ({
 ```
 
 ### Utilitários
+
 ```typescript
 vi.mock('@/lib/utils', () => ({
   cn: (...classes: string[]) => classes.filter(Boolean).join(' '),
-  cnpjUtils: { /* ... */ },
-  ieUtils: { /* ... */ },
-  imUtils: { /* ... */ },
+  cnpjUtils: {
+    /* ... */
+  },
+  ieUtils: {
+    /* ... */
+  },
+  imUtils: {
+    /* ... */
+  },
 }))
 ```
 

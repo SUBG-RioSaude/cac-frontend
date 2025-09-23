@@ -7,11 +7,14 @@ import { SearchAndFiltersFornecedores } from '@/modules/Fornecedores/ListaFornec
 import { TabelaFornecedores } from '@/modules/Fornecedores/ListaFornecedores/components/tabela-fornecedores'
 import { ModalConfirmacaoExportacao } from '@/modules/Fornecedores/ListaFornecedores/components/modal-confirmacao-exportacao'
 import { useFornecedoresStore } from '@/modules/Fornecedores/ListaFornecedores/store/fornecedores-store'
-import type { Fornecedor, FiltrosFornecedorApi, PaginacaoParamsFornecedor } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
+import type {
+  Fornecedor,
+  FiltrosFornecedorApi,
+  PaginacaoParamsFornecedor,
+} from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 import { mapearFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 import { ModalNovoFornecedor } from '@/modules/Fornecedores/ListaFornecedores/components/modal-novo-fornecedor'
 import { useFornecedoresResumo } from '@/modules/Empresas/hooks/use-empresas'
-
 
 const CAMPOS_FILTRO: Array<keyof FiltrosFornecedorApi> = [
   'pagina',
@@ -27,7 +30,6 @@ const CAMPOS_FILTRO: Array<keyof FiltrosFornecedorApi> = [
   'contratosMaximo',
 ]
 
-
 function filtrosSaoIguais(
   anterior: FiltrosFornecedorApi,
   atual: FiltrosFornecedorApi,
@@ -40,7 +42,10 @@ function filtrosSaoIguais(
     if (campo === 'cnpj' || campo === 'razaoSocial') {
       const anteriorVazio = !valorAnterior || valorAnterior === ''
       const atualVazio = !valorAtual || valorAtual === ''
-      return anteriorVazio === atualVazio && (anteriorVazio || valorAnterior === valorAtual)
+      return (
+        anteriorVazio === atualVazio &&
+        (anteriorVazio || valorAnterior === valorAtual)
+      )
     }
 
     return valorAnterior === valorAtual
@@ -52,19 +57,20 @@ export default function FornecedoresListPage() {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
   const [filtros, setFiltros] = useState<FiltrosFornecedorApi>({
     pagina: 1,
-    tamanhoPagina: 10
+    tamanhoPagina: 10,
   })
 
   // React Query para dados da API
-  const { data: apiResponse, isLoading, isFetching } = useFornecedoresResumo(filtros, {
-    keepPreviousData: true  // Mantém dados anteriores durante transições
+  const {
+    data: apiResponse,
+    isLoading,
+    isFetching,
+  } = useFornecedoresResumo(filtros, {
+    keepPreviousData: true, // Mantém dados anteriores durante transições
   })
 
-
   // Zustand apenas para seleção de itens
-  const {
-    fornecedoresSelecionados,
-  } = useFornecedoresStore()
+  const { fornecedoresSelecionados } = useFornecedoresStore()
 
   // Mapear dados da API para interface Fornecedor
   const fornecedores = useMemo(() => {
@@ -78,7 +84,7 @@ export default function FornecedoresListPage() {
     const result = {
       pagina: apiResponse?.pagina || filtros.pagina || 1,
       itensPorPagina: apiResponse?.tamanhoPagina || filtros.tamanhoPagina || 10,
-      total: apiResponse?.totalItens || 0
+      total: apiResponse?.totalItens || 0,
     }
     return result
   }, [
@@ -86,25 +92,21 @@ export default function FornecedoresListPage() {
     apiResponse?.tamanhoPagina,
     apiResponse?.totalItens,
     filtros.pagina,
-    filtros.tamanhoPagina
+    filtros.tamanhoPagina,
   ])
 
+  const handleAbrirFornecedor = useCallback(
+    (fornecedor: Fornecedor) => {
+      navigate(`/fornecedores/${fornecedor.cnpj}`)
+    },
+    [navigate],
+  )
 
-
-  const handleAbrirFornecedor = useCallback((fornecedor: Fornecedor) => {
-    navigate(`/fornecedores/${fornecedor.cnpj}`)
-  }, [navigate])
-
-  const handleExportarSelecionados = (fornecedoresSelecionadosData: Fornecedor[]) => {
-
+  const handleExportarSelecionados = (
+    fornecedoresSelecionadosData: Fornecedor[],
+  ) => {
     const csvContent = [
-      [
-        'Razão Social',
-        'CNPJ',
-        'Contratos Ativos',
-        'Status',
-        'Valor Total',
-      ],
+      ['Razão Social', 'CNPJ', 'Contratos Ativos', 'Status', 'Valor Total'],
       ...fornecedoresSelecionadosData.map((f) => [
         f.razaoSocial,
         f.cnpj,
@@ -129,13 +131,7 @@ export default function FornecedoresListPage() {
 
   const handleExportarTodos = () => {
     const csvContent = [
-      [
-        'Razão Social',
-        'CNPJ',
-        'Contratos Ativos',
-        'Status',
-        'Valor Total',
-      ],
+      ['Razão Social', 'CNPJ', 'Contratos Ativos', 'Status', 'Valor Total'],
       ...fornecedores.map((f) => [
         f.razaoSocial,
         f.cnpj,
@@ -233,44 +229,55 @@ export default function FornecedoresListPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <SearchAndFiltersFornecedores 
-          onFiltrosChange={useCallback((novosFiltros: FiltrosFornecedorApi) => {
-            setFiltros(prev => {
-              // Verifica se já possui paginação nos novos filtros
-              const jaPossuiPaginacao = 'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
+          <SearchAndFiltersFornecedores
+            onFiltrosChange={useCallback(
+              (novosFiltros: FiltrosFornecedorApi) => {
+                setFiltros((prev) => {
+                  // Verifica se já possui paginação nos novos filtros
+                  const jaPossuiPaginacao =
+                    'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
 
-              const filtrosFinais = {
-                ...prev,
-                ...novosFiltros,
-                // Só reseta para página 1 se não for mudança de paginação
-                ...(jaPossuiPaginacao ? {} : { pagina: 1 })
-              }
+                  const filtrosFinais = {
+                    ...prev,
+                    ...novosFiltros,
+                    // Só reseta para página 1 se não for mudança de paginação
+                    ...(jaPossuiPaginacao ? {} : { pagina: 1 }),
+                  }
 
-              // Evita re-renders desnecessários
-              return filtrosSaoIguais(prev, filtrosFinais) ? prev : filtrosFinais
-            })
-          }, [])}
-          filtrosAtivos={filtros}
-          isLoading={isFetching}
-        />
+                  // Evita re-renders desnecessários
+                  return filtrosSaoIguais(prev, filtrosFinais)
+                    ? prev
+                    : filtrosFinais
+                })
+              },
+              [],
+            )}
+            filtrosAtivos={filtros}
+            isLoading={isFetching}
+          />
         </motion.div>
 
         {/* Tabela */}
         <TabelaFornecedores
           fornecedores={fornecedores}
           paginacao={paginacao}
-          onPaginacaoChange={useCallback((novaPaginacao: PaginacaoParamsFornecedor) => {
-            setFiltros(prev => {
-              const novosFiltros = {
-                ...prev,
-                pagina: novaPaginacao.pagina,
-                tamanhoPagina: novaPaginacao.itensPorPagina
-              }
+          onPaginacaoChange={useCallback(
+            (novaPaginacao: PaginacaoParamsFornecedor) => {
+              setFiltros((prev) => {
+                const novosFiltros = {
+                  ...prev,
+                  pagina: novaPaginacao.pagina,
+                  tamanhoPagina: novaPaginacao.itensPorPagina,
+                }
 
-              // Evita re-renders desnecessários
-              return filtrosSaoIguais(prev, novosFiltros) ? prev : novosFiltros
-            })
-          }, [])}
+                // Evita re-renders desnecessários
+                return filtrosSaoIguais(prev, novosFiltros)
+                  ? prev
+                  : novosFiltros
+              })
+            },
+            [],
+          )}
           onAbrirFornecedor={handleAbrirFornecedor}
           isLoading={isLoading}
         />

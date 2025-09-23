@@ -1,27 +1,30 @@
-import { useParams } from 'react-router-dom';
-import LayoutPagina from '@/components/layout-pagina';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useContratoDetalhado } from '@/modules/Contratos/hooks/use-contratos';
-import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos';
-import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'react-router-dom'
+import LayoutPagina from '@/components/layout-pagina'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useContratoDetalhado } from '@/modules/Contratos/hooks/use-contratos'
+import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos'
+import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 function ContratoDetailPage() {
-  const { contratoId } = useParams<{ contratoId: string }>();
+  const { contratoId } = useParams<{ contratoId: string }>()
 
   // Usando o hook real para buscar dados do contrato
-  const { data: contrato, isLoading, error } = useContratoDetalhado(contratoId!, {
+  const {
+    data: contrato,
+    isLoading,
+    error,
+  } = useContratoDetalhado(contratoId!, {
     enabled: !!contratoId,
-  });
+  })
 
   if (isLoading) {
     return (
-      <LayoutPagina titulo="Carregando Contrato..." >
+      <LayoutPagina titulo="Carregando Contrato...">
         <div className="space-y-4">
           <Skeleton className="h-10 w-1/2" />
           <Skeleton className="h-8 w-3/4" />
@@ -31,21 +34,25 @@ function ContratoDetailPage() {
           </div>
         </div>
       </LayoutPagina>
-    );
+    )
   }
 
   if (error || !contrato) {
     return (
-       <LayoutPagina titulo="Erro" descricao="Não foi possível carregar o contrato.">
-         <Alert variant="destructive">
-           <AlertCircle className="h-4 w-4" />
-           <AlertTitle>Erro de Carregamento</AlertTitle>
-           <AlertDescription>
-             Ocorreu um erro ao buscar os detalhes do contrato. Por favor, tente novamente mais tarde.
-           </AlertDescription>
-         </Alert>
-       </LayoutPagina>
-    );
+      <LayoutPagina
+        titulo="Erro"
+        descricao="Não foi possível carregar o contrato."
+      >
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro de Carregamento</AlertTitle>
+          <AlertDescription>
+            Ocorreu um erro ao buscar os detalhes do contrato. Por favor, tente
+            novamente mais tarde.
+          </AlertDescription>
+        </Alert>
+      </LayoutPagina>
+    )
   }
 
   return (
@@ -76,7 +83,7 @@ function ContratoDetailPage() {
         </TabsContent>
       </Tabs>
     </LayoutPagina>
-  );
+  )
 }
 
-export default ContratoDetailPage;
+export default ContratoDetailPage

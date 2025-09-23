@@ -6,20 +6,20 @@
  * de cadastro de contrato para facilitar testes e desenvolvimento
  */
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  Bug, 
-  ChevronLeft, 
-  ChevronRight, 
-  Copy, 
-  Download, 
-  RefreshCw, 
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Bug,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Download,
+  RefreshCw,
   Eye,
   EyeOff,
   Zap,
@@ -27,13 +27,13 @@ import {
   Send,
   CheckCircle,
   Clock,
-  Loader2
-} from "lucide-react"
-import type { DadosFornecedor } from "./fornecedor-form"
-import type { DadosContrato } from "./contrato-form"
-import type { DadosUnidades } from "@/modules/Contratos/types/unidades"
-import type { DadosAtribuicao } from "./atribuicao-fiscais-form"
-import type { CriarContratoData } from "@/modules/Contratos/hooks/use-contratos-mutations"
+  Loader2,
+} from 'lucide-react'
+import type { DadosFornecedor } from './fornecedor-form'
+import type { DadosContrato } from './contrato-form'
+import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
+import type { DadosAtribuicao } from './atribuicao-fiscais-form'
+import type { CriarContratoData } from '@/modules/Contratos/hooks/use-contratos-mutations'
 
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
@@ -70,18 +70,18 @@ export default function DebugPanel({
   onExportarDados,
   payloadFinal,
   apiLogs,
-  isGeneratingMock = false
+  isGeneratingMock = false,
 }: DebugPanelProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [activeTab, setActiveTab] = useState("dados")
+  const [activeTab, setActiveTab] = useState('dados')
 
   // Toggle visibility with keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'D') {
         e.preventDefault()
-        setIsVisible(prev => !prev)
+        setIsVisible((prev) => !prev)
       }
     }
 
@@ -110,26 +110,31 @@ export default function DebugPanel({
 
   const getStepName = (step: number) => {
     switch (step) {
-      case 1: return "Fornecedor"
-      case 2: return "Contrato"
-      case 3: return "Unidades"
-      case 4: return "Fiscais"
-      default: return "Desconhecido"
+      case 1:
+        return 'Fornecedor'
+      case 2:
+        return 'Contrato'
+      case 3:
+        return 'Unidades'
+      case 4:
+        return 'Fiscais'
+      default:
+        return 'Desconhecido'
     }
   }
 
   const renderStepData = (step: number) => {
     switch (step) {
       case 1:
-        return dadosCompletos.fornecedor || { message: "Dados não preenchidos" }
+        return dadosCompletos.fornecedor || { message: 'Dados não preenchidos' }
       case 2:
-        return dadosCompletos.contrato || { message: "Dados não preenchidos" }
+        return dadosCompletos.contrato || { message: 'Dados não preenchidos' }
       case 3:
-        return dadosCompletos.unidades || { message: "Dados não preenchidos" }
+        return dadosCompletos.unidades || { message: 'Dados não preenchidos' }
       case 4:
-        return dadosCompletos.atribuicao || { message: "Dados não preenchidos" }
+        return dadosCompletos.atribuicao || { message: 'Dados não preenchidos' }
       default:
-        return { message: "Step inválido" }
+        return { message: 'Step inválido' }
     }
   }
 
@@ -137,21 +142,21 @@ export default function DebugPanel({
     return (
       <Button
         onClick={() => setIsVisible(true)}
-        className="fixed bottom-4 right-4 z-50 bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
+        className="fixed right-4 bottom-4 z-50 bg-orange-500 text-white shadow-lg hover:bg-orange-600"
         size="sm"
       >
-        <Bug className="h-4 w-4 mr-2" />
+        <Bug className="mr-2 h-4 w-4" />
         Debug
       </Button>
     )
   }
 
   return (
-    <div className="fixed right-4 top-4 z-50 w-96 max-h-[90vh]">
-      <Card className="border-orange-200 shadow-xl bg-white">
-        <CardHeader className="pb-3 bg-orange-50 border-b">
+    <div className="fixed top-4 right-4 z-50 max-h-[90vh] w-96">
+      <Card className="border-orange-200 bg-white shadow-xl">
+        <CardHeader className="border-b bg-orange-50 pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Bug className="h-4 w-4 text-orange-600" />
               Debug Panel - Cadastro de Contrato
             </CardTitle>
@@ -162,7 +167,11 @@ export default function DebugPanel({
                 onClick={() => setIsMinimized(!isMinimized)}
                 className="h-6 w-6 p-0"
               >
-                {isMinimized ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+                {isMinimized ? (
+                  <ChevronRight className="h-3 w-3" />
+                ) : (
+                  <ChevronLeft className="h-3 w-3" />
+                )}
               </Button>
               <Button
                 variant="ghost"
@@ -174,29 +183,29 @@ export default function DebugPanel({
               </Button>
             </div>
           </div>
-          
+
           {/* Step Progress */}
-          <div className="flex gap-1 mt-2">
+          <div className="mt-2 flex gap-1">
             {[1, 2, 3, 4].map((step) => {
               const status = getStepStatus(step)
               const isActive = step === passoAtual
-              
+
               return (
                 <div
                   key={step}
-                  className={`flex-1 h-2 rounded-sm ${
+                  className={`h-2 flex-1 rounded-sm ${
                     isActive
                       ? 'bg-orange-400'
                       : status === 'completed'
-                      ? 'bg-green-400'
-                      : 'bg-gray-200'
+                        ? 'bg-green-400'
+                        : 'bg-gray-200'
                   }`}
                 />
               )
             })}
           </div>
-          
-          <div className="text-xs text-gray-600 mt-1">
+
+          <div className="mt-1 text-xs text-gray-600">
             Step {passoAtual}/4 - {getStepName(passoAtual)}
           </div>
         </CardHeader>
@@ -204,21 +213,21 @@ export default function DebugPanel({
         {!isMinimized && (
           <CardContent className="p-3">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4 h-8">
+              <TabsList className="grid h-8 w-full grid-cols-4">
                 <TabsTrigger value="dados" className="text-xs">
-                  <Database className="h-3 w-3 mr-1" />
+                  <Database className="mr-1 h-3 w-3" />
                   Dados
                 </TabsTrigger>
                 <TabsTrigger value="api" className="text-xs">
-                  <Send className="h-3 w-3 mr-1" />
+                  <Send className="mr-1 h-3 w-3" />
                   API
                 </TabsTrigger>
                 <TabsTrigger value="payload" className="text-xs">
-                  <Eye className="h-3 w-3 mr-1" />
+                  <Eye className="mr-1 h-3 w-3" />
                   Payload
                 </TabsTrigger>
                 <TabsTrigger value="tools" className="text-xs">
-                  <Zap className="h-3 w-3 mr-1" />
+                  <Zap className="mr-1 h-3 w-3" />
                   Tools
                 </TabsTrigger>
               </TabsList>
@@ -229,9 +238,13 @@ export default function DebugPanel({
                     <div className="space-y-3">
                       {[1, 2, 3, 4].map((step) => (
                         <div key={step}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge 
-                              variant={getStepStatus(step) === 'completed' ? 'default' : 'secondary'}
+                          <div className="mb-2 flex items-center gap-2">
+                            <Badge
+                              variant={
+                                getStepStatus(step) === 'completed'
+                                  ? 'default'
+                                  : 'secondary'
+                              }
                               className="text-xs"
                             >
                               {step}. {getStepName(step)}
@@ -240,7 +253,7 @@ export default function DebugPanel({
                               <CheckCircle className="h-3 w-3 text-green-500" />
                             )}
                           </div>
-                          <pre className="text-xs bg-gray-50 p-2 rounded overflow-x-auto">
+                          <pre className="overflow-x-auto rounded bg-gray-50 p-2 text-xs">
                             {JSON.stringify(renderStepData(step), null, 2)}
                           </pre>
                         </div>
@@ -253,37 +266,44 @@ export default function DebugPanel({
                   <ScrollArea className="h-64">
                     <div className="space-y-2">
                       {apiLogs.length === 0 ? (
-                        <div className="text-xs text-gray-500 text-center py-8">
+                        <div className="py-8 text-center text-xs text-gray-500">
                           Nenhuma chamada de API registrada
                         </div>
                       ) : (
-                        apiLogs.slice(-10).reverse().map((log) => (
-                          <div key={log.id} className="border rounded p-2 text-xs">
-                            <div className="flex items-center justify-between mb-1">
-                              <Badge 
-                                variant={
-                                  log.status === 'success' ? 'default' :
-                                  log.status === 'error' ? 'destructive' : 'secondary'
-                                }
-                                className="text-xs"
-                              >
-                                {log.method} {log.status}
-                              </Badge>
-                              <div className="flex items-center gap-1 text-gray-500">
-                                <Clock className="h-3 w-3" />
-                                {log.duration ? `${log.duration}ms` : '...'}
+                        apiLogs
+                          .slice(-10)
+                          .reverse()
+                          .map((log) => (
+                            <div
+                              key={log.id}
+                              className="rounded border p-2 text-xs"
+                            >
+                              <div className="mb-1 flex items-center justify-between">
+                                <Badge
+                                  variant={
+                                    log.status === 'success'
+                                      ? 'default'
+                                      : log.status === 'error'
+                                        ? 'destructive'
+                                        : 'secondary'
+                                  }
+                                  className="text-xs"
+                                >
+                                  {log.method} {log.status}
+                                </Badge>
+                                <div className="flex items-center gap-1 text-gray-500">
+                                  <Clock className="h-3 w-3" />
+                                  {log.duration ? `${log.duration}ms` : '...'}
+                                </div>
                               </div>
+                              <div className="text-gray-600">{log.url}</div>
+                              {log.error && (
+                                <div className="mt-1 text-red-500">
+                                  {log.error}
+                                </div>
+                              )}
                             </div>
-                            <div className="text-gray-600">
-                              {log.url}
-                            </div>
-                            {log.error && (
-                              <div className="text-red-500 mt-1">
-                                {log.error}
-                              </div>
-                            )}
-                          </div>
-                        ))
+                          ))
                       )}
                     </div>
                   </ScrollArea>
@@ -293,10 +313,8 @@ export default function DebugPanel({
                   <ScrollArea className="h-64">
                     {payloadFinal ? (
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="text-xs">
-                            Payload Final
-                          </Badge>
+                        <div className="mb-2 flex items-center justify-between">
+                          <Badge className="text-xs">Payload Final</Badge>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -306,12 +324,12 @@ export default function DebugPanel({
                             <Copy className="h-3 w-3" />
                           </Button>
                         </div>
-                        <pre className="text-xs bg-gray-50 p-2 rounded overflow-x-auto">
+                        <pre className="overflow-x-auto rounded bg-gray-50 p-2 text-xs">
                           {JSON.stringify(payloadFinal, null, 2)}
                         </pre>
                       </div>
                     ) : (
-                      <div className="text-xs text-gray-500 text-center py-8">
+                      <div className="py-8 text-center text-xs text-gray-500">
                         Payload será gerado no último step
                       </div>
                     )}
@@ -320,7 +338,9 @@ export default function DebugPanel({
 
                 <TabsContent value="tools" className="mt-0">
                   <div className="space-y-2">
-                    <div className="text-xs font-medium mb-2">Preenchimento Automático</div>
+                    <div className="mb-2 text-xs font-medium">
+                      Preenchimento Automático
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       {[1, 2, 3, 4].map((step) => (
                         <Button
@@ -333,7 +353,7 @@ export default function DebugPanel({
                         >
                           {isGeneratingMock && step === 2 ? (
                             <>
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                               API
                             </>
                           ) : (
@@ -348,19 +368,21 @@ export default function DebugPanel({
                         variant="default"
                         size="sm"
                         onClick={() => {
-                          [1, 2, 3, 4].forEach(step => onPreencherDadosMock(step))
+                          ;[1, 2, 3, 4].forEach((step) =>
+                            onPreencherDadosMock(step),
+                          )
                         }}
-                        className="w-full h-8 text-xs bg-green-500 hover:bg-green-600"
+                        className="h-8 w-full bg-green-500 text-xs hover:bg-green-600"
                         disabled={isGeneratingMock}
                       >
                         {isGeneratingMock ? (
                           <>
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                             Gerando...
                           </>
                         ) : (
                           <>
-                            <Zap className="h-3 w-3 mr-1" />
+                            <Zap className="mr-1 h-3 w-3" />
                             Gerar Todos os Steps
                           </>
                         )}
@@ -368,31 +390,33 @@ export default function DebugPanel({
                     </div>
 
                     <Separator className="my-3" />
-                    
-                    <div className="text-xs font-medium mb-2">Ações</div>
+
+                    <div className="mb-2 text-xs font-medium">Ações</div>
                     <div className="space-y-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={onLimparDados}
-                        className="w-full h-8 text-xs"
+                        className="h-8 w-full text-xs"
                       >
-                        <RefreshCw className="h-3 w-3 mr-1" />
+                        <RefreshCw className="mr-1 h-3 w-3" />
                         Limpar Tudo
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={onExportarDados}
-                        className="w-full h-8 text-xs"
+                        className="h-8 w-full text-xs"
                       >
-                        <Download className="h-3 w-3 mr-1" />
+                        <Download className="mr-1 h-3 w-3" />
                         Exportar JSON
                       </Button>
                     </div>
 
-                    <div className="text-xs text-gray-500 mt-4 space-y-1">
-                      <div>💡 <kbd>Ctrl+Shift+D</kbd> - Toggle Debug</div>
+                    <div className="mt-4 space-y-1 text-xs text-gray-500">
+                      <div>
+                        💡 <kbd>Ctrl+Shift+D</kbd> - Toggle Debug
+                      </div>
                       <div>🔍 Logs salvos no localStorage</div>
                       <div>✅ CNPJ gerado com algoritmo válido</div>
                       <div>📮 CEP válido por estado brasileiro</div>

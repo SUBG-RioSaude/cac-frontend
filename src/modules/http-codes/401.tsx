@@ -16,7 +16,7 @@ export default function Unauthorized({ error: propError }: UnauthorizedProps) {
 
   const handleLogin = () => {
     // Implementar redirecionamento para login
-    console.log('Redirect to login page')
+    // TODO: Implementar navegação para login
   }
 
   const handleContactAdmin = () => {

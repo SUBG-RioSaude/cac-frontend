@@ -1,11 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cnpjUtils } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cnpjUtils } from '@/lib/utils'
 
 interface InformacoesFornecedorProps {
-  razaoSocial: string;
-  cnpj: string;
-  inscricaoEstadual?: string | null;
-  inscricaoMunicipal?: string | null;
+  razaoSocial: string
+  cnpj: string
+  inscricaoEstadual?: string | null
+  inscricaoMunicipal?: string | null
 }
 
 export function InformacoesFornecedor(props: InformacoesFornecedorProps) {
@@ -17,28 +17,32 @@ export function InformacoesFornecedor(props: InformacoesFornecedorProps) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground mb-1">Razão Social</p>
+            <p className="text-muted-foreground mb-1 text-sm">Razão Social</p>
             <p className="font-medium">{props.razaoSocial}</p>
           </div>
-          
+
           <div>
-            <p className="text-sm text-muted-foreground mb-1">CNPJ</p>
+            <p className="text-muted-foreground mb-1 text-sm">CNPJ</p>
             <p className="font-mono">{cnpjUtils.formatar(props.cnpj)}</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Inscrição Estadual</p>
+              <p className="text-muted-foreground mb-1 text-sm">
+                Inscrição Estadual
+              </p>
               <p>{props.inscricaoEstadual || 'Não informada'}</p>
             </div>
-            
+
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Inscrição Municipal</p>
+              <p className="text-muted-foreground mb-1 text-sm">
+                Inscrição Municipal
+              </p>
               <p>{props.inscricaoMunicipal || 'Não informada'}</p>
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -1,17 +1,17 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Check, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useAuthStore } from "@/lib/auth/auth-store"
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Check, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthStore } from '@/lib/auth/auth-store'
 
 interface PasswordRequirement {
   text: string
@@ -19,29 +19,30 @@ interface PasswordRequirement {
 }
 
 export default function ResetPasswordForm() {
-  const [novaSenha, setNovaSenha] = useState("")
-  const [confirmarSenha, setConfirmarSenha] = useState("")
+  const [novaSenha, setNovaSenha] = useState('')
+  const [confirmarSenha, setConfirmarSenha] = useState('')
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false)
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false)
-  const [sucesso, setSucesso] = useState("")
-  const [email, setEmail] = useState("")
+  const [sucesso, setSucesso] = useState('')
+  const [email, setEmail] = useState('')
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const { 
-    trocarSenha, 
-    carregando, 
-    erro, 
-    limparErro,
-    estaAutenticado 
-  } = useAuthStore()
+  const { trocarSenha, carregando, erro, limparErro, estaAutenticado } =
+    useAuthStore()
 
   const requisitosSenha: PasswordRequirement[] = [
-    { text: "Pelo menos 8 caracteres", met: novaSenha.length >= 8 },
-    { text: "Pelo menos uma letra", met: /[a-zA-Z]/.test(novaSenha) },
-    { text: "Pelo menos um número", met: /[0-9]/.test(novaSenha) },
-    { text: "Pelo menos um caractere especial", met: /[^a-zA-Z0-9]/.test(novaSenha) },
-    { text: "Senhas coincidem", met: novaSenha === confirmarSenha && novaSenha.length > 0 },
+    { text: 'Pelo menos 8 caracteres', met: novaSenha.length >= 8 },
+    { text: 'Pelo menos uma letra', met: /[a-zA-Z]/.test(novaSenha) },
+    { text: 'Pelo menos um número', met: /[0-9]/.test(novaSenha) },
+    {
+      text: 'Pelo menos um caractere especial',
+      met: /[^a-zA-Z0-9]/.test(novaSenha),
+    },
+    {
+      text: 'Senhas coincidem',
+      met: novaSenha === confirmarSenha && novaSenha.length > 0,
+    },
   ]
 
   const senhaValida = requisitosSenha.every((req) => req.met)
@@ -58,17 +59,17 @@ export default function ResetPasswordForm() {
     // Verifica se veio do fluxo de recuperação
     const contexto = sessionStorage.getItem('auth_context')
     if (contexto !== 'password_reset' && contexto !== 'password_recovery') {
-      navigate("/login")
+      navigate('/login')
       return
     }
 
     // Obtém email da sessão
-    const emailArmazenado = sessionStorage.getItem("auth_email")
+    const emailArmazenado = sessionStorage.getItem('auth_email')
     if (emailArmazenado) {
       setEmail(emailArmazenado)
     } else {
       // Se não houver email, redirecionar para login
-      navigate("/login")
+      navigate('/login')
     }
   }, [navigate, estaAutenticado])
 
@@ -80,24 +81,28 @@ export default function ResetPasswordForm() {
     }
 
     limparErro()
-    setSucesso("")
+    setSucesso('')
 
     // Obtém token de troca de senha
-    const tokenTrocaSenha = sessionStorage.getItem("tokenTrocaSenha")
+    const tokenTrocaSenha = sessionStorage.getItem('tokenTrocaSenha')
 
     // Executa troca de senha
-    const sucesso = await trocarSenha(email, novaSenha, tokenTrocaSenha || undefined)
-    
+    const sucesso = await trocarSenha(
+      email,
+      novaSenha,
+      tokenTrocaSenha || undefined,
+    )
+
     if (sucesso) {
-      setSucesso("Senha alterada com sucesso!")
-      
+      setSucesso('Senha alterada com sucesso!')
+
       // Limpar contexto de recuperação
       sessionStorage.removeItem('auth_context')
       sessionStorage.removeItem('tokenTrocaSenha')
-      
+
       // Redireciona para login após 2 segundos
       setTimeout(() => {
-        navigate("/login")
+        navigate('/login')
       }, 2000)
     }
   }
@@ -116,11 +121,11 @@ export default function ResetPasswordForm() {
   const requirementVariants = {
     unmet: {
       x: 0,
-      color: "#6b7280",
+      color: '#6b7280',
     },
     met: {
       x: [0, -5, 0],
-      color: "#059669",
+      color: '#059669',
       transition: { duration: 0.3 },
     },
   }
@@ -140,12 +145,12 @@ export default function ResetPasswordForm() {
     const requisitosAtendidos = requisitosSenha.filter((req) => req.met).length
     const porcentagem = (requisitosAtendidos / requisitosSenha.length) * 100
 
-    let cor = "#ef4444" // vermelho
+    let cor = '#ef4444' // vermelho
     if (porcentagem >= 80)
-      cor = "#10b981" // verde
+      cor = '#10b981' // verde
     else if (porcentagem >= 60)
-      cor = "#f59e0b" // amarelo
-    else if (porcentagem >= 40) cor = "#f97316" // laranja
+      cor = '#f59e0b' // amarelo
+    else if (porcentagem >= 40) cor = '#f97316' // laranja
 
     return { porcentagem, cor }
   }
@@ -153,25 +158,25 @@ export default function ResetPasswordForm() {
   const { porcentagem, cor } = medidorForca()
 
   return (
-    <div className="min-h-screen flex">
+    <div className="flex min-h-screen">
       {/* Left side - Background Image */}
       <motion.div
-        className="hidden lg:flex lg:w-1/2 relative"
+        className="relative hidden lg:flex lg:w-1/2"
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-teal-600/20 to-transparent z-10" />
-        <img 
-          src="/gestao.svg" 
-          alt="Background de gestão" 
-          className="absolute inset-0 w-full h-full object-cover"
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-teal-600/20 to-transparent" />
+        <img
+          src="/gestao.svg"
+          alt="Background de gestão"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </motion.div>
 
       {/* Right side - Reset Password Form */}
       <motion.div
-        className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50"
+        className="flex w-full items-center justify-center bg-gray-50 p-8 lg:w-1/2"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -180,14 +185,14 @@ export default function ResetPasswordForm() {
           {/* Logo */}
           <motion.div className="text-center">
             <motion.div
-              className="flex items-center justify-center space-x-2 mb-8"
+              className="mb-8 flex items-center justify-center space-x-2"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <img 
-                src="/logo certa.png" 
-                alt="Logo CAC" 
-                className="w-16 h-16 object-contain"
+              <img
+                src="/logo certa.png"
+                alt="Logo CAC"
+                className="h-16 w-16 object-contain"
               />
             </motion.div>
           </motion.div>
@@ -195,12 +200,12 @@ export default function ResetPasswordForm() {
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
           >
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader className="text-center pb-4">
+            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+              <CardHeader className="pb-4 text-center">
                 <motion.div
-                  className="mx-auto w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4"
+                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100"
                   animate={{
                     rotate: [0, 10, -10, 0],
                     scale: [1, 1.05, 1],
@@ -208,15 +213,15 @@ export default function ResetPasswordForm() {
                   transition={{
                     duration: 2,
                     repeat: Number.POSITIVE_INFINITY,
-                    ease: "easeInOut",
+                    ease: 'easeInOut',
                   }}
                 >
-                  <Lock className="w-8 h-8 text-teal-600" />
+                  <Lock className="h-8 w-8 text-teal-600" />
                 </motion.div>
                 <motion.h1 className="text-2xl font-bold text-gray-900">
                   Redefinir Senha
                 </motion.h1>
-                <motion.p className="text-gray-600 text-sm">
+                <motion.p className="text-sm text-gray-600">
                   Crie uma nova senha segura para
                   <br />
                   <span className="font-medium">{email}</span>
@@ -232,8 +237,11 @@ export default function ResetPasswordForm() {
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Alert variant="destructive" className="border-red-200 bg-red-50">
-                        <AlertDescription className="text-red-800 leading-relaxed break-words">
+                      <Alert
+                        variant="destructive"
+                        className="border-red-200 bg-red-50"
+                      >
+                        <AlertDescription className="leading-relaxed break-words text-red-800">
                           {erro}
                         </AlertDescription>
                       </Alert>
@@ -248,10 +256,15 @@ export default function ResetPasswordForm() {
                       transition={{ duration: 0.3 }}
                     >
                       <Alert className="border-green-200 bg-green-50">
-                        <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}>
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 0.5 }}
+                        >
                           <Check className="h-4 w-4 text-green-600" />
                         </motion.div>
-                        <AlertDescription className="text-green-800">{sucesso}</AlertDescription>
+                        <AlertDescription className="text-green-800">
+                          {sucesso}
+                        </AlertDescription>
                       </Alert>
                     </motion.div>
                   )}
@@ -263,22 +276,24 @@ export default function ResetPasswordForm() {
                     <motion.div
                       className="relative"
                       variants={inputVariants}
-                      animate={campoFocado === "novaSenha" ? "focused" : "unfocused"}
+                      animate={
+                        campoFocado === 'novaSenha' ? 'focused' : 'unfocused'
+                      }
                     >
                       <Input
                         id="novaSenha"
-                        type={mostrarNovaSenha ? "text" : "password"}
+                        type={mostrarNovaSenha ? 'text' : 'password'}
                         placeholder="Digite sua nova senha"
                         value={novaSenha}
                         onChange={(e) => setNovaSenha(e.target.value)}
-                        onFocus={() => setCampoFocado("novaSenha")}
+                        onFocus={() => setCampoFocado('novaSenha')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 pr-10 transition-all duration-200 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
                       />
                       <motion.button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        className="absolute top-1/2 right-3 -translate-y-1/2 transform"
                         onClick={() => setMostrarNovaSenha(!mostrarNovaSenha)}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
@@ -295,10 +310,10 @@ export default function ResetPasswordForm() {
                     {novaSenha && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
+                        animate={{ opacity: 1, height: 'auto' }}
                         className="mt-2"
                       >
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="h-2 w-full rounded-full bg-gray-200">
                           <motion.div
                             className="h-2 rounded-full transition-all duration-300"
                             style={{ backgroundColor: cor }}
@@ -315,23 +330,29 @@ export default function ResetPasswordForm() {
                     <motion.div
                       className="relative"
                       variants={inputVariants}
-                      animate={campoFocado === "confirmarSenha" ? "focused" : "unfocused"}
+                      animate={
+                        campoFocado === 'confirmarSenha'
+                          ? 'focused'
+                          : 'unfocused'
+                      }
                     >
                       <Input
                         id="confirmarSenha"
-                        type={mostrarConfirmarSenha ? "text" : "password"}
+                        type={mostrarConfirmarSenha ? 'text' : 'password'}
                         placeholder="Confirme sua nova senha"
                         value={confirmarSenha}
                         onChange={(e) => setConfirmarSenha(e.target.value)}
-                        onFocus={() => setCampoFocado("confirmarSenha")}
+                        onFocus={() => setCampoFocado('confirmarSenha')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 pr-10 transition-all duration-200 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
                       />
                       <motion.button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+                        className="absolute top-1/2 right-3 -translate-y-1/2 transform"
+                        onClick={() =>
+                          setMostrarConfirmarSenha(!mostrarConfirmarSenha)
+                        }
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                       >
@@ -346,7 +367,9 @@ export default function ResetPasswordForm() {
 
                   {/* Password Requirements */}
                   <motion.div className="space-y-2">
-                    <Label className="text-sm font-medium">Requisitos da senha:</Label>
+                    <Label className="text-sm font-medium">
+                      Requisitos da senha:
+                    </Label>
                     <motion.div className="space-y-1">
                       <AnimatePresence>
                         {requisitosSenha.map((requisito, index) => (
@@ -354,7 +377,7 @@ export default function ResetPasswordForm() {
                             key={index}
                             className="flex items-center space-x-2 text-sm"
                             variants={requirementVariants}
-                            animate={requisito.met ? "met" : "unmet"}
+                            animate={requisito.met ? 'met' : 'unmet'}
                             layout
                           >
                             <motion.div
@@ -371,7 +394,11 @@ export default function ResetPasswordForm() {
                               )}
                             </motion.div>
                             <motion.span
-                              className={requisito.met ? "text-green-700" : "text-gray-600"}
+                              className={
+                                requisito.met
+                                  ? 'text-green-700'
+                                  : 'text-gray-600'
+                              }
                               animate={{
                                 fontWeight: requisito.met ? 600 : 400,
                               }}
@@ -391,7 +418,7 @@ export default function ResetPasswordForm() {
                     >
                       <Button
                         type="submit"
-                        className="w-full h-12 bg-teal-600 hover:bg-teal-700 transition-all duration-300 relative overflow-hidden"
+                        className="relative h-12 w-full overflow-hidden bg-teal-600 transition-all duration-300 hover:bg-teal-700"
                         disabled={carregando || !senhaValida}
                       >
                         <AnimatePresence mode="wait">
@@ -425,11 +452,14 @@ export default function ResetPasswordForm() {
                 </motion.form>
 
                 <motion.div>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <Button
                       variant="ghost"
-                      onClick={() => navigate("/login")}
-                      className="w-full hover:bg-gray-100 transition-all duration-200"
+                      onClick={() => navigate('/login')}
+                      className="w-full transition-all duration-200 hover:bg-gray-100"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Voltar ao Login

@@ -24,8 +24,12 @@ export function ModalUnidadesResponsaveis({
   unidades,
   numeroContrato,
 }: ModalUnidadesResponsaveisProps) {
-  const demandantes = unidades.filter(u => u.tipoResponsabilidade === 1 && u.ativo)
-  const gestoras = unidades.filter(u => u.tipoResponsabilidade === 2 && u.ativo)
+  const demandantes = unidades.filter(
+    (u) => u.tipoResponsabilidade === 1 && u.ativo,
+  )
+  const gestoras = unidades.filter(
+    (u) => u.tipoResponsabilidade === 2 && u.ativo,
+  )
 
   const totalUnidades = demandantes.length + gestoras.length
 
@@ -39,9 +43,7 @@ export function ModalUnidadesResponsaveis({
             </div>
             <div>
               <DialogTitle>Unidades Responsáveis</DialogTitle>
-              <DialogDescription>
-                Contrato: {numeroContrato}
-              </DialogDescription>
+              <DialogDescription>Contrato: {numeroContrato}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -53,16 +55,20 @@ export function ModalUnidadesResponsaveis({
               <span className="text-muted-foreground">Total de unidades:</span>
               <span className="font-semibold">{totalUnidades}</span>
             </div>
-            <div className="flex items-center justify-between text-sm mt-1">
-              <span className="text-muted-foreground">Demandantes • Gestoras:</span>
-              <span className="font-semibold">{demandantes.length} • {gestoras.length}</span>
+            <div className="mt-1 flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                Demandantes • Gestoras:
+              </span>
+              <span className="font-semibold">
+                {demandantes.length} • {gestoras.length}
+              </span>
             </div>
           </div>
 
           {/* Unidades Demandantes */}
           {demandantes.length > 0 && (
             <div>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-3 flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-orange-600" />
                 <h3 className="font-semibold">Unidades Demandantes</h3>
                 <Badge variant="secondary" className="text-xs">
@@ -73,7 +79,7 @@ export function ModalUnidadesResponsaveis({
                 {demandantes.map((unidade) => (
                   <div
                     key={unidade.id}
-                    className="border rounded-lg p-3 bg-background"
+                    className="bg-background rounded-lg border p-3"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -88,7 +94,7 @@ export function ModalUnidadesResponsaveis({
                           )}
                         </div>
                         {unidade.observacoes && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-muted-foreground mt-1 text-sm">
                             {unidade.observacoes}
                           </p>
                         )}
@@ -103,7 +109,7 @@ export function ModalUnidadesResponsaveis({
           {/* Unidades Gestoras */}
           {gestoras.length > 0 && (
             <div>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-3 flex items-center gap-2">
                 <Shield className="h-5 w-5 text-green-600" />
                 <h3 className="font-semibold">Unidades Gestoras</h3>
                 <Badge variant="secondary" className="text-xs">
@@ -114,7 +120,7 @@ export function ModalUnidadesResponsaveis({
                 {gestoras.map((unidade) => (
                   <div
                     key={unidade.id}
-                    className="border rounded-lg p-3 bg-background"
+                    className="bg-background rounded-lg border p-3"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -129,7 +135,7 @@ export function ModalUnidadesResponsaveis({
                           )}
                         </div>
                         {unidade.observacoes && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-muted-foreground mt-1 text-sm">
                             {unidade.observacoes}
                           </p>
                         )}
@@ -143,8 +149,8 @@ export function ModalUnidadesResponsaveis({
 
           {/* Estado vazio */}
           {totalUnidades === 0 && (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <div className="py-8 text-center">
+              <Users className="text-muted-foreground mx-auto mb-3 h-12 w-12" />
               <p className="text-muted-foreground">
                 Nenhuma unidade responsável cadastrada para este contrato.
               </p>

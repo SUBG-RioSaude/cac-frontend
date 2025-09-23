@@ -13,11 +13,7 @@ import { FornecedorStatusBadge } from '@/components/ui/status-badge'
 import { parseStatusFornecedor } from '@/types/status'
 import { CurrencyDisplay, CNPJDisplay } from '@/components/ui/formatters'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react'
+import { Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useFornecedoresStore } from '../store/fornecedores-store'
 import type {
   Fornecedor,
@@ -39,15 +35,11 @@ export function TabelaFornecedores({
   onAbrirFornecedor,
   isLoading = false,
 }: TabelaFornecedoresProps) {
-
   const {
     fornecedoresSelecionados,
     selecionarFornecedor,
     selecionarTodosFornecedores,
   } = useFornecedoresStore()
-
-
-
 
   const handleSelecionarTodos = (checked: boolean) => {
     selecionarTodosFornecedores(checked)
@@ -61,7 +53,6 @@ export function TabelaFornecedores({
   }
 
   const totalPaginas = Math.ceil(paginacao.total / paginacao.itensPorPagina)
-
 
   const paginaAnterior = () => {
     if (paginacao.pagina > 1) {
@@ -85,9 +76,9 @@ export function TabelaFornecedores({
     <motion.div
       animate={{
         opacity: 1,
-        filter: isLoading ? 'blur(1px)' : 'blur(0px)'
+        filter: isLoading ? 'blur(1px)' : 'blur(0px)',
       }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       <Card className="bg-card/50 border-0 shadow-sm backdrop-blur">
         <CardHeader className="px-3 pb-4 sm:px-6">
@@ -97,7 +88,9 @@ export function TabelaFornecedores({
                 Lista de Fornecedores
               </CardTitle>
               <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-                {isLoading ? 'Carregando...' : `${paginacao.total} fornecedores encontrados`}
+                {isLoading
+                  ? 'Carregando...'
+                  : `${paginacao.total} fornecedores encontrados`}
               </p>
             </div>
           </div>
@@ -111,8 +104,8 @@ export function TabelaFornecedores({
               animate={{ opacity: 1 }}
               transition={{
                 duration: 0.4,
-                ease: "easeOut",
-                staggerChildren: 0.05
+                ease: 'easeOut',
+                staggerChildren: 0.05,
               }}
             >
               {fornecedores.map((fornecedor, index) => (
@@ -121,84 +114,91 @@ export function TabelaFornecedores({
                   animate={{
                     opacity: 1,
                     y: 0,
-                    scale: 1
+                    scale: 1,
                   }}
                   transition={{
                     duration: 0.3,
-                    ease: "easeOut",
-                    delay: index * 0.02
+                    ease: 'easeOut',
+                    delay: index * 0.02,
                   }}
                 >
-                    <Card className="p-4 transition-shadow hover:shadow-md">
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={fornecedoresSelecionados.includes(
+                  <Card className="p-4 transition-shadow hover:shadow-md">
+                    <div className="mb-3 flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={fornecedoresSelecionados.includes(
+                            fornecedor.id,
+                          )}
+                          onCheckedChange={(checked) =>
+                            handleSelecionarFornecedor(
                               fornecedor.id,
-                            )}
-                            onCheckedChange={(checked) =>
-                              handleSelecionarFornecedor(
-                                fornecedor.id,
-                                checked as boolean,
-                              )
-                            }
-                          />
-                        </div>
-                        <FornecedorStatusBadge status={parseStatusFornecedor(fornecedor.status)} />
+                              checked as boolean,
+                            )
+                          }
+                        />
+                      </div>
+                      <FornecedorStatusBadge
+                        status={parseStatusFornecedor(fornecedor.status)}
+                      />
+                    </div>
+
+                    <div className="mb-3 space-y-2">
+                      <div>
+                        <p className="text-muted-foreground text-xs">CNPJ</p>
+                        <p className="text-sm">
+                          <CNPJDisplay value={fornecedor.cnpj} />
+                        </p>
                       </div>
 
-                      <div className="mb-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-muted-foreground text-xs">CNPJ</p>
-                          <p className="text-sm">
-                            <CNPJDisplay value={fornecedor.cnpj} />
+                          <p className="text-muted-foreground text-xs">
+                            Contratos Ativos
+                          </p>
+                          <p className="text-sm font-semibold">
+                            {fornecedor.contratosAtivos}
                           </p>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-muted-foreground text-xs">
-                              Contratos Ativos
-                            </p>
-                            <p className="text-sm font-semibold">
-                              {fornecedor.contratosAtivos}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">
-                              Valor Total
-                            </p>
-                            <p className="text-sm font-semibold">
-                              <CurrencyDisplay value={fornecedor.valorTotalContratos} />
-                            </p>
-                          </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">
+                            Valor Total
+                          </p>
+                          <p className="text-sm font-semibold">
+                            <CurrencyDisplay
+                              value={fornecedor.valorTotalContratos}
+                            />
+                          </p>
                         </div>
-
-                        {fornecedor.endereco && (
-                          <div>
-                            <p className="text-muted-foreground text-xs">Localização</p>
-                            <p className="text-sm">
-                              {fornecedor.endereco.cidade} - {fornecedor.endereco.uf}
-                            </p>
-                          </div>
-                        )}
                       </div>
 
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => onAbrirFornecedor(fornecedor)}
-                          className="h-8 px-3 shadow-sm"
-                          aria-label="Abrir fornecedor"
-                        >
-                          <Eye className="mr-1 h-4 w-4" />
-                          Abrir
-                        </Button>
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
+                      {fornecedor.endereco && (
+                        <div>
+                          <p className="text-muted-foreground text-xs">
+                            Localização
+                          </p>
+                          <p className="text-sm">
+                            {fornecedor.endereco.cidade} -{' '}
+                            {fornecedor.endereco.uf}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => onAbrirFornecedor(fornecedor)}
+                        className="h-8 px-3 shadow-sm"
+                        aria-label="Abrir fornecedor"
+                      >
+                        <Eye className="mr-1 h-4 w-4" />
+                        Abrir
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
 
             {/* Versão desktop - Tabela */}
@@ -232,70 +232,75 @@ export function TabelaFornecedores({
                       key={fornecedor.id}
                       animate={{
                         opacity: 1,
-                        y: 0
+                        y: 0,
                       }}
                       transition={{
                         duration: 0.3,
-                        ease: "easeOut",
-                        delay: index * 0.03
+                        ease: 'easeOut',
+                        delay: index * 0.03,
                       }}
                       className="group hover:bg-muted/30 transition-colors"
                     >
-                        <TableCell>
-                          <Checkbox
-                            checked={fornecedoresSelecionados.includes(
-                              fornecedor.id,
-                            )}
-                            onCheckedChange={(checked) =>
-                              handleSelecionarFornecedor(
-                                fornecedor.id,
-                                checked as boolean,
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="line-clamp-2 text-sm font-medium">
-                            {fornecedor.razaoSocial}
-                          </div>
-                          {fornecedor.endereco && (
-                            <div className="text-muted-foreground text-xs mt-1">
-                              {fornecedor.endereco.cidade} - {fornecedor.endereco.uf}
-                            </div>
+                      <TableCell>
+                        <Checkbox
+                          checked={fornecedoresSelecionados.includes(
+                            fornecedor.id,
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-mono text-sm">
-                            <CNPJDisplay value={fornecedor.cnpj} />
+                          onCheckedChange={(checked) =>
+                            handleSelecionarFornecedor(
+                              fornecedor.id,
+                              checked as boolean,
+                            )
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="line-clamp-2 text-sm font-medium">
+                          {fornecedor.razaoSocial}
+                        </div>
+                        {fornecedor.endereco && (
+                          <div className="text-muted-foreground mt-1 text-xs">
+                            {fornecedor.endereco.cidade} -{' '}
+                            {fornecedor.endereco.uf}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-center text-sm font-semibold">
-                            {fornecedor.contratosAtivos}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <FornecedorStatusBadge status={parseStatusFornecedor(fornecedor.status)} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm font-semibold">
-                            <CurrencyDisplay value={fornecedor.valorTotalContratos} />
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => onAbrirFornecedor(fornecedor)}
-                            className="h-8 px-3 shadow-sm"
-                            aria-label="Abrir fornecedor"
-                          >
-                            <Eye className="mr-1 h-4 w-4" />
-                            Abrir
-                          </Button>
-                        </TableCell>
-                      </motion.tr>
-                    ))}
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-mono text-sm">
+                          <CNPJDisplay value={fornecedor.cnpj} />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-center text-sm font-semibold">
+                          {fornecedor.contratosAtivos}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <FornecedorStatusBadge
+                          status={parseStatusFornecedor(fornecedor.status)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm font-semibold">
+                          <CurrencyDisplay
+                            value={fornecedor.valorTotalContratos}
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => onAbrirFornecedor(fornecedor)}
+                          className="h-8 px-3 shadow-sm"
+                          aria-label="Abrir fornecedor"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          Abrir
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -331,7 +336,6 @@ export function TabelaFornecedores({
                   const currentPage = paginacao.pagina
                   const totalPages = totalPaginas
 
-
                   if (totalPages <= maxVisiblePages) {
                     // Se há poucas páginas, mostra todas
                     return Array.from({ length: totalPages }, (_, i) => {
@@ -339,12 +343,17 @@ export function TabelaFornecedores({
                       return (
                         <Button
                           key={pageNum}
-                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          variant={
+                            currentPage === pageNum ? 'default' : 'outline'
+                          }
                           size="sm"
                           disabled={isLoading}
                           onClick={() => {
-                            const novaPaginacao = { ...paginacao, pagina: pageNum }
-                                                  onPaginacaoChange(novaPaginacao)
+                            const novaPaginacao = {
+                              ...paginacao,
+                              pagina: pageNum,
+                            }
+                            onPaginacaoChange(novaPaginacao)
                           }}
                           className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
                         >
@@ -354,27 +363,41 @@ export function TabelaFornecedores({
                     })
                   } else {
                     // Lógica mais avançada para muitas páginas
-                    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+                    const startPage = Math.max(
+                      1,
+                      currentPage - Math.floor(maxVisiblePages / 2),
+                    )
+                    const endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1,
+                    )
 
-                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-                      const pageNum = startPage + i
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={currentPage === pageNum ? 'default' : 'outline'}
-                          size="sm"
-                          disabled={isLoading}
-                          onClick={() => {
-                            const novaPaginacao = { ...paginacao, pagina: pageNum }
-                                                  onPaginacaoChange(novaPaginacao)
-                          }}
-                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })
+                    return Array.from(
+                      { length: endPage - startPage + 1 },
+                      (_, i) => {
+                        const pageNum = startPage + i
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={
+                              currentPage === pageNum ? 'default' : 'outline'
+                            }
+                            size="sm"
+                            disabled={isLoading}
+                            onClick={() => {
+                              const novaPaginacao = {
+                                ...paginacao,
+                                pagina: pageNum,
+                              }
+                              onPaginacaoChange(novaPaginacao)
+                            }}
+                            className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
+                          >
+                            {pageNum}
+                          </Button>
+                        )
+                      },
+                    )
                   }
                 })()}
               </div>
@@ -383,7 +406,11 @@ export function TabelaFornecedores({
                 variant="outline"
                 size="sm"
                 onClick={proximaPagina}
-                disabled={paginacao.pagina >= totalPaginas || totalPaginas === 0 || isLoading}
+                disabled={
+                  paginacao.pagina >= totalPaginas ||
+                  totalPaginas === 0 ||
+                  isLoading
+                }
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <span className="xs:inline hidden">Próxima</span>

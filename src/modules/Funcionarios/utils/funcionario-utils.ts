@@ -6,13 +6,11 @@
  * e manipulacao de dados de funcionarios
  */
 
-import {
-  SituacaoFuncional
-} from '@/modules/Funcionarios/types/funcionario-api'
+import { SituacaoFuncional } from '@/modules/Funcionarios/types/funcionario-api'
 import type {
   FuncionarioApi,
   Usuario,
-  UsuarioAtribuido
+  UsuarioAtribuido,
 } from '@/modules/Funcionarios/types/funcionario-api'
 
 // ========== VALIDACOES ==========
@@ -75,8 +73,10 @@ export function validarCpfCompleto(cpf: string): boolean {
 }
 
 export function isFuncionarioAtivo(funcionario: FuncionarioApi): boolean {
-  return funcionario.ativo &&
-         funcionario.situacaoFuncional !== SituacaoFuncional.INATIVO
+  return (
+    funcionario.ativo &&
+    funcionario.situacaoFuncional !== SituacaoFuncional.INATIVO
+  )
 }
 
 /**
@@ -86,7 +86,7 @@ export function podeSerFiscal(funcionario: FuncionarioApi): boolean {
   // Simplificado para contornar tipagem incorreta da API.
   // A query para /Funcionarios ja inclui `ativo=true`.
   // Assumimos que a API ja retorna apenas funcionarios aptos.
-  return funcionario.ativo === true;
+  return funcionario.ativo === true
 }
 
 // ========== FORMATACAO ==========
@@ -114,7 +114,7 @@ export function formatarNome(nome: string): string {
   return nome
     .toLowerCase()
     .split(' ')
-    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+    .map((palavra) => palavra.charAt(0).toUpperCase() + palavra.slice(1))
     .join(' ')
 }
 
@@ -127,7 +127,7 @@ export function formatarCargo(cargo: string): string {
   return cargo
     .toLowerCase()
     .split(' ')
-    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+    .map((palavra) => palavra.charAt(0).toUpperCase() + palavra.slice(1))
     .join(' ')
 }
 
@@ -136,28 +136,33 @@ export function formatarCargo(cargo: string): string {
 /**
  * Converte SituacaoFuncional para status simples
  */
-export function situacaoParaStatus(situacao: SituacaoFuncional, ativo: boolean): "ativo" | "inativo" {
+export function situacaoParaStatus(
+  situacao: SituacaoFuncional,
+  ativo: boolean,
+): 'ativo' | 'inativo' {
   if (!ativo || situacao === SituacaoFuncional.INATIVO) {
-    return "inativo"
+    return 'inativo'
   }
 
   // Situacoes que devem aparecer como inativo
   const situacoesInativas: string[] = [
     SituacaoFuncional.AFASTADO,
-    SituacaoFuncional.LICENCA
+    SituacaoFuncional.LICENCA,
   ]
 
   if (situacoesInativas.includes(situacao)) {
-    return "inativo"
+    return 'inativo'
   }
 
-  return "ativo"
+  return 'ativo'
 }
 
 /**
  * Converte FuncionarioApi para Usuario (compatibilidade com formulario atual)
  */
-export function mapearFuncionarioParaUsuario(funcionario: FuncionarioApi): Usuario {
+export function mapearFuncionarioParaUsuario(
+  funcionario: FuncionarioApi,
+): Usuario {
   return {
     id: funcionario.id,
     matricula: formatarMatricula(funcionario.matricula),
@@ -166,7 +171,11 @@ export function mapearFuncionarioParaUsuario(funcionario: FuncionarioApi): Usuar
     cargo: formatarCargo(funcionario.cargo),
     departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
     telefone: funcionario.telefone || '',
-    status: situacaoParaStatus(funcionario.situacaoFuncional || (funcionario.situacao as unknown as SituacaoFuncional), funcionario.ativo)
+    status: situacaoParaStatus(
+      funcionario.situacaoFuncional ||
+        (funcionario.situacao as unknown as SituacaoFuncional),
+      funcionario.ativo,
+    ),
   }
 }
 
@@ -175,18 +184,20 @@ export function mapearFuncionarioParaUsuario(funcionario: FuncionarioApi): Usuar
  */
 export function mapearFuncionarioParaUsuarioAtribuido(
   funcionario: FuncionarioApi,
-  tipo: "fiscal" | "gestor" | null = null
+  tipo: 'fiscal' | 'gestor' | null = null,
 ): UsuarioAtribuido {
   return {
     ...mapearFuncionarioParaUsuario(funcionario),
-    tipo
+    tipo,
   }
 }
 
 /**
  * Converte lista de FuncionarioApi para lista de Usuario
  */
-export function mapearFuncionariosParaUsuarios(funcionarios: FuncionarioApi[]): Usuario[] {
+export function mapearFuncionariosParaUsuarios(
+  funcionarios: FuncionarioApi[],
+): Usuario[] {
   return funcionarios.map(mapearFuncionarioParaUsuario)
 }
 
@@ -195,48 +206,59 @@ export function mapearFuncionariosParaUsuarios(funcionarios: FuncionarioApi[]): 
 /**
  * Filtra funcionarios ativos
  */
-export function filtrarFuncionariosAtivos(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+export function filtrarFuncionariosAtivos(
+  funcionarios: FuncionarioApi[],
+): FuncionarioApi[] {
   return funcionarios.filter(isFuncionarioAtivo)
 }
 
 /**
  * Filtra funcionarios que podem ser fiscais
  */
-export function filtrarFuncionariosParaFiscalizacao(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+export function filtrarFuncionariosParaFiscalizacao(
+  funcionarios: FuncionarioApi[],
+): FuncionarioApi[] {
   return funcionarios.filter(podeSerFiscal)
 }
 
 /**
  * Busca funcionario por matricula em uma lista
  */
-export function buscarPorMatricula(funcionarios: FuncionarioApi[], matricula: string): FuncionarioApi | undefined {
+export function buscarPorMatricula(
+  funcionarios: FuncionarioApi[],
+  matricula: string,
+): FuncionarioApi | undefined {
   const matriculaLimpa = matricula.replace(/\s/g, '').toLowerCase()
-  return funcionarios.find(f =>
-    f.matricula.replace(/\s/g, '').toLowerCase() === matriculaLimpa
+  return funcionarios.find(
+    (f) => f.matricula.replace(/\s/g, '').toLowerCase() === matriculaLimpa,
   )
 }
 
 /**
  * Busca funcionarios por nome (busca parcial)
  */
-export function buscarPorNome(funcionarios: FuncionarioApi[], nome: string): FuncionarioApi[] {
+export function buscarPorNome(
+  funcionarios: FuncionarioApi[],
+  nome: string,
+): FuncionarioApi[] {
   if (!nome || nome.length < 2) return []
 
   const nomeLimpo = nome.toLowerCase().trim()
-  return funcionarios.filter(f =>
-    f.nome?.toLowerCase().includes(nomeLimpo)
-  )
+  return funcionarios.filter((f) => f.nome?.toLowerCase().includes(nomeLimpo))
 }
 
 /**
  * Busca funcionarios por lotacao
  */
-export function filtrarPorLotacao(funcionarios: FuncionarioApi[], lotacao: string): FuncionarioApi[] {
+export function filtrarPorLotacao(
+  funcionarios: FuncionarioApi[],
+  lotacao: string,
+): FuncionarioApi[] {
   if (!lotacao) return funcionarios
 
   const lotacaoLimpa = lotacao.toLowerCase().trim()
-  return funcionarios.filter(f =>
-    f.lotacao?.toLowerCase().includes(lotacaoLimpa)
+  return funcionarios.filter((f) =>
+    f.lotacao?.toLowerCase().includes(lotacaoLimpa),
   )
 }
 
@@ -245,35 +267,47 @@ export function filtrarPorLotacao(funcionarios: FuncionarioApi[], lotacao: strin
 /**
  * Agrupa funcionarios por lotacao
  */
-export function agruparPorLotacao(funcionarios: FuncionarioApi[]): Record<string, FuncionarioApi[]> {
-  return funcionarios.reduce((grupos, funcionario) => {
-    const lotacao = funcionario.lotacao || 'Sem lotacao'
-    if (!grupos[lotacao]) {
-      grupos[lotacao] = []
-    }
-    grupos[lotacao].push(funcionario)
-    return grupos
-  }, {} as Record<string, FuncionarioApi[]>)
+export function agruparPorLotacao(
+  funcionarios: FuncionarioApi[],
+): Record<string, FuncionarioApi[]> {
+  return funcionarios.reduce(
+    (grupos, funcionario) => {
+      const lotacao = funcionario.lotacao || 'Sem lotacao'
+      if (!grupos[lotacao]) {
+        grupos[lotacao] = []
+      }
+      grupos[lotacao].push(funcionario)
+      return grupos
+    },
+    {} as Record<string, FuncionarioApi[]>,
+  )
 }
 
 /**
  * Agrupa funcionarios por situacao funcional
  */
-export function agruparPorSituacao(funcionarios: FuncionarioApi[]): Record<SituacaoFuncional, FuncionarioApi[]> {
-  return funcionarios.reduce((grupos, funcionario) => {
-    const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
-    if (!grupos[situacao]) {
-      grupos[situacao] = []
-    }
-    grupos[situacao].push(funcionario)
-    return grupos
-  }, {} as Record<SituacaoFuncional, FuncionarioApi[]>)
+export function agruparPorSituacao(
+  funcionarios: FuncionarioApi[],
+): Record<SituacaoFuncional, FuncionarioApi[]> {
+  return funcionarios.reduce(
+    (grupos, funcionario) => {
+      const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
+      if (!grupos[situacao]) {
+        grupos[situacao] = []
+      }
+      grupos[situacao].push(funcionario)
+      return grupos
+    },
+    {} as Record<SituacaoFuncional, FuncionarioApi[]>,
+  )
 }
 
 /**
  * Ordena funcionarios por nome
  */
-export function ordenarPorNome(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+export function ordenarPorNome(
+  funcionarios: FuncionarioApi[],
+): FuncionarioApi[] {
   return [...funcionarios].sort((a, b) => {
     const nomeA = a.nome || ''
     const nomeB = b.nome || ''
@@ -284,9 +318,11 @@ export function ordenarPorNome(funcionarios: FuncionarioApi[]): FuncionarioApi[]
 /**
  * Ordena funcionarios por matricula
  */
-export function ordenarPorMatricula(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+export function ordenarPorMatricula(
+  funcionarios: FuncionarioApi[],
+): FuncionarioApi[] {
   return [...funcionarios].sort((a, b) =>
-    a.matricula.localeCompare(b.matricula)
+    a.matricula.localeCompare(b.matricula),
   )
 }
 
@@ -295,12 +331,17 @@ export function ordenarPorMatricula(funcionarios: FuncionarioApi[]): Funcionario
 /**
  * Conta funcionarios por situacao
  */
-export function contarPorSituacao(funcionarios: FuncionarioApi[]): Record<SituacaoFuncional, number> {
-  return funcionarios.reduce((contador, funcionario) => {
-    const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
-    contador[situacao] = (contador[situacao] || 0) + 1
-    return contador
-  }, {} as Record<SituacaoFuncional, number>)
+export function contarPorSituacao(
+  funcionarios: FuncionarioApi[],
+): Record<SituacaoFuncional, number> {
+  return funcionarios.reduce(
+    (contador, funcionario) => {
+      const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
+      contador[situacao] = (contador[situacao] || 0) + 1
+      return contador
+    },
+    {} as Record<SituacaoFuncional, number>,
+  )
 }
 
 /**
@@ -313,7 +354,7 @@ export function calcularEstatisticas(funcionarios: FuncionarioApi[]) {
   const aptosFiscalizacao = funcionarios.filter(podeSerFiscal).length
 
   const porSituacao = contarPorSituacao(funcionarios)
-  const lotacoesUnicas = new Set(funcionarios.map(f => f.lotacao)).size
+  const lotacoesUnicas = new Set(funcionarios.map((f) => f.lotacao)).size
 
   return {
     total,
@@ -322,6 +363,6 @@ export function calcularEstatisticas(funcionarios: FuncionarioApi[]) {
     aptosFiscalizacao,
     percentualAtivos: total > 0 ? (ativos / total) * 100 : 0,
     porSituacao,
-    lotacoesUnicas
+    lotacoesUnicas,
   }
 }

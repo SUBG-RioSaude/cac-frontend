@@ -27,13 +27,19 @@ import {
 } from '../sidebar'
 
 // Componente de teste para verificar o hook useSidebar
-const TestSidebarHook = ({ onSidebarData }: { onSidebarData: (data: ReturnType<typeof useSidebar>) => void }) => {
+const TestSidebarHook = ({
+  onSidebarData,
+}: {
+  onSidebarData: (data: ReturnType<typeof useSidebar>) => void
+}) => {
   try {
     const sidebarData = useSidebar()
     onSidebarData(sidebarData)
     return <div data-testid="sidebar-hook-success">Hook funcionando</div>
   } catch (error) {
-    return <div data-testid="sidebar-hook-error">{(error as Error).message}</div>
+    return (
+      <div data-testid="sidebar-hook-error">{(error as Error).message}</div>
+    )
   }
 }
 
@@ -42,20 +48,22 @@ describe('Sidebar Components', () => {
     it('deve lançar erro quando usado fora do SidebarProvider', () => {
       const onSidebarData = vi.fn()
       render(<TestSidebarHook onSidebarData={onSidebarData} />)
-      
+
       expect(screen.getByTestId('sidebar-hook-error')).toBeInTheDocument()
-      expect(screen.getByText('useSidebar must be used within a SidebarProvider.')).toBeInTheDocument()
+      expect(
+        screen.getByText('useSidebar must be used within a SidebarProvider.'),
+      ).toBeInTheDocument()
     })
 
     it('deve retornar dados corretos quando usado dentro do SidebarProvider', () => {
       const onSidebarData = vi.fn()
-      
+
       render(
         <SidebarProvider>
           <TestSidebarHook onSidebarData={onSidebarData} />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
-      
+
       expect(screen.getByTestId('sidebar-hook-success')).toBeInTheDocument()
       expect(onSidebarData).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -64,7 +72,7 @@ describe('Sidebar Components', () => {
           setOpen: expect.any(Function),
           setOpenMobile: expect.any(Function),
           toggleSidebar: expect.any(Function),
-        })
+        }),
       )
     })
   })
@@ -74,20 +82,25 @@ describe('Sidebar Components', () => {
       render(
         <SidebarProvider>
           <div data-testid="sidebar-content">Test content</div>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       expect(screen.getByTestId('sidebar-content')).toBeInTheDocument()
       const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]')
       expect(wrapper).toBeInTheDocument()
-      expect(wrapper).toHaveClass('group/sidebar-wrapper', 'flex', 'min-h-svh', 'w-full')
+      expect(wrapper).toHaveClass(
+        'group/sidebar-wrapper',
+        'flex',
+        'min-h-svh',
+        'w-full',
+      )
     })
 
     it('deve aplicar configurações customizadas', () => {
       render(
         <SidebarProvider defaultOpen={false} className="custom-class">
           <div>Content</div>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]')
@@ -98,12 +111,16 @@ describe('Sidebar Components', () => {
       render(
         <SidebarProvider>
           <div>Content</div>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
-      const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]') as HTMLElement
+      const wrapper = document.querySelector(
+        '[data-slot="sidebar-wrapper"]',
+      ) as HTMLElement
       expect(wrapper.style.getPropertyValue('--sidebar-width')).toBe('16rem')
-      expect(wrapper.style.getPropertyValue('--sidebar-width-icon')).toBe('3rem')
+      expect(wrapper.style.getPropertyValue('--sidebar-width-icon')).toBe(
+        '3rem',
+      )
     })
   })
 
@@ -114,7 +131,7 @@ describe('Sidebar Components', () => {
           <Sidebar data-testid="sidebar">
             <div>Sidebar content</div>
           </Sidebar>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const sidebar = document.querySelector('[data-slot="sidebar"]')
@@ -130,7 +147,7 @@ describe('Sidebar Components', () => {
           <Sidebar side="right" variant="floating" collapsible="icon">
             <div>Content</div>
           </Sidebar>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const sidebar = document.querySelector('[data-slot="sidebar"]')
@@ -144,7 +161,7 @@ describe('Sidebar Components', () => {
           <Sidebar collapsible="none" data-testid="non-collapsible">
             <div>Content</div>
           </Sidebar>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const sidebar = screen.getByTestId('non-collapsible')
@@ -154,7 +171,7 @@ describe('Sidebar Components', () => {
         'text-sidebar-foreground',
         'flex',
         'h-full',
-        'flex-col'
+        'flex-col',
       )
     })
   })
@@ -164,7 +181,7 @@ describe('Sidebar Components', () => {
       render(
         <SidebarProvider>
           <SidebarTrigger data-testid="sidebar-trigger" />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const trigger = screen.getByTestId('sidebar-trigger')
@@ -177,12 +194,12 @@ describe('Sidebar Components', () => {
     it('deve alternar sidebar quando clicado', async () => {
       const user = userEvent.setup()
       const onSidebarData = vi.fn()
-      
+
       render(
         <SidebarProvider>
           <SidebarTrigger data-testid="sidebar-trigger" />
           <TestSidebarHook onSidebarData={onSidebarData} />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const trigger = screen.getByTestId('sidebar-trigger')
@@ -192,18 +209,18 @@ describe('Sidebar Components', () => {
         expect.objectContaining({
           state: 'collapsed',
           open: false,
-        })
+        }),
       )
     })
 
     it('deve chamar onClick personalizado quando fornecido', async () => {
       const user = userEvent.setup()
       const customClick = vi.fn()
-      
+
       render(
         <SidebarProvider>
           <SidebarTrigger onClick={customClick} data-testid="custom-trigger" />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const trigger = screen.getByTestId('custom-trigger')
@@ -226,7 +243,7 @@ describe('Sidebar Components', () => {
         'flex',
         'w-full',
         'flex-1',
-        'flex-col'
+        'flex-col',
       )
     })
 
@@ -234,7 +251,7 @@ describe('Sidebar Components', () => {
       render(
         <SidebarInset className="custom-inset" data-testid="custom-inset">
           Content
-        </SidebarInset>
+        </SidebarInset>,
       )
 
       const inset = screen.getByTestId('custom-inset')
@@ -253,7 +270,9 @@ describe('Sidebar Components', () => {
     })
 
     it('deve renderizar SidebarContent', () => {
-      render(<SidebarContent data-testid="sidebar-content">Content</SidebarContent>)
+      render(
+        <SidebarContent data-testid="sidebar-content">Content</SidebarContent>,
+      )
 
       const content = screen.getByTestId('sidebar-content')
       expect(content).toHaveAttribute('data-slot', 'sidebar-content')
@@ -264,7 +283,7 @@ describe('Sidebar Components', () => {
         'flex-1',
         'flex-col',
         'gap-2',
-        'overflow-auto'
+        'overflow-auto',
       )
     })
 
@@ -283,7 +302,9 @@ describe('Sidebar Components', () => {
       render(
         <SidebarProvider>
           <SidebarGroup data-testid="sidebar-group">
-            <SidebarGroupLabel data-testid="group-label">Menu Label</SidebarGroupLabel>
+            <SidebarGroupLabel data-testid="group-label">
+              Menu Label
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu data-testid="sidebar-menu">
                 <SidebarMenuItem data-testid="menu-item">
@@ -294,28 +315,43 @@ describe('Sidebar Components', () => {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
-      expect(screen.getByTestId('sidebar-group')).toHaveAttribute('data-slot', 'sidebar-group')
-      expect(screen.getByTestId('group-label')).toHaveAttribute('data-slot', 'sidebar-group-label')
-      expect(screen.getByTestId('sidebar-menu')).toHaveAttribute('data-slot', 'sidebar-menu')
-      expect(screen.getByTestId('menu-item')).toHaveAttribute('data-slot', 'sidebar-menu-item')
-      expect(screen.getByTestId('menu-button')).toHaveAttribute('data-slot', 'sidebar-menu-button')
+      expect(screen.getByTestId('sidebar-group')).toHaveAttribute(
+        'data-slot',
+        'sidebar-group',
+      )
+      expect(screen.getByTestId('group-label')).toHaveAttribute(
+        'data-slot',
+        'sidebar-group-label',
+      )
+      expect(screen.getByTestId('sidebar-menu')).toHaveAttribute(
+        'data-slot',
+        'sidebar-menu',
+      )
+      expect(screen.getByTestId('menu-item')).toHaveAttribute(
+        'data-slot',
+        'sidebar-menu-item',
+      )
+      expect(screen.getByTestId('menu-button')).toHaveAttribute(
+        'data-slot',
+        'sidebar-menu-button',
+      )
     })
 
     it('deve aplicar variantes do menu button', () => {
       render(
         <SidebarProvider>
-          <SidebarMenuButton 
-            variant="outline" 
-            size="lg" 
+          <SidebarMenuButton
+            variant="outline"
+            size="lg"
             isActive
             data-testid="menu-button"
           >
             Button
           </SidebarMenuButton>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       const button = screen.getByTestId('menu-button')
@@ -326,10 +362,13 @@ describe('Sidebar Components', () => {
     it('deve renderizar tooltip quando fornecido', () => {
       render(
         <SidebarProvider defaultOpen={false}>
-          <SidebarMenuButton tooltip="Menu tooltip" data-testid="menu-with-tooltip">
+          <SidebarMenuButton
+            tooltip="Menu tooltip"
+            data-testid="menu-with-tooltip"
+          >
             Button
           </SidebarMenuButton>
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       expect(screen.getByTestId('menu-with-tooltip')).toBeInTheDocument()
@@ -342,7 +381,7 @@ describe('Sidebar Components', () => {
       const { rerender } = render(
         <SidebarProvider open={true} onOpenChange={onOpenChange}>
           <SidebarTrigger data-testid="controlled-trigger" />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       fireEvent.click(screen.getByTestId('controlled-trigger'))
@@ -351,7 +390,7 @@ describe('Sidebar Components', () => {
       rerender(
         <SidebarProvider open={false} onOpenChange={onOpenChange}>
           <SidebarTrigger data-testid="controlled-trigger" />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       fireEvent.click(screen.getByTestId('controlled-trigger'))
@@ -363,13 +402,15 @@ describe('Sidebar Components', () => {
       let cookieValue = ''
       Object.defineProperty(document, 'cookie', {
         get: () => cookieValue,
-        set: (value) => { cookieValue = value },
+        set: (value) => {
+          cookieValue = value
+        },
       })
 
       render(
         <SidebarProvider>
           <SidebarTrigger data-testid="cookie-trigger" />
-        </SidebarProvider>
+        </SidebarProvider>,
       )
 
       fireEvent.click(screen.getByTestId('cookie-trigger'))

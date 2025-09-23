@@ -14,7 +14,10 @@ interface ExpiringContractsCardProps {
   className?: string
 }
 
-export function ExpiringContractsCard({ filters, className }: ExpiringContractsCardProps) {
+export function ExpiringContractsCard({
+  filters,
+  className,
+}: ExpiringContractsCardProps) {
   const { metrics, isLoading, error } = useDashboardMetrics(filters)
 
   const metric = metrics?.contratosVencendo
@@ -31,6 +34,7 @@ export function ExpiringContractsCard({ filters, className }: ExpiringContractsC
       status={status}
       className={className}
       description="Vencendo nos próximos 60 dias"
+      data-testid="expiring-contracts-card"
     />
   )
 }

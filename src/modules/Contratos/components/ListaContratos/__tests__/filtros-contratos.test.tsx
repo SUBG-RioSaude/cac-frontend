@@ -14,10 +14,7 @@ vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
       'Secretaria de Administração',
       'Secretaria de Transportes',
     ],
-    gestoras: [
-      'Departamento de Compras',
-      'Departamento de Contratos',
-    ]
+    gestoras: ['Departamento de Compras', 'Departamento de Contratos'],
   },
 }))
 
@@ -46,9 +43,7 @@ const queryClient = new QueryClient({
 
 const renderWithQueryClient = (component: React.ReactElement) => {
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
   )
 }
 

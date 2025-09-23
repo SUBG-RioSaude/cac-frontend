@@ -10,11 +10,15 @@ export interface AuthState {
   estaAutenticado: boolean
   carregando: boolean
   erro: string | null
-  
+
   // Ações
   login: (email: string, senha: string) => Promise<boolean>
   confirmarCodigo2FA: (email: string, codigo: string) => Promise<boolean>
-  trocarSenha: (email: string, novaSenha: string, tokenTrocaSenha?: string) => Promise<boolean>
+  trocarSenha: (
+    email: string,
+    novaSenha: string,
+    tokenTrocaSenha?: string,
+  ) => Promise<boolean>
   esqueciSenha: (email: string) => Promise<boolean>
   logout: () => void
   logoutTodasSessoes: () => Promise<void>
@@ -26,18 +30,18 @@ export interface AuthState {
 // Função para validar formato de token JWT ou token criptografado
 const validarTokenJWT = (token: string): boolean => {
   if (!token || typeof token !== 'string') return false
-  
+
   // Verifica se é um JWT padrão (3 partes separadas por ponto)
   const partes = token.split('.')
-  if (partes.length === 3 && partes.every(part => part.length > 0)) {
+  if (partes.length === 3 && partes.every((part) => part.length > 0)) {
     return true
   }
-  
+
   // Verifica se é um token criptografado (base64 válido)
   if (token.length > 20 && /^[A-Za-z0-9+/=]+$/.test(token)) {
     return true
   }
-  
+
   return false
 }
 
@@ -54,22 +58,26 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, senha: string) => {
         try {
           set({ carregando: true, erro: null })
-          
+
           const resultado = await authService.login(email, senha)
-          
+
           if (resultado.sucesso) {
             // Salva email para próxima etapa
             sessionStorage.setItem('auth_email', email)
             set({ carregando: false })
             return true
           } else {
-            set({ carregando: false, erro: resultado.mensagem || 'Erro no login' })
+            set({
+              carregando: false,
+              erro: resultado.mensagem || 'Erro no login',
+            })
             return false
           }
         } catch (erro) {
-          set({ 
-            carregando: false, 
-            erro: erro instanceof Error ? erro.message : 'Erro inesperado no login' 
+          set({
+            carregando: false,
+            erro:
+              erro instanceof Error ? erro.message : 'Erro inesperado no login',
           })
           return false
         }
@@ -79,12 +87,15 @@ export const useAuthStore = create<AuthState>()(
       confirmarCodigo2FA: async (email: string, codigo: string) => {
         try {
           set({ carregando: true, erro: null })
-          
+
           const resultado = await authService.confirmarCodigo2FA(email, codigo)
-          
+
           // Se a API indica que precisa trocar senha, mesmo com 200 OK, trata como sucesso para redirecionamento
           if (resultado.precisaTrocarSenha) {
-            sessionStorage.setItem('tokenTrocaSenha', resultado.tokenTrocaSenha || '')
+            sessionStorage.setItem(
+              'tokenTrocaSenha',
+              resultado.tokenTrocaSenha || '',
+            )
             sessionStorage.setItem('auth_email', email)
             sessionStorage.setItem('auth_context', 'password_reset') // Define contexto correto para troca de senha
             set({ carregando: false, erro: null }) // Limpa qualquer erro
@@ -97,23 +108,31 @@ export const useAuthStore = create<AuthState>()(
             // Login bem-sucedido - salva tokens nos cookies
             if (resultado.dados) {
               const { token, refreshToken, usuario } = resultado.dados
-              
+
               // Valida tokens antes de salvar
               if (validarTokenJWT(token) && validarTokenJWT(refreshToken)) {
                 // Salva tokens nos cookies com configurações de segurança
-                cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-                cookieUtils.setCookie('auth_refresh_token', refreshToken, authCookieConfig.refreshToken)
-                
+                cookieUtils.setCookie(
+                  'auth_token',
+                  token,
+                  authCookieConfig.token,
+                )
+                cookieUtils.setCookie(
+                  'auth_refresh_token',
+                  refreshToken,
+                  authCookieConfig.refreshToken,
+                )
+
                 set({
                   usuario,
                   estaAutenticado: true,
                   carregando: false,
-                  erro: null
+                  erro: null,
                 })
               } else {
-                set({ 
-                  carregando: false, 
-                  erro: 'Tokens inválidos recebidos do servidor' 
+                set({
+                  carregando: false,
+                  erro: 'Tokens inválidos recebidos do servidor',
                 })
                 return false
               }
@@ -122,77 +141,86 @@ export const useAuthStore = create<AuthState>()(
             // Limpa dados temporários
             sessionStorage.removeItem('auth_email')
             sessionStorage.removeItem('tokenTrocaSenha')
-            
+
             return true
           } else {
             // Se não foi sucesso e não precisa trocar senha, define o erro
-            set({ carregando: false, erro: resultado.mensagem || 'Erro ao confirmar código 2FA.' })
+            set({
+              carregando: false,
+              erro: resultado.mensagem || 'Erro ao confirmar código 2FA.',
+            })
             return false
           }
         } catch (erro) {
-          set({ 
-            carregando: false, 
-            erro: erro instanceof Error ? erro.message : 'Erro na verificação' 
+          set({
+            carregando: false,
+            erro: erro instanceof Error ? erro.message : 'Erro na verificação',
           })
           return false
         }
       },
 
       // Troca de senha
-      trocarSenha: async (email: string, novaSenha: string, tokenTrocaSenha?: string) => {
+      trocarSenha: async (
+        email: string,
+        novaSenha: string,
+        tokenTrocaSenha?: string,
+      ) => {
         try {
           set({ carregando: true, erro: null })
-          
-          const resultado = await authService.trocarSenha(email, novaSenha, tokenTrocaSenha)
-          
+
+          const resultado = await authService.trocarSenha(
+            email,
+            novaSenha,
+            tokenTrocaSenha,
+          )
+
           if (resultado.sucesso) {
             const { token, refreshToken, usuario } = resultado.dados
-            
-            // Debug: log dos tokens recebidos
-            console.log('Token recebido:', token ? `${token.substring(0, 20)}...` : 'null')
-            console.log('RefreshToken recebido:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null')
-            
+
             // Valida tokens antes de salvar
             const tokenValido = validarTokenJWT(token)
             const refreshTokenValido = validarTokenJWT(refreshToken)
-            
-            console.log('Token válido:', tokenValido)
-            console.log('RefreshToken válido:', refreshTokenValido)
-            
+
             if (tokenValido && refreshTokenValido) {
               // Salva tokens nos cookies com configurações de segurança
               cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-              cookieUtils.setCookie('auth_refresh_token', refreshToken, authCookieConfig.refreshToken)
-              
+              cookieUtils.setCookie(
+                'auth_refresh_token',
+                refreshToken,
+                authCookieConfig.refreshToken,
+              )
+
               set({
                 usuario,
                 estaAutenticado: true,
                 carregando: false,
-                erro: null
+                erro: null,
               })
-              
+
               // Limpa dados temporários
               sessionStorage.removeItem('auth_email')
               sessionStorage.removeItem('tokenTrocaSenha')
-              
+
               return true
             } else {
-              console.error('Falha na validação de tokens:', { tokenValido, refreshTokenValido })
-              set({ 
-                carregando: false, 
-                erro: 'Formato de tokens inválido recebido do servidor' 
+              set({
+                carregando: false,
+                erro: 'Formato de tokens inválido recebido do servidor',
               })
               return false
             }
           } else {
-            set({ carregando: false, erro: resultado.mensagem || 'Erro ao trocar senha' })
+            set({
+              carregando: false,
+              erro: resultado.mensagem || 'Erro ao trocar senha',
+            })
             return false
           }
         } catch (erro) {
-          console.error('Erro na troca de senha:', erro)
-          set({ 
-            carregando: false, 
-            erro: erro instanceof Error ? erro.message : 'Erro ao trocar senha' 
+          set({
+            carregando: false,
+            erro: erro instanceof Error ? erro.message : 'Erro ao trocar senha',
           })
           return false
         }
@@ -202,21 +230,27 @@ export const useAuthStore = create<AuthState>()(
       esqueciSenha: async (email: string) => {
         try {
           set({ carregando: true, erro: null })
-          
+
           const resultado = await authService.esqueciSenha(email)
-          
+
           if (resultado.sucesso) {
             sessionStorage.setItem('auth_email', email)
             set({ carregando: false })
             return true
           } else {
-            set({ carregando: false, erro: resultado.mensagem || 'Erro ao solicitar recuperação' })
+            set({
+              carregando: false,
+              erro: resultado.mensagem || 'Erro ao solicitar recuperação',
+            })
             return false
           }
         } catch (erro) {
-          set({ 
-            carregando: false, 
-            erro: erro instanceof Error ? erro.message : 'Erro ao solicitar recuperação' 
+          set({
+            carregando: false,
+            erro:
+              erro instanceof Error
+                ? erro.message
+                : 'Erro ao solicitar recuperação',
           })
           return false
         }
@@ -225,7 +259,7 @@ export const useAuthStore = create<AuthState>()(
       // Logout
       logout: () => {
         const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-        
+
         // Invalida token no servidor (não bloqueia UI)
         if (refreshToken && validarTokenJWT(refreshToken)) {
           authService.logout(refreshToken).catch(() => {})
@@ -233,13 +267,16 @@ export const useAuthStore = create<AuthState>()(
 
         // Remove tokens dos cookies
         cookieUtils.removeCookie('auth_token', authCookieConfig.token)
-        cookieUtils.removeCookie('auth_refresh_token', authCookieConfig.refreshToken)
+        cookieUtils.removeCookie(
+          'auth_refresh_token',
+          authCookieConfig.refreshToken,
+        )
 
         set({
           usuario: null,
           estaAutenticado: false,
           carregando: false,
-          erro: null
+          erro: null,
         })
 
         // Limpa dados da sessão
@@ -250,55 +287,63 @@ export const useAuthStore = create<AuthState>()(
       logoutTodasSessoes: async () => {
         try {
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-          
+
           if (refreshToken && validarTokenJWT(refreshToken)) {
             await authService.logoutTodasSessoes(refreshToken)
           }
 
           // Remove tokens dos cookies
           cookieUtils.removeCookie('auth_token', authCookieConfig.token)
-          cookieUtils.removeCookie('auth_refresh_token', authCookieConfig.refreshToken)
+          cookieUtils.removeCookie(
+            'auth_refresh_token',
+            authCookieConfig.refreshToken,
+          )
 
           set({
             usuario: null,
             estaAutenticado: false,
             carregando: false,
-            erro: null
+            erro: null,
           })
 
           sessionStorage.clear()
-        } catch (erro) {
-          console.error('Erro ao fazer logout de todas as sessões:', erro)
-        }
+        } catch (erro) {}
       },
 
       // Renovação de token
       renovarToken: async () => {
         try {
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-          
+
           if (!refreshToken || !validarTokenJWT(refreshToken)) {
             return false
           }
 
           const resultado = await authService.renovarToken(refreshToken)
-          
+
           if (resultado.sucesso) {
-            const { token, refreshToken: newRefreshToken, usuario } = resultado.dados
-            
+            const {
+              token,
+              refreshToken: newRefreshToken,
+              usuario,
+            } = resultado.dados
+
             // Valida novos tokens antes de salvar
             if (validarTokenJWT(token) && validarTokenJWT(newRefreshToken)) {
               // Atualiza tokens nos cookies
               cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-              cookieUtils.setCookie('auth_refresh_token', newRefreshToken, authCookieConfig.refreshToken)
-              
+              cookieUtils.setCookie(
+                'auth_refresh_token',
+                newRefreshToken,
+                authCookieConfig.refreshToken,
+              )
+
               set({
                 usuario,
-                estaAutenticado: true
+                estaAutenticado: true,
               })
               return true
             } else {
-              console.error('Tokens inválidos recebidos na renovação')
               return false
             }
           } else {
@@ -307,7 +352,6 @@ export const useAuthStore = create<AuthState>()(
             return false
           }
         } catch (erro) {
-          console.error('Erro ao renovar token:', erro)
           get().logout()
           return false
         }
@@ -318,15 +362,20 @@ export const useAuthStore = create<AuthState>()(
         try {
           const token = cookieUtils.getCookie('auth_token')
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-          
-          if (!token || !refreshToken || !validarTokenJWT(token) || !validarTokenJWT(refreshToken)) {
+
+          if (
+            !token ||
+            !refreshToken ||
+            !validarTokenJWT(token) ||
+            !validarTokenJWT(refreshToken)
+          ) {
             set({ carregando: false, estaAutenticado: false })
             return
           }
 
           // Verifica se o token ainda é válido
           const resultado = await authService.verificarAcesso()
-          
+
           if (resultado.sucesso) {
             set({ estaAutenticado: true, carregando: false })
           } else {
@@ -337,20 +386,19 @@ export const useAuthStore = create<AuthState>()(
             }
           }
         } catch (erro) {
-          console.error('Erro ao verificar autenticação:', erro)
           set({ estaAutenticado: false, carregando: false })
         }
       },
 
       // Limpar erro
-      limparErro: () => set({ erro: null })
+      limparErro: () => set({ erro: null }),
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
         usuario: state.usuario,
-        estaAutenticado: state.estaAutenticado
-      })
-    }
-  )
+        estaAutenticado: state.estaAutenticado,
+      }),
+    },
+  ),
 )

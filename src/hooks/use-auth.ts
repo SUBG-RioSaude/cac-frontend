@@ -32,7 +32,8 @@ export const useAuth = () => {
 
         // Rota que requer usuário não autenticado
         if (requireGuest && estaAutenticado) {
-          const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+          const redirectPath =
+            sessionStorage.getItem('redirectAfterLogin') || '/'
           sessionStorage.removeItem('redirectAfterLogin')
           navigate(redirectPath, { replace: true })
         }
@@ -74,6 +75,6 @@ export const useAuth = () => {
     ...authStore,
     useAuthGuard,
     useRedirectAfterLogin,
-    useCheckPasswordChange
+    useCheckPasswordChange,
   }
 }

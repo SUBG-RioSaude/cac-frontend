@@ -33,20 +33,20 @@ Content-Type: application/json
 
 ```javascript
 const TiposAlteracao = {
-  Prazo: 1,              // Alteração de vigência/prazo
-  Valor: 2,              // Alteração de valor global
-  Qualitativo: 3,        // Alteração de especificações
-  Quantidade: 4,         // Alteração de quantidades
-  PrazoEValor: 5,        // Combinação prazo + valor
-  SubRogacao: 6,         // Substituição de fornecedores
-  Reajuste: 7,           // Aplicação de índices
-  Repactuacao: 8,        // Recomposição de preços
-  Reequilibrio: 9,       // Reequilíbrio econômico
+  Prazo: 1, // Alteração de vigência/prazo
+  Valor: 2, // Alteração de valor global
+  Qualitativo: 3, // Alteração de especificações
+  Quantidade: 4, // Alteração de quantidades
+  PrazoEValor: 5, // Combinação prazo + valor
+  SubRogacao: 6, // Substituição de fornecedores
+  Reajuste: 7, // Aplicação de índices
+  Repactuacao: 8, // Recomposição de preços
+  Reequilibrio: 9, // Reequilíbrio econômico
   RepactuacaoEReequilibrio: 10, // Combinação
-  Rescisao: 11,          // Encerramento antecipado
-  Supressao: 12,         // Redução de quantidades/valores
-  Suspensao: 13,         // Paralisação temporária
-  Outros: 99             // Outros tipos
+  Rescisao: 11, // Encerramento antecipado
+  Supressao: 12, // Redução de quantidades/valores
+  Suspensao: 13, // Paralisação temporária
+  Outros: 99, // Outros tipos
 }
 ```
 
@@ -54,37 +54,40 @@ const TiposAlteracao = {
 
 ## 🧩 Blocos Dinâmicos
 
-### **1. 💰 Bloco Valor** 
+### **1. 💰 Bloco Valor**
+
 **Obrigatório para**: `Quantidade`, `Valor`, `Supressao`, `Repactuacao`, `Reajuste`, `Reequilibrio`
 
 ```json
 {
   "valor": {
-    "operacao": 0,                    // 0=Acrescentar, 1=Diminuir, 2=Substituir
-    "valorAjuste": 150000.00,         // Valor a ser ajustado
-    "percentualAjuste": 15.5,         // Percentual do ajuste (opcional)
-    "novoValorGlobal": 650000.00,     // Novo valor total (opcional)
+    "operacao": 0, // 0=Acrescentar, 1=Diminuir, 2=Substituir
+    "valorAjuste": 150000.0, // Valor a ser ajustado
+    "percentualAjuste": 15.5, // Percentual do ajuste (opcional)
+    "novoValorGlobal": 650000.0, // Novo valor total (opcional)
     "observacoes": "Reajuste IPCA 2024"
   }
 }
 ```
 
 ### **2. ⏰ Bloco Vigência**
+
 **Obrigatório para**: `Prazo`, `Suspensao`, `Rescisao`
 
 ```json
 {
   "vigencia": {
-    "operacao": 0,                    // 0=Acrescentar, 1=Diminuir, 2=Substituir
-    "valorTempo": 6,                  // Quantidade de tempo
-    "tipoUnidade": 1,                 // 0=Dias, 1=Meses, 2=Anos
-    "novaDataFinal": "2025-06-30",    // Nova data final (opcional)
+    "operacao": 0, // 0=Acrescentar, 1=Diminuir, 2=Substituir
+    "valorTempo": 6, // Quantidade de tempo
+    "tipoUnidade": 1, // 0=Dias, 1=Meses, 2=Anos
+    "novaDataFinal": "2025-06-30", // Nova data final (opcional)
     "observacoes": "Prorrogação necessária"
   }
 }
 ```
 
 ### **3. 🏥 Bloco Unidades**
+
 **Obrigatório para**: Quando há alteração de escopo territorial
 
 ```json
@@ -94,15 +97,14 @@ const TiposAlteracao = {
       "550e8400-e29b-41d4-a716-446655440020",
       "550e8400-e29b-41d4-a716-446655440021"
     ],
-    "unidadesDesvinculadas": [
-      "550e8400-e29b-41d4-a716-446655440019"
-    ],
+    "unidadesDesvinculadas": ["550e8400-e29b-41d4-a716-446655440019"],
     "observacoes": "Inclusão de 2 UBS, exclusão de 1 UPA"
   }
 }
 ```
 
 ### **4. 🏢 Bloco Fornecedores**
+
 **Obrigatório para**: `SubRogacao`
 
 ```json
@@ -112,19 +114,18 @@ const TiposAlteracao = {
       {
         "empresaId": "550e8400-e29b-41d4-a716-446655440030",
         "percentualParticipacao": 60.0,
-        "valorAtribuido": 300000.00,
+        "valorAtribuido": 300000.0,
         "observacoes": "Empresa principal"
       }
     ],
-    "fornecedoresDesvinculados": [
-      "550e8400-e29b-41d4-a716-446655440025"
-    ],
+    "fornecedoresDesvinculados": ["550e8400-e29b-41d4-a716-446655440025"],
     "observacoes": "Sub-rogação por falência"
   }
 }
 ```
 
 ### **5. 📄 Bloco Cláusulas**
+
 **Recomendado para**: `Qualitativo`, alterações complexas
 
 ```json
@@ -143,14 +144,15 @@ const TiposAlteracao = {
 
 ### **Regras de Limite**
 
-| Tipo de Alteração | Limite Legal | Observações |
-|-------------------|--------------|-------------|
-| `Quantidade`, `Valor`, `Supressao` | **25%** | Limite base |
-| `Qualitativo`, `Reajuste`, `Repactuacao`, `Reequilibrio` | **50%** | Limite especial |
-| `Prazo`, `Suspensao`, `Rescisao` | **Sem limite** | Não afeta valor |
-| **Combinações** | **Maior limite aplicável** | Ex: Quantidade+Reajuste = 50% |
+| Tipo de Alteração                                        | Limite Legal               | Observações                   |
+| -------------------------------------------------------- | -------------------------- | ----------------------------- |
+| `Quantidade`, `Valor`, `Supressao`                       | **25%**                    | Limite base                   |
+| `Qualitativo`, `Reajuste`, `Repactuacao`, `Reequilibrio` | **50%**                    | Limite especial               |
+| `Prazo`, `Suspensao`, `Rescisao`                         | **Sem limite**             | Não afeta valor               |
+| **Combinações**                                          | **Maior limite aplicável** | Ex: Quantidade+Reajuste = 50% |
 
 ### **Cálculo do Percentual**
+
 ```
 Percentual = (Soma de todas as alterações ativas / Valor original do contrato) × 100
 ```
@@ -160,6 +162,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ## 📊 Cenários de Uso Completos
 
 ### **Cenário 1: Aumento Simples de Valor (Básico)**
+
 ```json
 {
   "contratoId": "ac4f3d02-5ece-497f-b35a-b9e588e50ea7",
@@ -168,7 +171,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
   "dataEfeito": "2024-06-01",
   "valor": {
     "operacao": 0,
-    "valorAjuste": 100000.00,
+    "valorAjuste": 100000.0,
     "percentualAjuste": 20.0,
     "observacoes": "Aumento proporcional ao escopo"
   }
@@ -176,6 +179,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ```
 
 **Response Esperada:**
+
 ```json
 {
   "alteracao": {
@@ -188,6 +192,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ```
 
 ### **Cenário 2: Alteração que Excede Limite Legal**
+
 ```json
 {
   "contratoId": "ac4f3d02-5ece-497f-b35a-b9e588e50ea7",
@@ -195,12 +200,13 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
   "justificativa": "Expansão significativa do escopo devido a novas demandas.",
   "valor": {
     "operacao": 0,
-    "valorAjuste": 200000.00
+    "valorAjuste": 200000.0
   }
 }
 ```
 
 **Response com Alerta (HTTP 202):**
+
 ```json
 {
   "alteracao": {
@@ -218,6 +224,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ```
 
 ### **Cenário 3: Prorrogação de Prazo (Sem Limite)**
+
 ```json
 {
   "contratoId": "ac4f3d02-5ece-497f-b35a-b9e588e50ea7",
@@ -234,6 +241,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ```
 
 ### **Cenário 4: Alteração Qualitativa (Limite 50%)**
+
 ```json
 {
   "contratoId": "ac4f3d02-5ece-497f-b35a-b9e588e50ea7",
@@ -248,6 +256,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ```
 
 ### **Cenário 5: Sub-rogação de Fornecedor**
+
 ```json
 {
   "contratoId": "ac4f3d02-5ece-497f-b35a-b9e588e50ea7",
@@ -258,19 +267,18 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
       {
         "empresaId": "novo-fornecedor-id",
         "percentualParticipacao": 100.0,
-        "valorAtribuido": 500000.00,
+        "valorAtribuido": 500000.0,
         "observacoes": "Nova razão social pós-fusão"
       }
     ],
-    "fornecedoresDesvinculados": [
-      "fornecedor-antigo-id"
-    ],
+    "fornecedoresDesvinculados": ["fornecedor-antigo-id"],
     "observacoes": "Transferência integral devido à fusão empresarial"
   }
 }
 ```
 
 ### **Cenário 6: Alteração Complexa (Múltiplos Tipos)**
+
 ```json
 {
   "contratoId": "ac4f3d02-5ece-497f-b35a-b9e588e50ea7",
@@ -279,9 +287,9 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
   "dataEfeito": "2024-07-01",
   "valor": {
     "operacao": 0,
-    "valorAjuste": 75000.00,
+    "valorAjuste": 75000.0,
     "percentualAjuste": 15.0,
-    "novoValorGlobal": 575000.00
+    "novoValorGlobal": 575000.0
   },
   "vigencia": {
     "operacao": 0,
@@ -290,10 +298,7 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
     "novaDataFinal": "2025-06-30"
   },
   "unidades": {
-    "unidadesVinculadas": [
-      "nova-unidade-1",
-      "nova-unidade-2"
-    ],
+    "unidadesVinculadas": ["nova-unidade-1", "nova-unidade-2"],
     "observacoes": "Inclusão de 2 novas UBS"
   },
   "clausulas": {
@@ -307,15 +312,18 @@ Percentual = (Soma de todas as alterações ativas / Valor original do contrato)
 ## 🔄 Fluxo de Confirmação para Exceções
 
 ### **1. Detectar Alerta de Limite Legal**
+
 Quando o response retorna `requerConfirmacaoLimiteLegal: true`:
 
 ### **2. Endpoint de Confirmação**
+
 ```http
 POST /api/alteracoes-contratuais/{id}/confirmar
 Content-Type: application/json
 ```
 
 **Body obrigatório:**
+
 ```json
 {
   "confirmacaoTexto": "CONFIRMO CIENTE DOS RISCOS LEGAIS",
@@ -325,6 +333,7 @@ Content-Type: application/json
 ```
 
 **⚠️ Validações Rigorosas:**
+
 - `confirmacaoTexto` deve ser **exatamente**: `"CONFIRMO CIENTE DOS RISCOS LEGAIS"`
 - `aceitoRiscosLegais` deve ser **obrigatoriamente**: `true`
 - `justificativaAdicional` é **opcional** mas recomendada
@@ -334,21 +343,25 @@ Content-Type: application/json
 ## 📋 Outros Endpoints Importantes
 
 ### **Consultar Alterações de um Contrato**
+
 ```http
 GET /api/alteracoes-contratuais?contratoId={guid}
 ```
 
 ### **Buscar Alteração Específica**
+
 ```http
 GET /api/alteracoes-contratuais/{id}
 ```
 
 ### **Obter Resumo de Impacto**
+
 ```http
 GET /api/alteracoes-contratuais/{id}/resumo
 ```
 
 ### **Validar Limite Legal (Preview)**
+
 ```http
 POST /api/alteracoes-contratuais/validar-limite
 ```
@@ -358,22 +371,26 @@ POST /api/alteracoes-contratuais/validar-limite
 ## 🎨 Guidelines de UX/UI
 
 ### **1. Seleção de Tipos**
+
 - **Checkbox múltipla** para seleção de tipos
 - **Mostrar limites legais** ao lado de cada tipo
 - **Destacar visualmente** tipos que permitem 50% vs 25%
 
 ### **2. Blocos Dinâmicos**
+
 - **Mostrar/ocultar** blocos baseado nos tipos selecionados
 - **Validação em tempo real** de campos obrigatórios
 - **Indicadores visuais** de obrigatoriedade
 
 ### **3. Alertas de Limite Legal**
+
 - **Modal de confirmação** quando excede limite
 - **Visualização do cálculo** (percentual atual vs limite)
 - **Texto de confirmação** deve ser digitado pelo usuário
 - **Checkbox de aceite** obrigatório
 
 ### **4. Estados de Progresso**
+
 ```
 Rascunho → Aguardando Aprovação → Vigente
     ↓            ↓                    ↓
@@ -385,6 +402,7 @@ Rascunho → Aguardando Aprovação → Vigente
 ## ⚠️ Tratamento de Erros
 
 ### **Erro 400 - Validação**
+
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
@@ -398,6 +416,7 @@ Rascunho → Aguardando Aprovação → Vigente
 ```
 
 ### **Erro 404 - Contrato não encontrado**
+
 ```json
 {
   "message": "Contrato não encontrado"
@@ -405,6 +424,7 @@ Rascunho → Aguardando Aprovação → Vigente
 ```
 
 ### **Erro 409 - Conflito de estado**
+
 ```json
 {
   "message": "Contrato não pode receber alterações devido ao seu status atual"
@@ -416,26 +436,31 @@ Rascunho → Aguardando Aprovação → Vigente
 ## 🧪 Casos de Teste Recomendados
 
 ### **Teste 1: Alteração Simples**
+
 - Tipo: Quantidade
 - Valor: 10% do contrato
 - Resultado esperado: Criação sem alerta
 
 ### **Teste 2: Excesso de Limite**
-- Tipo: Quantidade  
+
+- Tipo: Quantidade
 - Valor: 30% do contrato
 - Resultado esperado: Alerta de limite legal
 
 ### **Teste 3: Prazo sem Valor**
+
 - Tipo: Prazo
 - Sem bloco valor
 - Resultado esperado: Criação sem limite
 
 ### **Teste 4: Múltiplos Tipos**
+
 - Tipos: Quantidade + Reajuste
 - Limite aplicável: 50% (maior limite)
 - Resultado: Validação com limite correto
 
 ### **Teste 5: Sub-rogação**
+
 - Tipo: Sub-rogação
 - Bloco fornecedores obrigatório
 - Resultado: Criação com nova vinculação
@@ -445,30 +470,35 @@ Rascunho → Aguardando Aprovação → Vigente
 ## 🚀 Implementação Frontend - Checklist
 
 ### **✅ Estrutura Base**
+
 - [ ] Formulário multi-step ou accordion
 - [ ] Seleção múltipla de tipos
 - [ ] Blocos dinâmicos condicionais
 - [ ] Campo de justificativa obrigatória
 
 ### **✅ Validações**
+
 - [ ] Validação de tipos obrigatórios por bloco
 - [ ] Máscaras de valores monetários
 - [ ] Calendário para datas
 - [ ] Validação de percentuais
 
 ### **✅ Limites Legais**
+
 - [ ] Cálculo visual do percentual
 - [ ] Modal de confirmação para exceções
 - [ ] Input de texto exato para confirmação
 - [ ] Checkbox de aceite obrigatório
 
 ### **✅ Estados e Feedback**
+
 - [ ] Loading states
 - [ ] Mensagens de erro claras
 - [ ] Confirmação de sucesso
 - [ ] Navegação entre etapas
 
 ### **✅ Listagem e Busca**
+
 - [ ] Lista de alterações por contrato
 - [ ] Filtros por status e tipo
 - [ ] Detalhamento de cada alteração

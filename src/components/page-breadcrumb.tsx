@@ -8,32 +8,43 @@ import {
   BreadcrumbSeparator,
 } from './ui/breadcrumb'
 import { SidebarTrigger } from './ui/sidebar'
+import { createComponentLogger } from '@/lib/logger'
 import { useLocation, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { executeWithFallback } from '@/lib/axios'
 
 export default function PageBreadcrumb() {
+  const logger = createComponentLogger('PageBreadcrumb', 'navigation')
   const location = useLocation()
 
   // Extrair ID do contrato manualmente da URL
   const contratoId = location.pathname.match(/\/contratos\/([^/]+)/)?.[1]
   const isContratoRoute = !!contratoId
-  
-  console.log('🍞 Breadcrumb Debug:', { 
-    pathname: location.pathname, 
-    contratoId,
-    isContratoRoute
-  })
-  
-  const { data: contratoData, isLoading: contratoLoading } = useQuery<{ numeroContrato?: string; id?: string }>({ 
+
+  logger.debug(
+    {
+      pathname: location.pathname,
+      contratoId,
+      isContratoRoute,
+    },
+    'Breadcrumb navegação iniciada',
+  )
+
+  const { data: contratoData, isLoading: contratoLoading } = useQuery<{
+    numeroContrato?: string
+    id?: string
+  }>({
     queryKey: ['contrato-breadcrumb', contratoId],
     queryFn: async (): Promise<{ numeroContrato?: string; id?: string }> => {
-      console.log('🔍 Breadcrumb buscando contrato:', contratoId)
+      logger.debug({ contratoId }, 'Breadcrumb buscando dados do contrato')
       const response = await executeWithFallback({
         method: 'get',
-        url: `/contratos/${contratoId}`
+        url: `/contratos/${contratoId}`,
       })
-      console.log('✅ Breadcrumb dados recebidos:', response.data)
+      logger.debug(
+        { contratoData: response.data },
+        'Breadcrumb dados do contrato recebidos',
+      )
       return response.data as { numeroContrato?: string; id?: string }
     },
     enabled: !!isContratoRoute && !!contratoId,
@@ -50,33 +61,42 @@ export default function PageBreadcrumb() {
     pathSegments.forEach((segment) => {
       currentPath += `/${segment}`
 
-      console.log('🔄 Processando segment:', { segment, currentPath, contratoId })
+      logger.trace(
+        { segment, currentPath, contratoId },
+        'Breadcrumb processando segmento',
+      )
 
       // Handle dynamic routes - diretamente baseado na URL
       if (currentPath.includes('/contratos/') && segment === contratoId) {
-          // Use número do contrato se disponível, senão use o ID
-          let label = `Contrato ${segment}`
-          
-          console.log('🏷️ Estado atual:', { 
-            segment, 
+        // Use número do contrato se disponível, senão use o ID
+        let label = `Contrato ${segment}`
+
+        logger.trace(
+          {
+            segment,
             contratoId,
-            contratoLoading, 
+            contratoLoading,
             hasData: !!contratoData,
             numeroContrato: contratoData?.numeroContrato,
-            fullData: contratoData
-          })
-          
-          if (contratoLoading) {
-            label = 'Carregando...'
-          } else if (contratoData?.numeroContrato) {
-            label = `Contrato ${contratoData.numeroContrato}`
-          } else if (contratoData?.id) {
-            label = `Contrato ${contratoData.id}`
-          }
-          
-          console.log('🏷️ Label final:', label)
-          crumbs.push({ label, href: currentPath })
-      } else if (currentPath.includes('/fornecedores/') && segment.match(/^[a-f0-9-]{36}$/)) {
+            fullData: contratoData,
+          },
+          'Breadcrumb estado do segmento',
+        )
+
+        if (contratoLoading) {
+          label = 'Carregando...'
+        } else if (contratoData?.numeroContrato) {
+          label = `Contrato ${contratoData.numeroContrato}`
+        } else if (contratoData?.id) {
+          label = `Contrato ${contratoData.id}`
+        }
+
+        logger.trace({ label, segment }, 'Breadcrumb label final gerado')
+        crumbs.push({ label, href: currentPath })
+      } else if (
+        currentPath.includes('/fornecedores/') &&
+        segment.match(/^[a-f0-9-]{36}$/)
+      ) {
         // Handle fornecedores route
         crumbs.push({ label: `Fornecedor ${segment}`, href: currentPath })
       } else {

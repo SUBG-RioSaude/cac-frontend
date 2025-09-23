@@ -24,7 +24,7 @@ const mockProps = {
   filtros: {} as FiltrosContrato,
   onTermoPesquisaChange: vi.fn(),
   onFiltrosChange: vi.fn(),
-  onLimparFiltros: vi.fn()
+  onLimparFiltros: vi.fn(),
 }
 
 // Mock do framer-motion para evitar problemas nos testes
@@ -59,10 +59,7 @@ vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
       'Secretaria de Administração',
       'Secretaria de Transportes',
     ],
-    gestoras: [
-      'Departamento de Compras',
-      'Departamento de Contratos',
-    ]
+    gestoras: ['Departamento de Compras', 'Departamento de Contratos'],
   },
 }))
 
@@ -227,7 +224,7 @@ describe('SearchAndFilters', () => {
         dataFinalAte: '',
         valorMinimo: 100000,
         valorMaximo: undefined,
-      }
+      },
     }
 
     render(<SearchAndFilters {...propsComFiltros} />)
@@ -301,7 +298,7 @@ describe('SearchAndFilters', () => {
     const mockOnTermoPesquisaChange = vi.fn()
     const propsComCallback = {
       ...mockProps,
-      onTermoPesquisaChange: mockOnTermoPesquisaChange
+      onTermoPesquisaChange: mockOnTermoPesquisaChange,
     }
 
     render(<SearchAndFilters {...propsComCallback} />)

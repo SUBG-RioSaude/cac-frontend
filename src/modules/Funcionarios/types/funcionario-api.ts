@@ -14,20 +14,21 @@ export const SituacaoFuncional = {
   AFASTADO: 'Afastado',
   LICENCA: 'Licença',
   CEDIDO: 'Cedido',
-  REQUISITADO: 'Requisitado'
+  REQUISITADO: 'Requisitado',
 } as const
 
-export type SituacaoFuncional = typeof SituacaoFuncional[keyof typeof SituacaoFuncional]
+export type SituacaoFuncional =
+  (typeof SituacaoFuncional)[keyof typeof SituacaoFuncional]
 
 export const TipoVinculo = {
   EFETIVO: 'Efetivo',
   COMISSIONADO: 'Comissionado',
   TERCEIRIZADO: 'Terceirizado',
   ESTAGIARIO: 'Estagiário',
-  TEMPORARIO: 'Temporário'
+  TEMPORARIO: 'Temporário',
 } as const
 
-export type TipoVinculo = typeof TipoVinculo[keyof typeof TipoVinculo]
+export type TipoVinculo = (typeof TipoVinculo)[keyof typeof TipoVinculo]
 
 // ========== INTERFACES PRINCIPAIS ==========
 
@@ -130,12 +131,12 @@ export interface Usuario {
   cargo: string
   departamento: string // mapeado de lotacao
   telefone: string
-  status: "ativo" | "inativo" // mapeado de ativo
+  status: 'ativo' | 'inativo' // mapeado de ativo
 }
 
 // Interface para usuário atribuído com tipo fiscal/gestor
 export interface UsuarioAtribuido extends Usuario {
-  tipo: "fiscal" | "gestor" | null
+  tipo: 'fiscal' | 'gestor' | null
   observacoes?: string
   urlNomeacao?: string // URL da nomeação do fiscal (obrigatório apenas para fiscais)
 }
@@ -143,15 +144,20 @@ export interface UsuarioAtribuido extends Usuario {
 // ========== UTILITÁRIOS DE MAPEAMENTO ==========
 
 // Função para converter SituacaoFuncional para status simples
-export const mapSituacaoToStatus = (situacao: SituacaoFuncional, ativo: boolean): "ativo" | "inativo" => {
+export const mapSituacaoToStatus = (
+  situacao: SituacaoFuncional,
+  ativo: boolean,
+): 'ativo' | 'inativo' => {
   if (!ativo || situacao === SituacaoFuncional.INATIVO) {
-    return "inativo"
+    return 'inativo'
   }
-  return "ativo"
+  return 'ativo'
 }
 
 // Função para converter FuncionarioApi para Usuario (compatibilidade)
-export const mapFuncionarioToUsuario = (funcionario: FuncionarioApi): Usuario => {
+export const mapFuncionarioToUsuario = (
+  funcionario: FuncionarioApi,
+): Usuario => {
   return {
     id: funcionario.id,
     matricula: funcionario.matricula,
@@ -160,7 +166,11 @@ export const mapFuncionarioToUsuario = (funcionario: FuncionarioApi): Usuario =>
     cargo: funcionario.cargo,
     departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
     telefone: funcionario.telefone || '',
-    status: mapSituacaoToStatus(funcionario.situacaoFuncional || (funcionario.situacao as unknown as SituacaoFuncional), funcionario.ativo)
+    status: mapSituacaoToStatus(
+      funcionario.situacaoFuncional ||
+        (funcionario.situacao as unknown as SituacaoFuncional),
+      funcionario.ativo,
+    ),
   }
 }
 

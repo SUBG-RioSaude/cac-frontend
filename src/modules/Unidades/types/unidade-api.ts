@@ -90,12 +90,19 @@ import type { Unidade } from '@/modules/Unidades/ListaUnidades/types/unidade'
 
 export function mapearUnidadeApi(apiData: UnidadeSaudeApi): Unidade {
   console.log('[DEBUG] Mapeando unidade API:', apiData)
-  
+
   // Preservar o ID original (pode ser GUID ou número)
   const mappedId = apiData.id
-  
-  console.log('[DEBUG] ID mapeado:', mappedId, 'de:', apiData.id, 'tipo original:', typeof apiData.id)
-  
+
+  console.log(
+    '[DEBUG] ID mapeado:',
+    mappedId,
+    'de:',
+    apiData.id,
+    'tipo original:',
+    typeof apiData.id,
+  )
+
   return {
     id: mappedId,
     nome: apiData.nome,
@@ -107,7 +114,7 @@ export function mapearUnidadeApi(apiData: UnidadeSaudeApi): Unidade {
     // Campos calculados - serão implementados quando necessário
     contratosAtivos: 0,
     valorTotalContratado: 0,
-    contratos: []
+    contratos: [],
   }
 }
 

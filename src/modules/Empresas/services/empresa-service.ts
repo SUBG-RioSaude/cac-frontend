@@ -4,16 +4,19 @@
  */
 
 import { executeWithFallback } from '@/lib/axios'
-import type { 
-  EmpresaRequest, 
-  EmpresaResponse, 
+import { createServiceLogger } from '@/lib/logger'
+
+const logger = createServiceLogger('empresa-service')
+import type {
+  EmpresaRequest,
+  EmpresaResponse,
   AtualizarEmpresaDto,
   PaginacaoEmpresasResponse,
   EmpresaParametros,
   CriarContatoDto,
   AtualizarContatoDto,
   ContatoResponse,
-  PaginacaoFornecedoresApi
+  PaginacaoFornecedoresApi,
 } from '../types/empresa'
 import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
@@ -25,7 +28,17 @@ import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedo
 export async function cadastrarEmpresa(
   dadosEmpresa: EmpresaRequest,
 ): Promise<EmpresaResponse> {
-  console.log('🚀 [API] Enviando dados para cadastro de empresa:', dadosEmpresa)
+  logger.info(
+    {
+      operation: 'cadastrar_empresa',
+      empresaData: {
+        cnpj: dadosEmpresa.cnpj,
+        razaoSocial: dadosEmpresa.razaoSocial,
+        hasContacts: dadosEmpresa.contatos?.length > 0,
+      },
+    },
+    'Iniciando cadastro de empresa',
+  )
 
   // A API retorna apenas o ID como string, não um objeto
   const response = await executeWithFallback<string>({
@@ -35,23 +48,40 @@ export async function cadastrarEmpresa(
     baseURL: import.meta.env.VITE_API_URL_EMPRESA,
   })
 
-  // Debug: Log detalhado da resposta da API
-  console.log('🔍 [API] Response completo:', response)
-  console.log('🔍 [API] Response.data (ID string):', response.data)
-  console.log('🔍 [API] Response.status:', response.status)
-  console.log('🔍 [API] Tipo da response:', typeof response.data)
+  // Log da resposta da API
+  logger.debug(
+    {
+      operation: 'cadastrar_empresa_response',
+      responseStatus: response.status,
+      responseDataType: typeof response.data,
+      hasValidId: !!response.data,
+    },
+    'Response da API de cadastro recebida',
+  )
 
   // A API retorna o ID como string simples
   const empresaId = response.data
 
   if (!empresaId || typeof empresaId !== 'string') {
-    console.error('❌ [API] ERRO: ID não é uma string válida!')
-    console.error('❌ [API] Valor recebido:', empresaId)
-    console.error('❌ [API] Tipo recebido:', typeof empresaId)
+    logger.error(
+      {
+        operation: 'cadastrar_empresa_validation',
+        receivedValue: empresaId,
+        receivedType: typeof empresaId,
+        expected: 'string',
+      },
+      'ID da empresa não é uma string válida',
+    )
     throw new Error('API não retornou um ID válido')
   }
 
-  console.log('✅ [API] ID capturado com sucesso:', empresaId)
+  logger.info(
+    {
+      operation: 'cadastrar_empresa_success',
+      empresaId,
+    },
+    'Empresa cadastrada com sucesso',
+  )
 
   // Construir objeto EmpresaResponse usando dados enviados + ID retornado
   const empresaResponse: EmpresaResponse = {
@@ -70,16 +100,23 @@ export async function cadastrarEmpresa(
     cep: dadosEmpresa.cep,
     usuarioCadastroId: dadosEmpresa.usuarioCadastroId,
     ativo: true,
-    contatos: dadosEmpresa.contatos.map(contato => ({
+    contatos: dadosEmpresa.contatos.map((contato) => ({
       id: `temp-${Date.now()}-${Math.random()}`, // ID temporário para contatos
       nome: contato.nome,
       valor: contato.valor,
       tipo: contato.tipo,
-      ativo: true
-    }))
+      ativo: true,
+    })),
   }
 
-  console.log('🏭 [API] Objeto EmpresaResponse construído:', empresaResponse)
+  logger.debug(
+    {
+      operation: 'cadastrar_empresa_response_built',
+      empresaId: empresaResponse.id,
+      contatosCount: empresaResponse.contatos.length,
+    },
+    'Objeto EmpresaResponse construído com sucesso',
+  )
 
   return empresaResponse
 }
@@ -88,13 +125,13 @@ export async function cadastrarEmpresa(
  * Consulta empresa por CNPJ
  */
 export async function consultarEmpresaPorCNPJ(
-  cnpj: string
+  cnpj: string,
 ): Promise<EmpresaResponse | null> {
   try {
     const response = await executeWithFallback<EmpresaResponse>({
       method: 'get',
       url: `/Empresas/cnpj/${cnpj}`,
-      baseURL: import.meta.env.VITE_API_URL_EMPRESA
+      baseURL: import.meta.env.VITE_API_URL_EMPRESA,
     })
     return response.data
   } catch (error) {
@@ -116,7 +153,7 @@ export async function consultarEmpresaPorCNPJ(
  * GET /api/Empresas
  */
 export async function getEmpresas(
-  parametros?: EmpresaParametros
+  parametros?: EmpresaParametros,
 ): Promise<PaginacaoEmpresasResponse> {
   const response = await executeWithFallback<PaginacaoEmpresasResponse>({
     method: 'get',
@@ -124,7 +161,7 @@ export async function getEmpresas(
     params: {
       pagina: parametros?.pagina || 1,
       tamanhoPagina: parametros?.tamanhoPagina || 10,
-      ...parametros
+      ...parametros,
     },
     baseURL: import.meta.env.VITE_API_URL_EMPRESA,
   })
@@ -149,8 +186,8 @@ export async function getEmpresaById(id: string): Promise<EmpresaResponse> {
  * PUT /api/Empresas/{id}
  */
 export async function updateEmpresa(
-  id: string, 
-  dados: AtualizarEmpresaDto
+  id: string,
+  dados: AtualizarEmpresaDto,
 ): Promise<EmpresaResponse> {
   const response = await executeWithFallback<EmpresaResponse>({
     method: 'put',
@@ -193,8 +230,8 @@ export async function getEmpresasStatus(): Promise<{ [key: string]: number }> {
  * POST /api/empresas/{empresaId}/contatos
  */
 export async function createContato(
-  empresaId: string, 
-  contato: CriarContatoDto
+  empresaId: string,
+  contato: CriarContatoDto,
 ): Promise<ContatoResponse> {
   const response = await executeWithFallback<ContatoResponse>({
     method: 'post',
@@ -212,7 +249,7 @@ export async function createContato(
 export async function updateContato(
   empresaId: string,
   contatoId: string,
-  contato: AtualizarContatoDto
+  contato: AtualizarContatoDto,
 ): Promise<ContatoResponse> {
   const response = await executeWithFallback<ContatoResponse>({
     method: 'put',
@@ -228,8 +265,8 @@ export async function updateContato(
  * DELETE /api/empresas/{empresaId}/contatos/{contatoId}
  */
 export async function deleteContato(
-  empresaId: string, 
-  contatoId: string
+  empresaId: string,
+  contatoId: string,
 ): Promise<void> {
   await executeWithFallback({
     method: 'delete',
@@ -245,7 +282,7 @@ export async function deleteContato(
  * GET /api/empresas/resumo-contratos
  */
 export async function getFornecedoresResumo(
-  filtros?: FiltrosFornecedorApi
+  filtros?: FiltrosFornecedorApi,
 ): Promise<PaginacaoFornecedoresApi> {
   const params = {
     pagina: filtros?.pagina || 1,
@@ -257,10 +294,13 @@ export async function getFornecedoresResumo(
     ...(filtros?.estado && { estado: filtros.estado }),
     ...(filtros?.valorMinimo && { valorMinimo: filtros.valorMinimo }),
     ...(filtros?.valorMaximo && { valorMaximo: filtros.valorMaximo }),
-    ...(filtros?.contratosMinimo && { contratosMinimo: filtros.contratosMinimo }),
-    ...(filtros?.contratosMaximo && { contratosMaximo: filtros.contratosMaximo }),
+    ...(filtros?.contratosMinimo && {
+      contratosMinimo: filtros.contratosMinimo,
+    }),
+    ...(filtros?.contratosMaximo && {
+      contratosMaximo: filtros.contratosMaximo,
+    }),
   }
-
 
   const response = await executeWithFallback<PaginacaoFornecedoresApi>({
     method: 'get',

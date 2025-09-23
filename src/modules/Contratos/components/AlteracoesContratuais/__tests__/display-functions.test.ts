@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { TIPOS_ALTERACAO_CONFIG, TipoAlteracao } from '../../../types/alteracoes-contratuais'
+import {
+  TIPOS_ALTERACAO_CONFIG,
+  TipoAlteracao,
+} from '../../../types/alteracoes-contratuais'
 
 describe('Display Functions - Alterações Contratuais', () => {
-  
   describe('getTipoNome', () => {
     // Função extraída para teste (replica a lógica do componente)
     const getTipoNome = (tipo: number): string => {
-      const config = TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
+      const config =
+        TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
       return config?.label || `Tipo ${tipo}`
     }
 
@@ -46,23 +49,23 @@ describe('Display Functions - Alterações Contratuais', () => {
         tipo: 'Hospital',
         endereco: 'Rua A, 123',
         ativo: true,
-        valorAtual: 1000
+        valorAtual: 1000,
       },
       {
-        id: 'unit-2', 
+        id: 'unit-2',
         nome: 'UBS Centro',
         codigo: 'UBS001',
         tipo: 'UBS',
         endereco: 'Rua B, 456',
         ativo: true,
-        valorAtual: 500
-      }
+        valorAtual: 500,
+      },
     ]
 
     const mockContractUnits = {
       demandingUnit: 'Secretaria de Saúde',
       managingUnit: 'Coordenadoria Geral',
-      linkedUnits: mockLinkedUnits
+      linkedUnits: mockLinkedUnits,
     }
 
     // Função extraída para teste (replica a lógica do componente)
@@ -127,8 +130,8 @@ describe('Display Functions - Alterações Contratuais', () => {
           tipo: 'Unidade',
           endereco: '',
           ativo: true,
-          valorAtual: 0
-        }
+          valorAtual: 0,
+        },
       ]
 
       const getUnitNameEmpty = (unitId: string) => {
@@ -147,7 +150,8 @@ describe('Display Functions - Alterações Contratuais', () => {
   describe('Integração - Casos reais', () => {
     it('deve funcionar com dados típicos de revisão', () => {
       const getTipoNome = (tipo: number): string => {
-        const config = TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
+        const config =
+          TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
         return config?.label || `Tipo ${tipo}`
       }
 
@@ -155,15 +159,15 @@ describe('Display Functions - Alterações Contratuais', () => {
       const tiposSelecionados = [
         TipoAlteracao.AditivoPrazo,
         TipoAlteracao.AditivoQualitativo,
-        TipoAlteracao.AditivoQuantidade
+        TipoAlteracao.AditivoQuantidade,
       ]
 
       const nomes = tiposSelecionados.map(getTipoNome)
 
       expect(nomes).toEqual([
         'Aditivo - Prazo',
-        'Aditivo - Qualitativo', 
-        'Aditivo - Quantidade'
+        'Aditivo - Qualitativo',
+        'Aditivo - Quantidade',
       ])
     })
   })

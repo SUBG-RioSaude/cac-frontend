@@ -1,4 +1,4 @@
-declare module "*/unidades.json" {
+declare module '*/unidades.json' {
   const value: Array<{
     id: string
     nome: string

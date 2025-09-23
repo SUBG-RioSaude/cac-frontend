@@ -1,4 +1,9 @@
-export type EditableFieldType = 'text' | 'currency' | 'date' | 'select' | 'textarea'
+export type EditableFieldType =
+  | 'text'
+  | 'currency'
+  | 'date'
+  | 'select'
+  | 'textarea'
 
 export interface EditableFieldConfig {
   fieldKey: string
@@ -30,10 +35,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: false,
     isCritical: false,
     validation: {
-      maxLength: 50
-    }
+      maxLength: 50,
+    },
   },
-  
+
   processoRio: {
     fieldKey: 'processoRio',
     label: 'Processo Rio',
@@ -41,10 +46,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: false,
     isCritical: false,
     validation: {
-      maxLength: 50
-    }
+      maxLength: 50,
+    },
   },
-  
+
   processoLegado: {
     fieldKey: 'processoLegado',
     label: 'Processo Legado',
@@ -52,10 +57,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: false,
     isCritical: false,
     validation: {
-      maxLength: 50
-    }
+      maxLength: 50,
+    },
   },
-  
+
   categoriaObjeto: {
     fieldKey: 'categoriaObjeto',
     label: 'Categoria do Objeto',
@@ -63,10 +68,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: false,
     isCritical: false,
     validation: {
-      maxLength: 100
-    }
+      maxLength: 100,
+    },
   },
-  
+
   objeto: {
     fieldKey: 'objeto',
     label: 'Descrição do Objeto',
@@ -75,10 +80,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     isCritical: false,
     validation: {
       required: true,
-      maxLength: 500
-    }
+      maxLength: 500,
+    },
   },
-  
+
   termoReferencia: {
     fieldKey: 'termoReferencia',
     label: 'Termo de Referência',
@@ -86,10 +91,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: false,
     isCritical: false,
     validation: {
-      maxLength: 100
-    }
+      maxLength: 100,
+    },
   },
-  
+
   formaPagamento: {
     fieldKey: 'formaPagamento',
     label: 'Forma de Pagamento',
@@ -97,8 +102,8 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: false,
     isCritical: false,
     validation: {
-      maxLength: 100
-    }
+      maxLength: 100,
+    },
   },
 
   // Campos críticos - com confirmação obrigatória
@@ -110,10 +115,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     isCritical: true,
     validation: {
       required: true,
-      maxLength: 50
-    }
+      maxLength: 50,
+    },
   },
-  
+
   valorTotal: {
     fieldKey: 'valorTotal',
     label: 'Valor Total do Contrato',
@@ -122,10 +127,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     isCritical: true,
     validation: {
       required: true,
-      min: 0.01
-    }
+      min: 0.01,
+    },
   },
-  
+
   dataInicio: {
     fieldKey: 'dataInicio',
     label: 'Data de Início da Vigência',
@@ -133,10 +138,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: true,
     isCritical: true,
     validation: {
-      required: true
-    }
+      required: true,
+    },
   },
-  
+
   dataTermino: {
     fieldKey: 'dataTermino',
     label: 'Data Final da Vigência',
@@ -144,10 +149,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     requiresConfirmation: true,
     isCritical: true,
     validation: {
-      required: true
-    }
+      required: true,
+    },
   },
-  
+
   tipoContrato: {
     fieldKey: 'tipoContrato',
     label: 'Tipo de Contrato',
@@ -158,10 +163,10 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
       { value: 'servicos', label: 'Serviços' },
       { value: 'obras', label: 'Obras' },
       { value: 'fornecimento', label: 'Fornecimento' },
-      { value: 'concessao', label: 'Concessão' }
-    ]
+      { value: 'concessao', label: 'Concessão' },
+    ],
   },
-  
+
   tipoContratacao: {
     fieldKey: 'tipoContratacao',
     label: 'Tipo de Contratação',
@@ -170,9 +175,9 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
     isCritical: false,
     options: [
       { value: 'centralizado', label: 'Centralizado' },
-      { value: 'descentralizado', label: 'Descentralizado' }
-    ]
-  }
+      { value: 'descentralizado', label: 'Descentralizado' },
+    ],
+  },
 }
 
 /**
@@ -192,7 +197,9 @@ export function isCriticalField(fieldKey: string): boolean {
 /**
  * Obtém a configuração de um campo
  */
-export function getFieldConfig(fieldKey: string): EditableFieldConfig | undefined {
+export function getFieldConfig(
+  fieldKey: string,
+): EditableFieldConfig | undefined {
   return EDITABLE_FIELDS_CONFIG[fieldKey]
 }
 
@@ -207,27 +214,23 @@ export function getFieldLabel(fieldKey: string): string {
 export const FIELD_GROUPS = {
   'dados-basicos': [
     'numeroContrato',
-    'processoRio', 
+    'processoRio',
     'processoSei',
     'processoLegado',
     'categoriaObjeto',
-    'objeto'
+    'objeto',
   ],
-  'vigencia-valores': [
-    'dataInicio',
-    'dataTermino', 
-    'valorTotal'
-  ],
+  'vigencia-valores': ['dataInicio', 'dataTermino', 'valorTotal'],
   // Outros grupos podem ser adicionados futuramente
-  'fiscais': [],
-  'gestores': [],
-  'ccon': [],
+  fiscais: [],
+  gestores: [],
+  ccon: [],
   'dados-empresa': [],
-  'contatos': [],
-  'endereco': [],
+  contatos: [],
+  endereco: [],
   'unidade-demandante': [],
   'unidade-gestora': [],
-  'unidades-vinculadas': []
+  'unidades-vinculadas': [],
 }
 
 export function getFieldsInGroup(groupKey: string): string[] {

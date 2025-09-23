@@ -9,4 +9,3 @@ export function limparMatricula(matricula: string): string {
   if (!matricula) return ''
   return matricula.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
 }
-

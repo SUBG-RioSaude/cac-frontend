@@ -18,7 +18,7 @@ export function EditableDateField({
   onCancel,
   isLoading = false,
   minDate,
-  maxDate
+  maxDate,
 }: EditableDateFieldProps) {
   const [value, setValue] = useState(formatDateForInput(initialValue))
   const [error, setError] = useState('')
@@ -74,7 +74,7 @@ export function EditableDateField({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setValue(newValue)
-    
+
     const errorMsg = validateDate(newValue)
     setError(errorMsg || '')
   }
@@ -132,18 +132,16 @@ export function EditableDateField({
           className={error ? 'border-red-500 focus:border-red-500' : ''}
           disabled={isLoading}
         />
-        {error && (
-          <p className="text-xs text-red-500 mt-1">{error}</p>
-        )}
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       </div>
-      
+
       <div className="flex items-center gap-1">
         <Button
           size="sm"
           variant="ghost"
           onClick={handleSave}
           disabled={isLoading || !hasChanges || !!error}
-          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+          className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -151,13 +149,13 @@ export function EditableDateField({
             <Check className="h-4 w-4" />
           )}
         </Button>
-        
+
         <Button
           size="sm"
           variant="ghost"
           onClick={handleCancel}
           disabled={isLoading}
-          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
         >
           <X className="h-4 w-4" />
         </Button>

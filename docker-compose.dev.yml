@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: cac-frontend-dev
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       # Mount do código para hot reload
       - .:/app

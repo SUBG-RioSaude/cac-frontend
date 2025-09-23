@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,10 +22,13 @@ import {
   RefreshCcw,
   TrendingUp,
   TrendingDown,
-  Equal
+  Equal,
 } from 'lucide-react'
 
-import type { UnidadeVinculada, OperacaoValorUnidade } from '../../../../types/alteracoes-contratuais'
+import type {
+  UnidadeVinculada,
+  OperacaoValorUnidade,
+} from '../../../../types/alteracoes-contratuais'
 
 interface TransformedUnidade {
   id: string
@@ -49,7 +57,7 @@ const CORES_TIPO: Record<string, string> = {
   UPA: 'bg-red-100 text-red-700',
   Hospital: 'bg-green-100 text-green-700',
   CAPS: 'bg-purple-100 text-purple-700',
-  'Unidade': 'bg-gray-100 text-gray-700',
+  Unidade: 'bg-gray-100 text-gray-700',
 }
 
 export function UnitValueEditor({
@@ -61,7 +69,7 @@ export function UnitValueEditor({
   valorRestante = 0,
   disabled = false,
   mode = 'create',
-  existingValue = 0
+  existingValue = 0,
 }: UnitValueEditorProps) {
   const [valor, setValor] = useState('')
   const [observacoes, setObservacoes] = useState('')
@@ -72,10 +80,12 @@ export function UnitValueEditor({
   useEffect(() => {
     if (isOpen && unit) {
       if (mode === 'edit' && existingValue > 0) {
-        setValor(new Intl.NumberFormat('pt-BR', {
-          style: 'currency',
-          currency: 'BRL'
-        }).format(existingValue))
+        setValor(
+          new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+          }).format(existingValue),
+        )
         setOperacao('substituir')
       } else {
         setValor('')
@@ -87,37 +97,40 @@ export function UnitValueEditor({
   }, [isOpen, unit, mode, existingValue])
 
   const availableValue = valorRestante > 0 ? valorRestante : undefined
-  
+
   // Função para fazer parse correto da moeda brasileira
-  const parseBrazilianCurrency = useCallback((currencyString: string): number => {
-    if (!currencyString || currencyString.trim() === '') return 0
-    
-    // Remove símbolos e espaços, mantém apenas dígitos, pontos e vírgula
-    const cleanString = currencyString.replace(/[^\d.,]/g, '')
-    
-    // Se não tem vírgula, é um valor inteiro (ex: "33333" = 33333)
-    if (!cleanString.includes(',')) {
-      return parseFloat(cleanString) || 0
-    }
-    
-    // Se tem vírgula, separa milhares e decimais
-    // Ex: "33.333,33" -> partes = ["33.333", "33"]
-    const parts = cleanString.split(',')
-    const decimalPart = parts[parts.length - 1] // última parte é decimal
-    const integerPart = parts.slice(0, -1).join('').replace(/\./g, '') // remove pontos dos milhares
-    
-    const finalString = integerPart + '.' + decimalPart
-    return parseFloat(finalString) || 0
-  }, [])
+  const parseBrazilianCurrency = useCallback(
+    (currencyString: string): number => {
+      if (!currencyString || currencyString.trim() === '') return 0
+
+      // Remove símbolos e espaços, mantém apenas dígitos, pontos e vírgula
+      const cleanString = currencyString.replace(/[^\d.,]/g, '')
+
+      // Se não tem vírgula, é um valor inteiro (ex: "33333" = 33333)
+      if (!cleanString.includes(',')) {
+        return parseFloat(cleanString) || 0
+      }
+
+      // Se tem vírgula, separa milhares e decimais
+      // Ex: "33.333,33" -> partes = ["33.333", "33"]
+      const parts = cleanString.split(',')
+      const decimalPart = parts[parts.length - 1] // última parte é decimal
+      const integerPart = parts.slice(0, -1).join('').replace(/\./g, '') // remove pontos dos milhares
+
+      const finalString = integerPart + '.' + decimalPart
+      return parseFloat(finalString) || 0
+    },
+    [],
+  )
 
   const parsedValue = parseBrazilianCurrency(valor)
-  
+
   // Calcular valor resultante baseado na operação
   const valorResultante = useMemo(() => {
     if (mode === 'create') {
       return parsedValue
     }
-    
+
     switch (operacao) {
       case 'substituir':
         return parsedValue
@@ -141,33 +154,50 @@ export function UnitValueEditor({
       // Validações específicas por operação
       if (mode === 'edit') {
         if (operacao === 'subtrair' && parsedValue > existingValue) {
-          newErrors.valor = `Não é possível subtrair mais que o valor atual (${new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-          }).format(existingValue)})`
+          newErrors.valor = `Não é possível subtrair mais que o valor atual (${new Intl.NumberFormat(
+            'pt-BR',
+            {
+              style: 'currency',
+              currency: 'BRL',
+            },
+          ).format(existingValue)})`
         }
       }
-      
+
       // Validar se o valor resultante não excede o disponível no contrato
       if (availableValue && mode === 'create' && parsedValue > availableValue) {
-        newErrors.valor = `Valor excede o disponível (${new Intl.NumberFormat('pt-BR', {
-          style: 'currency',
-          currency: 'BRL'
-        }).format(availableValue)})`
+        newErrors.valor = `Valor excede o disponível (${new Intl.NumberFormat(
+          'pt-BR',
+          {
+            style: 'currency',
+            currency: 'BRL',
+          },
+        ).format(availableValue)})`
       } else if (availableValue && mode === 'edit') {
         const diferencaValor = valorResultante - existingValue
         if (diferencaValor > availableValue) {
-          newErrors.valor = `Esta operação excede o valor disponível no contrato em ${new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-          }).format(diferencaValor - availableValue)}`
+          newErrors.valor = `Esta operação excede o valor disponível no contrato em ${new Intl.NumberFormat(
+            'pt-BR',
+            {
+              style: 'currency',
+              currency: 'BRL',
+            },
+          ).format(diferencaValor - availableValue)}`
         }
       }
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [valor, parsedValue, availableValue, mode, operacao, existingValue, valorResultante])
+  }, [
+    valor,
+    parsedValue,
+    availableValue,
+    mode,
+    operacao,
+    existingValue,
+    valorResultante,
+  ])
 
   const handleSave = useCallback(() => {
     if (!unit || !validateForm()) return
@@ -175,7 +205,7 @@ export function UnitValueEditor({
     const unidadeVinculada: UnidadeVinculada = {
       unidadeSaudeId: unit.id,
       valorAtribuido: valorResultante,
-      observacoes: observacoes.trim() || undefined
+      observacoes: observacoes.trim() || undefined,
     }
 
     onSave(unidadeVinculada)
@@ -191,74 +221,92 @@ export function UnitValueEditor({
     const number = parseFloat(numericValue) / 100
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(isNaN(number) ? 0 : number)
   }, [])
 
-  const handleValueChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^\d]/g, '')
-    if (rawValue.length <= 12) { // Limite máximo
-      setValor(formatCurrency(rawValue))
-    }
-  }, [formatCurrency])
+  const handleValueChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value.replace(/[^\d]/g, '')
+      if (rawValue.length <= 12) {
+        // Limite máximo
+        setValor(formatCurrency(rawValue))
+      }
+    },
+    [formatCurrency],
+  )
 
-  const suggestPercentage = useCallback((percentage: number) => {
-    if (!availableValue && mode === 'create') return
-    
-    let baseValue: number
-    if (mode === 'edit' && operacao !== 'substituir') {
-      baseValue = existingValue
-    } else {
-      baseValue = availableValue || 0
-    }
-    
-    const value = baseValue * (percentage / 100)
-    const centavos = Math.round(value * 100).toString()
-    setValor(formatCurrency(centavos))
-  }, [availableValue, formatCurrency, mode, operacao, existingValue])
-  
-  const adjustValue = useCallback((adjustment: number) => {
-    const currentValue = parsedValue || 0
-    const newValue = Math.max(0, currentValue + adjustment)
-    const centavos = Math.round(newValue * 100).toString()
-    setValor(formatCurrency(centavos))
-  }, [parsedValue, formatCurrency])
+  const suggestPercentage = useCallback(
+    (percentage: number) => {
+      if (!availableValue && mode === 'create') return
+
+      let baseValue: number
+      if (mode === 'edit' && operacao !== 'substituir') {
+        baseValue = existingValue
+      } else {
+        baseValue = availableValue || 0
+      }
+
+      const value = baseValue * (percentage / 100)
+      const centavos = Math.round(value * 100).toString()
+      setValor(formatCurrency(centavos))
+    },
+    [availableValue, formatCurrency, mode, operacao, existingValue],
+  )
+
+  const adjustValue = useCallback(
+    (adjustment: number) => {
+      const currentValue = parsedValue || 0
+      const newValue = Math.max(0, currentValue + adjustment)
+      const centavos = Math.round(newValue * 100).toString()
+      setValor(formatCurrency(centavos))
+    },
+    [parsedValue, formatCurrency],
+  )
 
   if (!unit) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            {mode === 'edit' ? 'Editar Valor da Unidade' : 'Atribuir Valor à Unidade'}
+            {mode === 'edit'
+              ? 'Editar Valor da Unidade'
+              : 'Atribuir Valor à Unidade'}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Detalhes da unidade */}
-          <div className="p-3 bg-gray-50 rounded-lg overflow-hidden">
-            <div className="flex items-start gap-3 min-w-0">
-              <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="overflow-hidden rounded-lg bg-gray-50 p-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex flex-shrink-0 items-center gap-2">
                 <Building2 className="h-4 w-4 text-gray-400" />
-                <Badge 
-                  variant="secondary" 
-                  className={cn('text-xs whitespace-nowrap', CORES_TIPO[unit.tipo as keyof typeof CORES_TIPO])}
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    'text-xs whitespace-nowrap',
+                    CORES_TIPO[unit.tipo],
+                  )}
                 >
                   {unit.tipo}
                 </Badge>
               </div>
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="font-medium text-sm break-words" title={unit.nome}>
+                <p
+                  className="text-sm font-medium break-words"
+                  title={unit.nome}
+                >
                   {unit.nome}
                 </p>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-gray-600">
-                  <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border">
+                <div className="flex flex-col gap-1 text-xs text-gray-600 sm:flex-row sm:items-center sm:gap-2">
+                  <span className="rounded border bg-white px-1.5 py-0.5 font-mono text-xs">
                     {unit.codigo}
                   </span>
-                  <div className="flex items-start gap-1 min-w-0">
-                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <div className="flex min-w-0 items-start gap-1">
+                    <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
                     <span className="break-words" title={unit.endereco}>
                       {unit.endereco}
                     </span>
@@ -270,22 +318,26 @@ export function UnitValueEditor({
 
           {/* Informações do contrato */}
           {contractValue && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="p-3 bg-blue-50 rounded-lg min-w-0">
-                <Label className="text-xs text-blue-600">Valor do Contrato</Label>
-                <p className="font-medium text-blue-700 break-words">
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+              <div className="min-w-0 rounded-lg bg-blue-50 p-3">
+                <Label className="text-xs text-blue-600">
+                  Valor do Contrato
+                </Label>
+                <p className="font-medium break-words text-blue-700">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
-                    currency: 'BRL'
+                    currency: 'BRL',
                   }).format(contractValue)}
                 </p>
               </div>
-              <div className="p-3 bg-green-50 rounded-lg min-w-0">
-                <Label className="text-xs text-green-600">Valor Restante (para 100%)</Label>
-                <p className="font-medium text-green-700 break-words">
+              <div className="min-w-0 rounded-lg bg-green-50 p-3">
+                <Label className="text-xs text-green-600">
+                  Valor Restante (para 100%)
+                </Label>
+                <p className="font-medium break-words text-green-700">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
-                    currency: 'BRL'
+                    currency: 'BRL',
                   }).format(availableValue || 0)}
                 </p>
               </div>
@@ -295,19 +347,23 @@ export function UnitValueEditor({
           {/* Valor atual e operações - apenas no modo edit */}
           {mode === 'edit' && (
             <div className="space-y-4">
-              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <Label className="text-sm font-medium text-orange-800">Valor Atual da Unidade</Label>
+              <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                <Label className="text-sm font-medium text-orange-800">
+                  Valor Atual da Unidade
+                </Label>
                 <p className="text-lg font-bold text-orange-900">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
-                    currency: 'BRL'
+                    currency: 'BRL',
                   }).format(existingValue)}
                 </p>
               </div>
 
               {/* Seletor de Operação */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Operação</Label>
+                <Label className="text-sm font-medium text-gray-700">
+                  Operação
+                </Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
@@ -344,43 +400,48 @@ export function UnitValueEditor({
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  {operacao === 'substituir' && 'Substituir completamente o valor atual'}
+                  {operacao === 'substituir' &&
+                    'Substituir completamente o valor atual'}
                   {operacao === 'adicionar' && 'Somar ao valor atual'}
                   {operacao === 'subtrair' && 'Subtrair do valor atual'}
                 </p>
               </div>
 
               {/* Preview do resultado */}
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
-                    <Label className="text-xs text-blue-600">Valor Resultante</Label>
+                    <Label className="text-xs text-blue-600">
+                      Valor Resultante
+                    </Label>
                     <p className="font-medium text-blue-800">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
-                        currency: 'BRL'
+                        currency: 'BRL',
                       }).format(valorResultante)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-blue-600">
-                    {operacao === 'adicionar' && valorResultante > existingValue && (
-                      <>
-                        <TrendingUp className="h-3 w-3" />
-                        +{new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        }).format(valorResultante - existingValue)}
-                      </>
-                    )}
-                    {operacao === 'subtrair' && valorResultante < existingValue && (
-                      <>
-                        <TrendingDown className="h-3 w-3" />
-                        -{new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        }).format(existingValue - valorResultante)}
-                      </>
-                    )}
+                    {operacao === 'adicionar' &&
+                      valorResultante > existingValue && (
+                        <>
+                          <TrendingUp className="h-3 w-3" />+
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(valorResultante - existingValue)}
+                        </>
+                      )}
+                    {operacao === 'subtrair' &&
+                      valorResultante < existingValue && (
+                        <>
+                          <TrendingDown className="h-3 w-3" />-
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(existingValue - valorResultante)}
+                        </>
+                      )}
                     {operacao === 'substituir' && (
                       <>
                         <Equal className="h-3 w-3" />
@@ -396,8 +457,10 @@ export function UnitValueEditor({
           {/* Sugestões rápidas */}
           {availableValue && availableValue > 0 && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Sugestões Rápidas</Label>
-              <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Sugestões Rápidas
+              </Label>
+              <div className="flex flex-col flex-wrap gap-2 sm:flex-row">
                 {availableValue && (
                   <Button
                     key="exact"
@@ -405,31 +468,33 @@ export function UnitValueEditor({
                     size="sm"
                     variant="default"
                     onClick={() => {
-                      setValor(new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                      }).format(availableValue))
+                      setValor(
+                        new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(availableValue),
+                      )
                     }}
                     disabled={disabled}
-                    className="text-xs bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                    className="bg-green-600 text-xs whitespace-nowrap hover:bg-green-700"
                   >
                     Valor Exato Restante
                   </Button>
                 )}
                 <div className="flex flex-wrap gap-2">
-                  {[10, 25, 50].map(percentage => (
-                      <Button
-                        key={percentage}
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => suggestPercentage(percentage)}
-                        disabled={disabled}
-                        className="text-xs whitespace-nowrap"
-                      >
-                        <Calculator className="h-3 w-3 mr-1" />
-                        {percentage}%
-                      </Button>
+                  {[10, 25, 50].map((percentage) => (
+                    <Button
+                      key={percentage}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => suggestPercentage(percentage)}
+                      disabled={disabled}
+                      className="text-xs whitespace-nowrap"
+                    >
+                      <Calculator className="mr-1 h-3 w-3" />
+                      {percentage}%
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -439,28 +504,30 @@ export function UnitValueEditor({
           {/* Campo de valor */}
           <div className="space-y-2">
             <Label htmlFor="valor" className="text-sm font-medium">
-              {mode === 'edit' ? 
-                (operacao === 'substituir' ? 'Novo Valor *' : 
-                 operacao === 'adicionar' ? 'Valor a Adicionar *' : 'Valor a Subtrair *') : 
-                'Valor a Atribuir *'
-              }
+              {mode === 'edit'
+                ? operacao === 'substituir'
+                  ? 'Novo Valor *'
+                  : operacao === 'adicionar'
+                    ? 'Valor a Adicionar *'
+                    : 'Valor a Subtrair *'
+                : 'Valor a Atribuir *'}
             </Label>
             <div className="space-y-2">
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <DollarSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   id="valor"
                   value={valor}
                   onChange={handleValueChange}
                   placeholder="R$ 0,00"
                   className={cn(
-                    "pl-10 pr-24 h-11 text-base",
-                    errors.valor && 'border-red-500'
+                    'h-11 pr-24 pl-10 text-base',
+                    errors.valor && 'border-red-500',
                   )}
                   disabled={disabled}
                 />
                 {/* Botões de ajuste rápido */}
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                <div className="absolute top-1/2 right-2 flex -translate-y-1/2 transform gap-1">
                   <Button
                     type="button"
                     size="sm"
@@ -485,7 +552,7 @@ export function UnitValueEditor({
                   </Button>
                 </div>
               </div>
-              
+
               {/* Controles de ajuste fino */}
               {mode === 'edit' && (
                 <div className="flex justify-center gap-1">
@@ -540,21 +607,24 @@ export function UnitValueEditor({
             )}
             {!errors.valor && parsedValue > 0 && availableValue && (
               <p className="text-xs text-gray-600">
-                {((parsedValue / availableValue) * 100).toFixed(1)}% do valor disponível
+                {((parsedValue / availableValue) * 100).toFixed(1)}% do valor
+                disponível
               </p>
             )}
           </div>
 
           {/* Campo de observações */}
           <div className="space-y-2">
-            <Label htmlFor="observacoes" className="text-sm font-medium">Observações</Label>
+            <Label htmlFor="observacoes" className="text-sm font-medium">
+              Observações
+            </Label>
             <Textarea
               id="observacoes"
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
               placeholder="Justificativa para atribuição deste valor..."
               rows={3}
-              className="text-sm resize-none"
+              className="resize-none text-sm"
               disabled={disabled}
             />
             <p className="text-xs text-gray-500">
@@ -563,26 +633,28 @@ export function UnitValueEditor({
           </div>
 
           {/* Botões */}
-          <div className="flex gap-3 pt-4 border-t border-gray-100">
+          <div className="flex gap-3 border-t border-gray-100 pt-4">
             <Button
               variant="outline"
               onClick={handleCancel}
               disabled={disabled}
-              className="flex-1 h-11"
+              className="h-11 flex-1"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleSave}
               disabled={disabled || !valor.trim()}
-              className="flex-1 h-11"
+              className="h-11 flex-1"
             >
-              <DollarSign className="h-4 w-4 mr-2" />
-              {mode === 'edit' ? 
-                (operacao === 'substituir' ? 'Substituir Valor' :
-                 operacao === 'adicionar' ? 'Adicionar Valor' : 'Subtrair Valor') :
-                'Atribuir Valor'
-              }
+              <DollarSign className="mr-2 h-4 w-4" />
+              {mode === 'edit'
+                ? operacao === 'substituir'
+                  ? 'Substituir Valor'
+                  : operacao === 'adicionar'
+                    ? 'Adicionar Valor'
+                    : 'Subtrair Valor'
+                : 'Atribuir Valor'}
             </Button>
           </div>
         </div>

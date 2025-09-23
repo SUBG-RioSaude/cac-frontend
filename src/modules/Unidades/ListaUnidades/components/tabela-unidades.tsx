@@ -71,8 +71,10 @@ export function TabelaUnidades({
     )
   }
 
-
-  const handleSelecionarUnidade = (id: string | number, selecionado: boolean) => {
+  const handleSelecionarUnidade = (
+    id: string | number,
+    selecionado: boolean,
+  ) => {
     if (selecionado) {
       onUnidadesSelecionadasChange([...unidadesSelecionadas, id])
     } else {
@@ -96,7 +98,12 @@ export function TabelaUnidades({
 
   const handleVisualizarUnidade = (unidade: Unidade) => {
     console.log('[DEBUG] Navegando para unidade:', unidade)
-    console.log('[DEBUG] ID da unidade:', unidade.id, 'tipo:', typeof unidade.id)
+    console.log(
+      '[DEBUG] ID da unidade:',
+      unidade.id,
+      'tipo:',
+      typeof unidade.id,
+    )
     onVisualizarUnidade(unidade)
   }
 
@@ -130,9 +137,9 @@ export function TabelaUnidades({
     <motion.div
       animate={{
         opacity: 1,
-        filter: isLoading ? 'blur(1px)' : 'blur(0px)'
+        filter: isLoading ? 'blur(1px)' : 'blur(0px)',
       }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       <Card className="bg-card/50 border-0 shadow-sm backdrop-blur">
         <CardHeader className="px-3 pb-4 sm:px-6">
@@ -142,7 +149,9 @@ export function TabelaUnidades({
                 Lista de Unidades
               </CardTitle>
               <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
-                {isLoading ? 'Carregando...' : `${paginacao.total} unidades encontradas`}
+                {isLoading
+                  ? 'Carregando...'
+                  : `${paginacao.total} unidades encontradas`}
               </p>
             </div>
           </div>
@@ -156,8 +165,8 @@ export function TabelaUnidades({
               animate={{ opacity: 1 }}
               transition={{
                 duration: 0.4,
-                ease: "easeOut",
-                staggerChildren: 0.05
+                ease: 'easeOut',
+                staggerChildren: 0.05,
               }}
             >
               {unidadesPaginadas.map((unidade, index) => (
@@ -166,77 +175,79 @@ export function TabelaUnidades({
                   animate={{
                     opacity: 1,
                     y: 0,
-                    scale: 1
+                    scale: 1,
                   }}
                   transition={{
                     duration: 0.3,
-                    ease: "easeOut",
-                    delay: index * 0.02
+                    ease: 'easeOut',
+                    delay: index * 0.02,
                   }}
                 >
-                    <Card
-                      className="hover:bg-muted/30 cursor-pointer p-4 transition-all hover:shadow-md"
-                      onClick={() => handleVisualizarUnidade(unidade)}
-                    >
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={unidadesSelecionadas.includes(unidade.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelecionarUnidade(
-                                unidade.id,
-                                checked as boolean,
-                              )
-                            }
-                          />
-                          <div>
-                            <div className="text-sm font-medium">
-                              {unidade.nome}
-                            </div>
-                            <div className="text-muted-foreground text-xs">
-                              {unidade.sigla}
-                            </div>
+                  <Card
+                    className="hover:bg-muted/30 cursor-pointer p-4 transition-all hover:shadow-md"
+                    onClick={() => handleVisualizarUnidade(unidade)}
+                  >
+                    <div className="mb-3 flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={unidadesSelecionadas.includes(unidade.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelecionarUnidade(
+                              unidade.id,
+                              checked as boolean,
+                            )
+                          }
+                        />
+                        <div>
+                          <div className="text-sm font-medium">
+                            {unidade.nome}
+                          </div>
+                          <div className="text-muted-foreground text-xs">
+                            {unidade.sigla}
                           </div>
                         </div>
-                        <UnidadeStatusBadge status={parseStatusUnidade(unidade.status)} />
                       </div>
+                      <UnidadeStatusBadge
+                        status={parseStatusUnidade(unidade.status)}
+                      />
+                    </div>
 
-                      <div className="mb-3 space-y-2">
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Contratos Ativos
-                          </p>
-                          <p className="text-sm font-medium">
-                            {unidade.contratosAtivos || 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Valor Total Contratado
-                          </p>
-                          <p className="text-sm font-medium">
-                            {currencyUtils.formatar(
-                              unidade.valorTotalContratado || 0,
-                            )}
-                          </p>
-                        </div>
+                    <div className="mb-3 space-y-2">
+                      <div>
+                        <p className="text-muted-foreground text-xs">
+                          Contratos Ativos
+                        </p>
+                        <p className="text-sm font-medium">
+                          {unidade.contratosAtivos || 0}
+                        </p>
                       </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs">
+                          Valor Total Contratado
+                        </p>
+                        <p className="text-sm font-medium">
+                          {currencyUtils.formatar(
+                            unidade.valorTotalContratado || 0,
+                          )}
+                        </p>
+                      </div>
+                    </div>
 
-                      <div className="flex items-center justify-end">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleVisualizarUnidade(unidade)}
-                          className="h-9 px-4 shadow-sm"
-                          title="Abrir unidade"
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          Detalhes
-                        </Button>
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
+                    <div className="flex items-center justify-end">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleVisualizarUnidade(unidade)}
+                        className="h-9 px-4 shadow-sm"
+                        title="Abrir unidade"
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Detalhes
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
 
             {/* Versão desktop - Tabela */}
@@ -251,7 +262,7 @@ export function TabelaUnidades({
                       />
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[350px] min-w-[300px]"
+                      className="hover:bg-muted/50 w-[350px] min-w-[300px] cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -260,7 +271,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[180px]"
+                      className="hover:bg-muted/50 w-[180px] cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('sigla')}
                     >
                       <div className="flex items-center gap-2">
@@ -269,7 +280,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[120px]"
+                      className="hover:bg-muted/50 w-[120px] cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('status')}
                     >
                       <div className="flex items-center gap-2">
@@ -278,7 +289,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[120px]"
+                      className="hover:bg-muted/50 w-[120px] cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('contratosAtivos')}
                     >
                       <div className="flex items-center gap-2">
@@ -287,7 +298,7 @@ export function TabelaUnidades({
                       </div>
                     </TableHead>
                     <TableHead
-                      className="hover:bg-muted/50 cursor-pointer font-semibold transition-colors w-[150px]"
+                      className="hover:bg-muted/50 w-[150px] cursor-pointer font-semibold transition-colors"
                       onClick={() => onOrdenacao('valorTotalContratado')}
                     >
                       <div className="flex items-center gap-2">
@@ -306,63 +317,68 @@ export function TabelaUnidades({
                       key={unidade.id}
                       animate={{
                         opacity: 1,
-                        y: 0
+                        y: 0,
                       }}
                       transition={{
                         duration: 0.3,
-                        ease: "easeOut",
-                        delay: index * 0.03
+                        ease: 'easeOut',
+                        delay: index * 0.03,
                       }}
                       className="group hover:bg-muted/30 cursor-pointer transition-colors"
                       onClick={() => handleVisualizarUnidade(unidade)}
                     >
-                        <TableCell>
-                          <Checkbox
-                            checked={unidadesSelecionadas.includes(unidade.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelecionarUnidade(
-                                unidade.id,
-                                checked as boolean,
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="w-[350px] min-w-[300px]">
-                          <div className="text-sm font-medium leading-relaxed" data-testid={`unidade-nome-${unidade.id}`}>
-                            {unidade.nome}
-                          </div>
-                        </TableCell>
-                        <TableCell className="w-[180px]">
-                          <div className="font-mono text-sm">
-                            {unidade.sigla}
-                          </div>
-                        </TableCell>
-                        <TableCell className="w-[120px]"><UnidadeStatusBadge status={parseStatusUnidade(unidade.status)} /></TableCell>
-                        <TableCell className="w-[120px]">
-                          <div className="text-center text-sm font-medium">
-                            {unidade.contratosAtivos || 0}
-                          </div>
-                        </TableCell>
-                        <TableCell className="w-[150px]">
-                          <div className="text-right text-sm font-medium">
-                            {currencyUtils.formatar(
-                              unidade.valorTotalContratado || 0,
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleVisualizarUnidade(unidade)}
-                            className="h-8 px-3 shadow-sm"
-                          >
-                            <Eye className="mr-1 h-4 w-4" />
-                            Abrir
-                          </Button>
-                        </TableCell>
-                      </motion.tr>
-                    ))}
+                      <TableCell>
+                        <Checkbox
+                          checked={unidadesSelecionadas.includes(unidade.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelecionarUnidade(
+                              unidade.id,
+                              checked as boolean,
+                            )
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="w-[350px] min-w-[300px]">
+                        <div
+                          className="text-sm leading-relaxed font-medium"
+                          data-testid={`unidade-nome-${unidade.id}`}
+                        >
+                          {unidade.nome}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[180px]">
+                        <div className="font-mono text-sm">{unidade.sigla}</div>
+                      </TableCell>
+                      <TableCell className="w-[120px]">
+                        <UnidadeStatusBadge
+                          status={parseStatusUnidade(unidade.status)}
+                        />
+                      </TableCell>
+                      <TableCell className="w-[120px]">
+                        <div className="text-center text-sm font-medium">
+                          {unidade.contratosAtivos || 0}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[150px]">
+                        <div className="text-right text-sm font-medium">
+                          {currencyUtils.formatar(
+                            unidade.valorTotalContratado || 0,
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleVisualizarUnidade(unidade)}
+                          className="h-8 px-3 shadow-sm"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          Abrir
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -406,11 +422,16 @@ export function TabelaUnidades({
                       return (
                         <Button
                           key={pageNum}
-                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          variant={
+                            currentPage === pageNum ? 'default' : 'outline'
+                          }
                           size="sm"
                           disabled={isLoading}
                           onClick={() => {
-                            const novaPaginacao = { ...paginacao, pagina: pageNum }
+                            const novaPaginacao = {
+                              ...paginacao,
+                              pagina: pageNum,
+                            }
                             onPaginacaoChange(novaPaginacao)
                           }}
                           className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
@@ -421,27 +442,41 @@ export function TabelaUnidades({
                     })
                   } else {
                     // Lógica mais avançada para muitas páginas
-                    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+                    const startPage = Math.max(
+                      1,
+                      currentPage - Math.floor(maxVisiblePages / 2),
+                    )
+                    const endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1,
+                    )
 
-                    return Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-                      const pageNum = startPage + i
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={currentPage === pageNum ? 'default' : 'outline'}
-                          size="sm"
-                          disabled={isLoading}
-                          onClick={() => {
-                            const novaPaginacao = { ...paginacao, pagina: pageNum }
-                            onPaginacaoChange(novaPaginacao)
-                          }}
-                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })
+                    return Array.from(
+                      { length: endPage - startPage + 1 },
+                      (_, i) => {
+                        const pageNum = startPage + i
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={
+                              currentPage === pageNum ? 'default' : 'outline'
+                            }
+                            size="sm"
+                            disabled={isLoading}
+                            onClick={() => {
+                              const novaPaginacao = {
+                                ...paginacao,
+                                pagina: pageNum,
+                              }
+                              onPaginacaoChange(novaPaginacao)
+                            }}
+                            className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
+                          >
+                            {pageNum}
+                          </Button>
+                        )
+                      },
+                    )
                   }
                 })()}
               </div>
@@ -450,7 +485,11 @@ export function TabelaUnidades({
                 variant="outline"
                 size="sm"
                 onClick={proximaPagina}
-                disabled={paginacao.pagina >= totalPaginas || totalPaginas === 0 || isLoading}
+                disabled={
+                  paginacao.pagina >= totalPaginas ||
+                  totalPaginas === 0 ||
+                  isLoading
+                }
                 className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
               >
                 <span className="xs:inline hidden">Próxima</span>

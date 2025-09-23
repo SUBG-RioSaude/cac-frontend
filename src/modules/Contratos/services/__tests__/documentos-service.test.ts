@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { 
-  getDocumentos, 
-  saveDocumentosMultiplos, 
+import {
+  getDocumentos,
+  saveDocumentosMultiplos,
   saveDocumentoStatus,
   uploadDocumento,
   deleteDocumento,
   updateDocumento,
-  createDocumento
+  createDocumento,
 } from '../documentos-service'
-import type { 
-  DocumentoApiResponse, 
+import type {
+  DocumentoApiResponse,
   SaveDocumentosMultiplosPayload,
-  DocumentoMultiplo 
+  DocumentoMultiplo,
 } from '@/modules/Contratos/types/contrato'
 
 // Mock do axios
@@ -22,7 +22,7 @@ vi.mock('@/lib/axios', () => ({
 
 describe('documentos-service', () => {
   const contratoId = 'contrato-123'
-  
+
   const mockDocumentoApiResponse: DocumentoApiResponse = {
     id: 'doc-1',
     contratoId,
@@ -68,17 +68,19 @@ describe('documentos-service', () => {
 
     it('deve retornar array vazio para contratoId vazio', async () => {
       const result = await getDocumentos('')
-      
+
       expect(result).toEqual([])
       expect(mockExecuteWithFallback).not.toHaveBeenCalled()
     })
 
     it('deve mapear "sem url" para linkExterno null', async () => {
-      const mockResponseComSemUrl = [{
-        ...mockDocumentoApiResponse,
-        urlDocumento: 'sem url'
-      }]
-      
+      const mockResponseComSemUrl = [
+        {
+          ...mockDocumentoApiResponse,
+          urlDocumento: 'sem url',
+        },
+      ]
+
       mockExecuteWithFallback.mockResolvedValue({ data: mockResponseComSemUrl })
 
       const result = await getDocumentos(contratoId)
@@ -87,11 +89,13 @@ describe('documentos-service', () => {
     })
 
     it('deve mapear campo ativo para status', async () => {
-      const mockResponseInativo = [{
-        ...mockDocumentoApiResponse,
-        ativo: false
-      }]
-      
+      const mockResponseInativo = [
+        {
+          ...mockDocumentoApiResponse,
+          ativo: false,
+        },
+      ]
+
       mockExecuteWithFallback.mockResolvedValue({ data: mockResponseInativo })
 
       const result = await getDocumentos(contratoId)
@@ -109,8 +113,8 @@ describe('documentos-service', () => {
           dataEntrega: '2025-01-01T10:00:00Z',
           observacoes: 'Teste',
           selecionado: true,
-        }
-      ]
+        },
+      ],
     }
 
     it('deve salvar múltiplos documentos', async () => {
@@ -133,7 +137,9 @@ describe('documentos-service', () => {
       const errorMessage = 'Erro ao salvar documentos'
       mockExecuteWithFallback.mockRejectedValue(new Error(errorMessage))
 
-      await expect(saveDocumentosMultiplos(contratoId, mockPayload)).rejects.toThrow(errorMessage)
+      await expect(
+        saveDocumentosMultiplos(contratoId, mockPayload),
+      ).rejects.toThrow(errorMessage)
     })
   })
 
@@ -156,7 +162,7 @@ describe('documentos-service', () => {
         method: 'post',
         url: `/documentos-contrato/contrato/${contratoId}/multiplos`,
         data: {
-          documentos: [mockDocumento]
+          documentos: [mockDocumento],
         },
       })
 
@@ -204,10 +210,12 @@ describe('documentos-service', () => {
       const documentoId = 'doc-1'
       const payload = {
         urlDocumento: 'https://novo-url.com',
-        observacoes: 'Nova observação'
+        observacoes: 'Nova observação',
       }
-      
-      mockExecuteWithFallback.mockResolvedValue({ data: mockDocumentoApiResponse })
+
+      mockExecuteWithFallback.mockResolvedValue({
+        data: mockDocumentoApiResponse,
+      })
 
       const result = await updateDocumento(documentoId, payload)
 
@@ -228,10 +236,12 @@ describe('documentos-service', () => {
         tipoDocumento: 1,
         urlDocumento: 'https://exemplo.com',
         dataEntrega: '2025-01-01T10:00:00Z',
-        observacoes: 'Novo documento'
+        observacoes: 'Novo documento',
       }
-      
-      mockExecuteWithFallback.mockResolvedValue({ data: mockDocumentoApiResponse })
+
+      mockExecuteWithFallback.mockResolvedValue({
+        data: mockDocumentoApiResponse,
+      })
 
       const result = await createDocumento(payload)
 
@@ -258,11 +268,13 @@ describe('documentos-service', () => {
       ]
 
       for (const { api, numero } of tiposParaTestar) {
-        const mockResponse = [{
-          ...mockDocumentoApiResponse,
-          tipoDocumento: api,
-        }]
-        
+        const mockResponse = [
+          {
+            ...mockDocumentoApiResponse,
+            tipoDocumento: api,
+          },
+        ]
+
         mockExecuteWithFallback.mockResolvedValue({ data: mockResponse })
 
         const result = await getDocumentos(contratoId)
@@ -272,11 +284,13 @@ describe('documentos-service', () => {
     })
 
     it('deve lidar com tipo desconhecido', async () => {
-      const mockResponse = [{
-        ...mockDocumentoApiResponse,
-        tipoDocumento: 'TipoDesconhecido',
-      }]
-      
+      const mockResponse = [
+        {
+          ...mockDocumentoApiResponse,
+          tipoDocumento: 'TipoDesconhecido',
+        },
+      ]
+
       mockExecuteWithFallback.mockResolvedValue({ data: mockResponse })
 
       const result = await getDocumentos(contratoId)

@@ -15,14 +15,26 @@ Este guia apresenta o sistema padronizado de botões do projeto, garantindo cons
 ## 🔧 Componente Base: Button
 
 ### Importação
+
 ```tsx
 import { Button } from '@/components/ui/button'
 ```
 
 ### Props Disponíveis
+
 ```tsx
 interface ButtonProps extends React.ComponentProps<'button'> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'success' | 'warning' | 'info' | 'neutral'
+  variant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link'
+    | 'success'
+    | 'warning'
+    | 'info'
+    | 'neutral'
   size?: 'default' | 'sm' | 'lg' | 'icon'
   asChild?: boolean
 }
@@ -34,44 +46,45 @@ interface ButtonProps extends React.ComponentProps<'button'> {
 
 ### Variantes Principais
 
-| Variante | Uso Recomendado | Aparência |
-|----------|-----------------|-----------|
-| `default` | Ação principal da página | Fundo escuro, texto claro |
-| `secondary` | Ações secundárias | Fundo cinza claro |
-| `outline` | Alternativa menos chamativa | Apenas borda |
-| `ghost` | Ações sutis, navegação | Sem fundo, hover com destaque |
-| `link` | Links estilizados como botão | Sublinhado no hover |
+| Variante    | Uso Recomendado              | Aparência                     |
+| ----------- | ---------------------------- | ----------------------------- |
+| `default`   | Ação principal da página     | Fundo escuro, texto claro     |
+| `secondary` | Ações secundárias            | Fundo cinza claro             |
+| `outline`   | Alternativa menos chamativa  | Apenas borda                  |
+| `ghost`     | Ações sutis, navegação       | Sem fundo, hover com destaque |
+| `link`      | Links estilizados como botão | Sublinhado no hover           |
 
 ### Variantes Semânticas
 
-| Variante | Contexto | Cor |
-|----------|----------|-----|
-| `success` | Confirmações, criação | Verde |
-| `warning` | Avisos, atenção | Amarelo |
-| `info` | Informações, atualizações | Azul |
+| Variante      | Contexto                   | Cor      |
+| ------------- | -------------------------- | -------- |
+| `success`     | Confirmações, criação      | Verde    |
+| `warning`     | Avisos, atenção            | Amarelo  |
+| `info`        | Informações, atualizações  | Azul     |
 | `destructive` | Exclusões, ações perigosas | Vermelho |
-| `neutral` | Navegação, neutro | Cinza |
+| `neutral`     | Navegação, neutro          | Cinza    |
 
 ### Tamanhos
 
-| Size | Altura | Uso |
-|------|--------|-----|
-| `sm` | 32px | Botões em tabelas, ações compactas |
-| `default` | 36px | Uso geral |
-| `lg` | 40px | CTAs importantes |
-| `icon` | 36x36px | Apenas ícones |
+| Size      | Altura  | Uso                                |
+| --------- | ------- | ---------------------------------- |
+| `sm`      | 32px    | Botões em tabelas, ações compactas |
+| `default` | 36px    | Uso geral                          |
+| `lg`      | 40px    | CTAs importantes                   |
+| `icon`    | 36x36px | Apenas ícones                      |
 
 ---
 
 ## 🧩 Componentes Especializados
 
 ### LoadingButton
+
 Botão com estado de carregamento integrado.
 
 ```tsx
 import { LoadingButton } from '@/components/ui/button-extended'
 
-<LoadingButton
+;<LoadingButton
   loading={isSubmitting}
   loadingText="Salvando..."
   variant="success"
@@ -81,12 +94,13 @@ import { LoadingButton } from '@/components/ui/button-extended'
 ```
 
 ### ActionButton
+
 Botão para ações rápidas em tabelas/cards.
 
 ```tsx
 import { ActionButton } from '@/components/ui/button-extended'
 
-<ActionButton
+;<ActionButton
   icon={<Edit className="h-4 w-4" />}
   tooltip="Editar item"
   onClick={handleEdit}
@@ -94,12 +108,13 @@ import { ActionButton } from '@/components/ui/button-extended'
 ```
 
 ### IconButton
+
 Botão apenas com ícone e aria-label obrigatório.
 
 ```tsx
 import { IconButton } from '@/components/ui/button-extended'
 
-<IconButton
+;<IconButton
   icon={<Settings className="h-4 w-4" />}
   aria-label="Configurações"
   onClick={openSettings}
@@ -107,12 +122,13 @@ import { IconButton } from '@/components/ui/button-extended'
 ```
 
 ### ConfirmationButton
+
 Botão que expande para confirmação inline.
 
 ```tsx
 import { ConfirmationButton } from '@/components/ui/button-extended'
 
-<ConfirmationButton
+;<ConfirmationButton
   variant="destructive"
   onConfirm={handleDelete}
   title="Excluir item"
@@ -123,24 +139,26 @@ import { ConfirmationButton } from '@/components/ui/button-extended'
 ```
 
 ### ButtonGroup
+
 Agrupamento de botões relacionados.
 
 ```tsx
 import { ButtonGroup } from '@/components/ui/button-extended'
 
-<ButtonGroup>
+;<ButtonGroup>
   <Button variant="outline">Anterior</Button>
   <Button variant="outline">Próximo</Button>
 </ButtonGroup>
 ```
 
 ### ListButton
+
 Botão otimizado para listas e dropdowns.
 
 ```tsx
 import { ListButton } from '@/components/ui/button-extended'
 
-<ListButton
+;<ListButton
   title="João Silva"
   description="Desenvolvedor Frontend"
   avatar={<Avatar src="/avatar.jpg" />}
@@ -150,12 +168,13 @@ import { ListButton } from '@/components/ui/button-extended'
 ```
 
 ### FloatingActionButton
+
 Botão flutuante para ação principal.
 
 ```tsx
 import { FloatingActionButton } from '@/components/ui/button-extended'
 
-<FloatingActionButton
+;<FloatingActionButton
   icon={<Plus className="h-6 w-6" />}
   position="bottom-right"
   onClick={createNew}
@@ -189,23 +208,21 @@ import { FloatingActionButton } from '@/components/ui/button-extended'
 ## 💡 Exemplos de Uso por Contexto
 
 ### Formulários
+
 ```tsx
 // Formulário de criação
-<div className="flex gap-2 justify-end">
+<div className="flex justify-end gap-2">
   <Button variant="outline" onClick={onCancel}>
     Cancelar
   </Button>
-  <LoadingButton
-    type="submit"
-    loading={isSubmitting}
-    variant="success"
-  >
+  <LoadingButton type="submit" loading={isSubmitting} variant="success">
     Criar
   </LoadingButton>
 </div>
 ```
 
 ### Tabelas
+
 ```tsx
 // Ações em linha de tabela
 <div className="flex gap-1">
@@ -219,53 +236,43 @@ import { FloatingActionButton } from '@/components/ui/button-extended'
     tooltip="Editar"
     onClick={handleEdit}
   />
-  <ConfirmationButton
-    variant="destructive"
-    size="sm"
-    onConfirm={handleDelete}
-  >
+  <ConfirmationButton variant="destructive" size="sm" onConfirm={handleDelete}>
     <Trash className="h-4 w-4" />
   </ConfirmationButton>
 </div>
 ```
 
 ### Navegação
+
 ```tsx
 // Paginação
 <ButtonGroup>
-  <Button
-    variant="outline"
-    disabled={currentPage === 1}
-    onClick={previousPage}
-  >
+  <Button variant="outline" disabled={currentPage === 1} onClick={previousPage}>
     Anterior
   </Button>
-  <Button
-    variant="outline"
-    disabled={!hasNextPage}
-    onClick={nextPage}
-  >
+  <Button variant="outline" disabled={!hasNextPage} onClick={nextPage}>
     Próxima
   </Button>
 </ButtonGroup>
 ```
 
 ### Dashboards
+
 ```tsx
 // Filtros e ações principais
 <div className="flex items-center gap-4">
   <Button variant="ghost" size="sm">
-    <Filter className="h-4 w-4 mr-2" />
+    <Filter className="mr-2 h-4 w-4" />
     Filtros
   </Button>
-  
+
   <Button variant="outline" onClick={exportData}>
-    <Download className="h-4 w-4 mr-2" />
+    <Download className="mr-2 h-4 w-4" />
     Exportar
   </Button>
-  
+
   <Button variant="default" onClick={createNew}>
-    <Plus className="h-4 w-4 mr-2" />
+    <Plus className="mr-2 h-4 w-4" />
     Novo
   </Button>
 </div>
@@ -276,6 +283,7 @@ import { FloatingActionButton } from '@/components/ui/button-extended'
 ## 🔧 Customização
 
 ### CSS Variables
+
 O sistema usa CSS custom properties para facilitar temas:
 
 ```css
@@ -289,6 +297,7 @@ O sistema usa CSS custom properties para facilitar temas:
 ```
 
 ### Extensão de Variantes
+
 Para adicionar novas variantes, edite `src/components/ui/button.tsx`:
 
 ```tsx
@@ -309,7 +318,7 @@ const buttonVariants = cva(/* ... */, {
 ```
 src/components/ui/
 ├── button.tsx              # Componente base
-├── button-extended.tsx     # Componentes especializados  
+├── button-extended.tsx     # Componentes especializados
 ├── button-guide.md         # Esta documentação
 └── __tests__/
     ├── button.test.tsx
@@ -321,22 +330,26 @@ src/components/ui/
 ## 🐛 Troubleshooting
 
 ### Botão não está estilizado
+
 - ✅ Verifique se está importando de `@/components/ui/button`
 - ✅ Confirme se não há classes conflitantes
 
 ### Loading não aparece
+
 - ✅ Use `LoadingButton` ao invés de `Button`
 - ✅ Verifique se a prop `loading` está sendo passada
 
 ### Ícone não centralizado
+
 - ✅ Use `size="icon"` para botões apenas com ícone
 - ✅ Verifique se o ícone tem `className="h-4 w-4"`
 
 ### Acessibilidade
+
 - ✅ Botões apenas com ícone devem ter `aria-label`
 - ✅ Estados disabled devem ser claros
 - ✅ Focus deve ser visível
 
 ---
 
-*Atualizado em: Janeiro 2025*
+_Atualizado em: Janeiro 2025_

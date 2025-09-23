@@ -1,4 +1,11 @@
-import { Building2, Home, PenBoxIcon, Settings2, Truck, Users } from 'lucide-react'
+import {
+  Building2,
+  Home,
+  PenBoxIcon,
+  Settings2,
+  Truck,
+  Users,
+} from 'lucide-react'
 
 import {
   Sidebar,
@@ -113,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="group-data-[state=collapsed]:hidden">
                   <div className="relative inline-flex items-center gap-3 overflow-hidden rounded-xl bg-gray-600 px-4 py-2 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
                     {/* Ícone CAC maior */}
-                    <div className="flex items-center justify-center h-[45px]">
+                    <div className="flex h-[45px] items-center justify-center">
                       <img
                         src="/logos-cac/3.png"
                         alt="Logo CAC"

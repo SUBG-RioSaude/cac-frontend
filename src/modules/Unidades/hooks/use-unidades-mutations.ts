@@ -9,13 +9,13 @@ import { toast } from 'sonner'
 import {
   createUnidade,
   updateUnidade,
-  deleteUnidade
+  deleteUnidade,
 } from '@/modules/Unidades/services/unidades-service'
 import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
-import type { 
+import type {
   UnidadeSaudeApi,
-  UnidadeSaudeCreateApi, 
-  UnidadeSaudeUpdateApi 
+  UnidadeSaudeCreateApi,
+  UnidadeSaudeUpdateApi,
 } from '@/modules/Unidades/types/unidade-api'
 
 // ========== HOOK PARA CRIAR UNIDADE ==========
@@ -25,7 +25,9 @@ export function useCreateUnidade() {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: async (data: UnidadeSaudeCreateApi): Promise<UnidadeSaudeApi> => {
+    mutationFn: async (
+      data: UnidadeSaudeCreateApi,
+    ): Promise<UnidadeSaudeApi> => {
       return await createUnidade(data)
     },
 
@@ -43,12 +45,12 @@ export function useCreateUnidade() {
 
       // Toast de sucesso
       toast.success('Unidade de saúde criada com sucesso', {
-        description: `Unidade "${data.nome}" foi criada`
+        description: `Unidade "${data.nome}" foi criada`,
       })
 
       // Invalidar caches relevantes
       const invalidateKeys = unidadeKeys.invalidateOnCreate()
-      invalidateKeys.forEach(key => {
+      invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key })
       })
 
@@ -65,9 +67,12 @@ export function useCreateUnidade() {
       // Toast de erro
       console.error('Erro ao criar unidade:', error)
       toast.error('Erro ao criar unidade de saúde', {
-        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Tente novamente em alguns instantes',
       })
-    }
+    },
   })
 }
 
@@ -77,7 +82,9 @@ export function useUpdateUnidade() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: UnidadeSaudeUpdateApi): Promise<UnidadeSaudeApi> => {
+    mutationFn: async (
+      data: UnidadeSaudeUpdateApi,
+    ): Promise<UnidadeSaudeApi> => {
       return await updateUnidade(data)
     },
 
@@ -89,11 +96,14 @@ export function useUpdateUnidade() {
       await queryClient.cancelQueries({ queryKey: unidadeKeys.detail(data.id) })
 
       // Snapshot dos dados atuais para rollback
-      const previousUnidade = queryClient.getQueryData(unidadeKeys.detail(data.id))
+      const previousUnidade = queryClient.getQueryData(
+        unidadeKeys.detail(data.id),
+      )
 
       // Optimistic update
-      queryClient.setQueryData(unidadeKeys.detail(data.id), (old: UnidadeSaudeApi | undefined) => 
-        old ? ({ ...old, ...data }) : old
+      queryClient.setQueryData(
+        unidadeKeys.detail(data.id),
+        (old: UnidadeSaudeApi | undefined) => (old ? { ...old, ...data } : old),
       )
 
       return { previousUnidade, loadingToast }
@@ -107,12 +117,12 @@ export function useUpdateUnidade() {
 
       // Toast de sucesso
       toast.success('Unidade de saúde atualizada', {
-        description: `Unidade "${data.nome}" foi atualizada com sucesso`
+        description: `Unidade "${data.nome}" foi atualizada com sucesso`,
       })
 
       // Invalidar caches relevantes
       const invalidateKeys = unidadeKeys.invalidateOnUpdate(data.id)
-      invalidateKeys.forEach(key => {
+      invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key })
       })
     },
@@ -126,17 +136,20 @@ export function useUpdateUnidade() {
       // Rollback optimistic update
       if (context?.previousUnidade) {
         queryClient.setQueryData(
-          unidadeKeys.detail(variables.id), 
-          context.previousUnidade
+          unidadeKeys.detail(variables.id),
+          context.previousUnidade,
         )
       }
 
       // Toast de erro
       console.error('Erro ao atualizar unidade:', error)
       toast.error('Erro ao atualizar unidade de saúde', {
-        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Tente novamente em alguns instantes',
       })
-    }
+    },
   })
 }
 
@@ -175,7 +188,7 @@ export function useDeleteUnidade() {
 
       // Invalidar caches
       const invalidateKeys = unidadeKeys.invalidateOnDelete(id)
-      invalidateKeys.forEach(key => {
+      invalidateKeys.forEach((key) => {
         queryClient.invalidateQueries({ queryKey: key })
       })
 
@@ -192,8 +205,11 @@ export function useDeleteUnidade() {
       // Toast de erro
       console.error('Erro ao deletar unidade:', error)
       toast.error('Erro ao remover unidade de saúde', {
-        description: error instanceof Error ? error.message : 'Tente novamente em alguns instantes'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Tente novamente em alguns instantes',
       })
-    }
+    },
   })
 }

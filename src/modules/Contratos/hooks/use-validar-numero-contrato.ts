@@ -23,26 +23,31 @@ interface NumeroValidationState {
   lastChecked?: string
 }
 
-export function useValidarNumeroContrato(numeroContrato: string): NumeroValidationState {
+export function useValidarNumeroContrato(
+  numeroContrato: string,
+): NumeroValidationState {
   // Estados para controle de UX
   const minLoadingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [isShowingMinLoading, setIsShowingMinLoading] = useState(false)
-  
+
   // Debounce do número para evitar requests excessivos
   const debouncedNumero = useDebounce(numeroContrato?.trim() || '', 600)
-  
+
   // Detectar se está no período de debounce (waiting)
-  const isWaiting = numeroContrato.trim() !== debouncedNumero && numeroContrato.trim().length > 0
-  
+  const isWaiting =
+    numeroContrato.trim() !== debouncedNumero &&
+    numeroContrato.trim().length > 0
+
   // Validar formato básico antes de fazer request
-  const isValidFormat = /^\d+$/.test(debouncedNumero) && debouncedNumero.length > 0
-  
+  const isValidFormat =
+    /^\d+$/.test(debouncedNumero) && debouncedNumero.length > 0
+
   // Query para verificar duplicação
   const {
     data: contratoExistente,
     isLoading: isChecking,
     error,
-    isFetching
+    isFetching,
   } = useQuery({
     queryKey: contratoKeys.byNumero(debouncedNumero),
     queryFn: () => getContratoByNumero(debouncedNumero),
@@ -59,18 +64,17 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
     // Se começou a carregar, iniciar timer de delay mínimo
     if (isChecking || isFetching) {
       setIsShowingMinLoading(true)
-      
+
       // Limpar timer anterior se existir
       if (minLoadingTimerRef.current) {
         clearTimeout(minLoadingTimerRef.current)
       }
-      
+
       // Definir delay mínimo de 800ms
       minLoadingTimerRef.current = setTimeout(() => {
         // Só parar o loading se não estiver mais carregando
         setIsShowingMinLoading(false)
       }, 800)
-      
     } else {
       // Se parou de carregar, limpar timer e estado
       if (minLoadingTimerRef.current) {
@@ -79,7 +83,7 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
       }
       setIsShowingMinLoading(false)
     }
-    
+
     // Cleanup function
     return () => {
       if (minLoadingTimerRef.current) {
@@ -97,7 +101,7 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
         isChecking: false,
         isWaiting: false,
         isUnique: null,
-        error: 'Formato inválido: use apenas números'
+        error: 'Formato inválido: use apenas números',
       }
     }
 
@@ -106,7 +110,7 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
       return {
         isChecking: false,
         isWaiting: isWaiting, // Mostrar waiting se estiver digitando
-        isUnique: null
+        isUnique: null,
       }
     }
 
@@ -115,17 +119,17 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
       return {
         isChecking: false,
         isWaiting: true,
-        isUnique: null
+        isUnique: null,
       }
     }
 
     // Se está carregando (com delay mínimo)
-    if ((isChecking || isFetching) || isShowingMinLoading) {
+    if (isChecking || isFetching || isShowingMinLoading) {
       return {
         isChecking: true,
         isWaiting: false,
         isUnique: null,
-        lastChecked: debouncedNumero
+        lastChecked: debouncedNumero,
       }
     }
 
@@ -136,7 +140,7 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
         isWaiting: false,
         isUnique: null,
         error: 'Erro ao verificar disponibilidade',
-        lastChecked: debouncedNumero
+        lastChecked: debouncedNumero,
       }
     }
 
@@ -150,9 +154,9 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
           id: contratoExistente.id,
           numeroContrato: contratoExistente.numeroContrato || debouncedNumero,
           empresaRazaoSocial: contratoExistente.empresaRazaoSocial || undefined,
-          empresaCnpj: contratoExistente.empresaCnpj || undefined
+          empresaCnpj: contratoExistente.empresaCnpj || undefined,
         },
-        lastChecked: debouncedNumero
+        lastChecked: debouncedNumero,
       }
     }
 
@@ -162,7 +166,7 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
         isChecking: false,
         isWaiting: false,
         isUnique: true,
-        lastChecked: debouncedNumero
+        lastChecked: debouncedNumero,
       }
     }
 
@@ -170,7 +174,7 @@ export function useValidarNumeroContrato(numeroContrato: string): NumeroValidati
     return {
       isChecking: false,
       isWaiting: false,
-      isUnique: null
+      isUnique: null,
     }
   }
 

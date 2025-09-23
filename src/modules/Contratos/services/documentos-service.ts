@@ -1,36 +1,40 @@
 import { executeWithFallback } from '@/lib/axios'
-import type { 
-  DocumentoContratoDto, 
-  DocumentoApiResponse, 
+import type {
+  DocumentoContratoDto,
+  DocumentoApiResponse,
   CreateDocumentoApiPayload,
   UpdateDocumentoApiPayload,
   SaveDocumentosMultiplosPayload,
-  DocumentoMultiplo
+  DocumentoMultiplo,
 } from '@/modules/Contratos/types/contrato'
 
 // Mapeamento de nomes de tipos para números
 const TIPO_DOCUMENTO_NOME_PARA_NUMERO: Record<string, number> = {
-  'TermoReferencia': 1,
-  'Homologacao': 2,
-  'AtaRegistroPrecos': 3,
-  'GarantiaContratual': 4,
-  'Contrato': 5,
-  'PublicacaoPNCP': 6,
-  'PublicacaoExtrato': 7,
-  'Proposta': 8,
+  TermoReferencia: 1,
+  Homologacao: 2,
+  AtaRegistroPrecos: 3,
+  GarantiaContratual: 4,
+  Contrato: 5,
+  PublicacaoPNCP: 6,
+  PublicacaoExtrato: 7,
+  Proposta: 8,
 }
 
 // Função para mapear resposta da API para DTO do frontend
-function mapearDocumentoApiParaDto(documento: DocumentoApiResponse): DocumentoContratoDto {
-  const tipoNumero = TIPO_DOCUMENTO_NOME_PARA_NUMERO[documento.tipoDocumento] || 0
-  
+function mapearDocumentoApiParaDto(
+  documento: DocumentoApiResponse,
+): DocumentoContratoDto {
+  const tipoNumero =
+    TIPO_DOCUMENTO_NOME_PARA_NUMERO[documento.tipoDocumento] || 0
+
   return {
     id: documento.id,
     contratoId: documento.contratoId,
     nome: documento.nomeTipoDocumento || documento.tipoDocumento,
     tipo: tipoNumero.toString(),
     categoria: 'obrigatorio', // Todos os tipos 1-7 são obrigatórios
-    linkExterno: documento.urlDocumento !== 'sem url' ? documento.urlDocumento : null,
+    linkExterno:
+      documento.urlDocumento !== 'sem url' ? documento.urlDocumento : null,
     status: documento.ativo ? 'conferido' : 'pendente',
     observacoes: documento.observacoes || '',
     dataCadastro: documento.dataCadastro,
@@ -43,16 +47,18 @@ function mapearDocumentoApiParaDto(documento: DocumentoApiResponse): DocumentoCo
  * @param contratoId - O ID do contrato.
  * @returns Uma promessa que resolve para um array de DocumentoContratoDto.
  */
-export async function getDocumentos(contratoId: string): Promise<DocumentoContratoDto[]> {
+export async function getDocumentos(
+  contratoId: string,
+): Promise<DocumentoContratoDto[]> {
   if (!contratoId) {
     return Promise.resolve([])
   }
-  
+
   const response = await executeWithFallback<DocumentoApiResponse[]>({
     method: 'get',
     url: `/documentos-contrato/contrato/${contratoId}`,
   })
-  
+
   // Mapear resposta da API para o DTO do frontend
   return response.data.map(mapearDocumentoApiParaDto)
 }
@@ -65,7 +71,10 @@ export async function getDocumentos(contratoId: string): Promise<DocumentoContra
  * @param data - FormData contendo o arquivo e metadados (como tipoDocumento).
  * @returns Uma promessa que resolve para o DocumentoContratoDto do arquivo criado.
  */
-export async function uploadDocumento(_contratoId: string, data: FormData): Promise<DocumentoContratoDto> {
+export async function uploadDocumento(
+  _contratoId: string,
+  data: FormData,
+): Promise<DocumentoContratoDto> {
   const response = await executeWithFallback<DocumentoContratoDto>({
     method: 'post',
     url: `/documentos-contrato`,
@@ -85,14 +94,14 @@ export async function uploadDocumento(_contratoId: string, data: FormData): Prom
  */
 export async function saveDocumentosMultiplos(
   contratoId: string,
-  payload: SaveDocumentosMultiplosPayload
+  payload: SaveDocumentosMultiplosPayload,
 ): Promise<DocumentoContratoDto[]> {
   const response = await executeWithFallback<DocumentoApiResponse[]>({
     method: 'post',
     url: `/documentos-contrato/contrato/${contratoId}/multiplos`,
     data: payload,
   })
-  
+
   // Mapear resposta para DTOs do frontend
   return response.data.map(mapearDocumentoApiParaDto)
 }
@@ -105,18 +114,18 @@ export async function saveDocumentosMultiplos(
  */
 export async function saveDocumentoStatus(
   contratoId: string,
-  documento: DocumentoMultiplo
+  documento: DocumentoMultiplo,
 ): Promise<DocumentoContratoDto[]> {
   const payload: SaveDocumentosMultiplosPayload = {
-    documentos: [documento]
+    documentos: [documento],
   }
-  
+
   const response = await executeWithFallback<DocumentoApiResponse[]>({
     method: 'post',
     url: `/documentos-contrato/contrato/${contratoId}/multiplos`,
     data: payload,
   })
-  
+
   return response.data.map(mapearDocumentoApiParaDto)
 }
 
@@ -140,14 +149,14 @@ export async function deleteDocumento(documentoId: string): Promise<void> {
  */
 export async function updateDocumento(
   documentoId: string,
-  payload: UpdateDocumentoApiPayload
+  payload: UpdateDocumentoApiPayload,
 ): Promise<DocumentoContratoDto> {
   const response = await executeWithFallback<DocumentoApiResponse>({
     method: 'put',
     url: `/documentos-contrato/${documentoId}`,
     data: payload,
   })
-  
+
   return mapearDocumentoApiParaDto(response.data)
 }
 
@@ -157,13 +166,13 @@ export async function updateDocumento(
  * @returns Uma promessa que resolve para o DocumentoContratoDto criado.
  */
 export async function createDocumento(
-  payload: CreateDocumentoApiPayload
+  payload: CreateDocumentoApiPayload,
 ): Promise<DocumentoContratoDto> {
   const response = await executeWithFallback<DocumentoApiResponse>({
     method: 'post',
     url: `/documentos-contrato`,
     data: payload,
   })
-  
+
   return mapearDocumentoApiParaDto(response.data)
 }

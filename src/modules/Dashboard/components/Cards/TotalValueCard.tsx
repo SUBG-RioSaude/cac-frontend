@@ -27,6 +27,7 @@ export function TotalValueCard({ filters, className }: TotalValueCardProps) {
       format="currency"
       className={className}
       description="Valor total dos contratos"
+      data-testid="total-value-card"
     />
   )
 }

@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { TabelaContratos } from '../tabela-contratos'
-import type { Contrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
+import type {
+  Contrato,
+  PaginacaoParams,
+} from '@/modules/Contratos/types/contrato'
 
 // Mock props para os testes
 const mockProps = {
@@ -11,13 +14,13 @@ const mockProps = {
   paginacao: {
     pagina: 1,
     itensPorPagina: 10,
-    total: 0
+    total: 0,
   } as PaginacaoParams,
   contratosSelecionados: [] as string[],
   onPaginacaoChange: vi.fn(),
   onSelecionarContrato: vi.fn(),
   onSelecionarTodos: vi.fn(),
-  totalContratos: 0
+  totalContratos: 0,
 }
 
 // Mock do framer-motion para evitar problemas nos testes
@@ -80,7 +83,8 @@ const contratosMock: Contrato[] = [
     dataFinal: '2024-05-11',
     status: 'ativo',
     unidade: 'Secretaria de Obras',
-    objeto: 'Contratação de empresa especializada para prestação de serviços de manutenção predial',
+    objeto:
+      'Contratação de empresa especializada para prestação de serviços de manutenção predial',
     ativo: true,
     usuarioCadastroId: 'user-1',
     usuarioAtualizacaoId: 'user-1',
@@ -260,22 +264,28 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
     // Verifica se o header da coluna Contratada está presente (pode haver múltiplas devido ao responsive)
     expect(screen.getAllByText('Contratada').length).toBeGreaterThan(0)
-    
+
     // Verifica se os dados da empresa estão visíveis
     expect(screen.getAllByText('Empresa ABC Ltda').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('CNPJ: 12.345.678/0001-90').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText('CNPJ: 12.345.678/0001-90').length,
+    ).toBeGreaterThan(0)
   })
 
   it('Renderizar componente com hideContratadaColumn={true}', () => {
-    renderizarComRouter(<TabelaContratos {...propsWithData} hideContratadaColumn={true} />)
+    renderizarComRouter(
+      <TabelaContratos {...propsWithData} hideContratadaColumn={true} />,
+    )
 
     // Verifica se a coluna Contratada NÃO está presente
     expect(screen.queryAllByText('Contratada')).toHaveLength(0)
-    
+
     // Verifica se os dados da empresa NÃO estão visíveis
     expect(screen.queryByText('Empresa ABC Ltda')).not.toBeInTheDocument()
-    expect(screen.queryByText('CNPJ: 12.345.678/0001-90')).not.toBeInTheDocument()
-  
+    expect(
+      screen.queryByText('CNPJ: 12.345.678/0001-90'),
+    ).not.toBeInTheDocument()
+
     // Mas outros dados do contrato devem estar presentes
     expect(screen.getAllByText('CONT-2023/001').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Pregão Eletrônico').length).toBeGreaterThan(0)
@@ -297,7 +307,9 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
     // No mobile, Razão Social e CNPJ também não devem aparecer quando oculto
     expect(screen.queryByText('Empresa ABC Ltda')).not.toBeInTheDocument()
-    expect(screen.queryByText('CNPJ: 12.345.678/0001-90')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('CNPJ: 12.345.678/0001-90'),
+    ).not.toBeInTheDocument()
   })
 
   it('deve exibir células da Contratada no modo mobile quando visível', () => {
@@ -306,7 +318,9 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     )
 
     expect(screen.getAllByText('Empresa ABC Ltda').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('CNPJ: 12.345.678/0001-90').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText('CNPJ: 12.345.678/0001-90').length,
+    ).toBeGreaterThan(0)
   })
 
   it('Verificar condicionamento das TableCells no corpo (desktop)', () => {
@@ -319,7 +333,9 @@ describe('TabelaContratos - hideContratadaColumn', () => {
       .getAllByRole('row')
       .filter((r) => r.closest('tbody'))
     const firstRow = bodyRows[0]
-    expect(within(firstRow).getAllByText('Empresa ABC Ltda').length).toBeGreaterThan(0)
+    expect(
+      within(firstRow).getAllByText('Empresa ABC Ltda').length,
+    ).toBeGreaterThan(0)
     expect(
       within(firstRow).getAllByText('CNPJ: 12.345.678/0001-90').length,
     ).toBeGreaterThan(0)
@@ -351,10 +367,16 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     )
     const desktopTable = document.querySelector('.hidden.xl\\:block table')
     if (desktopTable) {
-      const headersCom = within(desktopTable as HTMLElement).getAllByRole('columnheader')
-      const bodyRows = within(desktopTable as HTMLElement).getAllByRole('row').filter((r) => r.closest('tbody'))
+      const headersCom = within(desktopTable as HTMLElement).getAllByRole(
+        'columnheader',
+      )
+      const bodyRows = within(desktopTable as HTMLElement)
+        .getAllByRole('row')
+        .filter((r) => r.closest('tbody'))
       if (bodyRows.length > 0) {
-        expect(within(bodyRows[0]).getAllByRole('cell').length).toBe(headersCom.length)
+        expect(within(bodyRows[0]).getAllByRole('cell').length).toBe(
+          headersCom.length,
+        )
       }
     }
 
@@ -364,29 +386,45 @@ describe('TabelaContratos - hideContratadaColumn', () => {
         <TabelaContratos {...propsLoading} hideContratadaColumn={true} />
       </BrowserRouter>,
     )
-    const desktopTableHidden = document.querySelector('.hidden.xl\\:block table')
+    const desktopTableHidden = document.querySelector(
+      '.hidden.xl\\:block table',
+    )
     if (desktopTableHidden) {
-      const headersSem = within(desktopTableHidden as HTMLElement).getAllByRole('columnheader')
-      const bodyRowsHidden = within(desktopTableHidden as HTMLElement).getAllByRole('row').filter((r) => r.closest('tbody'))
+      const headersSem = within(desktopTableHidden as HTMLElement).getAllByRole(
+        'columnheader',
+      )
+      const bodyRowsHidden = within(desktopTableHidden as HTMLElement)
+        .getAllByRole('row')
+        .filter((r) => r.closest('tbody'))
       if (bodyRowsHidden.length > 0) {
-        expect(within(bodyRowsHidden[0]).getAllByRole('cell').length).toBe(headersSem.length)
+        expect(within(bodyRowsHidden[0]).getAllByRole('cell').length).toBe(
+          headersSem.length,
+        )
       }
     }
   })
 
   it('Renderizar estado de loading com hideContratadaColumn={true}', () => {
-    renderizarComRouter(<TabelaContratos {...mockProps} isLoading={true} hideContratadaColumn={true} />)
+    renderizarComRouter(
+      <TabelaContratos
+        {...mockProps}
+        isLoading={true}
+        hideContratadaColumn={true}
+      />,
+    )
 
     // Verifica se o header da coluna Contratada NÃO está presente durante loading
     expect(screen.queryAllByText('Contratada')).toHaveLength(0)
-    
+
     // Verifica se ainda existem outros headers
     expect(screen.getAllByText('Contrato').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Tipo Contratação').length).toBeGreaterThan(0)
   })
 
   it('deve manter compatibilidade quando hideContratadaColumn=false', () => {
-    renderizarComRouter(<TabelaContratos {...propsWithData} hideContratadaColumn={false} />)
+    renderizarComRouter(
+      <TabelaContratos {...propsWithData} hideContratadaColumn={false} />,
+    )
 
     // Deve se comportar igual ao padrão
     expect(screen.getAllByText('Contratada').length).toBeGreaterThan(0)
@@ -477,10 +515,16 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     // Com coluna visível - verifica só desktop view (hidden xl:block)
     const desktopTable = document.querySelector('.hidden.xl\\:block table')
     if (desktopTable) {
-      const headersCom = within(desktopTable as HTMLElement).getAllByRole('columnheader')
-      const bodyRowsCom = within(desktopTable as HTMLElement).getAllByRole('row').filter((r) => r.closest('tbody'))
+      const headersCom = within(desktopTable as HTMLElement).getAllByRole(
+        'columnheader',
+      )
+      const bodyRowsCom = within(desktopTable as HTMLElement)
+        .getAllByRole('row')
+        .filter((r) => r.closest('tbody'))
       if (bodyRowsCom.length > 0) {
-        const firstRowCellsCom = within(bodyRowsCom[0]).getAllByRole('cell').length
+        const firstRowCellsCom = within(bodyRowsCom[0]).getAllByRole(
+          'cell',
+        ).length
         expect(headersCom.map((h) => h.textContent)).toEqual(
           expect.arrayContaining(['Contratada']),
         )
@@ -494,13 +538,21 @@ describe('TabelaContratos - hideContratadaColumn', () => {
         <TabelaContratos {...propsWithData} hideContratadaColumn={true} />
       </BrowserRouter>,
     )
-    
-    const desktopTableHidden = document.querySelector('.hidden.xl\\:block table')
+
+    const desktopTableHidden = document.querySelector(
+      '.hidden.xl\\:block table',
+    )
     if (desktopTableHidden) {
-      const headersSem = within(desktopTableHidden as HTMLElement).getAllByRole('columnheader')
-      const bodyRowsSem = within(desktopTableHidden as HTMLElement).getAllByRole('row').filter((r) => r.closest('tbody'))
+      const headersSem = within(desktopTableHidden as HTMLElement).getAllByRole(
+        'columnheader',
+      )
+      const bodyRowsSem = within(desktopTableHidden as HTMLElement)
+        .getAllByRole('row')
+        .filter((r) => r.closest('tbody'))
       if (bodyRowsSem.length > 0) {
-        const firstRowCellsSem = within(bodyRowsSem[0]).getAllByRole('cell').length
+        const firstRowCellsSem = within(bodyRowsSem[0]).getAllByRole(
+          'cell',
+        ).length
         expect(headersSem.map((h) => h.textContent)).not.toEqual(
           expect.arrayContaining(['Contratada']),
         )
