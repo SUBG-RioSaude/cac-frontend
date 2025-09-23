@@ -109,4 +109,3 @@ describe('Convenience displays (CNPJ/CEP/Phone)', () => {
     expect(screen.getByText(/Telefone/i)).toBeInTheDocument()
   })
 })
-

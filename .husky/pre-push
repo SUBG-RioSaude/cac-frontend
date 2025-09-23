@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+# Hook do Husky para validações antes do push
+echo "🚀 Executando validações pre-push..."
+
+# Build check - verifica se o código compila corretamente
+echo "🏗️ Verificando build do TypeScript..."
+pnpm build --silent
+
+# Executar testes
+echo "🧪 Executando testes..."
+pnpm test:run
+
+echo "✅ Todas as validações passaram! Push liberado."

@@ -4,7 +4,13 @@
  */
 
 import React, { useState } from 'react'
-import { useContratos, useCriarContrato, useUpdateContrato, useDeleteContrato, useToast } from '../hooks'
+import {
+  useContratos,
+  useCriarContrato,
+  useUpdateContrato,
+  useDeleteContrato,
+  useToast,
+} from '../hooks'
 import type { ContratoParametros } from '../services/contratos-service'
 import { Button } from '@/components/ui/button'
 import { LoadingButton } from '@/components/ui/button-extended'
@@ -13,26 +19,23 @@ import { LoadingButton } from '@/components/ui/button-extended'
 function ContratosListExample() {
   const [filtros, setFiltros] = useState<ContratoParametros>({
     pagina: 1,
-    tamanhoPagina: 20
+    tamanhoPagina: 20,
   })
 
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    isFetching, 
-    refetch 
-  } = useContratos(filtros, {
-    keepPreviousData: true, // Mantém dados anteriores durante paginação
-    refetchOnMount: true
-  })
+  const { data, isLoading, error, isFetching, refetch } = useContratos(
+    filtros,
+    {
+      keepPreviousData: true, // Mantém dados anteriores durante paginação
+      refetchOnMount: true,
+    },
+  )
 
   if (isLoading) return <div>Carregando contratos...</div>
   if (error) return <div>Erro ao carregar contratos</div>
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h2>Contratos ({data?.totalRegistros})</h2>
         <LoadingButton
           onClick={() => refetch()}
@@ -45,8 +48,8 @@ function ContratosListExample() {
       </div>
 
       <div className="grid gap-4">
-        {data?.dados.map(contrato => (
-          <div key={contrato.id} className="border p-4 rounded">
+        {data?.dados.map((contrato) => (
+          <div key={contrato.id} className="rounded border p-4">
             <h3>{contrato.numeroContrato}</h3>
             <p>{contrato.descricaoObjeto}</p>
             <p>Valor: R$ {contrato.valorGlobal.toLocaleString('pt-BR')}</p>
@@ -55,17 +58,23 @@ function ContratosListExample() {
       </div>
 
       {/* Paginação */}
-      <div className="flex justify-between mt-4">
+      <div className="mt-4 flex justify-between">
         <Button
-          onClick={() => setFiltros(prev => ({ ...prev, pagina: prev.pagina! - 1 }))}
+          onClick={() =>
+            setFiltros((prev) => ({ ...prev, pagina: prev.pagina! - 1 }))
+          }
           disabled={filtros.pagina === 1}
           variant="neutral"
         >
           Anterior
         </Button>
-        <span>Página {filtros.pagina} de {data?.totalPaginas}</span>
+        <span>
+          Página {filtros.pagina} de {data?.totalPaginas}
+        </span>
         <Button
-          onClick={() => setFiltros(prev => ({ ...prev, pagina: prev.pagina! + 1 }))}
+          onClick={() =>
+            setFiltros((prev) => ({ ...prev, pagina: prev.pagina! + 1 }))
+          }
           disabled={!data?.temProximaPagina}
           variant="neutral"
         >
@@ -86,14 +95,14 @@ function CreateContratoExample() {
     vigenciaFinal: '',
     prazoInicialMeses: 12,
     empresaId: '',
-    ativo: true
+    ativo: true,
   })
 
   const createMutation = useCriarContrato()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validação básica
     if (!formData.numeroContrato || !formData.empresaId) {
       alert('Preencha os campos obrigatórios')
@@ -104,28 +113,32 @@ function CreateContratoExample() {
     createMutation.mutate({
       ...formData,
       vigenciaInicial: new Date(formData.vigenciaInicial).toISOString(),
-      vigenciaFinal: new Date(formData.vigenciaFinal).toISOString()
+      vigenciaFinal: new Date(formData.vigenciaFinal).toISOString(),
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+    <form onSubmit={handleSubmit} className="max-w-md space-y-4">
       <h2 className="text-xl font-bold">Criar Novo Contrato</h2>
-      
+
       <input
         type="text"
         placeholder="Número do Contrato *"
         value={formData.numeroContrato}
-        onChange={(e) => setFormData(prev => ({ ...prev, numeroContrato: e.target.value }))}
-        className="w-full border p-2 rounded"
+        onChange={(e) =>
+          setFormData((prev) => ({ ...prev, numeroContrato: e.target.value }))
+        }
+        className="w-full rounded border p-2"
         required
       />
 
       <textarea
         placeholder="Descrição do Objeto"
         value={formData.descricaoObjeto}
-        onChange={(e) => setFormData(prev => ({ ...prev, descricaoObjeto: e.target.value }))}
-        className="w-full border p-2 rounded"
+        onChange={(e) =>
+          setFormData((prev) => ({ ...prev, descricaoObjeto: e.target.value }))
+        }
+        className="w-full rounded border p-2"
         rows={3}
       />
 
@@ -133,24 +146,33 @@ function CreateContratoExample() {
         type="number"
         placeholder="Valor Global *"
         value={formData.valorGlobal || ''}
-        onChange={(e) => setFormData(prev => ({ ...prev, valorGlobal: Number(e.target.value) }))}
-        className="w-full border p-2 rounded"
+        onChange={(e) =>
+          setFormData((prev) => ({
+            ...prev,
+            valorGlobal: Number(e.target.value),
+          }))
+        }
+        className="w-full rounded border p-2"
         required
       />
 
       <input
         type="date"
         value={formData.vigenciaInicial}
-        onChange={(e) => setFormData(prev => ({ ...prev, vigenciaInicial: e.target.value }))}
-        className="w-full border p-2 rounded"
+        onChange={(e) =>
+          setFormData((prev) => ({ ...prev, vigenciaInicial: e.target.value }))
+        }
+        className="w-full rounded border p-2"
         required
       />
 
       <input
         type="date"
         value={formData.vigenciaFinal}
-        onChange={(e) => setFormData(prev => ({ ...prev, vigenciaFinal: e.target.value }))}
-        className="w-full border p-2 rounded"
+        onChange={(e) =>
+          setFormData((prev) => ({ ...prev, vigenciaFinal: e.target.value }))
+        }
+        className="w-full rounded border p-2"
         required
       />
 
@@ -158,8 +180,10 @@ function CreateContratoExample() {
         type="text"
         placeholder="ID da Empresa *"
         value={formData.empresaId}
-        onChange={(e) => setFormData(prev => ({ ...prev, empresaId: e.target.value }))}
-        className="w-full border p-2 rounded"
+        onChange={(e) =>
+          setFormData((prev) => ({ ...prev, empresaId: e.target.value }))
+        }
+        className="w-full rounded border p-2"
         required
       />
 
@@ -174,7 +198,7 @@ function CreateContratoExample() {
       </LoadingButton>
 
       {createMutation.isError && (
-        <div className="text-red-500 text-sm">
+        <div className="text-sm text-red-500">
           Erro ao criar contrato. Verifique os dados e tente novamente.
         </div>
       )}
@@ -193,7 +217,7 @@ function ContratoActionsExample({ contratoId }: { contratoId: string }) {
       id: contratoId,
       // Apenas os campos que mudaram
       descricaoObjeto: 'Objeto atualizado',
-      valorGlobal: 50000
+      valorGlobal: 50000,
     })
   }
 
@@ -230,11 +254,7 @@ function ContratoActionsExample({ contratoId }: { contratoId: string }) {
         Remover
       </LoadingButton>
 
-      <Button
-        onClick={handleCustomAction}
-        variant="default"
-        size="sm"
-      >
+      <Button onClick={handleCustomAction} variant="default" size="sm">
         Ação Customizada
       </Button>
     </div>
@@ -244,23 +264,29 @@ function ContratoActionsExample({ contratoId }: { contratoId: string }) {
 // Exemplo 4: Como usar os hooks em diferentes cenários
 function DifferentScenariosExample() {
   // Cenário 1: Lista sem cache (sempre fresh data)
-  const freshContratos = useContratos({}, {
-    refetchOnMount: true,
-    enabled: true
-  })
+  const freshContratos = useContratos(
+    {},
+    {
+      refetchOnMount: true,
+      enabled: true,
+    },
+  )
 
   // Cenário 2: Lista condicional (carrega apenas quando necessário)
   const [shouldLoadContratos, setShouldLoadContratos] = useState(false)
-  const conditionalContratos = useContratos({}, {
-    enabled: shouldLoadContratos
-  })
+  const conditionalContratos = useContratos(
+    {},
+    {
+      enabled: shouldLoadContratos,
+    },
+  )
 
   // Cenário 3: Lista com filtros complexos
   const filteredContratos = useContratos({
     filtroStatus: 'ativo',
     valorMinimo: 10000,
     dataInicialDe: '2024-01-01',
-    termoPesquisa: 'equipamentos'
+    termoPesquisa: 'equipamentos',
   })
 
   return (
@@ -272,13 +298,15 @@ function DifferentScenariosExample() {
 
       <section>
         <h3 className="font-bold">Contratos Condicionais</h3>
-        <button 
+        <button
           onClick={() => setShouldLoadContratos(!shouldLoadContratos)}
-          className="bg-yellow-500 text-white px-3 py-1 rounded"
+          className="rounded bg-yellow-500 px-3 py-1 text-white"
         >
           {shouldLoadContratos ? 'Parar' : 'Carregar'} Contratos
         </button>
-        <p>Status: {conditionalContratos.isLoading ? 'Carregando...' : 'Pronto'}</p>
+        <p>
+          Status: {conditionalContratos.isLoading ? 'Carregando...' : 'Pronto'}
+        </p>
       </section>
 
       <section>
@@ -291,7 +319,7 @@ function DifferentScenariosExample() {
 
 export {
   ContratosListExample,
-  CreateContratoExample, 
+  CreateContratoExample,
   ContratoActionsExample,
-  DifferentScenariosExample
+  DifferentScenariosExample,
 }

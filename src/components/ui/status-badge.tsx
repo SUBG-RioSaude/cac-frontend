@@ -10,38 +10,38 @@ import { Badge } from '@/components/ui/badge'
 import { useStatusConfig } from '@/hooks/use-status-config'
 import type { StatusBadgeProps } from '@/types/status'
 
-export function StatusBadge({ 
-  status, 
-  domain, 
+export function StatusBadge({
+  status,
+  domain,
   size = 'default',
   showIcon = false,
   className,
-  ...props 
+  ...props
 }: StatusBadgeProps) {
   const { getStatusConfig } = useStatusConfig()
   const config = getStatusConfig(status, domain)
-  
+
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5',
     default: 'text-xs px-2.5 py-1',
     lg: 'text-sm px-3 py-1.5',
   }
-  
+
   const iconSizes = {
     sm: 'h-2.5 w-2.5',
     default: 'h-3 w-3',
     lg: 'h-3.5 w-3.5',
   }
-  
+
   const IconComponent = showIcon && config.icon ? config.icon : null
-  
+
   return (
-    <Badge 
+    <Badge
       className={cn(
         config.className,
         sizeClasses[size],
         'inline-flex items-center gap-1 font-medium',
-        className
+        className,
       )}
       {...props}
     >
@@ -54,23 +54,23 @@ export function StatusBadge({
 }
 
 // Componentes especializados para cada domínio (opcionais, para convenience)
-export function ContratoStatusBadge({ 
-  status, 
-  ...props 
+export function ContratoStatusBadge({
+  status,
+  ...props
 }: Omit<StatusBadgeProps, 'domain'>) {
   return <StatusBadge status={status} domain="contrato" {...props} />
 }
 
-export function FornecedorStatusBadge({ 
-  status, 
-  ...props 
+export function FornecedorStatusBadge({
+  status,
+  ...props
 }: Omit<StatusBadgeProps, 'domain'>) {
   return <StatusBadge status={status} domain="fornecedor" {...props} />
 }
 
-export function UnidadeStatusBadge({ 
-  status, 
-  ...props 
+export function UnidadeStatusBadge({
+  status,
+  ...props
 }: Omit<StatusBadgeProps, 'domain'>) {
   return <StatusBadge status={status} domain="unidade" {...props} />
 }
@@ -79,13 +79,13 @@ export function UnidadeStatusBadge({
 export function useContratoStatus(
   vigenciaInicial?: string | null,
   vigenciaFinal?: string | null,
-  statusAtual?: string | null
+  statusAtual?: string | null,
 ) {
   const { getContratoStatusFromVigencia } = useStatusConfig()
-  
+
   return getContratoStatusFromVigencia(
     vigenciaInicial,
     vigenciaFinal,
-    statusAtual
+    statusAtual,
   )
 }

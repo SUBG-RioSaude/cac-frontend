@@ -186,7 +186,7 @@
         "ativo": true
       },
       {
-        "id": "2", 
+        "id": "2",
         "contratoId": "1",
         "funcionarioId": "2",
         "tipoGerencia": 2,
@@ -197,13 +197,13 @@
         "funcionarioMatricula": "MAT002",
         "email": "joao.oliveira@prefeitura.gov.br",
         "telefone": "(11) 97654-3210",
-        "cargo": "Arquiteto", 
+        "cargo": "Arquiteto",
         "departamento": "Secretaria de Obras",
         "ativo": true
       },
       {
         "id": "3",
-        "contratoId": "1", 
+        "contratoId": "1",
         "funcionarioId": "3",
         "tipoGerencia": 1,
         "tipoGerenciaDescricao": "Gestor",

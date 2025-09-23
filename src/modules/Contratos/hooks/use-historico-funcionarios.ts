@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   obterHistoricoFuncionarios,
   obterFuncionariosAtivosEm,
-  obterPeriodosFuncionario
+  obterPeriodosFuncionario,
 } from '../services/contratos-funcionarios-service'
 
 // ========== INTERFACES ==========
@@ -40,12 +40,12 @@ export interface HistoricoFuncionario {
  */
 export function useHistoricoFuncionarios(
   contratoId: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: ['historico-funcionarios', contratoId],
     queryFn: () => obterHistoricoFuncionarios(contratoId),
-    enabled: !!contratoId && (options?.enabled !== false),
+    enabled: !!contratoId && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     select: (data: unknown[]): HistoricoFuncionario[] => {
       return data.map((item: unknown) => {
@@ -59,17 +59,21 @@ export function useHistoricoFuncionarios(
           dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao ? String(typedItem.documentoDesignacao) : null,
-          observacoes: typedItem.observacoes ? String(typedItem.observacoes) : null,
+          documentoDesignacao: typedItem.documentoDesignacao
+            ? String(typedItem.documentoDesignacao)
+            : null,
+          observacoes: typedItem.observacoes
+            ? String(typedItem.observacoes)
+            : null,
           periodoFormatado: String(typedItem.periodoFormatado),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           estaAtivo: Boolean(typedItem.estaAtivo),
           funcionarioNome: String(typedItem.funcionarioNome),
           funcionarioMatricula: String(typedItem.funcionarioMatricula),
-          funcionarioCargo: String(typedItem.funcionarioCargo)
+          funcionarioCargo: String(typedItem.funcionarioCargo),
         }
       })
-    }
+    },
   })
 }
 
@@ -79,12 +83,12 @@ export function useHistoricoFuncionarios(
 export function useFuncionariosAtivosEm(
   contratoId: string,
   data?: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: ['funcionarios-ativos-em', contratoId, data],
     queryFn: () => obterFuncionariosAtivosEm(contratoId, data!),
-    enabled: !!contratoId && !!data && (options?.enabled !== false),
+    enabled: !!contratoId && !!data && options?.enabled !== false,
     staleTime: 10 * 60 * 1000, // 10 minutos
     select: (data: unknown[]): HistoricoFuncionario[] => {
       return data.map((item: unknown) => {
@@ -98,17 +102,21 @@ export function useFuncionariosAtivosEm(
           dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao ? String(typedItem.documentoDesignacao) : null,
-          observacoes: typedItem.observacoes ? String(typedItem.observacoes) : null,
+          documentoDesignacao: typedItem.documentoDesignacao
+            ? String(typedItem.documentoDesignacao)
+            : null,
+          observacoes: typedItem.observacoes
+            ? String(typedItem.observacoes)
+            : null,
           periodoFormatado: String(typedItem.periodoFormatado),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           estaAtivo: Boolean(typedItem.estaAtivo),
           funcionarioNome: String(typedItem.funcionarioNome),
           funcionarioMatricula: String(typedItem.funcionarioMatricula),
-          funcionarioCargo: String(typedItem.funcionarioCargo)
+          funcionarioCargo: String(typedItem.funcionarioCargo),
         }
       })
-    }
+    },
   })
 }
 
@@ -118,12 +126,12 @@ export function useFuncionariosAtivosEm(
 export function usePeriodosFuncionario(
   contratoId: string,
   funcionarioId?: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: ['periodos-funcionario', contratoId, funcionarioId],
     queryFn: () => obterPeriodosFuncionario(contratoId, funcionarioId!),
-    enabled: !!contratoId && !!funcionarioId && (options?.enabled !== false),
+    enabled: !!contratoId && !!funcionarioId && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     select: (data: unknown[]): HistoricoFuncionario[] => {
       return data.map((item: unknown) => {
@@ -137,16 +145,20 @@ export function usePeriodosFuncionario(
           dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao ? String(typedItem.documentoDesignacao) : null,
-          observacoes: typedItem.observacoes ? String(typedItem.observacoes) : null,
+          documentoDesignacao: typedItem.documentoDesignacao
+            ? String(typedItem.documentoDesignacao)
+            : null,
+          observacoes: typedItem.observacoes
+            ? String(typedItem.observacoes)
+            : null,
           periodoFormatado: String(typedItem.periodoFormatado),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           estaAtivo: Boolean(typedItem.estaAtivo),
           funcionarioNome: String(typedItem.funcionarioNome),
           funcionarioMatricula: String(typedItem.funcionarioMatricula),
-          funcionarioCargo: String(typedItem.funcionarioCargo)
+          funcionarioCargo: String(typedItem.funcionarioCargo),
         }
       })
-    }
+    },
   })
 }

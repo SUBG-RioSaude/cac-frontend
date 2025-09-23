@@ -15,7 +15,7 @@ const mockUnidade = {
     nome: 'CAP Temporário',
     uo: '0',
     id: 'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c',
-    ativo: true
+    ativo: true,
   },
   endereco: 'Rua Afonso Cavalcanti, 455',
   bairro: 'Cidade Nova',
@@ -32,7 +32,7 @@ const mockUnidade = {
   tipoAdministracaoId: 1,
   tipoAdministracao: null,
   id: 'f5884390-f61a-4c88-b8ec-bd1e7e305ac5',
-  ativo: true
+  ativo: true,
 }
 
 describe('useUnidadeDetalhada', () => {
@@ -43,8 +43,8 @@ describe('useUnidadeDetalhada', () => {
   it('deve carregar dados da unidade com sucesso', async () => {
     vi.mocked(mockBuscarUnidadePorId).mockResolvedValue(mockUnidade)
 
-    const { result } = renderHook(() => 
-      useUnidadeDetalhada({ id: 'test-id', enabled: true })
+    const { result } = renderHook(() =>
+      useUnidadeDetalhada({ id: 'test-id', enabled: true }),
     )
 
     // Inicialmente deve estar carregando
@@ -66,8 +66,8 @@ describe('useUnidadeDetalhada', () => {
     const erro = new Error('Erro na API')
     vi.mocked(mockBuscarUnidadePorId).mockRejectedValue(erro)
 
-    const { result } = renderHook(() => 
-      useUnidadeDetalhada({ id: 'test-id', enabled: true })
+    const { result } = renderHook(() =>
+      useUnidadeDetalhada({ id: 'test-id', enabled: true }),
     )
 
     await waitFor(() => {
@@ -79,8 +79,8 @@ describe('useUnidadeDetalhada', () => {
   })
 
   it('não deve carregar quando enabled é false', () => {
-    const { result } = renderHook(() => 
-      useUnidadeDetalhada({ id: 'test-id', enabled: false })
+    const { result } = renderHook(() =>
+      useUnidadeDetalhada({ id: 'test-id', enabled: false }),
     )
 
     expect(result.current.carregando).toBe(false)
@@ -90,8 +90,8 @@ describe('useUnidadeDetalhada', () => {
   })
 
   it('não deve carregar quando id está vazio', () => {
-    const { result } = renderHook(() => 
-      useUnidadeDetalhada({ id: '', enabled: true })
+    const { result } = renderHook(() =>
+      useUnidadeDetalhada({ id: '', enabled: true }),
     )
 
     expect(result.current.carregando).toBe(false)
@@ -103,8 +103,8 @@ describe('useUnidadeDetalhada', () => {
   it('deve recarregar dados quando recarregar é chamado', async () => {
     vi.mocked(mockBuscarUnidadePorId).mockResolvedValue(mockUnidade)
 
-    const { result } = renderHook(() => 
-      useUnidadeDetalhada({ id: 'test-id', enabled: true })
+    const { result } = renderHook(() =>
+      useUnidadeDetalhada({ id: 'test-id', enabled: true }),
     )
 
     await waitFor(() => {
@@ -127,8 +127,8 @@ describe('useUnidadeDetalhada', () => {
       .mockResolvedValueOnce(mockUnidade)
       .mockRejectedValueOnce(new Error('Erro ao recarregar'))
 
-    const { result } = renderHook(() => 
-      useUnidadeDetalhada({ id: 'test-id', enabled: true })
+    const { result } = renderHook(() =>
+      useUnidadeDetalhada({ id: 'test-id', enabled: true }),
     )
 
     await waitFor(() => {

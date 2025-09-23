@@ -20,12 +20,15 @@ interface MockTabelaContratosProps {
 }
 
 const mockTabelaContratos = vi.fn()
-vi.mock('@/modules/Contratos/components/ListaContratos/tabela-contratos', () => ({
-  TabelaContratos: (props: MockTabelaContratosProps) => {
-    mockTabelaContratos(props)
-    return <div data-testid="tabela-contratos">Mocked TabelaContratos</div>
-  },
-}))
+vi.mock(
+  '@/modules/Contratos/components/ListaContratos/tabela-contratos',
+  () => ({
+    TabelaContratos: (props: MockTabelaContratosProps) => {
+      mockTabelaContratos(props)
+      return <div data-testid="tabela-contratos">Mocked TabelaContratos</div>
+    },
+  }),
+)
 
 // Mock do framer-motion
 vi.mock('framer-motion', () => ({
@@ -90,7 +93,9 @@ describe('FornecedorContratos', () => {
   it('Renderizar FornecedorContratos', () => {
     renderWithRouter(<FornecedorContratos {...defaultProps} />)
 
-    expect(screen.getByText('Contratos de Empresa ABC Ltda')).toBeInTheDocument()
+    expect(
+      screen.getByText('Contratos de Empresa ABC Ltda'),
+    ).toBeInTheDocument()
     expect(screen.getByTestId('tabela-contratos')).toBeInTheDocument()
   })
 
@@ -101,7 +106,7 @@ describe('FornecedorContratos', () => {
     expect(mockTabelaContratos).toHaveBeenCalledWith(
       expect.objectContaining({
         hideContratadaColumn: true,
-      })
+      }),
     )
   })
 
@@ -113,7 +118,7 @@ describe('FornecedorContratos', () => {
       expect.objectContaining({
         contratos: [mockContrato],
         totalContratos: 1,
-      })
+      }),
     )
   })
 
@@ -128,14 +133,12 @@ describe('FornecedorContratos', () => {
           itensPorPagina: 1, // igual ao número de contratos
           total: 1,
         },
-      })
+      }),
     )
   })
 
   it('deve exibir estado vazio quando não há contratos', () => {
-    renderWithRouter(
-      <FornecedorContratos {...defaultProps} contratos={[]} />
-    )
+    renderWithRouter(<FornecedorContratos {...defaultProps} contratos={[]} />)
 
     // Sem busca e com filtro 'todos' deve exibir estado "Nenhum contrato vinculado"
     expect(screen.getByText('Nenhum contrato vinculado')).toBeInTheDocument()
@@ -147,9 +150,7 @@ describe('FornecedorContratos', () => {
   })
 
   it('deve exibir estado de loading', () => {
-    renderWithRouter(
-      <FornecedorContratos {...defaultProps} isLoading={true} />
-    )
+    renderWithRouter(<FornecedorContratos {...defaultProps} isLoading={true} />)
 
     // Verifica se o skeleton loading está sendo mostrado
     expect(screen.queryByTestId('tabela-contratos')).not.toBeInTheDocument()
@@ -167,11 +168,13 @@ describe('FornecedorContratos', () => {
     ]
 
     renderWithRouter(
-      <FornecedorContratos {...defaultProps} contratos={contratos} />
+      <FornecedorContratos {...defaultProps} contratos={contratos} />,
     )
 
     // Busca pelo input de pesquisa
-    const searchInput = screen.getByPlaceholderText('Buscar por número, objeto, processo...')
+    const searchInput = screen.getByPlaceholderText(
+      'Buscar por número, objeto, processo...',
+    )
     expect(searchInput).toBeInTheDocument()
   })
 
@@ -249,7 +252,9 @@ describe('FornecedorContratos', () => {
     fireEvent.click(screen.getByText(/Ativos\s+\d+/))
     expect(mockTabelaContratos).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        contratos: expect.arrayContaining([expect.objectContaining({ id: 'a' })]),
+        contratos: expect.arrayContaining([
+          expect.objectContaining({ id: 'a' }),
+        ]),
         totalContratos: 1,
       }),
     )
@@ -260,7 +265,9 @@ describe('FornecedorContratos', () => {
       fireEvent.click(badgeVencendo)
       expect(mockTabelaContratos).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          contratos: expect.arrayContaining([expect.objectContaining({ id: 'b' })]),
+          contratos: expect.arrayContaining([
+            expect.objectContaining({ id: 'b' }),
+          ]),
           totalContratos: 1,
         }),
       )
@@ -272,7 +279,9 @@ describe('FornecedorContratos', () => {
       fireEvent.click(badgeVencidos)
       expect(mockTabelaContratos).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          contratos: expect.arrayContaining([expect.objectContaining({ id: 'c' })]),
+          contratos: expect.arrayContaining([
+            expect.objectContaining({ id: 'c' }),
+          ]),
           totalContratos: 1,
         }),
       )
@@ -289,8 +298,18 @@ describe('FornecedorContratos', () => {
 
   it('deve exibir estado vazio com busca sem resultados e limpar filtros restaura lista', async () => {
     const contratos: Contrato[] = [
-      { ...mockContrato, id: '1', numeroContrato: 'X-001', descricaoObjeto: 'AAA' },
-      { ...mockContrato, id: '2', numeroContrato: 'X-002', descricaoObjeto: 'BBB' },
+      {
+        ...mockContrato,
+        id: '1',
+        numeroContrato: 'X-001',
+        descricaoObjeto: 'AAA',
+      },
+      {
+        ...mockContrato,
+        id: '2',
+        numeroContrato: 'X-002',
+        descricaoObjeto: 'BBB',
+      },
     ]
 
     renderWithRouter(
@@ -307,7 +326,9 @@ describe('FornecedorContratos', () => {
     expect(
       await screen.findByText('Nenhum contrato encontrado'),
     ).toBeInTheDocument()
-    const limparBtn = await screen.findByRole('button', { name: 'Limpar filtros' })
+    const limparBtn = await screen.findByRole('button', {
+      name: 'Limpar filtros',
+    })
     expect(limparBtn).toBeInTheDocument()
 
     // Limpa filtros e TabelaContratos volta a aparecer

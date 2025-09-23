@@ -11,12 +11,12 @@ interface ProtectedRouteProps {
 }
 
 // Componente para rotas que requerem autenticação completa
-export function ProtectedRoute({ 
-  requireAuth = true, 
-  requireGuest = false, 
+export function ProtectedRoute({
+  requireAuth = true,
+  requireGuest = false,
   requirePasswordChange = false,
   require2FA = false,
-  children
+  children,
 }: ProtectedRouteProps) {
   const { usuario, estaAutenticado, carregando } = useAuthStore()
   const location = useLocation()
@@ -24,9 +24,9 @@ export function ProtectedRoute({
   // Aguarda a verificação inicial de autenticação
   if (carregando) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-teal-600"></div>
           <p className="text-gray-600">Verificando autenticação...</p>
         </div>
       </div>

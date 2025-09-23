@@ -52,7 +52,7 @@ export function SearchAndFilters({
   filtros,
   onTermoPesquisaChange,
   onFiltrosChange,
-  onLimparFiltros
+  onLimparFiltros,
 }: SearchAndFiltersProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
@@ -62,16 +62,26 @@ export function SearchAndFilters({
   const [unidadeExpanded, setUnidadeExpanded] = useState(false)
 
   // Hook para carregar unidades da API
-  const { data: unidadesData, isLoading: unidadesLoading, error: unidadesError } = useUnidades({
+  const {
+    data: unidadesData,
+    isLoading: unidadesLoading,
+    error: unidadesError,
+  } = useUnidades({
     pagina: 1,
-    tamanhoPagina: 100
+    tamanhoPagina: 100,
   })
 
   // Calcular número de filtros ativos
   const calcularFiltrosAtivos = () => {
     let count = 0
     if (filtros.status && filtros.status.length > 0) count++
-    if (filtros.dataInicialDe || filtros.dataInicialAte || filtros.dataFinalDe || filtros.dataFinalAte) count++
+    if (
+      filtros.dataInicialDe ||
+      filtros.dataInicialAte ||
+      filtros.dataFinalDe ||
+      filtros.dataFinalAte
+    )
+      count++
     if (filtros.valorMinimo && filtros.valorMinimo > 0) count++
     if (filtros.valorMaximo && filtros.valorMaximo > 0) count++
     if (filtros.unidade && filtros.unidade.length > 0) count++
@@ -249,7 +259,10 @@ export function SearchAndFilters({
                 type="date"
                 value={filtros.dataInicialAte || ''}
                 onChange={(e) =>
-                  onFiltrosChange({ ...filtros, dataInicialAte: e.target.value })
+                  onFiltrosChange({
+                    ...filtros,
+                    dataInicialAte: e.target.value,
+                  })
                 }
                 className="h-9"
               />
@@ -398,13 +411,16 @@ export function SearchAndFilters({
           <div className="max-h-32 space-y-2 overflow-y-auto">
             {unidadesLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
-                <div key={`skeleton-${index}`} className="flex items-center space-x-2">
+                <div
+                  key={`skeleton-${index}`}
+                  className="flex items-center space-x-2"
+                >
                   <Skeleton className="h-4 w-4" />
                   <Skeleton className="h-20 w-full" />
                 </div>
               ))
             ) : unidadesError ? (
-              <div className="text-center py-2 text-sm text-red-600">
+              <div className="py-2 text-center text-sm text-red-600">
                 Erro ao carregar unidades
               </div>
             ) : unidadesData?.dados && unidadesData.dados.length > 0 ? (
@@ -426,7 +442,7 @@ export function SearchAndFilters({
                 </div>
               ))
             ) : (
-              <div className="text-center py-2 text-sm text-gray-500">
+              <div className="py-2 text-center text-sm text-gray-500">
                 Nenhuma unidade encontrada
               </div>
             )}

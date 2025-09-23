@@ -15,7 +15,16 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, X, Building2, MapPin, Phone, Save, UserPlus, Check } from 'lucide-react'
+import {
+  Plus,
+  X,
+  Building2,
+  MapPin,
+  Phone,
+  Save,
+  UserPlus,
+  Check,
+} from 'lucide-react'
 import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useCEP } from '@/hooks/use-cep'
@@ -50,9 +59,33 @@ interface NovoFornecedorData {
 }
 
 const estadosBrasileiros = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ]
 
 const tiposContato = [
@@ -153,9 +186,13 @@ export function ModalNovoFornecedor({
 }: ModalNovoFornecedorProps) {
   const [open, setOpen] = useState(false)
   const [cepPreenchido, setCepPreenchido] = useState(false)
-  
+
   // Hook para busca de CEP
-  const { buscarCEP, isLoading: isLoadingCEP, error: cepError } = useCEP({
+  const {
+    buscarCEP,
+    isLoading: isLoadingCEP,
+    error: cepError,
+  } = useCEP({
     onSuccess: (endereco) => {
       // Preenche os campos automaticamente
       setDados((prev) => ({
@@ -165,7 +202,7 @@ export function ModalNovoFornecedor({
         cidade: endereco.localidade || '',
         estado: endereco.uf || '',
       }))
-      
+
       setCepPreenchido(true)
       toast.success('Endereço preenchido automaticamente!')
     },
@@ -173,7 +210,7 @@ export function ModalNovoFornecedor({
       toast.error(error)
       // Habilita campos mesmo com erro para permitir edição manual
       setCepPreenchido(true)
-    }
+    },
   })
 
   const [dados, setDados] = useState<NovoFornecedorData>({
@@ -205,8 +242,8 @@ export function ModalNovoFornecedor({
   useEffect(() => {
     if (dados.cnpj.length > 0) {
       const isValid = cnpjUtils.validar(dados.cnpj)
-      setValidacoes(prev => ({ ...prev, cnpj: isValid }))
-      
+      setValidacoes((prev) => ({ ...prev, cnpj: isValid }))
+
       if (dados.cnpj.length >= 18) {
         if (isValid) {
           toast.success('CNPJ válido!')
@@ -215,7 +252,7 @@ export function ModalNovoFornecedor({
         }
       }
     } else {
-      setValidacoes(prev => ({ ...prev, cnpj: null }))
+      setValidacoes((prev) => ({ ...prev, cnpj: null }))
     }
   }, [dados.cnpj])
 
@@ -223,15 +260,15 @@ export function ModalNovoFornecedor({
   useEffect(() => {
     if (dados.inscricaoEstadual.length > 0 && dados.estadoIE) {
       const isValid = ieUtils.validar(dados.inscricaoEstadual, dados.estadoIE)
-      setValidacoes(prev => ({ ...prev, inscricaoEstadual: isValid }))
-      
+      setValidacoes((prev) => ({ ...prev, inscricaoEstadual: isValid }))
+
       if (isValid) {
         toast.success('Inscrição Estadual válida!')
       } else {
         toast.error('Inscrição Estadual inválida para o estado selecionado.')
       }
     } else {
-      setValidacoes(prev => ({ ...prev, inscricaoEstadual: null }))
+      setValidacoes((prev) => ({ ...prev, inscricaoEstadual: null }))
     }
   }, [dados.inscricaoEstadual, dados.estadoIE])
 
@@ -239,15 +276,15 @@ export function ModalNovoFornecedor({
   useEffect(() => {
     if (dados.inscricaoMunicipal.length > 0 && dados.estadoIE) {
       const isValid = imUtils.validar(dados.inscricaoMunicipal, dados.estadoIE)
-      setValidacoes(prev => ({ ...prev, inscricaoMunicipal: isValid }))
-      
+      setValidacoes((prev) => ({ ...prev, inscricaoMunicipal: isValid }))
+
       if (isValid) {
         toast.success('Inscrição Municipal válida!')
       } else {
         toast.error('Inscrição Municipal inválida para o estado selecionado.')
       }
     } else {
-      setValidacoes(prev => ({ ...prev, inscricaoMunicipal: null }))
+      setValidacoes((prev) => ({ ...prev, inscricaoMunicipal: null }))
     }
   }, [dados.inscricaoMunicipal, dados.estadoIE])
 
@@ -255,13 +292,11 @@ export function ModalNovoFornecedor({
   useEffect(() => {
     if (dados.cep.length > 0) {
       const isValid = validarFormatoCEP(dados.cep)
-      setValidacoes(prev => ({ ...prev, cep: isValid }))
+      setValidacoes((prev) => ({ ...prev, cep: isValid }))
     } else {
-      setValidacoes(prev => ({ ...prev, cep: null }))
+      setValidacoes((prev) => ({ ...prev, cep: null }))
     }
   }, [dados.cep])
-
-
 
   const handleAdicionarContato = () => {
     if (dados.contatos.length < 3) {
@@ -362,12 +397,15 @@ export function ModalNovoFornecedor({
         toast.error(`E-mail inválido para o contato ${contato.nome}`)
         return false
       }
-      
-      if (contato.tipo === 'Fixo' && !validarFormatoTelefoneFixo(contato.valor)) {
+
+      if (
+        contato.tipo === 'Fixo' &&
+        !validarFormatoTelefoneFixo(contato.valor)
+      ) {
         toast.error(`Telefone fixo inválido para o contato ${contato.nome}`)
         return false
       }
-      
+
       if (contato.tipo === 'Celular' && !validarFormatoCelular(contato.valor)) {
         toast.error(`Celular inválido para o contato ${contato.nome}`)
         return false
@@ -390,7 +428,7 @@ export function ModalNovoFornecedor({
 
     onSalvar(dadosParaEnviar)
     setOpen(false)
-    
+
     // Reset form
     setDados({
       cnpj: '',
@@ -408,7 +446,7 @@ export function ModalNovoFornecedor({
       ativo: true,
       contatos: [],
     })
-    
+
     setCepPreenchido(false)
     setValidacoes({
       cnpj: null,
@@ -435,12 +473,12 @@ export function ModalNovoFornecedor({
         className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
         onClick={() => setOpen(false)}
       />
-      
+
       {/* Modal */}
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <div 
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div
           role="dialog"
-          className="w-full max-w-[1400px] max-h-[90vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl z-50"
+          className="z-50 max-h-[90vh] w-full max-w-[1400px] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl"
         >
           {/* Header */}
           <div className="border-b border-gray-100 px-8 py-6">
@@ -448,8 +486,12 @@ export function ModalNovoFornecedor({
               <div className="flex items-center gap-4">
                 <UserPlus className="h-8 w-8 text-blue-600" />
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900">Novo Fornecedor</h2>
-                  <p className="text-gray-500 mt-1">Preencha as informações do fornecedor</p>
+                  <h2 className="text-3xl font-bold text-gray-900">
+                    Novo Fornecedor
+                  </h2>
+                  <p className="mt-1 text-gray-500">
+                    Preencha as informações do fornecedor
+                  </p>
                 </div>
               </div>
               <Button
@@ -465,7 +507,7 @@ export function ModalNovoFornecedor({
           </div>
 
           {/* Content */}
-          <div className="p-8 space-y-10">
+          <div className="space-y-10 p-8">
             {/* Documentação */}
             <Card>
               <CardHeader className="pb-6">
@@ -484,12 +526,19 @@ export function ModalNovoFornecedor({
                         placeholder="00.000.000/0000-00"
                         value={dados.cnpj}
                         onChange={(e) => {
-                          const valorMascarado = cnpjUtils.aplicarMascara(e.target.value)
-                          setDados((prev) => ({ ...prev, cnpj: valorMascarado }))
+                          const valorMascarado = cnpjUtils.aplicarMascara(
+                            e.target.value,
+                          )
+                          setDados((prev) => ({
+                            ...prev,
+                            cnpj: valorMascarado,
+                          }))
                         }}
                         className={cn(
-                          validacoes.cnpj === true && 'border-green-500 bg-green-50 pr-10',
-                          validacoes.cnpj === false && 'border-red-500 bg-red-50 pr-10',
+                          validacoes.cnpj === true &&
+                            'border-green-500 bg-green-50 pr-10',
+                          validacoes.cnpj === false &&
+                            'border-red-500 bg-red-50 pr-10',
                         )}
                       />
                       {validacoes.cnpj !== null && (
@@ -527,10 +576,10 @@ export function ModalNovoFornecedor({
                       onValueChange={(value) => {
                         setDados((prev) => ({ ...prev, estadoIE: value }))
                         // Limpa os campos de inscrição quando UF muda
-                        setDados((prev) => ({ 
-                          ...prev, 
+                        setDados((prev) => ({
+                          ...prev,
                           inscricaoEstadual: '',
-                          inscricaoMunicipal: ''
+                          inscricaoMunicipal: '',
                         }))
                       }}
                     >
@@ -548,7 +597,9 @@ export function ModalNovoFornecedor({
                   </div>
 
                   <div className="space-y-4">
-                    <Label htmlFor="inscricaoEstadual">Inscrição Estadual</Label>
+                    <Label htmlFor="inscricaoEstadual">
+                      Inscrição Estadual
+                    </Label>
                     <div className="relative">
                       <Input
                         id="inscricaoEstadual"
@@ -573,8 +624,10 @@ export function ModalNovoFornecedor({
                         }}
                         className={cn(
                           !dados.estadoIE && 'cursor-not-allowed opacity-50',
-                          validacoes.inscricaoEstadual === true && 'border-green-500 bg-green-50 pr-10',
-                          validacoes.inscricaoEstadual === false && 'border-red-500 bg-red-50 pr-10',
+                          validacoes.inscricaoEstadual === true &&
+                            'border-green-500 bg-green-50 pr-10',
+                          validacoes.inscricaoEstadual === false &&
+                            'border-red-500 bg-red-50 pr-10',
                         )}
                       />
                       {validacoes.inscricaoEstadual !== null && (
@@ -588,9 +641,11 @@ export function ModalNovoFornecedor({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
-                    <Label htmlFor="inscricaoMunicipal">Inscrição Municipal</Label>
+                    <Label htmlFor="inscricaoMunicipal">
+                      Inscrição Municipal
+                    </Label>
                     <div className="relative">
                       <Input
                         id="inscricaoMunicipal"
@@ -615,8 +670,10 @@ export function ModalNovoFornecedor({
                         }}
                         className={cn(
                           !dados.estadoIE && 'cursor-not-allowed opacity-50',
-                          validacoes.inscricaoMunicipal === true && 'border-green-500 bg-green-50 pr-10',
-                          validacoes.inscricaoMunicipal === false && 'border-red-500 bg-red-50 pr-10',
+                          validacoes.inscricaoMunicipal === true &&
+                            'border-green-500 bg-green-50 pr-10',
+                          validacoes.inscricaoMunicipal === false &&
+                            'border-red-500 bg-red-50 pr-10',
                         )}
                       />
                       {validacoes.inscricaoMunicipal !== null && (
@@ -652,18 +709,25 @@ export function ModalNovoFornecedor({
                         placeholder="00000-000"
                         value={dados.cep}
                         onChange={(e) => {
-                          const valorMascarado = aplicarMascaraCEP(e.target.value)
+                          const valorMascarado = aplicarMascaraCEP(
+                            e.target.value,
+                          )
                           setDados((prev) => ({ ...prev, cep: valorMascarado }))
-                          
+
                           // Só busca CEP quando o formato estiver completo
-                          if (valorMascarado && validarFormatoCEP(valorMascarado)) {
+                          if (
+                            valorMascarado &&
+                            validarFormatoCEP(valorMascarado)
+                          ) {
                             buscarCEP(valorMascarado)
                           }
                         }}
                         className={cn(
                           cepError && 'border-red-500 bg-red-50',
-                          validacoes.cep === true && 'border-green-500 bg-green-50',
-                          validacoes.cep === false && 'border-red-500 bg-red-50',
+                          validacoes.cep === true &&
+                            'border-green-500 bg-green-50',
+                          validacoes.cep === false &&
+                            'border-red-500 bg-red-50',
                         )}
                       />
                       {isLoadingCEP && (
@@ -676,7 +740,7 @@ export function ModalNovoFornecedor({
                       <p className="text-sm text-red-600">{cepError}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-4">
                     <Label htmlFor="estado">Estado (UF) *</Label>
                     <Select
@@ -686,10 +750,13 @@ export function ModalNovoFornecedor({
                       }
                       disabled={!cepPreenchido}
                     >
-                      <SelectTrigger className={cn(
-                        'w-full',
-                        !cepPreenchido && 'cursor-not-allowed bg-slate-100 opacity-50'
-                      )}>
+                      <SelectTrigger
+                        className={cn(
+                          'w-full',
+                          !cepPreenchido &&
+                            'cursor-not-allowed bg-slate-100 opacity-50',
+                        )}
+                      >
                         <SelectValue placeholder="Selecione o estado" />
                       </SelectTrigger>
                       <SelectContent>
@@ -701,7 +768,7 @@ export function ModalNovoFornecedor({
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <Label htmlFor="cidade">Cidade *</Label>
                     <Input
@@ -710,10 +777,14 @@ export function ModalNovoFornecedor({
                       value={dados.cidade}
                       disabled={!cepPreenchido}
                       onChange={(e) =>
-                        setDados((prev) => ({ ...prev, cidade: e.target.value }))
+                        setDados((prev) => ({
+                          ...prev,
+                          cidade: e.target.value,
+                        }))
                       }
                       className={cn(
-                        !cepPreenchido && 'cursor-not-allowed bg-slate-100 opacity-50'
+                        !cepPreenchido &&
+                          'cursor-not-allowed bg-slate-100 opacity-50',
                       )}
                     />
                   </div>
@@ -728,14 +799,18 @@ export function ModalNovoFornecedor({
                       value={dados.endereco}
                       disabled={!cepPreenchido}
                       onChange={(e) =>
-                        setDados((prev) => ({ ...prev, endereco: e.target.value }))
+                        setDados((prev) => ({
+                          ...prev,
+                          endereco: e.target.value,
+                        }))
                       }
                       className={cn(
-                        !cepPreenchido && 'cursor-not-allowed bg-slate-100 opacity-50'
+                        !cepPreenchido &&
+                          'cursor-not-allowed bg-slate-100 opacity-50',
                       )}
                     />
                   </div>
-                  
+
                   <div className="space-y-4">
                     <Label htmlFor="numero">Número *</Label>
                     <Input
@@ -744,10 +819,14 @@ export function ModalNovoFornecedor({
                       value={dados.numero}
                       disabled={!cepPreenchido}
                       onChange={(e) =>
-                        setDados((prev) => ({ ...prev, numero: e.target.value }))
+                        setDados((prev) => ({
+                          ...prev,
+                          numero: e.target.value,
+                        }))
                       }
                       className={cn(
-                        !cepPreenchido && 'cursor-not-allowed bg-slate-100 opacity-50'
+                        !cepPreenchido &&
+                          'cursor-not-allowed bg-slate-100 opacity-50',
                       )}
                     />
                   </div>
@@ -762,14 +841,18 @@ export function ModalNovoFornecedor({
                       value={dados.bairro}
                       disabled={!cepPreenchido}
                       onChange={(e) =>
-                        setDados((prev) => ({ ...prev, bairro: e.target.value }))
+                        setDados((prev) => ({
+                          ...prev,
+                          bairro: e.target.value,
+                        }))
                       }
                       className={cn(
-                        !cepPreenchido && 'cursor-not-allowed bg-slate-100 opacity-50'
+                        !cepPreenchido &&
+                          'cursor-not-allowed bg-slate-100 opacity-50',
                       )}
                     />
                   </div>
-                  
+
                   <div className="space-y-4">
                     <Label htmlFor="complemento">Complemento</Label>
                     <Input
@@ -778,10 +861,14 @@ export function ModalNovoFornecedor({
                       value={dados.complemento}
                       disabled={!cepPreenchido}
                       onChange={(e) =>
-                        setDados((prev) => ({ ...prev, complemento: e.target.value }))
+                        setDados((prev) => ({
+                          ...prev,
+                          complemento: e.target.value,
+                        }))
                       }
                       className={cn(
-                        !cepPreenchido && 'cursor-not-allowed bg-slate-100 opacity-50'
+                        !cepPreenchido &&
+                          'cursor-not-allowed bg-slate-100 opacity-50',
                       )}
                     />
                   </div>
@@ -826,7 +913,9 @@ export function ModalNovoFornecedor({
 
                       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                         <div className="space-y-4">
-                          <Label htmlFor={`nome-contato-${contato.id}`}>Nome do Contato *</Label>
+                          <Label htmlFor={`nome-contato-${contato.id}`}>
+                            Nome do Contato *
+                          </Label>
                           <Input
                             id={`nome-contato-${contato.id}`}
                             placeholder="Digite o nome"
@@ -841,7 +930,9 @@ export function ModalNovoFornecedor({
                           />
                         </div>
                         <div className="space-y-4">
-                          <Label htmlFor={`tipo-contato-${contato.id}`}>Tipo *</Label>
+                          <Label htmlFor={`tipo-contato-${contato.id}`}>
+                            Tipo *
+                          </Label>
                           <Select
                             value={contato.tipo}
                             onValueChange={(value) =>
@@ -867,7 +958,8 @@ export function ModalNovoFornecedor({
                         <div className="space-y-4">
                           <Label htmlFor={`valor-contato-${contato.id}`}>
                             {tiposContato.find((t) => t.value === contato.tipo)
-                              ?.label || 'Valor'} *
+                              ?.label || 'Valor'}{' '}
+                            *
                           </Label>
                           <Input
                             id={`valor-contato-${contato.id}`}
@@ -879,9 +971,13 @@ export function ModalNovoFornecedor({
 
                               // Aplica máscara baseada no tipo
                               if (contato.tipo === 'Fixo') {
-                                valorProcessado = aplicarMascaraTelefoneFixo(e.target.value)
+                                valorProcessado = aplicarMascaraTelefoneFixo(
+                                  e.target.value,
+                                )
                               } else if (contato.tipo === 'Celular') {
-                                valorProcessado = aplicarMascaraCelular(e.target.value)
+                                valorProcessado = aplicarMascaraCelular(
+                                  e.target.value,
+                                )
                               }
 
                               handleAtualizarContato(
@@ -916,7 +1012,10 @@ export function ModalNovoFornecedor({
                   <Checkbox
                     checked={dados.ativo}
                     onCheckedChange={(checked) =>
-                      setDados((prev) => ({ ...prev, ativo: checked as boolean }))
+                      setDados((prev) => ({
+                        ...prev,
+                        ativo: checked as boolean,
+                      }))
                     }
                   />
                   <div className="space-y-1">
@@ -924,7 +1023,8 @@ export function ModalNovoFornecedor({
                       Fornecedor ativo
                     </Label>
                     <p className="text-xs text-slate-600">
-                      Marque esta opção para manter o fornecedor ativo no sistema
+                      Marque esta opção para manter o fornecedor ativo no
+                      sistema
                     </p>
                   </div>
                 </div>

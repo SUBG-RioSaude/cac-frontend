@@ -22,14 +22,19 @@ export const useFilters = (): UseFiltersResult => {
       if (saved) {
         const parsed = JSON.parse(saved)
         // Validar estrutura básica
-        if (parsed.periodo && parsed.unidades && parsed.status && parsed.tipos) {
+        if (
+          parsed.periodo &&
+          parsed.unidades &&
+          parsed.status &&
+          parsed.tipos
+        ) {
           return parsed
         }
       }
     } catch (error) {
       console.warn('Erro ao carregar filtros salvos:', error)
     }
-    
+
     return defaultFilters
   })
 
@@ -45,15 +50,15 @@ export const useFilters = (): UseFiltersResult => {
   /**
    * Atualiza um filtro específico
    */
-  const updateFilter = useCallback(<K extends keyof DashboardFilters>(
-    key: K, 
-    value: DashboardFilters[K]
-  ) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }))
-  }, [])
+  const updateFilter = useCallback(
+    <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => {
+      setFilters((prev) => ({
+        ...prev,
+        [key]: value,
+      }))
+    },
+    [],
+  )
 
   /**
    * Reset filtros para valores padrão
@@ -71,6 +76,6 @@ export const useFilters = (): UseFiltersResult => {
     filters,
     updateFilter,
     resetFilters,
-    hasActiveFilters: hasActive
+    hasActiveFilters: hasActive,
   }
 }

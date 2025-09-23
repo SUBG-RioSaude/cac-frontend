@@ -8,7 +8,7 @@ A API espera o seguinte payload para criação de contratos:
 {
   "numeroContrato": "string",
   "processoSei": "string",
-  "processoRio": "string", 
+  "processoRio": "string",
   "processoLegado": "string",
   "categoriaObjeto": "string",
   "descricaoObjeto": "string",
@@ -64,9 +64,12 @@ const handleSubmit = async (dadosFormulario: DadosContrato) => {
     // Mapear dados do formulário para API
     const payload: CriarContratoPayload = {
       numeroContrato: dadosFormulario.numeroContrato,
-      processoSei: dadosFormulario.processos.find(p => p.tipo === 'sei')?.valor,
-      processoRio: dadosFormulario.processos.find(p => p.tipo === 'rio')?.valor,
-      processoLegado: dadosFormulario.processos.find(p => p.tipo === 'fisico')?.valor,
+      processoSei: dadosFormulario.processos.find((p) => p.tipo === 'sei')
+        ?.valor,
+      processoRio: dadosFormulario.processos.find((p) => p.tipo === 'rio')
+        ?.valor,
+      processoLegado: dadosFormulario.processos.find((p) => p.tipo === 'fisico')
+        ?.valor,
       categoriaObjeto: dadosFormulario.categoriaObjeto,
       descricaoObjeto: dadosFormulario.descricaoObjeto,
       tipoContratacao: dadosFormulario.tipoContratacao,
@@ -77,7 +80,9 @@ const handleSubmit = async (dadosFormulario: DadosContrato) => {
       vigenciaInicial: dadosFormulario.vigenciaInicial,
       vigenciaFinal: dadosFormulario.vigenciaFinal,
       prazoInicialMeses: 0, // Será calculado automaticamente
-      valorGlobal: parseFloat(dadosFormulario.valorGlobal.replace(/[^\d,]/g, '').replace(',', '.')),
+      valorGlobal: parseFloat(
+        dadosFormulario.valorGlobal.replace(/[^\d,]/g, '').replace(',', '.'),
+      ),
       formaPagamento: dadosFormulario.formaPagamento,
       tipoTermoReferencia: dadosFormulario.tipoTermoReferencia,
       termoReferencia: dadosFormulario.termoReferencia,
@@ -85,12 +90,11 @@ const handleSubmit = async (dadosFormulario: DadosContrato) => {
       empresaId: 'uuid-da-empresa', // Preencher com ID real
       ativo: true,
       unidadesVinculadas: [], // Preencher com unidades selecionadas
-      funcionarios: [] // Preencher com funcionários atribuídos
+      funcionarios: [], // Preencher com funcionários atribuídos
     }
 
     // Criar contrato
     await criarContratoMutation.mutateAsync(payload)
-    
   } catch (error) {
     console.error('Erro ao criar contrato:', error)
   }
@@ -100,18 +104,22 @@ const handleSubmit = async (dadosFormulario: DadosContrato) => {
 ## 🔧 Funcionalidades Automáticas
 
 ### Conversão de Datas
+
 - O serviço converte automaticamente datas do formato `YYYY-MM-DD` para ISO string
 - Exemplo: `"2025-01-16"` → `"2025-01-16T00:00:00.000Z"`
 
 ### Cálculo de Prazo
+
 - O prazo em meses é calculado automaticamente entre vigência inicial e final
 - Fórmula: `Math.ceil(diferencaDias / 30)`
 
 ### Conversão de Valores
+
 - Valores em formato brasileiro (`R$ 1.234,56`) são convertidos para número
 - Exemplo: `"R$ 1.234,56"` → `1234.56`
 
 ### Mapeamento de Funcionários
+
 - `tipoGerencia: 1` = Fiscal
 - `tipoGerencia: 2` = Gestor
 
@@ -121,7 +129,7 @@ const handleSubmit = async (dadosFormulario: DadosContrato) => {
 // Componente de criação de contrato
 export default function CriarContrato() {
   const criarContratoMutation = useCriarContrato()
-  
+
   const handleSubmit = async (dados: DadosContrato) => {
     const payload: CriarContratoPayload = {
       numeroContrato: dados.numeroContrato,
@@ -176,4 +184,3 @@ export default function CriarContrato() {
 - ✅ **Tratamento de erros**: Toast e redirecionamento automáticos
 - ✅ **Cache invalidation**: Queries são atualizadas automaticamente
 - ✅ **Logs de debug**: Console logs para facilitar debugging
-

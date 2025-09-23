@@ -11,7 +11,11 @@ interface DebugPayloadProps {
   className?: string
 }
 
-export default function DebugPayload({ payload, title = "Debug Payload", className }: DebugPayloadProps) {
+export default function DebugPayload({
+  payload,
+  title = 'Debug Payload',
+  className,
+}: DebugPayloadProps) {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [copied, setCopied] = React.useState(false)
 
@@ -48,8 +52,11 @@ export default function DebugPayload({ payload, title = "Debug Payload", classNa
     <Card className={`border border-orange-200 bg-orange-50 ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-orange-800 flex items-center gap-2">
-            <Badge variant="outline" className="text-orange-600 border-orange-300">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium text-orange-800">
+            <Badge
+              variant="outline"
+              className="border-orange-300 text-orange-600"
+            >
               DEBUG
             </Badge>
             {title}
@@ -61,7 +68,11 @@ export default function DebugPayload({ payload, title = "Debug Payload", classNa
               onClick={() => setIsExpanded(!isExpanded)}
               className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700"
             >
-              {isExpanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {isExpanded ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </Button>
             <Button
               variant="ghost"
@@ -82,23 +93,30 @@ export default function DebugPayload({ payload, title = "Debug Payload", classNa
           </div>
         </div>
       </CardHeader>
-      
+
       {isExpanded && (
         <CardContent className="pt-0">
-          <div className="bg-white rounded border p-4 max-h-96 overflow-auto">
-            <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+          <div className="max-h-96 overflow-auto rounded border bg-white p-4">
+            <pre className="text-xs whitespace-pre-wrap text-gray-700">
               {JSON.stringify(payload, null, 2)}
             </pre>
           </div>
-          
+
           <div className="mt-3 text-xs text-orange-700">
-            <p><strong>Status:</strong> {copied ? 'Copiado!' : 'Pronto para copiar'}</p>
-            <p><strong>Tamanho:</strong> {JSON.stringify(payload).length} caracteres</p>
-            <p><strong>Timestamp:</strong> {new Date().toLocaleString()}</p>
+            <p>
+              <strong>Status:</strong>{' '}
+              {copied ? 'Copiado!' : 'Pronto para copiar'}
+            </p>
+            <p>
+              <strong>Tamanho:</strong> {JSON.stringify(payload).length}{' '}
+              caracteres
+            </p>
+            <p>
+              <strong>Timestamp:</strong> {new Date().toLocaleString()}
+            </p>
           </div>
         </CardContent>
       )}
     </Card>
   )
 }
-

@@ -19,7 +19,7 @@ import {
   Hash,
   CheckCircle,
   XCircle,
-  X
+  X,
 } from 'lucide-react'
 import { useBuscarFuncionariosPorNome } from '@/modules/Funcionarios/hooks/use-funcionarios'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
@@ -50,12 +50,12 @@ export function BuscaFuncionarioField({
   onLimparSelecao,
   disabled = false,
   required = false,
-  className
+  className,
 }: BuscaFuncionarioFieldProps) {
   const [termoBusca, setTermoBusca] = useState('')
   const [mostrarResultados, setMostrarResultados] = useState(false)
   const [focoNoInput, setFocoNoInput] = useState(false)
-  
+
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -63,24 +63,23 @@ export function BuscaFuncionarioField({
   const {
     data: funcionarios = [],
     isLoading,
-    error
-  } = useBuscarFuncionariosPorNome(
-    termoBusca,
-    10,
-    {
-      enabled: termoBusca.length >= 2 && !funcionarioSelecionado
-    }
-  )
+    error,
+  } = useBuscarFuncionariosPorNome(termoBusca, 10, {
+    enabled: termoBusca.length >= 2 && !funcionarioSelecionado,
+  })
 
   // Filtrar funcionários excluídos
   const funcionariosFiltrados = funcionarios.filter(
-    func => !funcionariosExcluidos.includes(func.id)
+    (func) => !funcionariosExcluidos.includes(func.id),
   )
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setMostrarResultados(false)
         setFocoNoInput(false)
       }
@@ -133,29 +132,33 @@ export function BuscaFuncionarioField({
         {label && (
           <Label className="text-sm font-medium">
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="ml-1 text-red-500">*</span>}
           </Label>
         )}
-        
+
         <div className="relative">
-          <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+          <div className="bg-muted/30 flex items-center justify-between rounded-lg border p-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
                 <User className="h-5 w-5 text-blue-600" />
               </div>
-              
+
               <div className="flex-1">
-                <h4 className="font-semibold text-sm">{funcionarioSelecionado.nomeCompleto}</h4>
-                <p className="text-muted-foreground text-xs">{funcionarioSelecionado.cargo}</p>
-                
-                <div className="flex items-center gap-2 mt-1">
+                <h4 className="text-sm font-semibold">
+                  {funcionarioSelecionado.nomeCompleto}
+                </h4>
+                <p className="text-muted-foreground text-xs">
+                  {funcionarioSelecionado.cargo}
+                </p>
+
+                <div className="mt-1 flex items-center gap-2">
                   {funcionarioSelecionado.matricula && (
                     <Badge variant="outline" className="text-xs">
                       <Hash className="mr-1 h-3 w-3" />
                       {funcionarioSelecionado.matricula}
                     </Badge>
                   )}
-                  
+
                   {funcionarioSelecionado.lotacaoSigla && (
                     <Badge variant="outline" className="text-xs">
                       <Building className="mr-1 h-3 w-3" />
@@ -164,8 +167,10 @@ export function BuscaFuncionarioField({
                   )}
 
                   {/* Status ativo/inativo */}
-                  <Badge 
-                    variant={funcionarioSelecionado.ativo ? "default" : "destructive"}
+                  <Badge
+                    variant={
+                      funcionarioSelecionado.ativo ? 'default' : 'destructive'
+                    }
                     className="text-xs"
                   >
                     {funcionarioSelecionado.ativo ? (
@@ -178,7 +183,7 @@ export function BuscaFuncionarioField({
                 </div>
               </div>
             </div>
-            
+
             {!disabled && onLimparSelecao && (
               <Button
                 type="button"
@@ -202,13 +207,13 @@ export function BuscaFuncionarioField({
       {label && (
         <Label className="text-sm font-medium">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </Label>
       )}
-      
+
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             ref={inputRef}
             type="text"
@@ -219,7 +224,7 @@ export function BuscaFuncionarioField({
             disabled={disabled}
             className={cn(
               'pl-10',
-              focoNoInput && 'ring-2 ring-blue-200 border-blue-300'
+              focoNoInput && 'border-blue-300 ring-2 ring-blue-200',
             )}
           />
         </div>
@@ -231,10 +236,10 @@ export function BuscaFuncionarioField({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto"
+              className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border bg-white shadow-lg"
             >
               {isLoading && (
-                <div className="p-3 space-y-2">
+                <div className="space-y-2 p-3">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
                 </div>
@@ -246,37 +251,44 @@ export function BuscaFuncionarioField({
                 </div>
               )}
 
-              {!isLoading && !error && funcionariosFiltrados.length === 0 && termoBusca.length >= 2 && (
-                <div className="p-3 text-sm text-muted-foreground">
-                  Nenhum funcionário encontrado para "{termoBusca}"
-                </div>
-              )}
+              {!isLoading &&
+                !error &&
+                funcionariosFiltrados.length === 0 &&
+                termoBusca.length >= 2 && (
+                  <div className="text-muted-foreground p-3 text-sm">
+                    Nenhum funcionário encontrado para "{termoBusca}"
+                  </div>
+                )}
 
               {funcionariosFiltrados.map((funcionario) => (
                 <button
                   key={funcionario.id}
                   type="button"
                   onClick={() => handleSelecionarFuncionario(funcionario)}
-                  className="w-full p-3 text-left hover:bg-gray-50 border-b last:border-b-0 transition-colors"
+                  className="w-full border-b p-3 text-left transition-colors last:border-b-0 hover:bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
                       <User className="h-4 w-4 text-blue-600" />
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{funcionario.nomeCompleto}</h4>
-                      <p className="text-muted-foreground text-xs truncate">{funcionario.cargo}</p>
-                      
-                      <div className="flex items-center gap-2 mt-1">
+
+                    <div className="min-w-0 flex-1">
+                      <h4 className="truncate text-sm font-medium">
+                        {funcionario.nomeCompleto}
+                      </h4>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {funcionario.cargo}
+                      </p>
+
+                      <div className="mt-1 flex items-center gap-2">
                         {funcionario.matricula && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             Mat: {funcionario.matricula}
                           </span>
                         )}
-                        
+
                         {funcionario.lotacaoSigla && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             • {funcionario.lotacaoSigla}
                           </span>
                         )}
@@ -297,13 +309,12 @@ export function BuscaFuncionarioField({
       </div>
 
       {/* Texto de ajuda */}
-      <p className="text-xs text-muted-foreground">
-        {termoBusca.length < 2 
+      <p className="text-muted-foreground text-xs">
+        {termoBusca.length < 2
           ? 'Digite pelo menos 2 caracteres para buscar'
-          : funcionariosFiltrados.length > 0 
-          ? `${funcionariosFiltrados.length} funcionário(s) encontrado(s)`
-          : ''
-        }
+          : funcionariosFiltrados.length > 0
+            ? `${funcionariosFiltrados.length} funcionário(s) encontrado(s)`
+            : ''}
       </p>
     </div>
   )

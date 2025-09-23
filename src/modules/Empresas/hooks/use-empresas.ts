@@ -4,24 +4,29 @@
  */
 
 import React from 'react'
-import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useQueries,
+} from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { empresaKeys } from '../lib/query-keys'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
 import { useErrorHandler } from '@/hooks/use-error-handler'
-import type { 
-  EmpresaRequest, 
-  EmpresaResponse, 
+import type {
+  EmpresaRequest,
+  EmpresaResponse,
   AtualizarEmpresaDto,
   EmpresaParametros,
   CriarContatoDto,
   AtualizarContatoDto,
   ContatoResponse,
-  ContatoOperationData
+  ContatoOperationData,
 } from '../types/empresa'
 import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
-import { 
-  consultarEmpresaPorCNPJ, 
+import {
+  consultarEmpresaPorCNPJ,
   cadastrarEmpresa,
   getEmpresas,
   getEmpresaById,
@@ -31,7 +36,7 @@ import {
   createContato,
   updateContato,
   deleteContato,
-  getFornecedoresResumo
+  getFornecedoresResumo,
 } from '../services/empresa-service'
 
 // ========== HOOKS EXISTENTES (PRESERVADOS) ==========
@@ -46,7 +51,7 @@ export function useConsultarEmpresaPorCNPJ(
     enabled?: boolean
     onSuccess?: (data: EmpresaResponse) => void
     onError?: (error: unknown) => void
-  }
+  },
 ) {
   const { query: toastQuery } = useToast()
   const { handleApiError } = useErrorHandler()
@@ -60,16 +65,22 @@ export function useConsultarEmpresaPorCNPJ(
       }
       return result
     },
-    
-    enabled: options?.enabled ?? (!!cnpj && cnpj.length === 14 && /^\d{14}$/.test(cnpj)),
-    
+
+    enabled:
+      options?.enabled ??
+      (!!cnpj && cnpj.length === 14 && /^\d{14}$/.test(cnpj)),
+
     retry: (failureCount, error: unknown) => {
-      if (error instanceof Error && error.message === 'Empresa não encontrada') {
+      if (
+        error instanceof Error &&
+        error.message === 'Empresa não encontrada'
+      ) {
         return false
       }
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
+        const status = (error as { response: { status: number } }).response
+          ?.status
         if (status === 404) {
           return false
         }
@@ -78,31 +89,35 @@ export function useConsultarEmpresaPorCNPJ(
     },
 
     throwOnError: (error: unknown) => {
-      if (error instanceof Error && error.message === 'Empresa não encontrada') {
+      if (
+        error instanceof Error &&
+        error.message === 'Empresa não encontrada'
+      ) {
         return false
       }
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
-        
+        const status = (error as { response: { status: number } }).response
+          ?.status
+
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
           return true
         }
-        
+
         if (status === 404) {
           return false
         }
       }
 
-      toastQuery.error(error, "Erro ao consultar empresa por CNPJ")
+      toastQuery.error(error, 'Erro ao consultar empresa por CNPJ')
       return false
     },
-    
+
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchOnReconnect: false
+    refetchOnReconnect: false,
   })
 
   React.useEffect(() => {
@@ -139,17 +154,8 @@ export function useCadastrarEmpresa() {
     },
 
     onSuccess: (data, variables, context) => {
-      // Debug: Log detalhado da resposta do hook
-      console.log('✅ [HOOK] Empresa cadastrada - dados recebidos:', data)
-      console.log('🔍 [HOOK] ID da empresa:', data?.id)
-      console.log('🔍 [HOOK] Tipo do ID:', typeof data?.id)
-      console.log('🔍 [HOOK] Dados completos:', JSON.stringify(data, null, 2))
-
       // Validação robusta do ID
       if (!data?.id) {
-        console.error('❌ [HOOK] ERRO CRÍTICO: ID não encontrado na resposta!')
-        console.error('❌ [HOOK] Dados recebidos:', data)
-
         if (context?.loadingToast) {
           toast.error('Erro no cadastro da empresa', {
             id: context.loadingToast,
@@ -157,13 +163,13 @@ export function useCadastrarEmpresa() {
             duration: 5000,
           })
         } else {
-          mutation.error('cadastrar empresa', new Error('ID da empresa não retornado'))
+          mutation.error(
+            'cadastrar empresa',
+            new Error('ID da empresa não retornado'),
+          )
         }
         return
       }
-
-      // ID validado com sucesso
-      console.log('🎉 [HOOK] ID validado com sucesso:', data.id)
 
       if (context?.loadingToast) {
         toast.success('Empresa cadastrada com sucesso', {
@@ -179,16 +185,17 @@ export function useCadastrarEmpresa() {
       queryClient.invalidateQueries({ queryKey: empresaKeys.lists() })
       queryClient.invalidateQueries({ queryKey: empresaKeys.all })
       queryClient.invalidateQueries({ queryKey: empresaKeys.status() })
-      
+
       // Invalidar cache específico do CNPJ cadastrado
-      queryClient.invalidateQueries({ 
-        queryKey: empresaKeys.byCnpj(variables.cnpj) 
+      queryClient.invalidateQueries({
+        queryKey: empresaKeys.byCnpj(variables.cnpj),
       })
     },
 
     onError: (error, _variables, context) => {
       if (context?.loadingToast) {
-        const errorMessage = error instanceof Error ? error.message : String(error)
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
         toast.error('Erro ao cadastrar empresa', {
           id: context.loadingToast,
           description: errorMessage,
@@ -197,12 +204,12 @@ export function useCadastrarEmpresa() {
       } else {
         mutation.error('cadastrar empresa', error)
       }
-    }
+    },
   })
 
   return {
     ...mutationResult,
-    resetMutation: () => mutationResult.reset()
+    resetMutation: () => mutationResult.reset(),
   }
 }
 
@@ -217,7 +224,7 @@ export function useEmpresas(
     enabled?: boolean
     keepPreviousData?: boolean
     refetchOnMount?: boolean
-  }
+  },
 ) {
   const { query: toastQuery } = useToast()
   const { handleApiError } = useErrorHandler()
@@ -227,14 +234,15 @@ export function useEmpresas(
     queryFn: async () => {
       return await getEmpresas(parametros)
     },
-    
+
     enabled: options?.enabled ?? true,
     placeholderData: options?.keepPreviousData ? (prev) => prev : undefined,
     refetchOnMount: options?.refetchOnMount ?? true,
-    
+
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
+        const status = (error as { response: { status: number } }).response
+          ?.status
         if (status >= 400 && status < 500) {
           return false
         }
@@ -244,17 +252,18 @@ export function useEmpresas(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
-        
+        const status = (error as { response: { status: number } }).response
+          ?.status
+
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
           return true
         }
       }
 
-      toastQuery.error(error, "Não foi possível carregar a lista de empresas")
+      toastQuery.error(error, 'Não foi possível carregar a lista de empresas')
       return false
-    }
+    },
   })
 }
 
@@ -270,12 +279,13 @@ export function useEmpresa(id: string, options?: { enabled?: boolean }) {
     queryFn: async () => {
       return await getEmpresaById(id)
     },
-    
+
     enabled: options?.enabled ?? !!id,
-    
+
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
+        const status = (error as { response: { status: number } }).response
+          ?.status
         if (status >= 400 && status < 500) {
           return false
         }
@@ -285,22 +295,26 @@ export function useEmpresa(id: string, options?: { enabled?: boolean }) {
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
-        
+        const status = (error as { response: { status: number } }).response
+          ?.status
+
         if (status === 404) {
           handleApiError(error)
           return true
         }
-        
+
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
           return true
         }
       }
 
-      toastQuery.error(error, "Não foi possível carregar os detalhes da empresa")
+      toastQuery.error(
+        error,
+        'Não foi possível carregar os detalhes da empresa',
+      )
       return false
-    }
+    },
   })
 }
 
@@ -312,7 +326,10 @@ export function useUpdateEmpresa() {
   const { mutation } = useToast()
 
   return useMutation({
-    mutationFn: async (data: { id: string, dados: AtualizarEmpresaDto }): Promise<EmpresaResponse> => {
+    mutationFn: async (data: {
+      id: string
+      dados: AtualizarEmpresaDto
+    }): Promise<EmpresaResponse> => {
       return await updateEmpresa(data.id, data.dados)
     },
 
@@ -333,7 +350,7 @@ export function useUpdateEmpresa() {
       mutation.success('Empresa atualizada com sucesso')
 
       // Invalidar caches específicos
-      empresaKeys.invalidateOnUpdate(variables.id).forEach(queryKey => {
+      empresaKeys.invalidateOnUpdate(variables.id).forEach((queryKey) => {
         queryClient.invalidateQueries({ queryKey })
       })
     },
@@ -348,7 +365,7 @@ export function useUpdateEmpresa() {
       }
 
       mutation.error('atualizar empresa', error)
-    }
+    },
   })
 }
 
@@ -381,7 +398,7 @@ export function useDeleteEmpresa() {
       mutation.success('Empresa excluída com sucesso')
 
       // Invalidar caches específicos
-      empresaKeys.invalidateOnDelete(variables).forEach(queryKey => {
+      empresaKeys.invalidateOnDelete(variables).forEach((queryKey) => {
         queryClient.invalidateQueries({ queryKey })
       })
     },
@@ -396,7 +413,7 @@ export function useDeleteEmpresa() {
       }
 
       mutation.error('excluir empresa', error)
-    }
+    },
   })
 }
 
@@ -411,13 +428,13 @@ export function useEmpresasStatus() {
     queryFn: async () => {
       return await getEmpresasStatus()
     },
-    
+
     staleTime: 10 * 60 * 1000, // Cache por 10 minutos
-    
+
     throwOnError: (error: unknown) => {
-      toastQuery.error(error, "Erro ao carregar status das empresas")
+      toastQuery.error(error, 'Erro ao carregar status das empresas')
       return false
-    }
+    },
   })
 }
 
@@ -431,21 +448,28 @@ export function useCreateContato() {
   const { mutation } = useToast()
 
   return useMutation({
-    mutationFn: async (data: ContatoOperationData): Promise<ContatoResponse> => {
-      return await createContato(data.empresaId, data.contato as CriarContatoDto)
+    mutationFn: async (
+      data: ContatoOperationData,
+    ): Promise<ContatoResponse> => {
+      return await createContato(
+        data.empresaId,
+        data.contato as CriarContatoDto,
+      )
     },
 
     onSuccess: (_data, variables) => {
       mutation.success('Contato criado com sucesso')
 
-      empresaKeys.invalidateOnContatoCreate(variables.empresaId).forEach(queryKey => {
-        queryClient.invalidateQueries({ queryKey })
-      })
+      empresaKeys
+        .invalidateOnContatoCreate(variables.empresaId)
+        .forEach((queryKey) => {
+          queryClient.invalidateQueries({ queryKey })
+        })
     },
 
     onError: (error) => {
       mutation.error('criar contato', error)
-    }
+    },
   })
 }
 
@@ -457,26 +481,34 @@ export function useUpdateContato() {
   const { mutation } = useToast()
 
   return useMutation({
-    mutationFn: async (data: ContatoOperationData): Promise<ContatoResponse> => {
+    mutationFn: async (
+      data: ContatoOperationData,
+    ): Promise<ContatoResponse> => {
       if (!data.contatoId) {
         throw new Error('ID do contato é obrigatório para atualização')
       }
-      return await updateContato(data.empresaId, data.contatoId, data.contato as AtualizarContatoDto)
+      return await updateContato(
+        data.empresaId,
+        data.contatoId,
+        data.contato as AtualizarContatoDto,
+      )
     },
 
     onSuccess: (_data, variables) => {
       mutation.success('Contato atualizado com sucesso')
 
       if (variables.contatoId) {
-        empresaKeys.invalidateOnContatoUpdate(variables.empresaId, variables.contatoId).forEach(queryKey => {
-          queryClient.invalidateQueries({ queryKey })
-        })
+        empresaKeys
+          .invalidateOnContatoUpdate(variables.empresaId, variables.contatoId)
+          .forEach((queryKey) => {
+            queryClient.invalidateQueries({ queryKey })
+          })
       }
     },
 
     onError: (error) => {
       mutation.error('atualizar contato', error)
-    }
+    },
   })
 }
 
@@ -488,21 +520,26 @@ export function useDeleteContato() {
   const { mutation } = useToast()
 
   return useMutation({
-    mutationFn: async (data: { empresaId: string, contatoId: string }): Promise<void> => {
+    mutationFn: async (data: {
+      empresaId: string
+      contatoId: string
+    }): Promise<void> => {
       return await deleteContato(data.empresaId, data.contatoId)
     },
 
     onSuccess: (_data, variables) => {
       mutation.success('Contato excluído com sucesso')
 
-      empresaKeys.invalidateOnContatoDelete(variables.empresaId, variables.contatoId).forEach(queryKey => {
-        queryClient.invalidateQueries({ queryKey })
-      })
+      empresaKeys
+        .invalidateOnContatoDelete(variables.empresaId, variables.contatoId)
+        .forEach((queryKey) => {
+          queryClient.invalidateQueries({ queryKey })
+        })
     },
 
     onError: (error) => {
       mutation.error('excluir contato', error)
-    }
+    },
   })
 }
 
@@ -518,11 +555,10 @@ export function useFornecedoresResumo(
     enabled?: boolean
     keepPreviousData?: boolean
     refetchOnMount?: boolean
-  }
+  },
 ) {
   const { query: toastQuery } = useToast()
   const { handleApiError } = useErrorHandler()
-
 
   const queryKey = empresaKeys.fornecedoresResumo(filtros)
 
@@ -542,7 +578,8 @@ export function useFornecedoresResumo(
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
+        const status = (error as { response: { status: number } }).response
+          ?.status
         if (status >= 400 && status < 500) {
           return false
         }
@@ -552,7 +589,8 @@ export function useFornecedoresResumo(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
+        const status = (error as { response: { status: number } }).response
+          ?.status
 
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
@@ -560,9 +598,12 @@ export function useFornecedoresResumo(
         }
       }
 
-      toastQuery.error(error, "Não foi possível carregar a lista de fornecedores")
+      toastQuery.error(
+        error,
+        'Não foi possível carregar a lista de fornecedores',
+      )
       return false
-    }
+    },
   })
 }
 
@@ -571,7 +612,7 @@ export function useFornecedoresResumo(
  */
 export function useEmpresasByIds(
   ids: string[],
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
   const queries = useQueries({
@@ -582,18 +623,21 @@ export function useEmpresasByIds(
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
-    }))
+    })),
   })
 
-  const map = uniqueIds.reduce<Record<string, EmpresaResponse>>((acc, id, idx) => {
-    const q = queries[idx]
-    if (q?.data) acc[id] = q.data as EmpresaResponse
-    return acc
-  }, {})
+  const map = uniqueIds.reduce<Record<string, EmpresaResponse>>(
+    (acc, id, idx) => {
+      const q = queries[idx]
+      if (q?.data) acc[id] = q.data
+      return acc
+    },
+    {},
+  )
 
-  const isLoading = queries.some(q => q.isLoading)
-  const isFetching = queries.some(q => q.isFetching)
-  const error = queries.find(q => q.error)?.error
+  const isLoading = queries.some((q) => q.isLoading)
+  const isFetching = queries.some((q) => q.isFetching)
+  const error = queries.find((q) => q.error)?.error
 
   return { data: map, isLoading, isFetching, error }
 }

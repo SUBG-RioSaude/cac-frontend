@@ -24,8 +24,7 @@ const buttonVariants = cva(
           'bg-green-600 text-white shadow-xs hover:bg-green-700 focus-visible:ring-green-600/20 dark:focus-visible:ring-green-400/40',
         warning:
           'bg-yellow-500 text-white shadow-xs hover:bg-yellow-600 focus-visible:ring-yellow-500/20 dark:focus-visible:ring-yellow-400/40',
-        info:
-          'bg-blue-600 text-white shadow-xs hover:bg-blue-700 focus-visible:ring-blue-600/20 dark:focus-visible:ring-blue-400/40',
+        info: 'bg-blue-600 text-white shadow-xs hover:bg-blue-700 focus-visible:ring-blue-600/20 dark:focus-visible:ring-blue-400/40',
         neutral:
           'bg-gray-600 text-white shadow-xs hover:bg-gray-700 focus-visible:ring-gray-600/20 dark:focus-visible:ring-gray-400/40',
       },

@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { DateDisplay } from '@/components/ui/formatters'
 import {
@@ -27,11 +33,14 @@ import {
   FileSignature,
   Play,
   Receipt,
-  File
+  File,
 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
-import type { DocumentoContrato, StatusDocumento } from '@/modules/Contratos/types/contrato'
+import type {
+  DocumentoContrato,
+  StatusDocumento,
+} from '@/modules/Contratos/types/contrato'
 
 interface CardDocumentoProps {
   documento: DocumentoContrato
@@ -48,38 +57,38 @@ const getStatusInfo = (status: StatusDocumento) => {
       label: 'Pendente',
       description: 'Documento ainda não foi verificado',
       isConferido: false,
-      hasPendencia: false
+      hasPendencia: false,
     },
     em_analise: {
       icon: Eye,
       label: 'Em Análise',
       description: 'Documento está sendo analisado',
       isConferido: false,
-      hasPendencia: false
+      hasPendencia: false,
     },
     conferido: {
       icon: Check,
       label: 'Conferido',
       description: 'Documento verificado e aprovado',
       isConferido: true,
-      hasPendencia: false
+      hasPendencia: false,
     },
     com_pendencia: {
       icon: AlertTriangle,
       label: 'Com Pendência',
       description: 'Documento possui pendências a resolver',
       isConferido: false,
-      hasPendencia: true
+      hasPendencia: true,
     },
     rejeitado: {
       icon: X,
       label: 'Rejeitado',
       description: 'Documento foi rejeitado',
       isConferido: false,
-      hasPendencia: true
-    }
+      hasPendencia: true,
+    },
   }
-  
+
   return config[status]
 }
 
@@ -93,22 +102,25 @@ const tipoIcons = {
   FileSignature,
   Play,
   Receipt,
-  File
+  File,
 }
 
-export function CardDocumento({ 
-  documento, 
+export function CardDocumento({
+  documento,
   onStatusChange,
   onLinkChange,
   onObservacoesChange,
-  className 
+  className,
 }: CardDocumentoProps) {
   const [isEditingLink, setIsEditingLink] = useState(false)
   const [novoLink, setNovoLink] = useState(documento.linkExterno || '')
-  const [novasObservacoes, setNovasObservacoes] = useState(documento.observacoes || '')
+  const [novasObservacoes, setNovasObservacoes] = useState(
+    documento.observacoes || '',
+  )
 
   const statusInfo = getStatusInfo(documento.status)
-  const IconeTipo = tipoIcons[documento.tipo.icone as keyof typeof tipoIcons] || File
+  const IconeTipo =
+    tipoIcons[documento.tipo.icone as keyof typeof tipoIcons] || File
 
   const handleToggleConferido = (checked: boolean) => {
     if (checked) {
@@ -131,7 +143,6 @@ export function CardDocumento({
     onObservacoesChange?.(documento.id, novasObservacoes)
   }
 
-
   return (
     <motion.div
       layout
@@ -148,24 +159,24 @@ export function CardDocumento({
           // Focar no primeiro botão interativo do card
           const botoes = e.currentTarget.querySelectorAll('button')
           if (botoes.length > 0) {
-            (botoes[0] as HTMLElement).focus()
+            ;(botoes[0] as HTMLElement).focus()
           }
         }
       }}
     >
-      <Card className="h-full transition-all duration-200 hover:shadow-md border-border/50">
+      <Card className="border-border/50 h-full transition-all duration-200 hover:shadow-md">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
-                <IconeTipo className="h-5 w-5 text-muted-foreground" />
+              <div className="bg-muted/50 flex h-10 w-10 items-center justify-center rounded-lg">
+                <IconeTipo className="text-muted-foreground h-5 w-5" />
               </div>
-              
+
               <div className="min-w-0 flex-1">
                 <CardTitle className="text-base leading-tight">
                   {documento.nome}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-muted-foreground mt-1 text-sm">
                   {documento.descricao}
                 </p>
               </div>
@@ -178,47 +189,54 @@ export function CardDocumento({
                   <Checkbox
                     checked={statusInfo.isConferido}
                     onCheckedChange={handleToggleConferido}
-                    className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                    className="data-[state=checked]:border-green-600 data-[state=checked]:bg-green-600"
                     aria-label={`Marcar documento ${documento.nome} como conferido`}
                   />
                 )}
-                
-                <Badge 
+
+                <Badge
                   variant="outline"
                   className={cn(
-                    "text-xs flex items-center gap-1",
-                    documento.status === 'conferido' && "border-green-500 text-green-700",
-                    documento.status === 'pendente' && "border-amber-500 text-amber-700", 
-                    documento.status === 'com_pendencia' && "border-red-500 text-red-700",
-                    documento.status === 'em_analise' && "border-blue-500 text-blue-700",
-                    documento.status === 'rejeitado' && "border-gray-500 text-gray-700"
+                    'flex items-center gap-1 text-xs',
+                    documento.status === 'conferido' &&
+                      'border-green-500 text-green-700',
+                    documento.status === 'pendente' &&
+                      'border-amber-500 text-amber-700',
+                    documento.status === 'com_pendencia' &&
+                      'border-red-500 text-red-700',
+                    documento.status === 'em_analise' &&
+                      'border-blue-500 text-blue-700',
+                    documento.status === 'rejeitado' &&
+                      'border-gray-500 text-gray-700',
                   )}
                 >
                   <statusInfo.icon className="h-3 w-3" />
                   {statusInfo.label}
                 </Badge>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {documento.categoria === 'obrigatorio' && (
                   <Badge variant="secondary" className="text-xs">
                     Obrigatório
                   </Badge>
                 )}
-                
+
                 {/* Botão para marcar pendência */}
-                {onStatusChange && !statusInfo.hasPendencia && documento.status !== 'conferido' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleMarcarPendencia}
-                    className="h-6 px-2 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                    aria-label={`Marcar documento ${documento.nome} com pendência`}
-                  >
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Pendência
-                  </Button>
-                )}
+                {onStatusChange &&
+                  !statusInfo.hasPendencia &&
+                  documento.status !== 'conferido' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleMarcarPendencia}
+                      className="h-6 px-2 text-xs text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                      aria-label={`Marcar documento ${documento.nome} com pendência`}
+                    >
+                      <AlertTriangle className="mr-1 h-3 w-3" />
+                      Pendência
+                    </Button>
+                  )}
               </div>
             </div>
           </div>
@@ -227,34 +245,48 @@ export function CardDocumento({
         <CardContent className="space-y-4">
           {/* Informações básicas */}
           <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>Upload: <DateDisplay value={documento.dataUpload} options={{
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              }} fallback="Não definida" /></span>
+              <span>
+                Upload:{' '}
+                <DateDisplay
+                  value={documento.dataUpload}
+                  options={{
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }}
+                  fallback="Não definida"
+                />
+              </span>
             </div>
-            
+
             {documento.responsavel && (
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span>Responsável: {documento.responsavel}</span>
               </div>
             )}
 
             {documento.dataUltimaVerificacao && (
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2">
                 <Check className="h-4 w-4" />
-                <span>Última verificação: <DateDisplay value={documento.dataUltimaVerificacao} options={{
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }} fallback="Não definida" /></span>
+                <span>
+                  Última verificação:{' '}
+                  <DateDisplay
+                    value={documento.dataUltimaVerificacao}
+                    options={{
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }}
+                    fallback="Não definida"
+                  />
+                </span>
               </div>
             )}
           </div>
@@ -263,8 +295,8 @@ export function CardDocumento({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Link do Documento</label>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => setIsEditingLink(!isEditingLink)}
                 className="h-7 px-2"
@@ -274,7 +306,7 @@ export function CardDocumento({
                 <span className="sr-only">Editar link</span>
               </Button>
             </div>
-            
+
             {isEditingLink ? (
               <div className="flex gap-2">
                 <Input
@@ -284,8 +316,8 @@ export function CardDocumento({
                   className="text-sm"
                   aria-label="URL do documento"
                 />
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={handleSalvarLink}
                   className="px-3"
                   aria-label="Salvar link"
@@ -297,25 +329,25 @@ export function CardDocumento({
             ) : (
               <div className="flex items-center gap-2">
                 {documento.linkExterno ? (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     asChild
-                    className="text-xs h-8 flex-1 justify-start"
+                    className="h-8 flex-1 justify-start text-xs"
                   >
-                    <a 
-                      href={documento.linkExterno} 
-                      target="_blank" 
+                    <a
+                      href={documento.linkExterno}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="truncate"
                       aria-label={`Abrir documento ${documento.nome} em nova aba`}
                     >
-                      <ExternalLink className="h-3 w-3 mr-2 flex-shrink-0" />
+                      <ExternalLink className="mr-2 h-3 w-3 flex-shrink-0" />
                       Visualizar Documento
                     </a>
                   </Button>
                 ) : (
-                  <div className="text-sm text-muted-foreground italic py-2">
+                  <div className="text-muted-foreground py-2 text-sm italic">
                     Nenhum link definido
                   </div>
                 )}
@@ -330,13 +362,14 @@ export function CardDocumento({
               {onObservacoesChange ? (
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start text-left h-auto p-2"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-auto w-full justify-start p-2 text-left"
                     >
-                      <div className="text-xs text-muted-foreground truncate">
-                        {documento.observacoes || 'Clique para adicionar observações...'}
+                      <div className="text-muted-foreground truncate text-xs">
+                        {documento.observacoes ||
+                          'Clique para adicionar observações...'}
                       </div>
                     </Button>
                   </DialogTrigger>
@@ -351,7 +384,7 @@ export function CardDocumento({
                         placeholder="Digite observações sobre este documento..."
                         className="min-h-[100px]"
                       />
-                      <Button 
+                      <Button
                         onClick={handleSalvarObservacoes}
                         className="w-full"
                       >
@@ -361,13 +394,12 @@ export function CardDocumento({
                   </DialogContent>
                 </Dialog>
               ) : (
-                <div className="text-sm bg-muted/50 rounded-md p-2">
+                <div className="bg-muted/50 rounded-md p-2 text-sm">
                   {documento.observacoes}
                 </div>
               )}
             </div>
           )}
-
         </CardContent>
       </Card>
     </motion.div>

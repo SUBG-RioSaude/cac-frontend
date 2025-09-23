@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { 
-  LoadingButton, 
-  ActionButton, 
-  IconButton, 
+import {
+  LoadingButton,
+  ActionButton,
+  IconButton,
   ConfirmationButton,
   ButtonGroup,
   ListButton,
-  FloatingActionButton
+  FloatingActionButton,
 } from '@/components/ui/button-extended'
 import { Settings, Edit, Plus } from 'lucide-react'
 
@@ -22,7 +22,7 @@ describe('LoadingButton', () => {
     render(
       <LoadingButton loading={true} loadingText="Carregando...">
         Salvar
-      </LoadingButton>
+      </LoadingButton>,
     )
     expect(screen.getByText('Carregando...')).toBeInTheDocument()
     expect(screen.getByRole('button')).toBeDisabled()
@@ -47,10 +47,7 @@ describe('LoadingButton', () => {
 describe('ActionButton', () => {
   it('renderiza com ícone', () => {
     render(
-      <ActionButton 
-        icon={<Edit data-testid="edit-icon" />}
-        tooltip="Editar"
-      />
+      <ActionButton icon={<Edit data-testid="edit-icon" />} tooltip="Editar" />,
     )
     expect(screen.getByTestId('edit-icon')).toBeInTheDocument()
     expect(screen.getByRole('button')).toHaveAttribute('title', 'Editar')
@@ -64,12 +61,7 @@ describe('ActionButton', () => {
 
   it('executa onClick quando clicado', () => {
     const handleClick = vi.fn()
-    render(
-      <ActionButton 
-        icon={<Edit />}
-        onClick={handleClick}
-      />
-    )
+    render(<ActionButton icon={<Edit />} onClick={handleClick} />)
     fireEvent.click(screen.getByRole('button'))
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
@@ -81,19 +73,14 @@ describe('IconButton', () => {
       <IconButton
         icon={<Settings data-testid="settings-icon" />}
         aria-label="Configurações"
-      />
+      />,
     )
     expect(screen.getByTestId('settings-icon')).toBeInTheDocument()
     expect(screen.getByLabelText('Configurações')).toBeInTheDocument()
   })
 
   it('usa variant ghost por padrão', () => {
-    render(
-      <IconButton
-        icon={<Settings />}
-        aria-label="Configurações"
-      />
-    )
+    render(<IconButton icon={<Settings />} aria-label="Configurações" />)
     // Verifica se tem classes específicas do variant ghost
     const button = screen.getByRole('button')
     expect(button).toHaveClass('hover:bg-accent')
@@ -106,7 +93,7 @@ describe('ConfirmationButton', () => {
     render(
       <ConfirmationButton onConfirm={handleConfirm}>
         Excluir
-      </ConfirmationButton>
+      </ConfirmationButton>,
     )
     expect(screen.getByRole('button', { name: 'Excluir' })).toBeInTheDocument()
   })
@@ -116,14 +103,18 @@ describe('ConfirmationButton', () => {
     render(
       <ConfirmationButton onConfirm={handleConfirm}>
         Excluir
-      </ConfirmationButton>
+      </ConfirmationButton>,
     )
-    
+
     fireEvent.click(screen.getByRole('button', { name: 'Excluir' }))
-    
+
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Confirmar' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Confirmar' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Cancelar' }),
+      ).toBeInTheDocument()
     })
   })
 
@@ -132,15 +123,15 @@ describe('ConfirmationButton', () => {
     render(
       <ConfirmationButton onConfirm={handleConfirm}>
         Excluir
-      </ConfirmationButton>
+      </ConfirmationButton>,
     )
-    
+
     fireEvent.click(screen.getByRole('button', { name: 'Excluir' }))
-    
+
     await waitFor(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
     })
-    
+
     expect(handleConfirm).toHaveBeenCalledTimes(1)
   })
 
@@ -149,15 +140,15 @@ describe('ConfirmationButton', () => {
     render(
       <ConfirmationButton onConfirm={handleConfirm}>
         Excluir
-      </ConfirmationButton>
+      </ConfirmationButton>,
     )
-    
+
     fireEvent.click(screen.getByRole('button', { name: 'Excluir' }))
-    
+
     await waitFor(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
     })
-    
+
     expect(screen.getByRole('button', { name: 'Excluir' })).toBeInTheDocument()
     expect(handleConfirm).not.toHaveBeenCalled()
   })
@@ -171,13 +162,15 @@ describe('ConfirmationButton', () => {
         cancelText="Não"
       >
         Excluir
-      </ConfirmationButton>
+      </ConfirmationButton>,
     )
-    
+
     fireEvent.click(screen.getByRole('button', { name: 'Excluir' }))
-    
+
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Sim, deletar' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Sim, deletar' }),
+      ).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Não' })).toBeInTheDocument()
     })
   })
@@ -189,7 +182,7 @@ describe('ButtonGroup', () => {
       <ButtonGroup>
         <button>Botão 1</button>
         <button>Botão 2</button>
-      </ButtonGroup>
+      </ButtonGroup>,
     )
     const group = screen.getByRole('group', { hidden: true })
     expect(group).toHaveClass('flex-row')
@@ -200,7 +193,7 @@ describe('ButtonGroup', () => {
       <ButtonGroup orientation="vertical">
         <button>Botão 1</button>
         <button>Botão 2</button>
-      </ButtonGroup>
+      </ButtonGroup>,
     )
     const group = screen.getByRole('group', { hidden: true })
     expect(group).toHaveClass('flex-col')
@@ -211,7 +204,7 @@ describe('ButtonGroup', () => {
       <ButtonGroup spacing="md">
         <button>Botão 1</button>
         <button>Botão 2</button>
-      </ButtonGroup>
+      </ButtonGroup>,
     )
     const group = screen.getByRole('group', { hidden: true })
     expect(group).toHaveClass('gap-2')
@@ -225,7 +218,7 @@ describe('ListButton', () => {
         title="João Silva"
         description="Desenvolvedor"
         onClick={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByText('João Silva')).toBeInTheDocument()
     expect(screen.getByText('Desenvolvedor')).toBeInTheDocument()
@@ -237,7 +230,7 @@ describe('ListButton', () => {
         title="João Silva"
         avatar={<div data-testid="avatar">Avatar</div>}
         onClick={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByTestId('avatar')).toBeInTheDocument()
   })
@@ -248,31 +241,20 @@ describe('ListButton', () => {
         title="João Silva"
         trailing={<span data-testid="trailing">Online</span>}
         onClick={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByTestId('trailing')).toBeInTheDocument()
   })
 
   it('aplica estilo de selecionado quando selected=true', () => {
-    render(
-      <ListButton
-        title="João Silva"
-        selected={true}
-        onClick={vi.fn()}
-      />
-    )
+    render(<ListButton title="João Silva" selected={true} onClick={vi.fn()} />)
     const button = screen.getByRole('button')
     expect(button).toHaveClass('bg-accent')
   })
 
   it('executa onClick quando clicado', () => {
     const handleClick = vi.fn()
-    render(
-      <ListButton
-        title="João Silva"
-        onClick={handleClick}
-      />
-    )
+    render(<ListButton title="João Silva" onClick={handleClick} />)
     fireEvent.click(screen.getByRole('button'))
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
@@ -284,18 +266,13 @@ describe('FloatingActionButton', () => {
       <FloatingActionButton
         icon={<Plus data-testid="plus-icon" />}
         aria-label="Adicionar"
-      />
+      />,
     )
     expect(screen.getByTestId('plus-icon')).toBeInTheDocument()
   })
 
   it('aplica posição bottom-right por padrão', () => {
-    render(
-      <FloatingActionButton
-        icon={<Plus />}
-        aria-label="Adicionar"
-      />
-    )
+    render(<FloatingActionButton icon={<Plus />} aria-label="Adicionar" />)
     const button = screen.getByRole('button')
     expect(button).toHaveClass('bottom-6', 'right-6')
   })
@@ -306,19 +283,14 @@ describe('FloatingActionButton', () => {
         icon={<Plus />}
         aria-label="Adicionar"
         position="top-left"
-      />
+      />,
     )
     const button = screen.getByRole('button')
     expect(button).toHaveClass('top-6', 'left-6')
   })
 
   it('tem classes de botão flutuante', () => {
-    render(
-      <FloatingActionButton
-        icon={<Plus />}
-        aria-label="Adicionar"
-      />
-    )
+    render(<FloatingActionButton icon={<Plus />} aria-label="Adicionar" />)
     const button = screen.getByRole('button')
     expect(button).toHaveClass('fixed', 'z-50', 'rounded-full', 'shadow-lg')
   })
@@ -330,7 +302,7 @@ describe('FloatingActionButton', () => {
         icon={<Plus />}
         aria-label="Adicionar"
         onClick={handleClick}
-      />
+      />,
     )
     fireEvent.click(screen.getByRole('button'))
     expect(handleClick).toHaveBeenCalledTimes(1)

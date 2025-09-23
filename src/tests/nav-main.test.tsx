@@ -88,7 +88,7 @@ describe('NavMain', () => {
 
     // Verifica se o menu de contratos está sendo renderizado
     expect(screen.getByText('Contratos')).toBeInTheDocument()
-    
+
     // Verifica se há pelo menos um subitem (o menu deve estar colapsado por padrão)
     const contratosButton = screen.getByText('Contratos').closest('button')
     expect(contratosButton).toBeInTheDocument()

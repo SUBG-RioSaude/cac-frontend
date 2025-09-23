@@ -1,0 +1,1702 @@
+
+> cac-frontend@0.0.0 test:coverage C:\Users\MATHEUS\Documents\Cac-FrontEnd
+> vitest run --coverage "--" "--reporter=json"
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/MATHEUS/Documents/Cac-FrontEnd[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [31m❯[39m src/components/ui/__tests__/skeleton.test.tsx [2m([22m[2m15 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 88[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mRenderização básica[2m > [22mdeve renderizar corretamente[32m 35[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mRenderização básica[2m > [22mdeve ter data-slot="skeleton"[32m 3[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mRenderização básica[2m > [22mdeve aplicar classes de animação[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada[32m 2[2mms[22m[39m
+[31m   [31m×[31m Skeleton[2m > [22mProps customizadas[2m > [22mdeve aceitar styles inline[39m[32m 15[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- height: 20px;[31m
+[32m- width: 200px;[31m[39m
+   [32m✓[39m Skeleton[2m > [22mProps customizadas[2m > [22mdeve aceitar data attributes[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar para skeleton de texto[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar para skeleton de avatar[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar para skeleton de card[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar para skeleton de tabela[32m 6[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-label para screen readers[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mAcessibilidade[2m > [22mdeve aceitar role customizado[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-hidden para decorativos[32m 2[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mEstados de loading[2m > [22mdeve indicar estado de carregamento[32m 6[2mms[22m[39m
+   [32m✓[39m Skeleton[2m > [22mEstados de loading[2m > [22mdeve funcionar com condicionais de loading[32m 3[2mms[22m[39m
+ [31m❯[39m src/components/ui/__tests__/separator.test.tsx [2m([22m[2m9 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 75[2mms[22m[39m
+[31m   [31m×[31m Separator[2m > [22mRenderização básica[2m > [22mdeve renderizar corretamente[39m[32m 46[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveRole()[22m
+
+Expected element to have role:
+[32m  separator[31m
+Received:
+[31m  none[31m[39m
+   [32m✓[39m Separator[2m > [22mRenderização básica[2m > [22mdeve ter data-slot="separator"[32m 3[2mms[22m[39m
+[31m   [31m×[31m Separator[2m > [22mRenderização básica[2m > [22mdeve aplicar classes padrão horizontais[39m[32m 2[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"shrink-0 h-px w-full"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  shrink-0 h-px w-full[31m
+Received:
+[31m  bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px[31m[39m
+   [32m✓[39m Separator[2m > [22mOrientação[2m > [22mdeve renderizar horizontalmente por padrão[32m 2[2mms[22m[39m
+[31m   [31m×[31m Separator[2m > [22mOrientação[2m > [22mdeve renderizar verticalmente quando especificado[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"h-full w-px"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  h-full w-px[31m
+Received:
+[31m  bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px[31m[39m
+   [32m✓[39m Separator[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada[32m 3[2mms[22m[39m
+[31m   [31m×[31m Separator[2m > [22mProps customizadas[2m > [22mdeve aceitar decorative prop[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"data-decorative"[32m[31m[2m, [22m[32m[32m""[32m[31m[2m) // element.getAttribute("data-decorative") === ""[22m
+
+Expected the element to have attribute:
+[32m  data-decorative=""[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Separator[2m > [22mCasos de uso[2m > [22mdeve funcionar como divisor de seções[32m 8[2mms[22m[39m
+   [32m✓[39m Separator[2m > [22mCasos de uso[2m > [22mdeve funcionar em menu vertical[32m 3[2mms[22m[39m
+ [31m❯[39m src/components/ui/__tests__/progress.test.tsx [2m([22m[2m28 tests[22m[2m | [22m[31m14 failed[39m[2m)[22m[32m 145[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mRenderização básica[2m > [22mdeve renderizar corretamente[32m 39[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mRenderização básica[2m > [22mdeve aplicar classes padrão[32m 3[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mRenderização básica[2m > [22mdeve ter data-slot="progress"[32m 3[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mRenderização básica[2m > [22mdeve renderizar indicador interno[32m 4[2mms[22m[39m
+[31m   [31m×[31m Progress[2m > [22mValores e estados[2m > [22mdeve aceitar valor 0[39m[32m 15[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"0"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "0"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="0"[31m
+Received:
+[31m  null[31m[39m
+[31m   [31m×[31m Progress[2m > [22mValores e estados[2m > [22mdeve aceitar valor 100[39m[32m 4[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"100"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "100"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="100"[31m
+Received:
+[31m  null[31m[39m
+[31m   [31m×[31m Progress[2m > [22mValores e estados[2m > [22mdeve aceitar valores decimais[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"33.33"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "33.33"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="33.33"[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Progress[2m > [22mValores e estados[2m > [22mdeve funcionar sem valor (indeterminate)[32m 3[2mms[22m[39m
+[31m   [31m×[31m Progress[2m > [22mValores e estados[2m > [22mdeve aceitar valor máximo customizado[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"50"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "50"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="50"[31m
+Received:
+[31m  null[31m[39m
+[31m   [31m×[31m Progress[2m > [22mValores e estados[2m > [22mdeve aceitar valor mínimo customizado[39m[32m 4[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuemin"[32m[31m[2m, [22m[32m[32m"10"[32m[31m[2m) // element.getAttribute("aria-valuemin") === "10"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuemin="10"[31m
+Received:
+[31m  aria-valuemin="0"[31m[39m
+[31m   [31m×[31m Progress[2m > [22mEstado do indicador[2m > [22mdeve posicionar indicador baseado no valor[39m[32m 5[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- transform: translateX(-25%);[31m[39m
+[31m   [31m×[31m Progress[2m > [22mEstado do indicador[2m > [22mdeve posicionar indicador em 0% quando valor é 0[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- transform: translateX(-100%);[31m[39m
+[31m   [31m×[31m Progress[2m > [22mEstado do indicador[2m > [22mdeve posicionar indicador em 100% quando valor é máximo[39m[32m 6[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- transform: translateX(-0%);[31m[39m
+[31m   [31m×[31m Progress[2m > [22mEstado do indicador[2m > [22mdeve calcular percentual corretamente com max customizado[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- transform: translateX(-75%);[31m[39m
+   [32m✓[39m Progress[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada[32m 5[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mProps customizadas[2m > [22mdeve aceitar id customizado[32m 3[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mProps customizadas[2m > [22mdeve aceitar data attributes customizados[32m 3[2mms[22m[39m
+[31m   [31m×[31m Progress[2m > [22mAcessibilidade[2m > [22mdeve ter atributos ARIA padrão[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"50"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "50"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="50"[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Progress[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-label[32m 3[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-labelledby[32m 5[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-describedby[32m 3[2mms[22m[39m
+   [32m✓[39m Progress[2m > [22mAcessibilidade[2m > [22mdeve ter role progressbar[32m 2[2mms[22m[39m
+[31m   [31m×[31m Progress[2m > [22mCasos de uso comuns[2m > [22mdeve renderizar progresso de upload[39m[32m 4[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"75"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "75"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="75"[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Progress[2m > [22mCasos de uso comuns[2m > [22mdeve renderizar barra de loading indeterminada[32m 3[2mms[22m[39m
+[31m   [31m×[31m Progress[2m > [22mCasos de uso comuns[2m > [22mdeve renderizar progresso de formulário multi-etapas[39m[32m 4[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"aria-valuenow"[32m[31m[2m, [22m[32m[32m"40"[32m[31m[2m) // element.getAttribute("aria-valuenow") === "40"[22m
+
+Expected the element to have attribute:
+[32m  aria-valuenow="40"[31m
+Received:
+[31m  null[31m[39m
+[31m   [31m×[31m Progress[2m > [22mCasos extremos[2m > [22mdeve lidar com valores negativos[39m[32m 3[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- transform: translateX(-100%);[31m[39m
+[31m   [31m×[31m Progress[2m > [22mCasos extremos[2m > [22mdeve lidar com valores acima do máximo[39m[32m 2[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveStyle()[22m
+
+[32m- Expected[31m
+
+[32m- transform: translateX(-0%);[31m[39m
+   [32m✓[39m Progress[2m > [22mCasos extremos[2m > [22mdeve lidar com max menor que min[32m 2[2mms[22m[39m
+ [31m❯[39m src/components/ui/__tests__/tabs.test.tsx [2m([22m[2m22 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 322[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabs Root[2m > [22mdeve renderizar corretamente[32m 51[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabs Root[2m > [22mdeve ter data-slot="tabs"[32m 4[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsList[2m > [22mdeve renderizar lista de tabs[32m 4[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsList[2m > [22mdeve aplicar classes padrão[32m 4[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsList[2m > [22mdeve ter data-slot="tabs-list"[32m 3[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsTrigger[2m > [22mdeve renderizar botão de tab[32m 3[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsTrigger[2m > [22mdeve aplicar classes padrão[32m 5[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsTrigger[2m > [22mdeve ter data-slot="tabs-trigger"[32m 5[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsTrigger[2m > [22mdeve estar selecionado quando é o valor padrão[32m 5[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsTrigger[2m > [22mdeve permitir clique para alternar tabs[32m 50[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsContent[2m > [22mdeve renderizar conteúdo da tab ativa[32m 3[2mms[22m[39m
+[31m   [31m×[31m Tabs Components[2m > [22mTabsContent[2m > [22mdeve aplicar classes padrão[39m[32m 9[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"ring-offset-background"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  ring-offset-background[31m
+Received:
+[31m  flex-1 outline-none[31m[39m
+   [32m✓[39m Tabs Components[2m > [22mTabsContent[2m > [22mdeve ter data-slot="tabs-content"[32m 3[2mms[22m[39m
+[31m   [31m×[31m Tabs Components[2m > [22mTabsContent[2m > [22mnão deve renderizar conteúdo de tab inativa[39m[32m 5[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <div
+  aria-labelledby="radix-«rs»-trigger-tab2"
+  class="flex-1 outline-none"
+  data-orientation="horizontal"
+  data-slot="tabs-content"
+  data-state="inactive"
+  data-testid="tab2-content"
+  hidden=""
+  id="radix-«rs»-content-tab2"
+  role="tabpanel"
+  tabindex="0"
+/> instead[31m[39m
+[31m   [31m×[31m Tabs Components[2m > [22mNavegação entre tabs[2m > [22mdeve alternar conteúdo ao clicar em diferentes tabs[39m[32m 4[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <div
+  aria-labelledby="radix-«rv»-trigger-tab2"
+  class="flex-1 outline-none"
+  data-orientation="horizontal"
+  data-slot="tabs-content"
+  data-state="inactive"
+  data-testid="tab2-content"
+  hidden=""
+  id="radix-«rv»-content-tab2"
+  role="tabpanel"
+  tabindex="0"
+/> instead[31m[39m
+[31m   [31m×[31m Tabs Components[2m > [22mNavegação entre tabs[2m > [22mdeve navegar com setas do teclado[39m[32m 5[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveFocus()[22m
+
+Expected element with focus:
+  [32m<button
+  aria-controls="radix-«r12»-content-tab1"
+  aria-selected="true"
+  class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+  data-orientation="horizontal"
+  data-radix-collection-item=""
+  data-slot="tabs-trigger"
+  data-state="active"
+  data-testid="tab1-trigger"
+  id="radix-«r12»-trigger-tab1"
+  role="tab"
+  tabindex="-1"
+  type="button"
+>
+  Tab 1
+</button>[31m
+Received element with focus:
+  [31m<body>
+  <div>
+    <div
+      class="flex flex-col gap-2"
+      data-orientation="horizontal"
+      data-slot="tabs"
+      dir="ltr"
+    >
+      <div
+        aria-orientation="horizontal"
+        class="bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]"
+        data-orientation="horizontal"
+        data-slot="tabs-list"
+        role="tablist"
+        style="outline: none;"
+        tabindex="0"
+      >
+        <button
+          aria-controls="radix-«r12»-content-tab1"
+          aria-selected="true"
+          class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+          data-orientation="horizontal"
+          data-radix-collection-item=""
+          data-slot="tabs-trigger"
+          data-state="active"
+          data-testid="tab1-trigger"
+          id="radix-«r12»-trigger-tab1"
+          role="tab"
+          tabindex="-1"
+          type="button"
+        >
+          Tab 1
+        </button>
+        <button
+          aria-controls="radix-«r12»-content-tab2"
+          aria-selected="false"
+          class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+          data-orientation="horizontal"
+          data-radix-collection-item=""
+          data-slot="tabs-trigger"
+          data-state="inactive"
+          data-testid="tab2-trigger"
+          id="radix-«r12»-trigger-tab2"
+          role="tab"
+          tabindex="-1"
+          type="button"
+        >
+          Tab 2
+        </button>
+      </div>
+      <div
+        aria-labelledby="radix-«r12»-trigger-tab1"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="active"
+        id="radix-«r12»-content-tab1"
+        role="tabpanel"
+        style="animation-duration: 0s;"
+        tabindex="0"
+      >
+        Conteúdo 1
+      </div>
+      <div
+        aria-labelledby="radix-«r12»-trigger-tab2"
+        class="flex-1 outline-none"
+        data-orientation="horizontal"
+        data-slot="tabs-content"
+        data-state="inactive"
+        hidden=""
+        id="radix-«r12»-content-tab2"
+        role="tabpanel"
+        tabindex="0"
+      />
+    </div>
+  </div>
+</body>[31m[39m
+   [32m✓[39m Tabs Components[2m > [22mControlled vs Uncontrolled[2m > [22mdeve funcionar como uncontrolled component[32m 64[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mControlled vs Uncontrolled[2m > [22mdeve funcionar como controlled component[32m 68[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada[32m 7[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mProps customizadas[2m > [22mdeve aceitar orientation[32m 5[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mAcessibilidade[2m > [22mdeve ter atributos ARIA corretos[32m 6[2mms[22m[39m
+   [32m✓[39m Tabs Components[2m > [22mAcessibilidade[2m > [22mdeve associar tab com seu painel[32m 6[2mms[22m[39m
+ [31m❯[39m src/components/ui/__tests__/switch.test.tsx [2m([22m[2m26 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 508[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mRenderização básica[2m > [22mdeve renderizar corretamente[32m 57[2mms[22m[39m
+[31m   [31m×[31m Switch[2m > [22mRenderização básica[2m > [22mdeve aplicar classes padrão[39m[32m 11[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"peer inline-flex h-5 w-9 shrink-0 cursor-pointer"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  peer inline-flex h-5 w-9 shrink-0 cursor-pointer[31m
+Received:
+[31m  peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50[31m[39m
+   [32m✓[39m Switch[2m > [22mRenderização básica[2m > [22mdeve ter data-slot="switch"[32m 3[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mRenderização básica[2m > [22mdeve renderizar thumb interno[32m 5[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mInterações[2m > [22mdeve permitir clique para ativar/desativar[32m 132[2mms[22m[39m
+[31m   [31m×[31m Switch[2m > [22mInterações[2m > [22mdeve funcionar com keyboard (Space)[39m[32m 31[2mms[22m[39m
+[31m     → expected "spy" to be called with arguments: [ true ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[31m   [31m×[31m Switch[2m > [22mInterações[2m > [22mdeve funcionar com keyboard (Enter)[39m[32m 47[2mms[22m[39m
+[31m     → expected "spy" to be called with arguments: [ true ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+   [32m✓[39m Switch[2m > [22mEstados do switch[2m > [22mdeve iniciar desativado por padrão[32m 2[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mEstados do switch[2m > [22mdeve aceitar estado checked inicial[32m 2[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mEstados do switch[2m > [22mdeve suportar estado disabled[32m 2[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mEstados do switch[2m > [22mdeve suportar estado required[32m 2[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada[32m 2[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mProps customizadas[2m > [22mdeve aceitar id customizado[32m 3[2mms[22m[39m
+[31m   [31m×[31m Switch[2m > [22mProps customizadas[2m > [22mdeve aceitar name para formulários[39m[32m 4[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"name"[32m[31m[2m, [22m[32m[32m"notifications"[32m[31m[2m) // element.getAttribute("name") === "notifications"[22m
+
+Expected the element to have attribute:
+[32m  name="notifications"[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Switch[2m > [22mProps customizadas[2m > [22mdeve aceitar value customizado[32m 3[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-label[32m 4[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-describedby[32m 4[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mAcessibilidade[2m > [22mdeve funcionar com labels associados[32m 7[2mms[22m[39m
+[31m   [31m×[31m Switch[2m > [22mAcessibilidade[2m > [22mdeve ser focável[39m[32m 7[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveFocus()[22m
+
+Expected element with focus:
+  [32m<button
+  aria-checked="false"
+  class="peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+  data-slot="switch"
+  data-state="unchecked"
+  data-testid="switch"
+  role="switch"
+  type="button"
+  value="on"
+>
+  <span
+    class="bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+    data-slot="switch-thumb"
+    data-state="unchecked"
+  />
+</button>[31m
+Received element with focus:
+  [31m<body>
+  <div>
+    <button
+      aria-checked="false"
+      class="peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+      data-slot="switch"
+      data-state="unchecked"
+      data-testid="switch"
+      role="switch"
+      type="button"
+      value="on"
+    >
+      <span
+        class="bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+        data-slot="switch-thumb"
+        data-state="unchecked"
+      />
+    </button>
+  </div>
+</body>[31m[39m
+[31m   [31m×[31m Switch[2m > [22mEstados visuais[2m > [22mdeve mostrar thumb na posição inicial quando desativado[39m[32m 10[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"translate-x-0"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  translate-x-0[31m
+Received:
+[31m  bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0[31m[39m
+[31m   [31m×[31m Switch[2m > [22mEstados visuais[2m > [22mdeve mostrar thumb na posição ativa quando ativado[39m[32m 5[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"translate-x-4"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  translate-x-4[31m
+Received:
+[31m  bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0[31m[39m
+   [32m✓[39m Switch[2m > [22mEstados visuais[2m > [22mdeve aplicar estilos de estado disabled[32m 4[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar em configurações de preferência[32m 63[2mms[22m[39m
+[31m   [31m×[31m Switch[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar com form data[39m[32m 8[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"name"[32m[31m[2m, [22m[32m[32m"newsletter"[32m[31m[2m) // element.getAttribute("name") === "newsletter"[22m
+
+Expected the element to have attribute:
+[32m  name="newsletter"[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Switch[2m > [22mControlled vs Uncontrolled[2m > [22mdeve funcionar como uncontrolled component[32m 38[2mms[22m[39m
+   [32m✓[39m Switch[2m > [22mControlled vs Uncontrolled[2m > [22mdeve funcionar como controlled component[32m 49[2mms[22m[39m
+ [32m✓[39m src/modules/Fornecedores/ListaFornecedores/components/__tests__/filtros-fornecedores.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 706[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/ListaUnidades/components/__tests__/tabela-unidades.test.tsx[2m > [22m[2mTabelaUnidades[2m > [22m[2mdeve permitir seleção individual de unidades
+[22m[39m[DEBUG] Navegando para unidade: {
+  id: [33m2[39m,
+  nome: [32m'Centro de Atencao Psicossocial Norte'[39m,
+  sigla: [32m'CAPS-N'[39m,
+  UO: [32m'01.002'[39m,
+  UG: [32m'001.001.002'[39m,
+  endereco: [32m'Av. Paulista, 890 - Bela Vista, Sao Paulo - SP, 01310-200'[39m,
+  status: [32m'ativo'[39m,
+  contratosAtivos: [33m2[39m,
+  valorTotalContratado: [33m1200000[39m
+}
+[DEBUG] ID da unidade: [33m2[39m tipo: number
+
+ [31m❯[39m src/components/ui/__tests__/textarea.test.tsx [2m([22m[2m18 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 933[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mRenderização básica[2m > [22mdeve renderizar corretamente[32m 41[2mms[22m[39m
+[31m   [31m×[31m Textarea[2m > [22mRenderização básica[2m > [22mdeve aplicar classes padrão[39m[32m 11[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"min-h-20 w-full rounded-md border bg-transparent px-3 py-2"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  min-h-20 w-full rounded-md border bg-transparent px-3 py-2[31m
+Received:
+[31m  border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm[31m[39m
+   [32m✓[39m Textarea[2m > [22mRenderização básica[2m > [22mdeve ter data-slot="textarea"[32m 3[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mProps e comportamento[2m > [22mdeve aceitar className customizada[32m 3[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mProps e comportamento[2m > [22mdeve aceitar placeholder[32m 2[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mProps e comportamento[2m > [22mdeve aceitar valor inicial[32m 3[2mms[22m[39m
+[31m   [31m×[31m Textarea[2m > [22mProps e comportamento[2m > [22mdeve permitir digitação[39m[32m 203[2mms[22m[39m
+[31m     → expected '' to be 'Novo texto' // Object.is equality[39m
+[31m   [31m×[31m Textarea[2m > [22mProps e comportamento[2m > [22mdeve funcionar como controlled component[39m[32m 261[2mms[22m[39m
+[31m     → expected '' to be 'Texto controlado' // Object.is equality[39m
+   [32m✓[39m Textarea[2m > [22mEstados de input[2m > [22mdeve suportar estado disabled[32m 3[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mEstados de input[2m > [22mdeve suportar estado readonly[32m 2[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mEstados de input[2m > [22mdeve suportar required[32m 2[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mDimensionamento[2m > [22mdeve aceitar rows customizado[32m 2[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mDimensionamento[2m > [22mdeve aceitar cols customizado[32m 1[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-label[32m 2[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-describedby[32m 2[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mAcessibilidade[2m > [22mdeve aceitar id para labels[32m 6[2mms[22m[39m
+   [32m✓[39m Textarea[2m > [22mFormulários[2m > [22mdeve aceitar name para formulários[32m 2[2mms[22m[39m
+   [33m[2m✓[22m[39m Textarea[2m > [22mFormulários[2m > [22mdeve funcionar com maxLength [33m 383[2mms[22m[39m
+ [31m❯[39m src/components/ui/__tests__/checkbox.test.tsx [2m([22m[2m23 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 582[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mRenderização básica[2m > [22mdeve renderizar corretamente[32m 60[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mRenderização básica[2m > [22mdeve aplicar classes padrão[32m 7[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mRenderização básica[2m > [22mdeve ter data-slot="checkbox"[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mInterações[2m > [22mdeve permitir clique para marcar/desmarcar[32m 116[2mms[22m[39m
+[31m   [31m×[31m Checkbox[2m > [22mInterações[2m > [22mdeve funcionar com keyboard (Space)[39m[32m 54[2mms[22m[39m
+[31m     → expected "spy" to be called with arguments: [ true ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[31m   [31m×[31m Checkbox[2m > [22mInterações[2m > [22mdeve funcionar com keyboard (Enter)[39m[32m 24[2mms[22m[39m
+[31m     → expected "spy" to be called with arguments: [ true ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+   [32m✓[39m Checkbox[2m > [22mEstados do checkbox[2m > [22mdeve iniciar não marcado por padrão[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mEstados do checkbox[2m > [22mdeve aceitar estado checked inicial[32m 6[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mEstados do checkbox[2m > [22mdeve aceitar estado indeterminate[32m 6[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mEstados do checkbox[2m > [22mdeve suportar estado disabled[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mEstados do checkbox[2m > [22mdeve suportar estado required[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mProps customizadas[2m > [22mdeve aceitar id customizado[32m 7[2mms[22m[39m
+[31m   [31m×[31m Checkbox[2m > [22mProps customizadas[2m > [22mdeve aceitar name para formulários[39m[32m 8[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"name"[32m[31m[2m, [22m[32m[32m"terms"[32m[31m[2m) // element.getAttribute("name") === "terms"[22m
+
+Expected the element to have attribute:
+[32m  name="terms"[31m
+Received:
+[31m  null[31m[39m
+   [32m✓[39m Checkbox[2m > [22mProps customizadas[2m > [22mdeve aceitar value customizado[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-label[32m 4[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mAcessibilidade[2m > [22mdeve aceitar aria-describedby[32m 4[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mAcessibilidade[2m > [22mdeve funcionar com labels associados[32m 7[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar em um formulário[32m 120[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mCasos de uso comuns[2m > [22mdeve mostrar ícone de check quando marcado[32m 6[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mCasos de uso comuns[2m > [22mdeve mostrar ícone minus quando indeterminate[32m 5[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mControlled vs Uncontrolled[2m > [22mdeve funcionar como uncontrolled component[32m 73[2mms[22m[39m
+   [32m✓[39m Checkbox[2m > [22mControlled vs Uncontrolled[2m > [22mdeve funcionar como controlled component[32m 42[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/ListaUnidades/components/__tests__/tabela-unidades.test.tsx[2m > [22m[2mTabelaUnidades[2m > [22m[2mdeve permitir selecionar todas as unidades
+[22m[39m[DEBUG] Navegando para unidade: {
+  id: [33m1[39m,
+  nome: [32m'Hospital Municipal de Saude Sao Joao'[39m,
+  sigla: [32m'HMSJ'[39m,
+  UO: [32m'01.001'[39m,
+  UG: [32m'001.001.001'[39m,
+  endereco: [32m'Rua das Palmeiras, 1250 - Centro, Sao Paulo - SP, 01234-567'[39m,
+  status: [32m'ativo'[39m,
+  contratosAtivos: [33m3[39m,
+  valorTotalContratado: [33m2500000[39m
+}
+[DEBUG] ID da unidade: [33m1[39m tipo: number
+
+[90mstdout[2m | src/modules/Unidades/ListaUnidades/components/__tests__/tabela-unidades.test.tsx[2m > [22m[2mTabelaUnidades[2m > [22m[2mdeve chamar onVisualizarUnidade ao clicar em "Abrir"
+[22m[39m[DEBUG] Navegando para unidade: {
+  id: [33m1[39m,
+  nome: [32m'Hospital Municipal de Saude Sao Joao'[39m,
+  sigla: [32m'HMSJ'[39m,
+  UO: [32m'01.001'[39m,
+  UG: [32m'001.001.001'[39m,
+  endereco: [32m'Rua das Palmeiras, 1250 - Centro, Sao Paulo - SP, 01234-567'[39m,
+  status: [32m'ativo'[39m,
+  contratosAtivos: [33m3[39m,
+  valorTotalContratado: [33m2500000[39m
+}
+[DEBUG] ID da unidade: [33m1[39m tipo: number
+[DEBUG] Navegando para unidade: {
+  id: [33m1[39m,
+  nome: [32m'Hospital Municipal de Saude Sao Joao'[39m,
+  sigla: [32m'HMSJ'[39m,
+  UO: [32m'01.001'[39m,
+  UG: [32m'001.001.001'[39m,
+  endereco: [32m'Rua das Palmeiras, 1250 - Centro, Sao Paulo - SP, 01234-567'[39m,
+  status: [32m'ativo'[39m,
+  contratosAtivos: [33m3[39m,
+  valorTotalContratado: [33m2500000[39m
+}
+[DEBUG] ID da unidade: [33m1[39m tipo: number
+
+ [32m✓[39m src/modules/Contratos/components/CadastroDeContratos/__tests__/unidades-form.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[33m 930[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/AlteracoesContratuais/__tests__/index.simple.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 1530[2mms[22m[39m
+   [33m[2m✓[22m[39m AlteracoesContratuais - Import Test[2m > [22mdeve conseguir importar o componente sem erros [33m 1529[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/Timeline/__tests__/contract-chat.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 895[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/Documentos/__tests__/tab-documentos-simples.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 811[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/Documentos/__tests__/DocumentosChecklist.test.tsx [2m([22m[2m17 tests[22m[2m)[22m[33m 1039[2mms[22m[39m
+ [32m✓[39m src/modules/Fornecedores/VisualizacaoFornecedor/components/__tests__/FornecedorContratos.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[33m 834[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/VisualizacaoContratos/__tests__/indicadores-relatorios.test.tsx [2m([22m[2m16 tests[22m[2m)[22m[33m 1066[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/ListaUnidades/components/__tests__/tabela-unidades.test.tsx[2m > [22m[2mTabelaUnidades[2m > [22m[2mdeve permitir clique direto na linha para visualizar unidade
+[22m[39m[DEBUG] Navegando para unidade: {
+  id: [33m1[39m,
+  nome: [32m'Hospital Municipal de Saude Sao Joao'[39m,
+  sigla: [32m'HMSJ'[39m,
+  UO: [32m'01.001'[39m,
+  UG: [32m'001.001.001'[39m,
+  endereco: [32m'Rua das Palmeiras, 1250 - Centro, Sao Paulo - SP, 01234-567'[39m,
+  status: [32m'ativo'[39m,
+  contratosAtivos: [33m3[39m,
+  valorTotalContratado: [33m2500000[39m
+}
+[DEBUG] ID da unidade: [33m1[39m tipo: number
+
+ [32m✓[39m src/hooks/__tests__/use-cep-simple.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 1878[2mms[22m[39m
+   [33m[2m✓[22m[39m useCEP - Essential Tests[2m > [22mvalidação de CEP[2m > [22mdeve limpar caracteres não numéricos [33m 1830[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/ListaContratos/__tests__/tabela-contratos.test.tsx [2m([22m[2m14 tests[22m[2m)[22m[33m 1285[2mms[22m[39m
+ [32m✓[39m src/modules/Unidades/ListaUnidades/components/__tests__/tabela-unidades.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 1434[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/select.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 1627[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/VisualizacaoContratos/__tests__/registro-alteracoes.test.tsx [2m([22m[2m14 tests[22m[2m)[22m[33m 1544[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/dialog.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[33m 1879[2mms[22m[39m
+ [32m✓[39m src/modules/Fornecedores/ListaFornecedores/__tests__/index.test.ts [2m([22m[2m71 tests[22m[2m)[22m[33m 1828[2mms[22m[39m
+ [32m✓[39m src/modules/Fornecedores/ListaFornecedores/components/__tests__/tabela-fornecedores.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[33m 585[2mms[22m[39m
+ [32m✓[39m src/modules/Unidades/UnidadeDetalhes/components/__tests__/lista-contratos.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 666[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/hooks/__tests__/use-documentos-mutations.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[33m 544[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve carregar dados da unidade com sucesso
+[22m[39m[DEBUG] Iniciando carregamento da unidade: test-id
+[DEBUG] Chamando API para buscar unidade: test-id
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve carregar dados da unidade com sucesso
+[22m[39m[DEBUG] Dados recebidos: {
+  nome: [32m'Assessoria de Comunicação Social'[39m,
+  sigla: [32m'S/ACS'[39m,
+  capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+  cap: {
+    nome: [32m'CAP Temporário'[39m,
+    uo: [32m'0'[39m,
+    id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    ativo: [33mtrue[39m
+  },
+  endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+  bairro: [32m'Cidade Nova'[39m,
+  ua: [33m13210[39m,
+  subsecretaria: [32m'0'[39m,
+  ap: [32m'0'[39m,
+  uo: [33m0[39m,
+  ug: [33m0[39m,
+  cnes: [32m'0'[39m,
+  latitude: [32m'0'[39m,
+  longitude: [32m'0'[39m,
+  tipoUnidadeId: [33m1[39m,
+  tipoUnidade: [1mnull[22m,
+  tipoAdministracaoId: [33m1[39m,
+  tipoAdministracao: [1mnull[22m,
+  id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+  ativo: [33mtrue[39m
+}
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve lidar com erro ao carregar unidade
+[22m[39m[DEBUG] Iniciando carregamento da unidade: test-id
+[DEBUG] Chamando API para buscar unidade: test-id
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mnão deve carregar quando enabled é false
+[22m[39m[DEBUG] Hook desabilitado ou ID vazio: { enabled: [33mfalse[39m, id: [32m'test-id'[39m }
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mnão deve carregar quando id está vazio
+[22m[39m[DEBUG] Hook desabilitado ou ID vazio: { enabled: [33mtrue[39m, id: [32m''[39m }
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve recarregar dados quando recarregar é chamado
+[22m[39m[DEBUG] Iniciando carregamento da unidade: test-id
+[DEBUG] Chamando API para buscar unidade: test-id
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve recarregar dados quando recarregar é chamado
+[22m[39m[DEBUG] Dados recebidos: {
+  nome: [32m'Assessoria de Comunicação Social'[39m,
+  sigla: [32m'S/ACS'[39m,
+  capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+  cap: {
+    nome: [32m'CAP Temporário'[39m,
+    uo: [32m'0'[39m,
+    id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    ativo: [33mtrue[39m
+  },
+  endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+  bairro: [32m'Cidade Nova'[39m,
+  ua: [33m13210[39m,
+  subsecretaria: [32m'0'[39m,
+  ap: [32m'0'[39m,
+  uo: [33m0[39m,
+  ug: [33m0[39m,
+  cnes: [32m'0'[39m,
+  latitude: [32m'0'[39m,
+  longitude: [32m'0'[39m,
+  tipoUnidadeId: [33m1[39m,
+  tipoUnidade: [1mnull[22m,
+  tipoAdministracaoId: [33m1[39m,
+  tipoAdministracao: [1mnull[22m,
+  id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+  ativo: [33mtrue[39m
+}
+
+ [32m✓[39m src/modules/Contratos/components/ListaContratos/__tests__/modal-confirmacao-exportacao.test.tsx [2m([22m[2m16 tests[22m[2m)[22m[33m 476[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve lidar com erro ao recarregar
+[22m[39m[DEBUG] Iniciando carregamento da unidade: test-id
+[DEBUG] Chamando API para buscar unidade: test-id
+
+[90mstdout[2m | src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts[2m > [22m[2museUnidadeDetalhada[2m > [22m[2mdeve lidar com erro ao recarregar
+[22m[39m[DEBUG] Dados recebidos: {
+  nome: [32m'Assessoria de Comunicação Social'[39m,
+  sigla: [32m'S/ACS'[39m,
+  capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+  cap: {
+    nome: [32m'CAP Temporário'[39m,
+    uo: [32m'0'[39m,
+    id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    ativo: [33mtrue[39m
+  },
+  endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+  bairro: [32m'Cidade Nova'[39m,
+  ua: [33m13210[39m,
+  subsecretaria: [32m'0'[39m,
+  ap: [32m'0'[39m,
+  uo: [33m0[39m,
+  ug: [33m0[39m,
+  cnes: [32m'0'[39m,
+  latitude: [32m'0'[39m,
+  longitude: [32m'0'[39m,
+  tipoUnidadeId: [33m1[39m,
+  tipoUnidade: [1mnull[22m,
+  tipoAdministracaoId: [33m1[39m,
+  tipoAdministracao: [1mnull[22m,
+  id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+  ativo: [33mtrue[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mRenderização[2m > [22m[2mdeve renderizar informações do usuário corretamente
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mRenderização[2m > [22m[2mdeve renderizar avatar com fallback das iniciais
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mRenderização[2m > [22m[2mdeve renderizar indicador de status online
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mRenderização[2m > [22m[2mdeve renderizar dropdown menu
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+ [32m✓[39m src/modules/Contratos/components/AlteracoesContratuais/components/BlocosDinamicos/__tests__/index.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[33m 643[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mComportamento do Dropdown[2m > [22m[2mdeve renderizar conteúdo do dropdown
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mComportamento do Dropdown[2m > [22m[2mdeve mostrar informações do usuário no dropdown
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mLogout[2m > [22m[2mdeve chamar logoutTodasSessoes ao clicar em Sair
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mLogout[2m > [22m[2mdeve mostrar loading durante logout
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mLogout[2m > [22m[2mdeve desabilitar botão durante logout
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mCasos Especiais[2m > [22m[2mdeve usar email como fallback quando nomeCompleto está vazio
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m''[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mCasos Especiais[2m > [22m[2mdeve usar email como fallback para avatar quando nomeCompleto está vazio
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m''[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mCasos Especiais[2m > [22m[2mnão deve renderizar quando não há usuário autenticado
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mTratamento de Erros[2m > [22m[2mdeve tratar erro no logout e forçar logout local
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+ [32m✓[39m src/modules/Unidades/hooks/__tests__/use-unidade-detalhada.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 417[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mResponsividade[2m > [22m[2mdeve renderizar corretamente em dispositivos móveis
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/nav-user.test.tsx[2m > [22m[2mNavUser[2m > [22m[2mAcessibilidade[2m > [22m[2mdeve ter atributos de acessibilidade apropriados
+[22m[39mNavUser - Dados do usuário: {
+  id: [32m'1'[39m,
+  email: [32m'test@example.com'[39m,
+  nomeCompleto: [32m'João Luis Bernardo Ramos'[39m,
+  tipoUsuario: [32m'user'[39m,
+  precisaTrocarSenha: [33mfalse[39m
+}
+
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve renderizar corretamente
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+ [32m✓[39m src/components/__tests__/nav-user.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[33m 440[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve renderizar a logo principal
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve renderizar a logo CAC
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+ [32m✓[39m src/modules/Unidades/ListaUnidades/pages/__tests__/UnidadesListPage.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[33m 307[2mms[22m[39m
+ [32m✓[39m src/hooks/__tests__/use-async-operation.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 282[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve renderizar o link para a página inicial na logo
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve ter as classes corretas para sidebar
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve renderizar com props personalizadas
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+ [32m✓[39m src/modules/Unidades/ListaUnidades/components/__tests__/search-and-filters-unidades.test.tsx [2m([22m[2m29 tests[22m[2m)[22m[33m 3301[2mms[22m[39m
+   [33m[2m✓[22m[39m SearchAndFiltersUnidades[2m > [22mfuncionalidades de UI[2m > [22mdeve manter estado dos filtros ao fechar e reabrir dropdown [33m 333[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/app-sidebar.test.tsx[2m > [22m[2mAppSidebar[2m > [22m[2mdeve mostrar o separador entre header e conteúdo
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+ [32m✓[39m src/modules/Fornecedores/ListaFornecedores/components/__tests__/modal-confirmacao-exportacao.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[32m 252[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/ListaContratos/__tests__/filtros-contratos.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 318[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/app-sidebar.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 343[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/CadastroDeContratos/__tests__/atribuicao-fiscais-form.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 3343[2mms[22m[39m
+   [33m[2m✓[22m[39m AtribuicaoFiscaisForm[2m > [22mFuncionalidade de busca[2m > [22mdeve mostrar mensagem quando nenhum usuário é encontrado [33m 455[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve renderizar loading quando está carregando
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: { unidade: [1mnull[22m, carregando: [33mtrue[39m, erro: [1mnull[22m }
+
+ [32m✓[39m src/modules/Contratos/components/ListaContratos/__tests__/pesquisa-e-filtros.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 372[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/sidebar.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 306[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/button-extended.test.tsx [2m([22m[2m28 tests[22m[2m)[22m[32m 234[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve renderizar erro quando há erro
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: {
+  unidade: [1mnull[22m,
+  carregando: [33mfalse[39m,
+  erro: [32m'Erro ao carregar dados da unidade'[39m
+}
+
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve renderizar dados da unidade quando carregado com sucesso
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: {
+  unidade: {
+    nome: [32m'Assessoria de Comunicação Social'[39m,
+    sigla: [32m'S/ACS'[39m,
+    capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    cap: {
+      nome: [32m'CAP Temporário'[39m,
+      uo: [32m'0'[39m,
+      id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+      ativo: [33mtrue[39m
+    },
+    endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+    bairro: [32m'Cidade Nova'[39m,
+    ua: [33m13210[39m,
+    subsecretaria: [32m'0'[39m,
+    ap: [32m'0'[39m,
+    uo: [33m0[39m,
+    ug: [33m0[39m,
+    cnes: [32m'0'[39m,
+    latitude: [32m'0'[39m,
+    longitude: [32m'0'[39m,
+    tipoUnidadeId: [33m1[39m,
+    tipoUnidade: [1mnull[22m,
+    tipoAdministracaoId: [33m1[39m,
+    tipoAdministracao: [1mnull[22m,
+    id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+    ativo: [33mtrue[39m
+  },
+  carregando: [33mfalse[39m,
+  erro: [1mnull[22m
+}
+
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve mostrar badge ativo quando unidade está ativa
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: {
+  unidade: {
+    nome: [32m'Assessoria de Comunicação Social'[39m,
+    sigla: [32m'S/ACS'[39m,
+    capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    cap: {
+      nome: [32m'CAP Temporário'[39m,
+      uo: [32m'0'[39m,
+      id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+      ativo: [33mtrue[39m
+    },
+    endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+    bairro: [32m'Cidade Nova'[39m,
+    ua: [33m13210[39m,
+    subsecretaria: [32m'0'[39m,
+    ap: [32m'0'[39m,
+    uo: [33m0[39m,
+    ug: [33m0[39m,
+    cnes: [32m'0'[39m,
+    latitude: [32m'0'[39m,
+    longitude: [32m'0'[39m,
+    tipoUnidadeId: [33m1[39m,
+    tipoUnidade: [1mnull[22m,
+    tipoAdministracaoId: [33m1[39m,
+    tipoAdministracao: [1mnull[22m,
+    id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+    ativo: [33mtrue[39m
+  },
+  carregando: [33mfalse[39m,
+  erro: [1mnull[22m
+}
+
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve mostrar badge inativo quando unidade está inativa
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: {
+  unidade: {
+    nome: [32m'Assessoria de Comunicação Social'[39m,
+    sigla: [32m'S/ACS'[39m,
+    capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    cap: {
+      nome: [32m'CAP Temporário'[39m,
+      uo: [32m'0'[39m,
+      id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+      ativo: [33mtrue[39m
+    },
+    endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+    bairro: [32m'Cidade Nova'[39m,
+    ua: [33m13210[39m,
+    subsecretaria: [32m'0'[39m,
+    ap: [32m'0'[39m,
+    uo: [33m0[39m,
+    ug: [33m0[39m,
+    cnes: [32m'0'[39m,
+    latitude: [32m'0'[39m,
+    longitude: [32m'0'[39m,
+    tipoUnidadeId: [33m1[39m,
+    tipoUnidade: [1mnull[22m,
+    tipoAdministracaoId: [33m1[39m,
+    tipoAdministracao: [1mnull[22m,
+    id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+    ativo: [33mfalse[39m
+  },
+  carregando: [33mfalse[39m,
+  erro: [1mnull[22m
+}
+
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve navegar de volta quando clicar em voltar
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: {
+  unidade: {
+    nome: [32m'Assessoria de Comunicação Social'[39m,
+    sigla: [32m'S/ACS'[39m,
+    capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    cap: {
+      nome: [32m'CAP Temporário'[39m,
+      uo: [32m'0'[39m,
+      id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+      ativo: [33mtrue[39m
+    },
+    endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+    bairro: [32m'Cidade Nova'[39m,
+    ua: [33m13210[39m,
+    subsecretaria: [32m'0'[39m,
+    ap: [32m'0'[39m,
+    uo: [33m0[39m,
+    ug: [33m0[39m,
+    cnes: [32m'0'[39m,
+    latitude: [32m'0'[39m,
+    longitude: [32m'0'[39m,
+    tipoUnidadeId: [33m1[39m,
+    tipoUnidade: [1mnull[22m,
+    tipoAdministracaoId: [33m1[39m,
+    tipoAdministracao: [1mnull[22m,
+    id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+    ativo: [33mtrue[39m
+  },
+  carregando: [33mfalse[39m,
+  erro: [1mnull[22m
+}
+
+ [32m✓[39m src/components/ui/__tests__/avatar.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 133[2mms[22m[39m
+[90mstdout[2m | src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx[2m > [22m[2mUnidadeDetalhesPage[2m > [22m[2mdeve mostrar abas de informações gerais e endereço
+[22m[39m[DEBUG] UnidadeDetalhesPage - ID recebido: test-id
+[DEBUG] UnidadeDetalhesPage - Estado: {
+  unidade: {
+    nome: [32m'Assessoria de Comunicação Social'[39m,
+    sigla: [32m'S/ACS'[39m,
+    capId: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+    cap: {
+      nome: [32m'CAP Temporário'[39m,
+      uo: [32m'0'[39m,
+      id: [32m'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c'[39m,
+      ativo: [33mtrue[39m
+    },
+    endereco: [32m'Rua Afonso Cavalcanti, 455'[39m,
+    bairro: [32m'Cidade Nova'[39m,
+    ua: [33m13210[39m,
+    subsecretaria: [32m'0'[39m,
+    ap: [32m'0'[39m,
+    uo: [33m0[39m,
+    ug: [33m0[39m,
+    cnes: [32m'0'[39m,
+    latitude: [32m'0'[39m,
+    longitude: [32m'0'[39m,
+    tipoUnidadeId: [33m1[39m,
+    tipoUnidade: [1mnull[22m,
+    tipoAdministracaoId: [33m1[39m,
+    tipoAdministracao: [1mnull[22m,
+    id: [32m'f5884390-f61a-4c88-b8ec-bd1e7e305ac5'[39m,
+    ativo: [33mtrue[39m
+  },
+  carregando: [33mfalse[39m,
+  erro: [1mnull[22m
+}
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página inicial
+[22m[39m🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+
+ [32m✓[39m src/modules/Unidades/pages/__tests__/UnidadeDetalhesPage.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 289[2mms[22m[39m
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página de contratos
+[22m[39m🍞 Breadcrumb Debug: {
+  pathname: [32m'/contratos'[39m,
+  contratoId: [90mundefined[39m,
+  isContratoRoute: [33mfalse[39m
+}
+🔄 Processando segment: {
+  segment: [32m'contratos'[39m,
+  currentPath: [32m'/contratos'[39m,
+  contratoId: [90mundefined[39m
+}
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página de detalhes do contrato
+[22m[39m🍞 Breadcrumb Debug: {
+  pathname: [32m'/contratos/123'[39m,
+  contratoId: [32m'123'[39m,
+  isContratoRoute: [33mtrue[39m
+}
+🔄 Processando segment: { segment: [32m'contratos'[39m, currentPath: [32m'/contratos'[39m, contratoId: [32m'123'[39m }
+🔄 Processando segment: { segment: [32m'123'[39m, currentPath: [32m'/contratos/123'[39m, contratoId: [32m'123'[39m }
+🏷️ Estado atual: {
+  segment: [32m'123'[39m,
+  contratoId: [32m'123'[39m,
+  contratoLoading: [33mtrue[39m,
+  hasData: [33mfalse[39m,
+  numeroContrato: [90mundefined[39m,
+  fullData: [90mundefined[39m
+}
+🏷️ Label final: Carregando...
+🔍 Breadcrumb buscando contrato: 123
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página de detalhes do contrato
+[22m[39m✅ Breadcrumb dados recebidos: { numeroContrato: [32m'123'[39m, id: [32m'123'[39m }
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página de detalhes do contrato
+[22m[39m🍞 Breadcrumb Debug: {
+  pathname: [32m'/contratos/123'[39m,
+  contratoId: [32m'123'[39m,
+  isContratoRoute: [33mtrue[39m
+}
+🔄 Processando segment: { segment: [32m'contratos'[39m, currentPath: [32m'/contratos'[39m, contratoId: [32m'123'[39m }
+🔄 Processando segment: { segment: [32m'123'[39m, currentPath: [32m'/contratos/123'[39m, contratoId: [32m'123'[39m }
+🏷️ Estado atual: {
+  segment: [32m'123'[39m,
+  contratoId: [32m'123'[39m,
+  contratoLoading: [33mfalse[39m,
+  hasData: [33mtrue[39m,
+  numeroContrato: [32m'123'[39m,
+  fullData: { numeroContrato: [32m'123'[39m, id: [32m'123'[39m }
+}
+🏷️ Label final: Contrato 123
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página de fornecedores
+[22m[39m🍞 Breadcrumb Debug: {
+  pathname: [32m'/fornecedores'[39m,
+  contratoId: [90mundefined[39m,
+  isContratoRoute: [33mfalse[39m
+}
+🔄 Processando segment: {
+  segment: [32m'fornecedores'[39m,
+  currentPath: [32m'/fornecedores'[39m,
+  contratoId: [90mundefined[39m
+}
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o breadcrumb na página de detalhes do fornecedor
+[22m[39m🍞 Breadcrumb Debug: {
+  pathname: [32m'/fornecedores/456'[39m,
+  contratoId: [90mundefined[39m,
+  isContratoRoute: [33mfalse[39m
+}
+🔄 Processando segment: {
+  segment: [32m'fornecedores'[39m,
+  currentPath: [32m'/fornecedores'[39m,
+  contratoId: [90mundefined[39m
+}
+🔄 Processando segment: {
+  segment: [32m'456'[39m,
+  currentPath: [32m'/fornecedores/456'[39m,
+  contratoId: [90mundefined[39m
+}
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve renderizar o SidebarTrigger junto com o breadcrumb
+[22m[39m🍞 Breadcrumb Debug: {
+  pathname: [32m'/contratos'[39m,
+  contratoId: [90mundefined[39m,
+  isContratoRoute: [33mfalse[39m
+}
+🔄 Processando segment: {
+  segment: [32m'contratos'[39m,
+  currentPath: [32m'/contratos'[39m,
+  contratoId: [90mundefined[39m
+}
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve ter atributos de acessibilidade corretos no SidebarTrigger
+[22m[39m🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+
+[90mstdout[2m | src/tests/page-breadcrumb.test.tsx[2m > [22m[2mPageBreadcrumb[2m > [22m[2mdeve ter classes de estilo para hover e interação
+[22m[39m🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+
+ [32m✓[39m src/tests/page-breadcrumb.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 189[2mms[22m[39m
+ [32m✓[39m src/modules/Fornecedores/ListaFornecedores/components/__tests__/search-and-filters.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[32m 191[2mms[22m[39m
+ [32m✓[39m src/tests/nav-main.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 151[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/AlteracoesContratuais/components/BlocosDinamicos/__tests__/BlocoFornecedores.simple.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 160[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/button.test.tsx [2m([22m[2m30 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/form.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[32m 149[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/card.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/error-boundary.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[32m 133[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/alert.test.tsx [2m([22m[2m31 tests[22m[2m)[22m[32m 135[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/formatters.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[32m 115[2mms[22m[39m
+[90mstdout[2m | src/modules/Contratos/components/CadastroDeContratos/__tests__/contrato-form.test.tsx[2m > [22m[2mContratoForm[2m > [22m[2mdeve preencher formulário com dados iniciais quando fornecidos
+[22m[39m[API] Tentando gateway: GET /contratos/numero/20240002
+
+ [32m✓[39m src/components/ui/__tests__/badge.test.tsx [2m([22m[2m27 tests[22m[2m)[22m[32m 118[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/input.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[32m 95[2mms[22m[39m
+ [32m✓[39m src/pages/auth/__tests__/forgot-password-form.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 89[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/sonner.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 72[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/layout-pagina.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[32m 121[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/label.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/CadastroDeContratos/__tests__/busca-unidade-inteligente.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 82[2mms[22m[39m
+ [32m✓[39m src/hooks/__tests__/use-auth.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/sidebar-footer.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[32m 185[2mms[22m[39m
+ [32m✓[39m src/hooks/__tests__/use-mobile.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 51[2mms[22m[39m
+ [32m✓[39m src/lib/__tests__/formatting-utils.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m src/hooks/__tests__/use-debounce.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/services/__tests__/documentos-service.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/lib/__tests__/utils.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/lib/auth/__tests__/cookie-utils.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/AlteracoesContratuais/hooks/__tests__/useAlteracoesContratuais.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/AlteracoesContratuais/__tests__/display-functions.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/lib/__tests__/cookie-utils.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+[90mstdout[2m | src/tests/sidebar-footer.test.tsx[2m > [22m[2mSidebarFooter[2m > [22m[2mdeve renderizar as informações do desenvolvedor quando expandida
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/tests/sidebar-footer.test.tsx[2m > [22m[2mSidebarFooter[2m > [22m[2mdeve renderizar apenas a versão quando colapsada
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/tests/sidebar-footer.test.tsx[2m > [22m[2mSidebarFooter[2m > [22m[2mdeve usar o ano atual na mensagem do desenvolvedor
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/tests/sidebar-footer.test.tsx[2m > [22m[2mSidebarFooter[2m > [22m[2mdeve ter estilos corretos para o texto da versão
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/tests/sidebar-footer.test.tsx[2m > [22m[2mSidebarFooter[2m > [22m[2mdeve renderizar com cores da sidebar
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/modules/Contratos/components/CadastroDeContratos/__tests__/contrato-form.test.tsx[2m > [22m[2mContratoForm[2m > [22m[2mdeve validar vigência final posterior à vigência inicial
+[22m[39m[API-METRICS] 2025-09-17T17:19:36.734Z - Gateway Failure {
+  event: [32m'Gateway Failure'[39m,
+  details: { reason: [32m'404 Not Found'[39m },
+  summary: {
+    total: [33m1[39m,
+    gatewaySuccess: [32m'0%'[39m,
+    fallbackUsage: [32m'0%'[39m,
+    overallSuccess: [32m'0%'[39m
+  }
+}
+
+ [32m✓[39m src/modules/Contratos/types/__tests__/alteracoes-contratuais.simple.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/tests/sidebar-footer.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/VisualizacaoContratos/__tests__/detalhes-contrato.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 200[2mms[22m[39m
+ [32m✓[39m src/modules/Contratos/components/CadastroDeContratos/__tests__/contrato-form.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[33m 6807[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve renderizar todos os campos obrigatórios [33m 552[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve calcular vigência final automaticamente quando data inicial e prazo são preenchidos [33m 428[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve calcular vigência final com meses e dias [33m 513[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve exibir erros de validação para campos obrigatórios [33m 354[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve validar que pelo menos meses ou dias sejam informados [33m 600[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve chamar onAdvanceRequest quando formulário é válido e função está disponível [33m 727[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve aceitar link do Processo.Rio no campo de termo de referência [33m 393[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve alternar para Google Drive e aceitar URL [33m 571[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve validar prazo inicial entre 0 e 72 meses [33m 324[2mms[22m[39m
+   [33m[2m✓[22m[39m ContratoForm[2m > [22mdeve validar vigência final posterior à vigência inicial [33m 421[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/layout-authenticated.test.tsx[2m > [22m[2mLayoutAuthenticated[2m > [22m[2mdeve renderizar corretamente
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/layout-authenticated.test.tsx[2m > [22m[2mLayoutAuthenticated[2m > [22m[2mdeve renderizar o header com breadcrumb e notificações
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/layout-authenticated.test.tsx[2m > [22m[2mLayoutAuthenticated[2m > [22m[2mdeve renderizar o conteúdo principal dentro do ErrorBoundary
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+NavUser - Dados do usuário: [1mnull[22m
+
+[90mstdout[2m | src/components/__tests__/layout-authenticated.test.tsx[2m > [22m[2mLayoutAuthenticated[2m > [22m[2mdeve renderizar o children no local correto
+[22m[39mNavUser - Usuário não encontrado, não renderizando componente
+🍞 Breadcrumb Debug: { pathname: [32m'/'[39m, contratoId: [90mundefined[39m, isContratoRoute: [33mfalse[39m }
+NavUser - Dados do usuário: [1mnull[22m
+
+ [32m✓[39m src/components/__tests__/layout-authenticated.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 117[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/notificacoes-dropdown.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m src/modules/Unidades/UnidadeDetalhes/pages/__tests__/UnidadeDetalhesPage.test.tsx [2m([22m[2m16 tests[22m[2m)[22m[33m 8550[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar informações básicas da unidade [33m 635[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar códigos administrativos [33m 554[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar endereço da unidade [33m 549[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar lista de contratos vinculados [33m 555[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar fornecedores dos contratos [33m 543[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar valores dos contratos formatados [33m 560[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar datas de vigência dos contratos [33m 554[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve permitir navegação de volta para lista de unidades [33m 620[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve permitir navegar para detalhes do contrato [33m 664[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar ações rápidas [33m 558[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve exibir estado vazio quando unidade não tem contratos [33m 530[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve chamar handleError para unidade não encontrada [33m 582[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve renderizar badges de status dos contratos [33m 550[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve ser responsivo e mostrar informações em dispositivos móveis [33m 524[2mms[22m[39m
+   [33m[2m✓[22m[39m UnidadeDetalhesPage[2m > [22mdeve ter animações aplicadas aos elementos [33m 532[2mms[22m[39m
+ [32m✓[39m src/tests/App.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 60[2mms[22m[39m
+ [31m❯[39m src/components/ui/__tests__/tooltip.test.tsx [2m([22m[2m24 tests[22m[2m | [22m[31m14 failed[39m[2m)[22m[33m 37681[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mTooltipProvider[2m > [22mdeve renderizar provider corretamente[32m 24[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mTooltipProvider[2m > [22mdeve aceitar props customizadas[32m 1[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mTooltipTrigger[2m > [22mdeve renderizar trigger corretamente[32m 13[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mTooltipTrigger[2m > [22mdeve ter data-slot="tooltip-trigger"[32m 3[2mms[22m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mTooltipTrigger[2m > [22mdeve ser focável[39m[32m 12[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveFocus()[22m
+
+Expected element with focus:
+  [32m<button
+  data-slot="tooltip-trigger"
+  data-state="closed"
+  data-testid="tooltip-trigger"
+>
+  Hover me
+</button>[31m
+Received element with focus:
+  [31m<body>
+  <div>
+    <button
+      data-slot="tooltip-trigger"
+      data-state="closed"
+      data-testid="tooltip-trigger"
+    >
+      Hover me
+    </button>
+  </div>
+</body>[31m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mTooltipContent[2m > [22mdeve aplicar classes padrão[39m[33m 1081[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveClass([22m[32m[32m"z-50 overflow-hidden rounded-md px-3 py-1.5"[32m[31m[2m)[22m
+
+Expected the element to have class:
+[32m  z-50 overflow-hidden rounded-md px-3 py-1.5[31m
+Received:
+[31m  bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33maria-describedby[31m=[32m"radix-«r3»"[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+    [36m<div[31m
+      [33mdata-radix-popper-content-wrapper[31m=[32m""[31m
+      [33mstyle[31m=[32m"position: fixed; left: 0px; top: 0px; transform: translate(0px, 0px); min-width: max-content; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 100px; --radix-popper-anchor-height: 100px; --radix-popper-transform-origin: 50% 0px;"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance"[31m
+        [33mdata-align[31m=[32m"center"[31m
+        [33mdata-side[31m=[32m"top"[31m
+        [33mdata-slot[31m=[32m"tooltip-content"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-content"[31m
+        [33mstyle[31m=[32m"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);"[31m
+      [36m>[31m
+        [0mTooltip content[0m
+        [36m<span[31m
+          [33mstyle[31m=[32m"position: absolute; bottom: 0px; transform: translateY(100%); visibility: hidden; left: 1px;"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]"[31m
+            [33mheight[31m=[32m"5"[31m
+            [33mpreserveAspectRatio[31m=[32m"none"[31m
+            [33mstyle[31m=[32m"display: block;"[31m
+            [33mviewBox[31m=[32m"0 0 30 10"[31m
+            [33mwidth[31m=[32m"10"[31m
+          [36m>[31m
+            [36m<polygon[31m
+              [33mpoints[31m=[32m"0,0 30,0 15,10"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+        [36m</span>[31m
+        [36m<span[31m
+          [33mid[31m=[32m"radix-«r3»"[31m
+          [33mrole[31m=[32m"tooltip"[31m
+          [33mstyle[31m=[32m"position: absolute; border: 0px; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; word-wrap: normal;"[31m
+        [36m>[31m
+          [0mTooltip content[0m
+        [36m</span>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+   [32m✓[39m Tooltip Components[2m > [22mTooltipContent[2m > [22mdeve ter data-slot="tooltip-content"[32m 95[2mms[22m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mTooltipContent[2m > [22mdeve ter role tooltip[39m[33m 1055[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveRole()[22m
+
+Expected element to have role:
+[32m  tooltip[31m
+Received:
+[31m  generic[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33maria-describedby[31m=[32m"radix-«r5»"[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+    [36m<div[31m
+      [33mdata-radix-popper-content-wrapper[31m=[32m""[31m
+      [33mstyle[31m=[32m"position: fixed; left: 0px; top: 0px; transform: translate(0px, 0px); min-width: max-content; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 100px; --radix-popper-anchor-height: 100px; --radix-popper-transform-origin: 50% 0px;"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance"[31m
+        [33mdata-align[31m=[32m"center"[31m
+        [33mdata-side[31m=[32m"top"[31m
+        [33mdata-slot[31m=[32m"tooltip-content"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-content"[31m
+        [33mstyle[31m=[32m"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);"[31m
+      [36m>[31m
+        [0mTooltip content[0m
+        [36m<span[31m
+          [33mstyle[31m=[32m"position: absolute; bottom: 0px; transform: translateY(100%); visibility: hidden; left: 1px;"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]"[31m
+            [33mheight[31m=[32m"5"[31m
+            [33mpreserveAspectRatio[31m=[32m"none"[31m
+            [33mstyle[31m=[32m"display: block;"[31m
+            [33mviewBox[31m=[32m"0 0 30 10"[31m
+            [33mwidth[31m=[32m"10"[31m
+          [36m>[31m
+            [36m<polygon[31m
+              [33mpoints[31m=[32m"0,0 30,0 15,10"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+        [36m</span>[31m
+        [36m<span[31m
+          [33mid[31m=[32m"radix-«r5»"[31m
+          [33mrole[31m=[32m"tooltip"[31m
+          [33mstyle[31m=[32m"position: absolute; border: 0px; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; word-wrap: normal;"[31m
+        [36m>[31m
+          [0mTooltip content[0m
+        [36m</span>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+   [32m✓[39m Tooltip Components[2m > [22mInterações de hover[2m > [22mdeve mostrar tooltip ao fazer hover[32m 45[2mms[22m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mInterações de hover[2m > [22mdeve esconder tooltip ao sair do hover[39m[33m 1095[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <div
+  class="bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance"
+  data-align="center"
+  data-side="top"
+  data-slot="tooltip-content"
+  data-state="delayed-open"
+  data-testid="tooltip-content"
+  style="--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);"
+>
+  Tooltip content
+  <span
+    style="position: absolute; bottom: 0px; transform: translateY(100%); visibility: hidden; left: 1px;"
+  >
+    <svg
+      class="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]"
+      height="5"
+      preserveAspectRatio="none"
+      style="display: block;"
+      viewBox="0 0 30 10"
+      width="10"
+    >
+      <polygon
+        points="0,0 30,0 15,10"
+      />
+    </svg>
+  </span>
+  <span
+    id="radix-«r7»"
+    role="tooltip"
+    style="position: absolute; border: 0px; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; word-wrap: normal;"
+  >
+    Tooltip content
+  </span>
+</div> instead[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33maria-describedby[31m=[32m"radix-«r7»"[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+    [36m<div[31m
+      [33mdata-radix-popper-content-wrapper[31m=[32m""[31m
+      [33mstyle[31m=[32m"position: fixed; left: 0px; top: 0px; transform: translate(0px, 0px); min-width: max-content; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 100px; --radix-popper-anchor-height: 100px; --radix-popper-transform-origin: 50% 0px;"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance"[31m
+        [33mdata-align[31m=[32m"center"[31m
+        [33mdata-side[31m=[32m"top"[31m
+        [33mdata-slot[31m=[32m"tooltip-content"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-content"[31m
+        [33mstyle[31m=[32m"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);"[31m
+      [36m>[31m
+        [0mTooltip content[0m
+        [36m<span[31m
+          [33mstyle[31m=[32m"position: absolute; bottom: 0px; transform: translateY(100%); visibility: hidden; left: 1px;"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]"[31m
+            [33mheight[31m=[32m"5"[31m
+            [33mpreserveAspectRatio[31m=[32m"none"[31m
+            [33mstyle[31m=[32m"display: block;"[31m
+            [33mviewBox[31m=[32m"0 0 30 10"[31m
+            [33mwidth[31m=[32m"10"[31m
+          [36m>[31m
+            [36m<polygon[31m
+              [33mpoints[31m=[32m"0,0 30,0 15,10"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+        [36m</span>[31m
+        [36m<span[31m
+          [33mid[31m=[32m"radix-«r7»"[31m
+          [33mrole[31m=[32m"tooltip"[31m
+          [33mstyle[31m=[32m"position: absolute; border: 0px; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; word-wrap: normal;"[31m
+        [36m>[31m
+          [0mTooltip content[0m
+        [36m</span>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mInterações de foco[2m > [22mdeve mostrar tooltip ao focar[39m[33m 1012[2mms[22m[39m
+[31m     → Unable to find an element by: [data-testid="tooltip-content"]
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+      [33mdata-state[31m=[32m"closed"[31m
+      [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+    [36m>[31m
+      [0mHover me[0m
+    [36m</button>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"closed"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mInterações de foco[2m > [22mdeve esconder tooltip ao perder foco[39m[33m 1009[2mms[22m[39m
+[31m     → Unable to find an element by: [data-testid="tooltip-content"]
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+      [33mdata-state[31m=[32m"closed"[31m
+      [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+    [36m>[31m
+      [0mHover me[0m
+    [36m</button>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"closed"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mInterações de foco[2m > [22mdeve esconder tooltip ao pressionar Escape[39m[33m 1010[2mms[22m[39m
+[31m     → Unable to find an element by: [data-testid="tooltip-content"]
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+      [33mdata-state[31m=[32m"closed"[31m
+      [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+    [36m>[31m
+      [0mHover me[0m
+    [36m</button>[31m
+  [36m</div>[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"closed"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mPosicionamento[2m > [22mdeve aceitar side customizado[39m[33m 1037[2mms[22m[39m
+[31m     → [2mexpect([22m[31melement[31m[2m).toHaveAttribute([22m[32m[32m"data-side"[32m[31m[2m, [22m[32m[32m"bottom"[32m[31m[2m) // element.getAttribute("data-side") === "bottom"[22m
+
+Expected the element to have attribute:
+[32m  data-side="bottom"[31m
+Received:
+[31m  data-side="top"[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<button[31m
+        [33maria-describedby[31m=[32m"radix-«rb»"[31m
+        [33mdata-slot[31m=[32m"tooltip-trigger"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-trigger"[31m
+      [36m>[31m
+        [0mHover me[0m
+      [36m</button>[31m
+    [36m</div>[31m
+    [36m<div[31m
+      [33mdata-radix-popper-content-wrapper[31m=[32m""[31m
+      [33mstyle[31m=[32m"position: fixed; left: 0px; top: 0px; transform: translate(0px, 0px); min-width: max-content; --radix-popper-available-width: 0px; --radix-popper-available-height: 0px; --radix-popper-anchor-width: 100px; --radix-popper-anchor-height: 100px; --radix-popper-transform-origin: 50% 0px;"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance"[31m
+        [33mdata-align[31m=[32m"center"[31m
+        [33mdata-side[31m=[32m"top"[31m
+        [33mdata-slot[31m=[32m"tooltip-content"[31m
+        [33mdata-state[31m=[32m"delayed-open"[31m
+        [33mdata-testid[31m=[32m"tooltip-content"[31m
+        [33mstyle[31m=[32m"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-available-width: var(--radix-popper-available-width); --radix-tooltip-content-available-height: var(--radix-popper-available-height); --radix-tooltip-trigger-width: var(--radix-popper-anchor-width); --radix-tooltip-trigger-height: var(--radix-popper-anchor-height);"[31m
+      [36m>[31m
+        [0mTooltip content[0m
+        [36m<span[31m
+          [33mstyle[31m=[32m"position: absolute; transform: translateY(100%); visibility: hidden; left: 1px; bottom: 0px;"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]"[31m
+            [33mheight[31m=[32m"5"[31m
+            [33mpreserveAspectRatio[31m=[32m"none"[31m
+            [33mstyle[31m=[32m"display: block;"[31m
+            [33mviewBox[31m=[32m"0 0 30 10"[31m
+            [33mwidth[31m=[32m"10"[31m
+          [36m>[31m
+            [36m<polygon[31m
+              [33mpoints[31m=[32m"0,0 30,0 15,10"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+        [36m</span>[31m
+        [36m<span[31m
+          [33mid[31m=[32m"radix-«rb»"[31m
+          [33mrole[31m=[32m"tooltip"[31m
+          [33mstyle[31m=[32m"position: absolute; border: 0px; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); white-space: nowrap; word-wrap: normal;"[31m
+        [36m>[31m
+          [0mTooltip content[0m
+        [36m</span>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+   [32m✓[39m Tooltip Components[2m > [22mPosicionamento[2m > [22mdeve aceitar align customizado[32m 45[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mPosicionamento[2m > [22mdeve aceitar sideOffset customizado[32m 31[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada no trigger[32m 3[2mms[22m[39m
+   [32m✓[39m Tooltip Components[2m > [22mProps customizadas[2m > [22mdeve aceitar className customizada no content[32m 44[2mms[22m[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mProps customizadas[2m > [22mdeve aceitar delayDuration customizado[39m[33m 5007[2mms[22m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mControlled state[2m > [22mdeve funcionar como controlled component[39m[33m 5012[2mms[22m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mAcessibilidade[2m > [22mdeve associar trigger com content via aria-describedby[39m[33m 5016[2mms[22m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mAcessibilidade[2m > [22mdeve funcionar com elementos que já têm aria-describedby[39m[33m 5004[2mms[22m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar como tooltip de botão[39m[33m 5012[2mms[22m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Tooltip Components[2m > [22mCasos de uso comuns[2m > [22mdeve funcionar com texto longo[39m[33m 5013[2mms[22m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+
+[2m Test Files [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m70 passed[39m[22m[90m (78)[39m
+[2m      Tests [22m [1m[31m51 failed[39m[22m[2m | [22m[1m[32m1217 passed[39m[22m[90m (1268)[39m
+[2m   Start at [22m 14:19:27
+[2m   Duration [22m 40.64s[2m (transform 4.72s, setup 16.11s, collect 49.70s, tests 91.31s, environment 74.80s, prepare 16.54s)[22m
+
+ ELIFECYCLE  Command failed with exit code 1.

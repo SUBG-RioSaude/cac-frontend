@@ -4,8 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible'
 import {
   Clock,
   FileText,
@@ -38,7 +48,10 @@ import { cn, currencyUtils } from '@/lib/utils'
 import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
 import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
-import { useHistoricoFuncionarios, type HistoricoFuncionario } from '@/modules/Contratos/hooks/use-historico-funcionarios'
+import {
+  useHistoricoFuncionarios,
+  type HistoricoFuncionario,
+} from '@/modules/Contratos/hooks/use-historico-funcionarios'
 
 interface RegistroAlteracoesProps {
   contratoId: string // Necessário para buscar histórico de funcionários
@@ -80,7 +93,11 @@ interface EntradaUnificada {
   dataHora: string
   responsavel: string
   origem: 'contrato' | 'timeline' | 'chat' | 'funcionario'
-  dados?: DadosAlteracaoContratual | DadosMilestone | AlteracaoContrato | DadosFuncionario
+  dados?:
+    | DadosAlteracaoContratual
+    | DadosMilestone
+    | AlteracaoContrato
+    | DadosFuncionario
   prioridade?: 'baixa' | 'media' | 'alta' | 'critica'
   tags?: string[]
   status?: string
@@ -92,24 +109,24 @@ function criarResumoLimpo(alteracao: AlteracaoContrato): string {
   if (alteracao.resumoAlteracao) {
     return alteracao.resumoAlteracao
   }
-  
+
   // Fallback: criar resumo baseado nos dados estruturados
   // Mapear tanto strings antigas quanto IDs numéricos da API para classificação precisa
   const tipoMap: Record<string | number, string> = {
     // Strings antigas (manter compatibilidade)
-    'prazo_aditivo': 'Aditivo de Prazo',
-    'qualitativo': 'Aditivo Qualitativo', 
-    'alteracao_valor': 'Aditivo de Quantidade',
-    'repactuacao': 'Repactuação',
-    'reajuste': 'Reajuste',
-    'quantidade': 'Aditivo de Quantidade',
-    'reequilibrio': 'Reequilíbrio',
-    'rescisao': 'Rescisão',
-    'supressao': 'Supressão',
-    'suspensao': 'Suspensão',
-    'apostilamento': 'Apostilamento',
-    'sub_rogacao': 'Sub-rogação',
-    
+    prazo_aditivo: 'Aditivo de Prazo',
+    qualitativo: 'Aditivo Qualitativo',
+    alteracao_valor: 'Aditivo de Quantidade',
+    repactuacao: 'Repactuação',
+    reajuste: 'Reajuste',
+    quantidade: 'Aditivo de Quantidade',
+    reequilibrio: 'Reequilíbrio',
+    rescisao: 'Rescisão',
+    supressao: 'Supressão',
+    suspensao: 'Suspensão',
+    apostilamento: 'Apostilamento',
+    sub_rogacao: 'Sub-rogação',
+
     // IDs numéricos da API (baseado no curl /api/alteracoes-contratuais/tipos)
     1: 'Aditivo - Prazo',
     3: 'Aditivo - Qualitativo',
@@ -121,48 +138,65 @@ function criarResumoLimpo(alteracao: AlteracaoContrato): string {
     12: 'Supressão',
     13: 'Suspensão',
     0: 'Apostilamento',
-    6: 'Sub-rogação'
+    6: 'Sub-rogação',
   }
-  
+
   const tipoTexto = tipoMap[alteracao.tipo] || 'Alteração Contratual'
-  
+
   // Identificar o resumo mais relevante baseado no conteúdo
   const detalhes: string[] = []
-  
+
   // Vigência (prioritária para resumo)
   if (alteracao.vigencia) {
-    const operacao = alteracao.vigencia.operacao === 1 ? 'Acrescentar' : 
-                    alteracao.vigencia.operacao === 2 ? 'Diminuir' : 'Alterar'
-    const unidade = alteracao.vigencia.tipoUnidade === 1 ? 'dia(s)' :
-                   alteracao.vigencia.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'
+    const operacao =
+      alteracao.vigencia.operacao === 1
+        ? 'Acrescentar'
+        : alteracao.vigencia.operacao === 2
+          ? 'Diminuir'
+          : 'Alterar'
+    const unidade =
+      alteracao.vigencia.tipoUnidade === 1
+        ? 'dia(s)'
+        : alteracao.vigencia.tipoUnidade === 2
+          ? 'mês(es)'
+          : 'ano(s)'
     detalhes.push(`${operacao} ${alteracao.vigencia.valorTempo} ${unidade}`)
   }
-  
+
   // Valor (segundo mais importante)
   if (alteracao.valor?.valorAjuste) {
-    const operacao = alteracao.valor.operacao === 1 ? '+' : 
-                    alteracao.valor.operacao === 2 ? '-' : '='
-    const valor = new Intl.NumberFormat('pt-BR', { 
-      style: 'currency', 
+    const operacao =
+      alteracao.valor.operacao === 1
+        ? '+'
+        : alteracao.valor.operacao === 2
+          ? '-'
+          : '='
+    const valor = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(alteracao.valor.valorAjuste)
     detalhes.push(`${operacao}${valor}`)
   }
-  
+
   // Outros blocos (resumir quantidade)
   const outrosBlocos = []
   if (alteracao.fornecedores) outrosBlocos.push('Fornecedores')
-  if (alteracao.unidades) outrosBlocos.push('Unidades')  
-  if (alteracao.clausulas && (alteracao.clausulas.clausulasExcluidas || alteracao.clausulas.clausulasIncluidas || alteracao.clausulas.clausulasAlteradas)) {
+  if (alteracao.unidades) outrosBlocos.push('Unidades')
+  if (
+    alteracao.clausulas &&
+    (alteracao.clausulas.clausulasExcluidas ||
+      alteracao.clausulas.clausulasIncluidas ||
+      alteracao.clausulas.clausulasAlteradas)
+  ) {
     outrosBlocos.push('Cláusulas')
   }
-  
+
   if (outrosBlocos.length > 0) {
     detalhes.push(outrosBlocos.join(', '))
   }
-  
+
   // Montar resumo final conciso
   if (detalhes.length > 0) {
     return `${tipoTexto} - ${detalhes.join(' | ')}`
@@ -173,13 +207,22 @@ function criarResumoLimpo(alteracao: AlteracaoContrato): string {
 
 // Componente helper para badges com estados de loading/error
 interface SmartBadgeProps {
-  result: { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string }
+  result: {
+    nome: string
+    status: 'loading' | 'error' | 'not_found' | 'success'
+    fullId?: string
+  }
   variant?: 'default' | 'destructive' | 'secondary'
   className?: string
   showTooltip?: boolean
 }
 
-function SmartBadge({ result, variant = 'default', className = '', showTooltip = true }: SmartBadgeProps) {
+function SmartBadge({
+  result,
+  variant = 'default',
+  className = '',
+  showTooltip = true,
+}: SmartBadgeProps) {
   const getVariantForStatus = () => {
     if (result.status === 'error') return 'destructive'
     if (result.status === 'loading') return 'secondary'
@@ -188,16 +231,24 @@ function SmartBadge({ result, variant = 'default', className = '', showTooltip =
   }
 
   const badge = (
-    <Badge variant={getVariantForStatus()} className={cn("text-xs", className)}>
-      {result.status === 'loading' && <div className="animate-pulse mr-1">⟳</div>}
+    <Badge variant={getVariantForStatus()} className={cn('text-xs', className)}>
+      {result.status === 'loading' && (
+        <div className="mr-1 animate-pulse">⟳</div>
+      )}
       {result.status === 'error' && <div className="mr-1">⚠</div>}
       {result.nome}
     </Badge>
   )
 
-  if (showTooltip && (result.status === 'error' || result.status === 'not_found') && result.fullId) {
+  if (
+    showTooltip &&
+    (result.status === 'error' || result.status === 'not_found') &&
+    result.fullId
+  ) {
     return (
-      <div title={`ID completo: ${result.fullId}${result.status === 'error' ? ' (Erro ao carregar)' : ' (Não encontrado)'}`}>
+      <div
+        title={`ID completo: ${result.fullId}${result.status === 'error' ? ' (Erro ao carregar)' : ' (Não encontrado)'}`}
+      >
         {badge}
       </div>
     )
@@ -218,33 +269,41 @@ interface CollapsibleBlockProps {
   defaultOpen?: boolean
 }
 
-function CollapsibleBlock({ 
-  icon: Icon, 
-  title, 
-  summary, 
-  bgColor, 
-  borderColor, 
-  titleColor, 
-  children, 
-  defaultOpen = false 
+function CollapsibleBlock({
+  icon: Icon,
+  title,
+  summary,
+  bgColor,
+  borderColor,
+  titleColor,
+  children,
+  defaultOpen = false,
 }: CollapsibleBlockProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
-  
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mb-3">
-      <CollapsibleTrigger className={`w-full ${bgColor} border ${borderColor} rounded-lg p-3 hover:opacity-80 transition-opacity`}>
+      <CollapsibleTrigger
+        className={`w-full ${bgColor} border ${borderColor} rounded-lg p-3 transition-opacity hover:opacity-80`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Icon className={`h-4 w-4 ${titleColor.replace('text-', 'text-')}`} />
+            <Icon
+              className={`h-4 w-4 ${titleColor.replace('text-', 'text-')}`}
+            />
             <div className="text-left">
-              <h4 className={`font-medium text-sm ${titleColor}`}>{title}</h4>
-              <p className="text-xs text-gray-600 mt-0.5">{summary}</p>
+              <h4 className={`text-sm font-medium ${titleColor}`}>{title}</h4>
+              <p className="mt-0.5 text-xs text-gray-600">{summary}</p>
             </div>
           </div>
-          <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          />
         </div>
       </CollapsibleTrigger>
-      <CollapsibleContent className={`${bgColor} border-x border-b ${borderColor} rounded-b-lg px-3 pb-3`}>
+      <CollapsibleContent
+        className={`${bgColor} border-x border-b ${borderColor} rounded-b-lg px-3 pb-3`}
+      >
         {children}
       </CollapsibleContent>
     </Collapsible>
@@ -253,9 +312,17 @@ function CollapsibleBlock({
 
 // Helper function para renderizar detalhes da alteração
 function renderDetalhesAlteracao(
-  entrada: EntradaUnificada, 
-  getEmpresaNome: (id: string) => { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string },
-  getUnidadeNome: (id: string) => { nome: string; status: 'loading' | 'error' | 'not_found' | 'success'; fullId?: string }
+  entrada: EntradaUnificada,
+  getEmpresaNome: (id: string) => {
+    nome: string
+    status: 'loading' | 'error' | 'not_found' | 'success'
+    fullId?: string
+  },
+  getUnidadeNome: (id: string) => {
+    nome: string
+    status: 'loading' | 'error' | 'not_found' | 'success'
+    fullId?: string
+  },
 ) {
   // Se for uma entrada de funcionário, renderizar detalhes específicos
   if (entrada.origem === 'funcionario') {
@@ -267,31 +334,38 @@ function renderDetalhesAlteracao(
     const funcionarioAnterior = dadosFuncionario.funcionarioAnterior
 
     return (
-      <div className="bg-muted/30 rounded-lg p-3 mb-3 text-sm">
+      <div className="bg-muted/30 mb-3 rounded-lg p-3 text-sm">
         <div className="space-y-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <span className="text-muted-foreground font-medium">Funcionário:</span>
+              <span className="text-muted-foreground font-medium">
+                Funcionário:
+              </span>
               <p className="text-sm">{funcionario.funcionarioNome}</p>
-              <p className="text-xs text-muted-foreground">
-                Matrícula: {funcionario.funcionarioMatricula} | Cargo: {funcionario.funcionarioCargo}
+              <p className="text-muted-foreground text-xs">
+                Matrícula: {funcionario.funcionarioMatricula} | Cargo:{' '}
+                {funcionario.funcionarioCargo}
               </p>
             </div>
             <div>
               <span className="text-muted-foreground font-medium">Função:</span>
               <p className="text-sm">{funcionario.tipoGerenciaDescricao}</p>
-              <p className="text-xs text-muted-foreground">
-                Período: {funcionario.periodoFormatado} ({funcionario.diasNaFuncao} dias)
+              <p className="text-muted-foreground text-xs">
+                Período: {funcionario.periodoFormatado} (
+                {funcionario.diasNaFuncao} dias)
               </p>
             </div>
           </div>
 
           {acao === 'substituido' && funcionarioAnterior && (
-            <div className="mt-3 pt-2 border-t border-muted-foreground/20">
-              <span className="text-muted-foreground font-medium">Funcionário Anterior:</span>
+            <div className="border-muted-foreground/20 mt-3 border-t pt-2">
+              <span className="text-muted-foreground font-medium">
+                Funcionário Anterior:
+              </span>
               <p className="text-sm">{funcionarioAnterior.funcionarioNome}</p>
-              <p className="text-xs text-muted-foreground">
-                Matrícula: {funcionarioAnterior.funcionarioMatricula} | Cargo: {funcionarioAnterior.funcionarioCargo}
+              <p className="text-muted-foreground text-xs">
+                Matrícula: {funcionarioAnterior.funcionarioMatricula} | Cargo:{' '}
+                {funcionarioAnterior.funcionarioCargo}
               </p>
             </div>
           )}
@@ -305,7 +379,9 @@ function renderDetalhesAlteracao(
 
           {funcionario.observacoes && (
             <div className="mt-2">
-              <span className="text-muted-foreground font-medium">Observações:</span>
+              <span className="text-muted-foreground font-medium">
+                Observações:
+              </span>
               <p className="text-sm">{funcionario.observacoes}</p>
             </div>
           )}
@@ -316,25 +392,38 @@ function renderDetalhesAlteracao(
 
   // Se for uma entrada da timeline antiga ou de outro tipo, usar o formato antigo
   if (entrada.origem === 'timeline' || entrada.origem === 'chat') {
-    if (entrada.dados && 'valorOriginal' in entrada.dados && entrada.dados.valorOriginal) {
+    if (
+      entrada.dados &&
+      'valorOriginal' in entrada.dados &&
+      entrada.dados.valorOriginal
+    ) {
       return (
-        <div className="bg-muted/30 rounded-lg p-3 mb-3 text-sm">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="bg-muted/30 mb-3 rounded-lg p-3 text-sm">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <div>
               <span className="text-muted-foreground">Valor Original:</span>
-              <p className="font-medium">{currencyUtils.formatar(entrada.dados.valorOriginal)}</p>
+              <p className="font-medium">
+                {currencyUtils.formatar(entrada.dados.valorOriginal)}
+              </p>
             </div>
             <div>
               <span className="text-muted-foreground">Novo Valor:</span>
-              <p className="font-medium">{currencyUtils.formatar(entrada.dados.valorNovo)}</p>
+              <p className="font-medium">
+                {currencyUtils.formatar(entrada.dados.valorNovo)}
+              </p>
             </div>
             <div>
               <span className="text-muted-foreground">Diferença:</span>
-              <p className={cn(
-                "font-medium",
-                entrada.dados.diferenca > 0 ? "text-green-600" : "text-red-600"
-              )}>
-                {entrada.dados.diferenca > 0 ? "+" : ""}{currencyUtils.formatar(entrada.dados.diferenca)}
+              <p
+                className={cn(
+                  'font-medium',
+                  entrada.dados.diferenca > 0
+                    ? 'text-green-600'
+                    : 'text-red-600',
+                )}
+              >
+                {entrada.dados.diferenca > 0 ? '+' : ''}
+                {currencyUtils.formatar(entrada.dados.diferenca)}
               </p>
             </div>
           </div>
@@ -353,27 +442,40 @@ function renderDetalhesAlteracao(
   // Alerta de Limite Legal
   if (alteracao.alertaLimiteLegal) {
     sections.push(
-      <div key="alerta" className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+      <div
+        key="alerta"
+        className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3"
+      >
         <div className="flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
           <div className="text-sm">
-            <p className="font-medium text-red-800 mb-1">Limite Legal Excedido</p>
+            <p className="mb-1 font-medium text-red-800">
+              Limite Legal Excedido
+            </p>
             <p className="text-red-700">{alteracao.alertaLimiteLegal}</p>
           </div>
         </div>
-      </div>
+      </div>,
     )
   }
 
   // Detalhes de Vigência
   if (alteracao.vigencia) {
-    const operacaoTexto = alteracao.vigencia.operacao === 1 ? 'Acrescentar' : 
-                         alteracao.vigencia.operacao === 2 ? 'Diminuir' : 'Substituir'
-    const unidadeTexto = alteracao.vigencia.tipoUnidade === 1 ? 'dia(s)' :
-                        alteracao.vigencia.tipoUnidade === 2 ? 'mês(es)' : 'ano(s)'
-    
+    const operacaoTexto =
+      alteracao.vigencia.operacao === 1
+        ? 'Acrescentar'
+        : alteracao.vigencia.operacao === 2
+          ? 'Diminuir'
+          : 'Substituir'
+    const unidadeTexto =
+      alteracao.vigencia.tipoUnidade === 1
+        ? 'dia(s)'
+        : alteracao.vigencia.tipoUnidade === 2
+          ? 'mês(es)'
+          : 'ano(s)'
+
     const summary = `${operacaoTexto} ${alteracao.vigencia.valorTempo} ${unidadeTexto}`
-    
+
     sections.push(
       <CollapsibleBlock
         key="vigencia"
@@ -384,27 +486,43 @@ function renderDetalhesAlteracao(
         borderColor="border-blue-200"
         titleColor="text-blue-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
-          <li><span className="font-medium">Operação:</span> {operacaoTexto} {alteracao.vigencia.valorTempo} {unidadeTexto}</li>
+        <ol className="mt-2 ml-4 list-decimal space-y-1 text-sm">
+          <li>
+            <span className="font-medium">Operação:</span> {operacaoTexto}{' '}
+            {alteracao.vigencia.valorTempo} {unidadeTexto}
+          </li>
           {alteracao.vigencia.observacoes && (
-            <li><span className="font-medium">Observações:</span> {alteracao.vigencia.observacoes}</li>
+            <li>
+              <span className="font-medium">Observações:</span>{' '}
+              {alteracao.vigencia.observacoes}
+            </li>
           )}
         </ol>
-      </CollapsibleBlock>
+      </CollapsibleBlock>,
     )
   }
 
   // Detalhes de Valor
   if (alteracao.valor) {
-    const operacaoTexto = alteracao.valor.operacao === 1 ? 'Acrescentar' : 
-                         alteracao.valor.operacao === 2 ? 'Diminuir' : 'Substituir'
-    const operacaoIcon = alteracao.valor.operacao === 1 ? ArrowUp : 
-                        alteracao.valor.operacao === 2 ? ArrowDown : RotateCcw
+    const operacaoTexto =
+      alteracao.valor.operacao === 1
+        ? 'Acrescentar'
+        : alteracao.valor.operacao === 2
+          ? 'Diminuir'
+          : 'Substituir'
+    const operacaoIcon =
+      alteracao.valor.operacao === 1
+        ? ArrowUp
+        : alteracao.valor.operacao === 2
+          ? ArrowDown
+          : RotateCcw
     const OperacaoIcon = operacaoIcon
-    
-    const valorTexto = alteracao.valor.valorAjuste ? currencyUtils.formatar(alteracao.valor.valorAjuste) : ''
+
+    const valorTexto = alteracao.valor.valorAjuste
+      ? currencyUtils.formatar(alteracao.valor.valorAjuste)
+      : ''
     const summary = `${operacaoTexto}${valorTexto ? ' ' + valorTexto : ''}`
-    
+
     sections.push(
       <CollapsibleBlock
         key="valor"
@@ -415,31 +533,46 @@ function renderDetalhesAlteracao(
         borderColor="border-green-200"
         titleColor="text-green-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+        <ol className="mt-2 ml-4 list-decimal space-y-1 text-sm">
           <li className="flex items-center gap-2">
             <OperacaoIcon className="h-3 w-3" />
-            <span><span className="font-medium">Operação:</span> {operacaoTexto}</span>
+            <span>
+              <span className="font-medium">Operação:</span> {operacaoTexto}
+            </span>
           </li>
           {alteracao.valor.valorAjuste && (
-            <li><span className="font-medium">Valor do Ajuste:</span> {currencyUtils.formatar(alteracao.valor.valorAjuste)}</li>
+            <li>
+              <span className="font-medium">Valor do Ajuste:</span>{' '}
+              {currencyUtils.formatar(alteracao.valor.valorAjuste)}
+            </li>
           )}
           {alteracao.valor.percentualAjuste && (
-            <li><span className="font-medium">Percentual:</span> {alteracao.valor.percentualAjuste}%</li>
+            <li>
+              <span className="font-medium">Percentual:</span>{' '}
+              {alteracao.valor.percentualAjuste}%
+            </li>
           )}
           {alteracao.valor.observacoes && (
-            <li><span className="font-medium">Observações:</span> {alteracao.valor.observacoes}</li>
+            <li>
+              <span className="font-medium">Observações:</span>{' '}
+              {alteracao.valor.observacoes}
+            </li>
           )}
         </ol>
-      </CollapsibleBlock>
+      </CollapsibleBlock>,
     )
   }
 
   // Detalhes de Fornecedores
   if (alteracao.fornecedores) {
-    const vinculados = alteracao.fornecedores.fornecedoresVinculados?.length || 0
-    const desvinculados = alteracao.fornecedores.fornecedoresDesvinculados?.length || 0
-    const summary = `${vinculados > 0 ? `+${vinculados} vinculados` : ''}${vinculados > 0 && desvinculados > 0 ? ', ' : ''}${desvinculados > 0 ? `-${desvinculados} desvinculados` : ''}`.trim() || 'Alterações nos fornecedores'
-    
+    const vinculados =
+      alteracao.fornecedores.fornecedoresVinculados?.length || 0
+    const desvinculados =
+      alteracao.fornecedores.fornecedoresDesvinculados?.length || 0
+    const summary =
+      `${vinculados > 0 ? `+${vinculados} vinculados` : ''}${vinculados > 0 && desvinculados > 0 ? ', ' : ''}${desvinculados > 0 ? `-${desvinculados} desvinculados` : ''}`.trim() ||
+      'Alterações nos fornecedores'
+
     sections.push(
       <CollapsibleBlock
         key="fornecedores"
@@ -450,24 +583,37 @@ function renderDetalhesAlteracao(
         borderColor="border-orange-200"
         titleColor="text-orange-800"
       >
-        <div className="text-sm space-y-2 mt-2">
+        <div className="mt-2 space-y-2 text-sm">
           {(alteracao.fornecedores.fornecedoresVinculados?.length || 0) > 0 && (
             <div>
               <span className="font-medium">Vinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alteracao.fornecedores.fornecedoresVinculados?.map((id: string, idx: number) => (
-                  <SmartBadge key={`vinc-${idx}`} result={getEmpresaNome(id)} variant="default" />
-                ))}
+                {alteracao.fornecedores.fornecedoresVinculados?.map(
+                  (id: string, idx: number) => (
+                    <SmartBadge
+                      key={`vinc-${idx}`}
+                      result={getEmpresaNome(id)}
+                      variant="default"
+                    />
+                  ),
+                )}
               </div>
             </div>
           )}
-          {(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) > 0 && (
+          {(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) >
+            0 && (
             <div>
               <span className="font-medium">Desvinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alteracao.fornecedores.fornecedoresDesvinculados?.map((id: string, idx: number) => (
-                  <SmartBadge key={`desv-${idx}`} result={getEmpresaNome(id)} variant="destructive" />
-                ))}
+                {alteracao.fornecedores.fornecedoresDesvinculados?.map(
+                  (id: string, idx: number) => (
+                    <SmartBadge
+                      key={`desv-${idx}`}
+                      result={getEmpresaNome(id)}
+                      variant="destructive"
+                    />
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -475,20 +621,30 @@ function renderDetalhesAlteracao(
             <div>
               <span className="font-medium">Novo Principal:</span>
               <div className="mt-1">
-                <SmartBadge result={getEmpresaNome(alteracao.fornecedores.novoFornecedorPrincipal)} variant="secondary" />
+                <SmartBadge
+                  result={getEmpresaNome(
+                    alteracao.fornecedores.novoFornecedorPrincipal,
+                  )}
+                  variant="secondary"
+                />
               </div>
             </div>
           )}
           {!(alteracao.fornecedores.fornecedoresVinculados?.length || 0) &&
             !(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) &&
             !alteracao.fornecedores.novoFornecedorPrincipal && (
-              <div className="text-xs text-gray-600">Sem alterações detalhadas.</div>
+              <div className="text-xs text-gray-600">
+                Sem alterações detalhadas.
+              </div>
             )}
           {alteracao.fornecedores.observacoes && (
-            <div><span className="font-medium">Observações:</span> {alteracao.fornecedores.observacoes}</div>
+            <div>
+              <span className="font-medium">Observações:</span>{' '}
+              {alteracao.fornecedores.observacoes}
+            </div>
           )}
         </div>
-      </CollapsibleBlock>
+      </CollapsibleBlock>,
     )
   }
 
@@ -496,8 +652,10 @@ function renderDetalhesAlteracao(
   if (alteracao.unidades) {
     const vinculadas = alteracao.unidades.unidadesVinculadas?.length || 0
     const desvinculadas = alteracao.unidades.unidadesDesvinculadas?.length || 0
-    const summary = `${vinculadas > 0 ? `+${vinculadas} vinculadas` : ''}${vinculadas > 0 && desvinculadas > 0 ? ', ' : ''}${desvinculadas > 0 ? `-${desvinculadas} desvinculadas` : ''}`.trim() || 'Alterações nas unidades'
-    
+    const summary =
+      `${vinculadas > 0 ? `+${vinculadas} vinculadas` : ''}${vinculadas > 0 && desvinculadas > 0 ? ', ' : ''}${desvinculadas > 0 ? `-${desvinculadas} desvinculadas` : ''}`.trim() ||
+      'Alterações nas unidades'
+
     sections.push(
       <CollapsibleBlock
         key="unidades"
@@ -508,31 +666,48 @@ function renderDetalhesAlteracao(
         borderColor="border-teal-200"
         titleColor="text-teal-800"
       >
-        <div className="text-sm space-y-2 mt-2">
+        <div className="mt-2 space-y-2 text-sm">
           {(alteracao.unidades.unidadesVinculadas?.length || 0) > 0 && (
             <div>
               <span className="font-medium">Vinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alteracao.unidades.unidadesVinculadas?.map((unidade: string | { unidadeSaudeId: string; id?: string; valorAtribuido?: number }, idx: number) => {
-                  // Extrair o ID correto, seja string direta ou objeto com unidadeSaudeId
-                  const unidadeId = typeof unidade === 'string' ? unidade : unidade?.unidadeSaudeId || unidade?.id
-                  
-                  // Se não conseguir extrair o ID, pular esta unidade
-                  if (!unidadeId) return null
-                  
-                  const nomeResult = getUnidadeNome(unidadeId)
-                  
-                  return (
-                    <div key={`uv-${idx}`} className="flex items-center">
-                      <SmartBadge result={nomeResult} variant="default" />
-                      {typeof unidade === 'object' && unidade.valorAtribuido && (
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          (<CurrencyDisplay value={unidade.valorAtribuido} />)
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
+                {alteracao.unidades.unidadesVinculadas?.map(
+                  (
+                    unidade:
+                      | string
+                      | {
+                          unidadeSaudeId: string
+                          id?: string
+                          valorAtribuido?: number
+                        },
+                    idx: number,
+                  ) => {
+                    // Extrair o ID correto, seja string direta ou objeto com unidadeSaudeId
+                    const unidadeId =
+                      typeof unidade === 'string'
+                        ? unidade
+                        : unidade?.unidadeSaudeId || unidade?.id
+
+                    // Se não conseguir extrair o ID, pular esta unidade
+                    if (!unidadeId) return null
+
+                    const nomeResult = getUnidadeNome(unidadeId)
+
+                    return (
+                      <div key={`uv-${idx}`} className="flex items-center">
+                        <SmartBadge result={nomeResult} variant="default" />
+                        {typeof unidade === 'object' &&
+                          unidade.valorAtribuido && (
+                            <span className="text-muted-foreground ml-1 text-xs">
+                              (
+                              <CurrencyDisplay value={unidade.valorAtribuido} />
+                              )
+                            </span>
+                          )}
+                      </div>
+                    )
+                  },
+                )}
               </div>
             </div>
           )}
@@ -540,32 +715,48 @@ function renderDetalhesAlteracao(
             <div>
               <span className="font-medium">Desvinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alteracao.unidades.unidadesDesvinculadas?.map((id: string, idx: number) => (
-                  <SmartBadge key={`ud-${idx}`} result={getUnidadeNome(id)} variant="destructive" />
-                ))}
+                {alteracao.unidades.unidadesDesvinculadas?.map(
+                  (id: string, idx: number) => (
+                    <SmartBadge
+                      key={`ud-${idx}`}
+                      result={getUnidadeNome(id)}
+                      variant="destructive"
+                    />
+                  ),
+                )}
               </div>
             </div>
           )}
           {!(alteracao.unidades.unidadesVinculadas?.length || 0) &&
             !(alteracao.unidades.unidadesDesvinculadas?.length || 0) && (
-              <div className="text-xs text-gray-600">Sem alterações detalhadas.</div>
+              <div className="text-xs text-gray-600">
+                Sem alterações detalhadas.
+              </div>
             )}
           {alteracao.unidades.observacoes && (
-            <div><span className="font-medium">Observações:</span> {alteracao.unidades.observacoes}</div>
+            <div>
+              <span className="font-medium">Observações:</span>{' '}
+              {alteracao.unidades.observacoes}
+            </div>
           )}
         </div>
-      </CollapsibleBlock>
+      </CollapsibleBlock>,
     )
   }
 
   // Detalhes de Cláusulas
-  if (alteracao.clausulas && (alteracao.clausulas.clausulasExcluidas || alteracao.clausulas.clausulasIncluidas || alteracao.clausulas.clausulasAlteradas)) {
+  if (
+    alteracao.clausulas &&
+    (alteracao.clausulas.clausulasExcluidas ||
+      alteracao.clausulas.clausulasIncluidas ||
+      alteracao.clausulas.clausulasAlteradas)
+  ) {
     const tiposClausulas = []
     if (alteracao.clausulas.clausulasExcluidas) tiposClausulas.push('excluídas')
-    if (alteracao.clausulas.clausulasIncluidas) tiposClausulas.push('incluídas')  
+    if (alteracao.clausulas.clausulasIncluidas) tiposClausulas.push('incluídas')
     if (alteracao.clausulas.clausulasAlteradas) tiposClausulas.push('alteradas')
     const summary = `Cláusulas ${tiposClausulas.join(', ')}`
-    
+
     sections.push(
       <CollapsibleBlock
         key="clausulas"
@@ -576,22 +767,33 @@ function renderDetalhesAlteracao(
         borderColor="border-purple-200"
         titleColor="text-purple-800"
       >
-        <ol className="text-sm space-y-1 mt-2 ml-4 list-decimal">
+        <ol className="mt-2 ml-4 list-decimal space-y-1 text-sm">
           {alteracao.clausulas.clausulasExcluidas && (
-            <li><span className="font-medium">Excluídas:</span> {alteracao.clausulas.clausulasExcluidas}</li>
+            <li>
+              <span className="font-medium">Excluídas:</span>{' '}
+              {alteracao.clausulas.clausulasExcluidas}
+            </li>
           )}
           {alteracao.clausulas.clausulasIncluidas && (
-            <li><span className="font-medium">Incluídas:</span> {alteracao.clausulas.clausulasIncluidas}</li>
+            <li>
+              <span className="font-medium">Incluídas:</span>{' '}
+              {alteracao.clausulas.clausulasIncluidas}
+            </li>
           )}
           {alteracao.clausulas.clausulasAlteradas && (
-            <li><span className="font-medium">Alteradas:</span> {alteracao.clausulas.clausulasAlteradas}</li>
+            <li>
+              <span className="font-medium">Alteradas:</span>{' '}
+              {alteracao.clausulas.clausulasAlteradas}
+            </li>
           )}
         </ol>
-      </CollapsibleBlock>
+      </CollapsibleBlock>,
     )
   }
 
-  return sections.length > 0 ? <div className="space-y-2">{sections}</div> : null
+  return sections.length > 0 ? (
+    <div className="space-y-2">{sections}</div>
+  ) : null
 }
 
 export function RegistroAlteracoes({
@@ -607,11 +809,12 @@ export function RegistroAlteracoes({
   const [paginacao, setPaginacao] = useState({
     paginaAtual: 1,
     itensPorPagina: 15,
-    totalItens: 0
+    totalItens: 0,
   })
 
   // Buscar histórico de funcionários
-  const { data: historicoFuncionarios = [] } = useHistoricoFuncionarios(contratoId)
+  const { data: historicoFuncionarios = [] } =
+    useHistoricoFuncionarios(contratoId)
 
   // Build lookup of empresa IDs -> razão social to enrich fornecedores section
   const fornecedoresIds = useMemo(() => {
@@ -622,7 +825,9 @@ export function RegistroAlteracoes({
           ids.push(...alt.fornecedores.fornecedoresVinculados.filter(Boolean))
         }
         if (Array.isArray(alt.fornecedores.fornecedoresDesvinculados)) {
-          ids.push(...alt.fornecedores.fornecedoresDesvinculados.filter(Boolean))
+          ids.push(
+            ...alt.fornecedores.fornecedoresDesvinculados.filter(Boolean),
+          )
         }
         if (alt.fornecedores.novoFornecedorPrincipal) {
           ids.push(alt.fornecedores.novoFornecedorPrincipal)
@@ -631,24 +836,37 @@ export function RegistroAlteracoes({
     }
     return Array.from(new Set(ids.filter(Boolean)))
   }, [alteracoes])
-  const empresasLookup = useEmpresasByIds(fornecedoresIds, { enabled: fornecedoresIds.length > 0 })
+  const empresasLookup = useEmpresasByIds(fornecedoresIds, {
+    enabled: fornecedoresIds.length > 0,
+  })
 
-  const getEmpresaNome = useCallback((id: string | number) => {
-    // Garantir que id seja sempre string
-    const idStr = String(id)
-    if (empresasLookup.isLoading) {
-      return { nome: 'Carregando...', status: 'loading' as const }
-    }
-    if (empresasLookup.error) {
-      return { nome: `ID: ${idStr.slice(-8)}`, status: 'error' as const, fullId: idStr }
-    }
-    const nome = empresasLookup.data?.[idStr]?.razaoSocial
-    if (!nome) {
-      return { nome: `ID: ${idStr.slice(-8)}`, status: 'not_found' as const, fullId: idStr }
-    }
-    return { nome, status: 'success' as const }
-  }, [empresasLookup.data, empresasLookup.isLoading, empresasLookup.error])
-  
+  const getEmpresaNome = useCallback(
+    (id: string | number) => {
+      // Garantir que id seja sempre string
+      const idStr = String(id)
+      if (empresasLookup.isLoading) {
+        return { nome: 'Carregando...', status: 'loading' as const }
+      }
+      if (empresasLookup.error) {
+        return {
+          nome: `ID: ${idStr.slice(-8)}`,
+          status: 'error' as const,
+          fullId: idStr,
+        }
+      }
+      const nome = empresasLookup.data?.[idStr]?.razaoSocial
+      if (!nome) {
+        return {
+          nome: `ID: ${idStr.slice(-8)}`,
+          status: 'not_found' as const,
+          fullId: idStr,
+        }
+      }
+      return { nome, status: 'success' as const }
+    },
+    [empresasLookup.data, empresasLookup.isLoading, empresasLookup.error],
+  )
+
   // Build lookup of unidades IDs -> nome to enrich unidades section
   const unidadesIds = useMemo(() => {
     const ids: string[] = []
@@ -656,10 +874,15 @@ export function RegistroAlteracoes({
       if (alt.unidades) {
         // Extrair IDs das unidades vinculadas (podem ser strings ou objetos)
         if (alt.unidades.unidadesVinculadas) {
-          alt.unidades.unidadesVinculadas.forEach((unidade: string | { unidadeSaudeId: string; id?: string }) => {
-            const id = typeof unidade === 'string' ? unidade : unidade?.unidadeSaudeId || unidade?.id
-            if (id) ids.push(String(id))
-          })
+          alt.unidades.unidadesVinculadas.forEach(
+            (unidade: string | { unidadeSaudeId: string; id?: string }) => {
+              const id =
+                typeof unidade === 'string'
+                  ? unidade
+                  : unidade?.unidadeSaudeId || unidade?.id
+              if (id) ids.push(String(id))
+            },
+          )
         }
         // Unidades desvinculadas são sempre strings
         if (alt.unidades.unidadesDesvinculadas) {
@@ -671,52 +894,64 @@ export function RegistroAlteracoes({
     }
     return Array.from(new Set(ids.filter(Boolean)))
   }, [alteracoes])
-  const unidadesLookup = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
-  const getUnidadeNome = useCallback((id: string | number) => {
-    // Garantir que id seja sempre string
-    const idStr = String(id)
-    if (unidadesLookup.isLoading) {
-      return { nome: 'Carregando...', status: 'loading' as const }
-    }
-    if (unidadesLookup.error) {
-      return { nome: `ID: ${idStr.slice(-8)}`, status: 'error' as const, fullId: idStr }
-    }
-    const nome = unidadesLookup.data?.[idStr]?.nome
-    if (!nome) {
-      return { nome: `ID: ${idStr.slice(-8)}`, status: 'not_found' as const, fullId: idStr }
-    }
-    return { nome, status: 'success' as const }
-  }, [unidadesLookup.data, unidadesLookup.isLoading, unidadesLookup.error])
-  
+  const unidadesLookup = useUnidadesByIds(unidadesIds, {
+    enabled: unidadesIds.length > 0,
+  })
+  const getUnidadeNome = useCallback(
+    (id: string | number) => {
+      // Garantir que id seja sempre string
+      const idStr = String(id)
+      if (unidadesLookup.isLoading) {
+        return { nome: 'Carregando...', status: 'loading' as const }
+      }
+      if (unidadesLookup.error) {
+        return {
+          nome: `ID: ${idStr.slice(-8)}`,
+          status: 'error' as const,
+          fullId: idStr,
+        }
+      }
+      const nome = unidadesLookup.data?.[idStr]?.nome
+      if (!nome) {
+        return {
+          nome: `ID: ${idStr.slice(-8)}`,
+          status: 'not_found' as const,
+          fullId: idStr,
+        }
+      }
+      return { nome, status: 'success' as const }
+    },
+    [unidadesLookup.data, unidadesLookup.isLoading, unidadesLookup.error],
+  )
 
   const getStatusAlteracao = (alteracao: AlteracaoContrato) => {
     // Mapear status numéricos da API para texto legível
     const statusMap: Record<number, string> = {
       0: 'rascunho',
-      1: 'pendente',  
+      1: 'pendente',
       2: 'em_aprovacao',
       3: 'aprovado',
       4: 'executado',
-      5: 'cancelado'
+      5: 'cancelado',
     }
-    
+
     if (typeof alteracao.status === 'number') {
       return statusMap[alteracao.status] || 'indefinido'
     }
-    
+
     // Fallback para strings antigas
     return String(alteracao.status || 'indefinido').toLowerCase()
   }
 
   const getTituloStatus = (status: string) => {
     const titulos: Record<string, string> = {
-      'rascunho': 'Rascunho',
-      'pendente': 'Pendente',
-      'em_aprovacao': 'Em Aprovação', 
-      'aprovado': 'Aprovado',
-      'executado': 'Executado',
-      'cancelado': 'Cancelado',
-      'indefinido': 'Status Indefinido'
+      rascunho: 'Rascunho',
+      pendente: 'Pendente',
+      em_aprovacao: 'Em Aprovação',
+      aprovado: 'Aprovado',
+      executado: 'Executado',
+      cancelado: 'Cancelado',
+      indefinido: 'Status Indefinido',
     }
     return titulos[status] || status
   }
@@ -732,7 +967,7 @@ export function RegistroAlteracoes({
       atualizacao_documentos: 'Atualização de Documentos',
       alteracao_valor: 'Aditivo de Quantidade',
       prorrogacao: 'Prorrogação de Prazo',
-      
+
       // Novos tipos da timeline
       alteracao_contratual: 'Alteração Contratual',
       alteracao: 'Alteração',
@@ -740,7 +975,7 @@ export function RegistroAlteracoes({
       milestone: 'Marco',
       documento: 'Documento',
       prazo: 'Prazo',
-      
+
       // Tipos específicos de aditivos da nova API (strings)
       prazo_aditivo: 'Aditivo de Prazo',
       qualitativo: 'Aditivo Qualitativo',
@@ -753,7 +988,7 @@ export function RegistroAlteracoes({
       suspensao: 'Suspensão',
       apostilamento: 'Apostilamento',
       sub_rogacao: 'Sub-rogação',
-      
+
       // IDs numéricos da API (baseado no curl /api/alteracoes-contratuais/tipos)
       1: 'Aditivo - Prazo',
       3: 'Aditivo - Qualitativo',
@@ -765,14 +1000,14 @@ export function RegistroAlteracoes({
       12: 'Supressão',
       13: 'Suspensão',
       0: 'Apostilamento',
-      6: 'Sub-rogação'
+      6: 'Sub-rogação',
     }
 
     return titulos[tipo] || 'Alteração Contratual'
   }
 
   // Converter alterações do contrato para formato unificado
-  const alteracoesUnificadas: EntradaUnificada[] = alteracoes.map(alt => ({
+  const alteracoesUnificadas: EntradaUnificada[] = alteracoes.map((alt) => ({
     id: alt.id,
     tipo: alt.tipo,
     titulo: getTituloAlteracao(alt.tipo),
@@ -781,22 +1016,27 @@ export function RegistroAlteracoes({
     responsavel: alt.responsavel,
     origem: 'contrato' as const,
     dados: alt, // Incluir todos os dados da alteração para o renderDetalhesAlteracao
-    status: getStatusAlteracao(alt) // Adicionar status para filtragem
+    status: getStatusAlteracao(alt), // Adicionar status para filtragem
   }))
 
   // Converter entradas da timeline para formato unificado
-  const timelineUnificadas: EntradaUnificada[] = entradasTimeline.map(entry => ({
-    id: entry.id,
-    tipo: entry.categoria === 'alteracao' ? 'alteracao_contratual' : entry.categoria,
-    titulo: entry.titulo,
-    descricao: entry.descricao,
-    dataHora: entry.dataEvento,
-    responsavel: entry.autor.nome,
-    origem: 'timeline' as const,
-    dados: entry.alteracaoContratual || entry.milestone,
-    prioridade: entry.prioridade,
-    tags: entry.tags
-  }))
+  const timelineUnificadas: EntradaUnificada[] = entradasTimeline.map(
+    (entry) => ({
+      id: entry.id,
+      tipo:
+        entry.categoria === 'alteracao'
+          ? 'alteracao_contratual'
+          : entry.categoria,
+      titulo: entry.titulo,
+      descricao: entry.descricao,
+      dataHora: entry.dataEvento,
+      responsavel: entry.autor.nome,
+      origem: 'timeline' as const,
+      dados: entry.alteracaoContratual || entry.milestone,
+      prioridade: entry.prioridade,
+      tags: entry.tags,
+    }),
+  )
 
   // Converter histórico de funcionários para formato unificado
   const funcionariosUnificados: EntradaUnificada[] = useMemo(() => {
@@ -806,18 +1046,22 @@ export function RegistroAlteracoes({
     const entradas: EntradaUnificada[] = []
 
     // Agrupar por funcionário e tipo para detectar padrões
-    const funcionariosPorTipo = historicoFuncionarios.reduce((acc, hist) => {
-      const key = `${hist.funcionarioId}-${hist.tipoGerencia}`
-      if (!acc[key]) acc[key] = []
-      acc[key].push(hist)
-      return acc
-    }, {} as Record<string, HistoricoFuncionario[]>)
+    const funcionariosPorTipo = historicoFuncionarios.reduce(
+      (acc, hist) => {
+        const key = `${hist.funcionarioId}-${hist.tipoGerencia}`
+        if (!acc[key]) acc[key] = []
+        acc[key].push(hist)
+        return acc
+      },
+      {} as Record<string, HistoricoFuncionario[]>,
+    )
 
     // Para cada funcionário/tipo, criar eventos baseados nas transições
-    Object.values(funcionariosPorTipo).forEach(periodos => {
+    Object.values(funcionariosPorTipo).forEach((periodos) => {
       // Ordenar por data de início
-      const periodosOrdenados = periodos.sort((a, b) =>
-        new Date(a.dataInicio).getTime() - new Date(b.dataInicio).getTime()
+      const periodosOrdenados = periodos.sort(
+        (a, b) =>
+          new Date(a.dataInicio).getTime() - new Date(b.dataInicio).getTime(),
       )
 
       periodosOrdenados.forEach((periodo, index) => {
@@ -826,8 +1070,12 @@ export function RegistroAlteracoes({
         const matricula = periodo.funcionarioMatricula
 
         // Entrada para adição/início do período
-        if (index === 0 || !periodosOrdenados[index - 1] ||
-            new Date(periodosOrdenados[index - 1].dataFim || '').getTime() < new Date(periodo.dataInicio).getTime() - 86400000) {
+        if (
+          index === 0 ||
+          !periodosOrdenados[index - 1] ||
+          new Date(periodosOrdenados[index - 1].dataFim || '').getTime() <
+            new Date(periodo.dataInicio).getTime() - 86400000
+        ) {
           // Novo período (não é continuação)
           entradas.push({
             id: `func-add-${periodo.id}`,
@@ -839,9 +1087,9 @@ export function RegistroAlteracoes({
             origem: 'funcionario' as const,
             dados: {
               funcionario: periodo,
-              acao: 'adicionado'
+              acao: 'adicionado',
             } as DadosFuncionario,
-            status: periodo.estaAtivo ? 'ativo' : 'inativo'
+            status: periodo.estaAtivo ? 'ativo' : 'inativo',
           })
         }
 
@@ -857,16 +1105,22 @@ export function RegistroAlteracoes({
             origem: 'funcionario' as const,
             dados: {
               funcionario: periodo,
-              acao: 'removido'
+              acao: 'removido',
             } as DadosFuncionario,
-            status: 'removido'
+            status: 'removido',
           })
         }
 
         // Detectar substituições (quando há um período seguinte imediatamente)
         const proximoPeriodo = periodosOrdenados[index + 1]
-        if (proximoPeriodo && periodo.dataFim &&
-            Math.abs(new Date(proximoPeriodo.dataInicio).getTime() - new Date(periodo.dataFim).getTime()) < 86400000) {
+        if (
+          proximoPeriodo &&
+          periodo.dataFim &&
+          Math.abs(
+            new Date(proximoPeriodo.dataInicio).getTime() -
+              new Date(periodo.dataFim).getTime(),
+          ) < 86400000
+        ) {
           // É uma substituição
           entradas.push({
             id: `func-subst-${periodo.id}-${proximoPeriodo.id}`,
@@ -879,9 +1133,9 @@ export function RegistroAlteracoes({
             dados: {
               funcionario: proximoPeriodo,
               acao: 'substituido',
-              funcionarioAnterior: periodo
+              funcionarioAnterior: periodo,
             } as DadosFuncionario,
-            status: 'substituido'
+            status: 'substituido',
           })
         }
       })
@@ -892,33 +1146,46 @@ export function RegistroAlteracoes({
 
   // Unificar e filtrar todas as entradas
   const entradasFiltradas = useMemo(() => {
-    const entradas = [...alteracoesUnificadas, ...timelineUnificadas, ...funcionariosUnificados]
+    const entradas = [
+      ...alteracoesUnificadas,
+      ...timelineUnificadas,
+      ...funcionariosUnificados,
+    ]
 
     // Filtrar por tipo
-    let resultado = filtroTipo === 'todos'
-      ? entradas
-      : entradas.filter(e => e.tipo === filtroTipo)
+    let resultado =
+      filtroTipo === 'todos'
+        ? entradas
+        : entradas.filter((e) => e.tipo === filtroTipo)
 
     // Filtrar por status
     if (filtroStatus !== 'todos') {
-      resultado = resultado.filter(e => e.status === filtroStatus)
+      resultado = resultado.filter((e) => e.status === filtroStatus)
     }
 
     // Filtrar por termo de pesquisa
     if (termoPesquisa) {
       const termo = termoPesquisa.toLowerCase()
-      resultado = resultado.filter(e =>
-        e.titulo.toLowerCase().includes(termo) ||
-        e.descricao.toLowerCase().includes(termo) ||
-        e.responsavel.toLowerCase().includes(termo)
+      resultado = resultado.filter(
+        (e) =>
+          e.titulo.toLowerCase().includes(termo) ||
+          e.descricao.toLowerCase().includes(termo) ||
+          e.responsavel.toLowerCase().includes(termo),
       )
     }
 
     // Ordenar por data (mais recente primeiro)
-    return resultado.sort((a, b) =>
-      new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime()
+    return resultado.sort(
+      (a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime(),
     )
-  }, [alteracoesUnificadas, timelineUnificadas, funcionariosUnificados, filtroTipo, filtroStatus, termoPesquisa])
+  }, [
+    alteracoesUnificadas,
+    timelineUnificadas,
+    funcionariosUnificados,
+    filtroTipo,
+    filtroStatus,
+    termoPesquisa,
+  ])
 
   // Aplicar paginação nas entradas filtradas
   const { entradasPaginadas, totalPaginas } = useMemo(() => {
@@ -928,31 +1195,29 @@ export function RegistroAlteracoes({
 
     return {
       entradasPaginadas: entradasFiltradas.slice(inicio, fim),
-      totalPaginas: Math.ceil(total / paginacao.itensPorPagina)
+      totalPaginas: Math.ceil(total / paginacao.itensPorPagina),
     }
   }, [entradasFiltradas, paginacao.paginaAtual, paginacao.itensPorPagina])
 
   // Reset da paginação quando filtros mudarem
   useEffect(() => {
-    setPaginacao(prev => ({
+    setPaginacao((prev) => ({
       ...prev,
       paginaAtual: 1,
-      totalItens: entradasFiltradas.length
+      totalItens: entradasFiltradas.length,
     }))
   }, [filtroTipo, filtroStatus, termoPesquisa, entradasFiltradas.length])
 
   // Tipos únicos para o filtro
   const tiposDisponiveis = useMemo(() => {
-    const tipos = new Set(entradasFiltradas.map(e => e.tipo))
+    const tipos = new Set(entradasFiltradas.map((e) => e.tipo))
     return Array.from(tipos)
   }, [entradasFiltradas])
 
   // Status únicos para o filtro (apenas de alterações de contrato)
   const statusDisponiveis = useMemo(() => {
     const status = new Set(
-      alteracoesUnificadas
-        .map(e => e.status)
-        .filter(Boolean) // Remover undefined
+      alteracoesUnificadas.map((e) => e.status).filter(Boolean), // Remover undefined
     )
     return Array.from(status)
   }, [alteracoesUnificadas])
@@ -968,7 +1233,7 @@ export function RegistroAlteracoes({
       atualizacao_documentos: FileText,
       alteracao_valor: DollarSign,
       prorrogacao: Calendar,
-      
+
       // Novos tipos da timeline/alterações contratuais
       alteracao_contratual: FileEdit,
       alteracao: FileEdit,
@@ -976,7 +1241,7 @@ export function RegistroAlteracoes({
       milestone: CheckCircle,
       documento: FileText,
       prazo: Calendar,
-      
+
       // Tipos específicos de aditivos da nova API
       prazo_aditivo: Calendar,
       qualitativo: Settings,
@@ -994,13 +1259,16 @@ export function RegistroAlteracoes({
     if (prioridade) {
       const coresPrioridade = {
         baixa: 'bg-gray-100 text-gray-600',
-        media: 'bg-blue-100 text-blue-600', 
+        media: 'bg-blue-100 text-blue-600',
         alta: 'bg-orange-100 text-orange-600',
         critica: 'bg-red-100 text-red-600',
       }
-      return coresPrioridade[prioridade as keyof typeof coresPrioridade] || 'bg-gray-100 text-gray-600'
+      return (
+        coresPrioridade[prioridade as keyof typeof coresPrioridade] ||
+        'bg-gray-100 text-gray-600'
+      )
     }
-    
+
     // Cores tradicionais por tipo
     const cores = {
       // Tipos originais do contrato
@@ -1012,7 +1280,7 @@ export function RegistroAlteracoes({
       atualizacao_documentos: 'bg-purple-100 text-purple-600',
       alteracao_valor: 'bg-orange-100 text-orange-600',
       prorrogacao: 'bg-red-100 text-red-600',
-      
+
       // Novos tipos da timeline
       alteracao_contratual: 'bg-purple-100 text-purple-600',
       alteracao: 'bg-purple-100 text-purple-600',
@@ -1020,7 +1288,7 @@ export function RegistroAlteracoes({
       milestone: 'bg-green-100 text-green-600',
       documento: 'bg-blue-100 text-blue-600',
       prazo: 'bg-orange-100 text-orange-600',
-      
+
       // Tipos específicos de aditivos da nova API
       prazo_aditivo: 'bg-orange-100 text-orange-600',
       qualitativo: 'bg-purple-100 text-purple-600',
@@ -1057,12 +1325,12 @@ export function RegistroAlteracoes({
             )}
           </div>
         </CardHeader>
-        
+
         <CardContent className="pt-0">
           <div className="flex flex-col gap-3">
             {/* Pesquisa */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Pesquisar alterações..."
                 value={termoPesquisa}
@@ -1070,7 +1338,7 @@ export function RegistroAlteracoes({
                 className="pl-10"
               />
             </div>
-            
+
             {/* Filtros */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               {/* Filtro por tipo */}
@@ -1080,7 +1348,7 @@ export function RegistroAlteracoes({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os tipos</SelectItem>
-                  {tiposDisponiveis.map(tipo => (
+                  {tiposDisponiveis.map((tipo) => (
                     <SelectItem key={tipo} value={tipo}>
                       {getTituloAlteracao(tipo)}
                     </SelectItem>
@@ -1096,11 +1364,13 @@ export function RegistroAlteracoes({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos os status</SelectItem>
-                    {statusDisponiveis.map(status => status ? (
-                      <SelectItem key={status} value={status}>
-                        {getTituloStatus(status)}
-                      </SelectItem>
-                    ) : null)}
+                    {statusDisponiveis.map((status) =>
+                      status ? (
+                        <SelectItem key={status} value={status}>
+                          {getTituloStatus(status)}
+                        </SelectItem>
+                      ) : null,
+                    )}
                   </SelectContent>
                 </Select>
               )}
@@ -1124,10 +1394,10 @@ export function RegistroAlteracoes({
                   className="flex h-32 items-center justify-center text-center"
                 >
                   <div>
-                    <Clock className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <Clock className="text-muted-foreground mx-auto h-12 w-12" />
                     <h3 className="mt-4 text-lg font-medium">
-                      {termoPesquisa || filtroTipo !== 'todos' 
-                        ? 'Nenhuma alteração encontrada' 
+                      {termoPesquisa || filtroTipo !== 'todos'
+                        ? 'Nenhuma alteração encontrada'
                         : 'Nenhuma alteração registrada'}
                     </h3>
                     <p className="text-muted-foreground mt-2 text-sm">
@@ -1155,74 +1425,109 @@ export function RegistroAlteracoes({
 
                     {/* Conteúdo */}
                     <div className="min-w-0 flex-1">
-                      <div className="bg-card rounded-lg border p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="bg-card rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md">
                         <div className="mb-3 flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold mb-1">
+                            <h3 className="mb-1 text-base font-semibold">
                               {entrada.titulo}
                             </h3>
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="mb-2 flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                <DateDisplay value={entrada.dataHora} format="datetime" />
+                                <DateDisplay
+                                  value={entrada.dataHora}
+                                  format="datetime"
+                                />
                               </Badge>
-                              <Badge 
-                                variant={entrada.origem === 'timeline' ? 'default' : 'secondary'} 
+                              <Badge
+                                variant={
+                                  entrada.origem === 'timeline'
+                                    ? 'default'
+                                    : 'secondary'
+                                }
                                 className="text-xs"
                               >
-                                {entrada.origem === 'contrato' ? 'Sistema' :
-                                 entrada.origem === 'timeline' ? 'Alteração' :
-                                 entrada.origem === 'funcionario' ? 'Funcionários' : 'Chat'}
+                                {entrada.origem === 'contrato'
+                                  ? 'Sistema'
+                                  : entrada.origem === 'timeline'
+                                    ? 'Alteração'
+                                    : entrada.origem === 'funcionario'
+                                      ? 'Funcionários'
+                                      : 'Chat'}
                               </Badge>
-                              {entrada.status && entrada.origem === 'contrato' && (
-                                <Badge 
-                                  variant={
-                                    entrada.status === 'executado' ? 'default' :
-                                    entrada.status === 'aprovado' ? 'secondary' :
-                                    entrada.status === 'rascunho' ? 'outline' :
-                                    'destructive'
-                                  } 
-                                  className={cn(
-                                    "text-xs",
-                                    entrada.status === 'executado' && "bg-green-100 text-green-800 border-green-200",
-                                    entrada.status === 'aprovado' && "bg-blue-100 text-blue-800 border-blue-200",
-                                    entrada.status === 'rascunho' && "bg-gray-100 text-gray-600 border-gray-200"
-                                  )}
+                              {entrada.status &&
+                                entrada.origem === 'contrato' && (
+                                  <Badge
+                                    variant={
+                                      entrada.status === 'executado'
+                                        ? 'default'
+                                        : entrada.status === 'aprovado'
+                                          ? 'secondary'
+                                          : entrada.status === 'rascunho'
+                                            ? 'outline'
+                                            : 'destructive'
+                                    }
+                                    className={cn(
+                                      'text-xs',
+                                      entrada.status === 'executado' &&
+                                        'border-green-200 bg-green-100 text-green-800',
+                                      entrada.status === 'aprovado' &&
+                                        'border-blue-200 bg-blue-100 text-blue-800',
+                                      entrada.status === 'rascunho' &&
+                                        'border-gray-200 bg-gray-100 text-gray-600',
+                                    )}
+                                  >
+                                    {getTituloStatus(entrada.status)}
+                                  </Badge>
+                                )}
+                              {entrada.prioridade &&
+                                entrada.prioridade !== 'media' && (
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      'text-xs',
+                                      entrada.prioridade === 'alta' &&
+                                        'border-orange-200 text-orange-700',
+                                      entrada.prioridade === 'critica' &&
+                                        'border-red-200 text-red-700',
+                                      entrada.prioridade === 'baixa' &&
+                                        'border-gray-200 text-gray-600',
+                                    )}
+                                  >
+                                    {entrada.prioridade}
+                                  </Badge>
+                                )}
+                              {(entrada.dados as unknown as AlteracaoContrato)
+                                ?.requerConfirmacaoLimiteLegal && (
+                                <Badge
+                                  variant="destructive"
+                                  className="flex items-center gap-1 text-xs"
                                 >
-                                  {getTituloStatus(entrada.status)}
-                                </Badge>
-                              )}
-                              {entrada.prioridade && entrada.prioridade !== 'media' && (
-                                <Badge variant="outline" className={cn(
-                                  "text-xs",
-                                  entrada.prioridade === 'alta' && "border-orange-200 text-orange-700",
-                                  entrada.prioridade === 'critica' && "border-red-200 text-red-700",
-                                  entrada.prioridade === 'baixa' && "border-gray-200 text-gray-600"
-                                )}>
-                                  {entrada.prioridade}
-                                </Badge>
-                              )}
-                              {(entrada.dados as unknown as AlteracaoContrato)?.requerConfirmacaoLimiteLegal && (
-                                <Badge variant="destructive" className="text-xs flex items-center gap-1">
                                   <AlertTriangle className="h-3 w-3" />
                                   Limite Legal
                                 </Badge>
                               )}
-                              {entrada.origem === 'contrato' && (entrada.dados as unknown as AlteracaoContratualResponse)?.podeSerEditada && (
-                                <Badge variant="outline" className="text-xs border-green-200 text-green-700">
-                                  Editável
-                                </Badge>
-                              )}
+                              {entrada.origem === 'contrato' &&
+                                (
+                                  entrada.dados as unknown as AlteracaoContratualResponse
+                                )?.podeSerEditada && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-green-200 text-xs text-green-700"
+                                  >
+                                    Editável
+                                  </Badge>
+                                )}
                             </div>
                           </div>
                         </div>
 
                         <div className="mb-3 text-sm leading-relaxed">
-                          <div 
-                            className="text-muted-foreground break-words whitespace-pre-wrap max-h-24 overflow-y-auto prose prose-sm max-w-none"
-                            style={{ 
+                          <div
+                            className="text-muted-foreground prose prose-sm max-h-24 max-w-none overflow-y-auto break-words whitespace-pre-wrap"
+                            style={{
                               wordBreak: 'break-word',
                               overflowWrap: 'break-word',
-                              hyphens: 'auto'
+                              hyphens: 'auto',
                             }}
                           >
                             {entrada.descricao}
@@ -1230,13 +1535,21 @@ export function RegistroAlteracoes({
                         </div>
 
                         {/* Dados específicos da alteração contratual */}
-                        {renderDetalhesAlteracao(entrada, getEmpresaNome, getUnidadeNome)}
+                        {renderDetalhesAlteracao(
+                          entrada,
+                          getEmpresaNome,
+                          getUnidadeNome,
+                        )}
 
                         {/* Tags */}
                         {entrada.tags && entrada.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-3">
+                          <div className="mb-3 flex flex-wrap gap-1">
                             {entrada.tags.map((tag, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
+                              <Badge
+                                key={i}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {tag}
                               </Badge>
                             ))}
@@ -1248,18 +1561,21 @@ export function RegistroAlteracoes({
                             <Users className="h-3 w-3" />
                             <span>Por: {entrada.responsavel}</span>
                           </div>
-                          
-                          {entrada.origem === 'chat' && onMarcarChatComoAlteracao && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 text-xs"
-                              onClick={() => onMarcarChatComoAlteracao(entrada.id)}
-                            >
-                              <Bookmark className="h-3 w-3 mr-1" />
-                              Marcar como Alteração
-                            </Button>
-                          )}
+
+                          {entrada.origem === 'chat' &&
+                            onMarcarChatComoAlteracao && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-xs"
+                                onClick={() =>
+                                  onMarcarChatComoAlteracao(entrada.id)
+                                }
+                              >
+                                <Bookmark className="mr-1 h-3 w-3" />
+                                Marcar como Alteração
+                              </Button>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -1272,32 +1588,43 @@ export function RegistroAlteracoes({
             {entradasFiltradas.length > 0 && (
               <div className="mt-8 flex flex-col items-center gap-4">
                 {/* Indicador de itens e seletor de itens por página */}
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex flex-col items-center gap-4 sm:flex-row">
+                  <div className="text-muted-foreground text-sm">
                     Mostrando{' '}
                     <span className="font-medium">
-                      {Math.min((paginacao.paginaAtual - 1) * paginacao.itensPorPagina + 1, entradasFiltradas.length)}
-                    </span>
-                    {' '}a{' '}
+                      {Math.min(
+                        (paginacao.paginaAtual - 1) * paginacao.itensPorPagina +
+                          1,
+                        entradasFiltradas.length,
+                      )}
+                    </span>{' '}
+                    a{' '}
                     <span className="font-medium">
-                      {Math.min(paginacao.paginaAtual * paginacao.itensPorPagina, entradasFiltradas.length)}
-                    </span>
-                    {' '}de{' '}
-                    <span className="font-medium">{entradasFiltradas.length}</span>
-                    {' '}entradas
+                      {Math.min(
+                        paginacao.paginaAtual * paginacao.itensPorPagina,
+                        entradasFiltradas.length,
+                      )}
+                    </span>{' '}
+                    de{' '}
+                    <span className="font-medium">
+                      {entradasFiltradas.length}
+                    </span>{' '}
+                    entradas
                   </div>
 
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
                     <span>Itens por página:</span>
                     <Select
                       value={String(paginacao.itensPorPagina)}
-                      onValueChange={(value) => setPaginacao(prev => ({
-                        ...prev,
-                        itensPorPagina: Number(value),
-                        paginaAtual: 1
-                      }))}
+                      onValueChange={(value) =>
+                        setPaginacao((prev) => ({
+                          ...prev,
+                          itensPorPagina: Number(value),
+                          paginaAtual: 1,
+                        }))
+                      }
                     >
-                      <SelectTrigger className="w-16 h-8">
+                      <SelectTrigger className="h-8 w-16">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1312,57 +1639,79 @@ export function RegistroAlteracoes({
 
                 {/* Controles de navegação */}
                 {totalPaginas > 1 && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPaginacao(prev => ({ ...prev, paginaAtual: prev.paginaAtual - 1 }))}
-                    disabled={paginacao.paginaAtual === 1}
-                    className="flex items-center gap-2"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Anterior</span>
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                      // Calcular as páginas a mostrar (máximo 5)
-                      let startPage = Math.max(1, paginacao.paginaAtual - 2)
-                      const endPage = Math.min(totalPaginas, startPage + 4)
-
-                      // Ajustar se estivermos próximo do fim
-                      if (endPage - startPage < 4) {
-                        startPage = Math.max(1, endPage - 4)
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setPaginacao((prev) => ({
+                          ...prev,
+                          paginaAtual: prev.paginaAtual - 1,
+                        }))
                       }
+                      disabled={paginacao.paginaAtual === 1}
+                      className="flex items-center gap-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span className="hidden sm:inline">Anterior</span>
+                    </Button>
 
-                      const pageNum = startPage + i
-                      if (pageNum > endPage) return null
+                    <div className="flex items-center gap-1">
+                      {Array.from(
+                        { length: Math.min(5, totalPaginas) },
+                        (_, i) => {
+                          // Calcular as páginas a mostrar (máximo 5)
+                          let startPage = Math.max(1, paginacao.paginaAtual - 2)
+                          const endPage = Math.min(totalPaginas, startPage + 4)
 
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={paginacao.paginaAtual === pageNum ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setPaginacao(prev => ({ ...prev, paginaAtual: pageNum }))}
-                          className="h-8 w-8 p-0"
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })}
+                          // Ajustar se estivermos próximo do fim
+                          if (endPage - startPage < 4) {
+                            startPage = Math.max(1, endPage - 4)
+                          }
+
+                          const pageNum = startPage + i
+                          if (pageNum > endPage) return null
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                paginacao.paginaAtual === pageNum
+                                  ? 'default'
+                                  : 'outline'
+                              }
+                              size="sm"
+                              onClick={() =>
+                                setPaginacao((prev) => ({
+                                  ...prev,
+                                  paginaAtual: pageNum,
+                                }))
+                              }
+                              className="h-8 w-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          )
+                        },
+                      )}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setPaginacao((prev) => ({
+                          ...prev,
+                          paginaAtual: prev.paginaAtual + 1,
+                        }))
+                      }
+                      disabled={paginacao.paginaAtual === totalPaginas}
+                      className="flex items-center gap-2"
+                    >
+                      <span className="hidden sm:inline">Próxima</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPaginacao(prev => ({ ...prev, paginaAtual: prev.paginaAtual + 1 }))}
-                    disabled={paginacao.paginaAtual === totalPaginas}
-                    className="flex items-center gap-2"
-                  >
-                    <span className="hidden sm:inline">Próxima</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
                 )}
               </div>
             )}
@@ -1381,20 +1730,26 @@ export function RegistroAlteracoes({
         <CardContent>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {tiposDisponiveis.map((tipo, index) => {
-              const count = entradasFiltradas.filter(e => e.tipo === tipo).length
+              const count = entradasFiltradas.filter(
+                (e) => e.tipo === tipo,
+              ).length
               return (
                 <motion.div
                   key={tipo}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className={`rounded-lg border p-3 text-center hover:shadow-md transition-shadow cursor-pointer ${getCorAlteracao(tipo).replace('text-', 'border-').replace('-600', '-200')} `}
+                  className={`cursor-pointer rounded-lg border p-3 text-center transition-shadow hover:shadow-md ${getCorAlteracao(tipo).replace('text-', 'border-').replace('-600', '-200')} `}
                   onClick={() => setFiltroTipo(tipo)}
                 >
-                  <div className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full ${getCorAlteracao(tipo)} `}>
+                  <div
+                    className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full ${getCorAlteracao(tipo)} `}
+                  >
                     {getIconeAlteracao(tipo)}
                   </div>
-                  <h4 className="mb-1 text-sm font-medium">{getTituloAlteracao(tipo)}</h4>
+                  <h4 className="mb-1 text-sm font-medium">
+                    {getTituloAlteracao(tipo)}
+                  </h4>
                   <p className="text-muted-foreground text-xs">
                     {count} {count === 1 ? 'registro' : 'registros'}
                   </p>

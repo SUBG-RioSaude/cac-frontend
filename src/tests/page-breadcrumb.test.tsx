@@ -13,7 +13,7 @@ vi.mock('@/hooks/use-mobile', () => ({
 // Mock do axios para evitar calls reais na API
 vi.mock('@/lib/axios', () => ({
   executeWithFallback: vi.fn().mockResolvedValue({
-    data: { numeroContrato: '123', id: '123' }
+    data: { numeroContrato: '123', id: '123' },
   }),
 }))
 
@@ -24,7 +24,7 @@ const renderWithProviders = (initialEntries = ['/']) => {
       mutations: { retry: false },
     },
   })
-  
+
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={initialEntries}>
@@ -57,12 +57,12 @@ describe('PageBreadcrumb', () => {
 
     expect(screen.getByText('Início')).toBeInTheDocument()
     expect(screen.getByText('Contratos')).toBeInTheDocument()
-    
+
     // Aguardar dados assíncronos do contrato
     await waitFor(() => {
       expect(screen.getByText('Contrato 123')).toBeInTheDocument()
     })
-    
+
     expect(screen.getByRole('button')).toBeInTheDocument() // SidebarTrigger
   })
 

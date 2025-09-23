@@ -6,7 +6,13 @@
  */
 
 import { cn } from '@/lib/utils'
-import { currencyUtils, dateUtils, cnpjUtils, cepUtils, phoneUtils } from '@/lib/utils'
+import {
+  currencyUtils,
+  dateUtils,
+  cnpjUtils,
+  cepUtils,
+  phoneUtils,
+} from '@/lib/utils'
 
 // Props base para todos os componentes de formatação
 interface BaseFormatterProps {
@@ -23,18 +29,18 @@ interface CurrencyDisplayProps extends BaseFormatterProps {
   showZero?: boolean
 }
 
-export function CurrencyDisplay({ 
-  value, 
-  className, 
+export function CurrencyDisplay({
+  value,
+  className,
   fallback = 'R$ 0,00',
-  showZero = true 
+  showZero = true,
 }: CurrencyDisplayProps) {
   if (value === null || value === undefined) {
     return <span className={className}>{fallback}</span>
   }
 
   const numericValue = typeof value === 'string' ? parseFloat(value) : value
-  
+
   if (isNaN(numericValue)) {
     return <span className={className}>{fallback}</span>
   }
@@ -60,32 +66,29 @@ interface DateDisplayProps extends BaseFormatterProps {
   options?: Intl.DateTimeFormatOptions
 }
 
-export function DateDisplay({ 
-  value, 
-  className, 
+export function DateDisplay({
+  value,
+  className,
   fallback = 'Data inválida',
   format = 'default',
-  options 
+  options,
 }: DateDisplayProps) {
   if (!value) {
     return <span className={className}>{fallback}</span>
   }
 
-  const formattedDate = format === 'custom' 
-    ? dateUtils.formatarDataUTCCustom(value, options || {})
-    : format === 'datetime'
-    ? new Date(value).toLocaleString('pt-BR')
-    : dateUtils.formatarDataUTC(value)
+  const formattedDate =
+    format === 'custom'
+      ? dateUtils.formatarDataUTCCustom(value, options || {})
+      : format === 'datetime'
+        ? new Date(value).toLocaleString('pt-BR')
+        : dateUtils.formatarDataUTC(value)
 
   if (!formattedDate) {
     return <span className={className}>{fallback}</span>
   }
 
-  return (
-    <span className={className}>
-      {formattedDate}
-    </span>
-  )
+  return <span className={className}>{formattedDate}</span>
 }
 
 // ==========================================
@@ -97,11 +100,11 @@ interface DocumentDisplayProps extends BaseFormatterProps {
   type: 'cnpj' | 'cep' | 'phone'
 }
 
-export function DocumentDisplay({ 
-  value, 
-  type, 
-  className, 
-  fallback = 'N/A' 
+export function DocumentDisplay({
+  value,
+  type,
+  className,
+  fallback = 'N/A',
 }: DocumentDisplayProps) {
   if (!value) {
     return <span className={className}>{fallback}</span>
@@ -123,11 +126,7 @@ export function DocumentDisplay({
       formattedValue = value
   }
 
-  return (
-    <span className={cn('font-mono', className)}>
-      {formattedValue}
-    </span>
-  )
+  return <span className={cn('font-mono', className)}>{formattedValue}</span>
 }
 
 // ==========================================
@@ -139,13 +138,17 @@ interface CNPJDisplayProps extends BaseFormatterProps {
   value: string | null | undefined
 }
 
-export function CNPJDisplay({ value, className, fallback = 'CNPJ inválido' }: CNPJDisplayProps) {
+export function CNPJDisplay({
+  value,
+  className,
+  fallback = 'CNPJ inválido',
+}: CNPJDisplayProps) {
   return (
-    <DocumentDisplay 
-      value={value} 
-      type="cnpj" 
-      className={className} 
-      fallback={fallback} 
+    <DocumentDisplay
+      value={value}
+      type="cnpj"
+      className={className}
+      fallback={fallback}
     />
   )
 }
@@ -155,13 +158,17 @@ interface CEPDisplayProps extends BaseFormatterProps {
   value: string | null | undefined
 }
 
-export function CEPDisplay({ value, className, fallback = 'CEP inválido' }: CEPDisplayProps) {
+export function CEPDisplay({
+  value,
+  className,
+  fallback = 'CEP inválido',
+}: CEPDisplayProps) {
   return (
-    <DocumentDisplay 
-      value={value} 
-      type="cep" 
-      className={className} 
-      fallback={fallback} 
+    <DocumentDisplay
+      value={value}
+      type="cep"
+      className={className}
+      fallback={fallback}
     />
   )
 }
@@ -171,13 +178,17 @@ interface PhoneDisplayProps extends BaseFormatterProps {
   value: string | null | undefined
 }
 
-export function PhoneDisplay({ value, className, fallback = 'Telefone inválido' }: PhoneDisplayProps) {
+export function PhoneDisplay({
+  value,
+  className,
+  fallback = 'Telefone inválido',
+}: PhoneDisplayProps) {
   return (
-    <DocumentDisplay 
-      value={value} 
-      type="phone" 
-      className={className} 
-      fallback={fallback} 
+    <DocumentDisplay
+      value={value}
+      type="phone"
+      className={className}
+      fallback={fallback}
     />
   )
 }
@@ -200,12 +211,14 @@ const iconSizes = {
 }
 
 // Moeda com ícone
-interface CurrencyWithIconProps extends CurrencyDisplayProps, IconFormatterProps {}
+interface CurrencyWithIconProps
+  extends CurrencyDisplayProps,
+    IconFormatterProps {}
 
-export function CurrencyWithIcon({ 
-  showIcon = true, 
+export function CurrencyWithIcon({
+  showIcon = true,
   iconSize = 'default',
-  ...props 
+  ...props
 }: CurrencyWithIconProps) {
   return (
     <span className={cn('inline-flex items-center gap-1', props.className)}>
@@ -218,10 +231,10 @@ export function CurrencyWithIcon({
 // Data com ícone
 interface DateWithIconProps extends DateDisplayProps, IconFormatterProps {}
 
-export function DateWithIcon({ 
-  showIcon = true, 
+export function DateWithIcon({
+  showIcon = true,
   iconSize = 'default',
-  ...props 
+  ...props
 }: DateWithIconProps) {
   return (
     <span className={cn('inline-flex items-center gap-1', props.className)}>
@@ -234,10 +247,10 @@ export function DateWithIcon({
 // CNPJ com ícone
 interface CNPJWithIconProps extends CNPJDisplayProps, IconFormatterProps {}
 
-export function CNPJWithIcon({ 
-  showIcon = true, 
+export function CNPJWithIcon({
+  showIcon = true,
   iconSize = 'default',
-  ...props 
+  ...props
 }: CNPJWithIconProps) {
   return (
     <span className={cn('inline-flex items-center gap-1', props.className)}>
@@ -250,10 +263,10 @@ export function CNPJWithIcon({
 // CEP com ícone
 interface CEPWithIconProps extends CEPDisplayProps, IconFormatterProps {}
 
-export function CEPWithIcon({ 
-  showIcon = true, 
+export function CEPWithIcon({
+  showIcon = true,
   iconSize = 'default',
-  ...props 
+  ...props
 }: CEPWithIconProps) {
   return (
     <span className={cn('inline-flex items-center gap-1', props.className)}>
@@ -266,10 +279,10 @@ export function CEPWithIcon({
 // Telefone com ícone
 interface PhoneWithIconProps extends PhoneDisplayProps, IconFormatterProps {}
 
-export function PhoneWithIcon({ 
-  showIcon = true, 
+export function PhoneWithIcon({
+  showIcon = true,
   iconSize = 'default',
-  ...props 
+  ...props
 }: PhoneWithIconProps) {
   return (
     <span className={cn('inline-flex items-center gap-1', props.className)}>

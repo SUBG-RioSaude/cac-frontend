@@ -26,7 +26,6 @@ export interface PaginacaoParamsUnidade {
   pagina: number
   itensPorPagina: number
   total: number
-  
 }
 
 export interface FiltrosUnidade {
@@ -36,7 +35,14 @@ export interface FiltrosUnidade {
   UG?: string
 }
 
-export type ColunaOrdenacao = 'nome' | 'sigla' | 'UO' | 'UG' | 'status' | 'contratosAtivos' | 'valorTotalContratado'
+export type ColunaOrdenacao =
+  | 'nome'
+  | 'sigla'
+  | 'UO'
+  | 'UG'
+  | 'status'
+  | 'contratosAtivos'
+  | 'valorTotalContratado'
 
 export interface OrdenacaoParams {
   coluna: ColunaOrdenacao
@@ -47,17 +53,17 @@ export interface UnidadeStoreState {
   // Dados
   unidades: Unidade[]
   unidadesFiltradas: Unidade[]
-  
+
   // Filtros e pesquisa
   termoPesquisa: string
   filtros: FiltrosUnidade
-  
+
   // Seleção
   unidadesSelecionadas: (string | number)[]
-  
+
   // Paginação
   paginacao: PaginacaoParamsUnidade
-  
+
   // Ações
   setTermoPesquisa: (termo: string) => void
   setFiltros: (filtros: FiltrosUnidade) => void

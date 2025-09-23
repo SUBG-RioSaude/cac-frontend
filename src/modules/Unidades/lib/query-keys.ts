@@ -11,7 +11,8 @@ export const unidadeKeys = {
 
   // Listas
   lists: () => [...unidadeKeys.all, 'list'] as const,
-  list: (filtros?: FiltrosUnidadesApi) => [...unidadeKeys.lists(), filtros] as const,
+  list: (filtros?: FiltrosUnidadesApi) =>
+    [...unidadeKeys.lists(), filtros] as const,
 
   // Detalhes
   details: () => [...unidadeKeys.all, 'detail'] as const,
@@ -40,20 +41,17 @@ export const unidadeKeys = {
   },
 
   // Invalidação automática
-  invalidateOnCreate: () => [
-    unidadeKeys.lists(),
-    unidadeKeys.all
-  ],
+  invalidateOnCreate: () => [unidadeKeys.lists(), unidadeKeys.all],
 
   invalidateOnUpdate: (id: string) => [
     unidadeKeys.detail(id),
     unidadeKeys.lists(),
-    unidadeKeys.all
+    unidadeKeys.all,
   ],
 
   invalidateOnDelete: (id: string) => [
     unidadeKeys.detail(id),
     unidadeKeys.lists(),
-    unidadeKeys.all
-  ]
+    unidadeKeys.all,
+  ],
 }

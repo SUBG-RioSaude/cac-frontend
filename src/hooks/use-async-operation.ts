@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useCallback, useState } from 'react'
 
 interface UseAsyncOperationResult<T> {

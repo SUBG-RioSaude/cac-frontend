@@ -15,12 +15,13 @@ const queryClient = new QueryClient({
       // Cache por 5 minutos
       staleTime: 5 * 60 * 1000,
       // Manter no cache por 10 minutos
-      gcTime: 10 * 60 * 1000, 
+      gcTime: 10 * 60 * 1000,
       // Retry automático para falhas de rede
       retry: (failureCount, error: unknown) => {
         // Não retry para erros 4xx (client errors)
         if (error && typeof error === 'object' && 'response' in error) {
-          const status = (error as { response: { status: number } }).response?.status
+          const status = (error as { response: { status: number } }).response
+            ?.status
           if (status >= 400 && status < 500) {
             return false
           }
@@ -31,20 +32,18 @@ const queryClient = new QueryClient({
       // Refetch quando a janela ganha foco
       refetchOnWindowFocus: false,
       // Refetch quando reconecta à internet
-      refetchOnReconnect: 'always'
+      refetchOnReconnect: 'always',
     },
     mutations: {
       // Retry apenas 1x para mutations
       retry: 1,
       // Network mode para mutations
-      networkMode: 'offlineFirst'
-    }
+      networkMode: 'offlineFirst',
+    },
   },
-  
+
   // Error handling global configurado via defaultOptions para compatibilidade
 })
-
-
 
 // Render the app
 const rootElement = document.getElementById('root')!
@@ -53,7 +52,12 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <App />
         </BrowserRouter>
         <ReactQueryDevtools initialIsOpen={false} />

@@ -12,7 +12,12 @@ import { Toaster } from '../sonner'
 
 // Mock do sonner
 vi.mock('sonner', () => ({
-  Toaster: ({ theme, className, style, ...props }: {
+  Toaster: ({
+    theme,
+    className,
+    style,
+    ...props
+  }: {
     theme?: string
     className?: string
     style?: Record<string, string>
@@ -24,12 +29,14 @@ vi.mock('sonner', () => ({
         data-testid="sonner-toaster"
         data-theme={theme}
         className={className || 'toaster group'}
-        style={{
-          '--normal-bg': 'var(--popover)',
-          '--normal-text': 'var(--popover-foreground)',
-          '--normal-border': 'var(--border)',
-          ...style
-        } as React.CSSProperties}
+        style={
+          {
+            '--normal-bg': 'var(--popover)',
+            '--normal-text': 'var(--popover-foreground)',
+            '--normal-border': 'var(--border)',
+            ...style,
+          } as React.CSSProperties
+        }
         {...props}
       />
     )
@@ -43,7 +50,7 @@ describe('Toaster', () => {
 
   it('deve renderizar com tema padrão', () => {
     const { getByTestId } = render(<Toaster />)
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster).toBeInTheDocument()
     expect(toaster).toHaveAttribute('data-theme', 'light')
@@ -51,43 +58,43 @@ describe('Toaster', () => {
 
   it('deve usar tema dark quando especificado', () => {
     const { getByTestId } = render(<Toaster />)
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster).toHaveAttribute('data-theme', 'light')
   })
 
   it('deve usar tema system como fallback', () => {
     const { getByTestId } = render(<Toaster />)
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster).toHaveAttribute('data-theme', 'light')
   })
 
   it('deve aplicar className padrão', () => {
     const { getByTestId } = render(<Toaster />)
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster).toHaveClass('toaster', 'group')
   })
 
   it('deve aplicar estilos CSS customizados', () => {
     const { getByTestId } = render(<Toaster />)
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster.style.getPropertyValue('--normal-bg')).toBe('var(--popover)')
-    expect(toaster.style.getPropertyValue('--normal-text')).toBe('var(--popover-foreground)')
-    expect(toaster.style.getPropertyValue('--normal-border')).toBe('var(--border)')
+    expect(toaster.style.getPropertyValue('--normal-text')).toBe(
+      'var(--popover-foreground)',
+    )
+    expect(toaster.style.getPropertyValue('--normal-border')).toBe(
+      'var(--border)',
+    )
   })
 
   it('deve passar props adicionais para o Sonner', () => {
     const { getByTestId } = render(
-      <Toaster 
-        position="top-right"
-        duration={5000}
-        data-custom="test"
-      />
+      <Toaster position="top-right" duration={5000} data-custom="test" />,
     )
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster).toHaveAttribute('position', 'top-right')
     expect(toaster).toHaveAttribute('duration', '5000')
@@ -96,12 +103,9 @@ describe('Toaster', () => {
 
   it('deve manter estilo e className quando props customizadas são passadas', () => {
     const { getByTestId } = render(
-      <Toaster 
-        className="custom-toaster"
-        style={{ backgroundColor: 'red' }}
-      />
+      <Toaster className="custom-toaster" style={{ backgroundColor: 'red' }} />,
     )
-    
+
     const toaster = getByTestId('sonner-toaster')
     expect(toaster).toHaveClass('custom-toaster')
     expect(toaster.style.getPropertyValue('--normal-bg')).toBe('var(--popover)')

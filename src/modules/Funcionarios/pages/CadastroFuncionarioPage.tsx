@@ -6,11 +6,13 @@ export default function CadastroFuncionarioPage() {
   return (
     <div className="py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
           <UserPlus className="h-6 w-6 text-gray-600" />
           Cadastro de Funcionários
         </h1>
-        <p className="text-sm text-muted-foreground">Preencha os dados para cadastrar um novo funcionário.</p>
+        <p className="text-muted-foreground text-sm">
+          Preencha os dados para cadastrar um novo funcionário.
+        </p>
       </div>
 
       <Card>
@@ -24,4 +26,3 @@ export default function CadastroFuncionarioPage() {
     </div>
   )
 }
-

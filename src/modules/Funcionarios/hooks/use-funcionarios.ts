@@ -6,8 +6,12 @@
  * Integra com sistema de fallback e cache otimizado
  */
 
-import { useQuery, useQueries, type UseQueryOptions } from '@tanstack/react-query'
-import { 
+import {
+  useQuery,
+  useQueries,
+  type UseQueryOptions,
+} from '@tanstack/react-query'
+import {
   getFuncionarios,
   getFuncionarioById,
   getFuncionarioByMatricula,
@@ -17,9 +21,12 @@ import {
   getLotacoes,
   getLotacaoById,
   getLotacaoByCodigo,
-  buscarLotacoesPorNome
+  buscarLotacoesPorNome,
 } from '@/modules/Funcionarios/services/funcionarios-service'
-import { funcionarioKeys, lotacaoKeys } from '@/modules/Funcionarios/lib/query-keys'
+import {
+  funcionarioKeys,
+  lotacaoKeys,
+} from '@/modules/Funcionarios/lib/query-keys'
 import type {
   FuncionarioApi,
   LotacaoApi,
@@ -28,7 +35,7 @@ import type {
   FuncionariosPaginacaoResponse,
   LotacoesPaginacaoResponse,
   BuscaFuncionarioResponse,
-  BuscaLotacaoResponse
+  BuscaLotacaoResponse,
 } from '@/modules/Funcionarios/types/funcionario-api'
 
 // ========== HOOKS DE FUNCIONÁRIOS ==========
@@ -38,14 +45,14 @@ import type {
  */
 export function useGetFuncionarios(
   filtros?: FuncionarioParametros,
-  options?: UseQueryOptions<FuncionariosPaginacaoResponse>
+  options?: UseQueryOptions<FuncionariosPaginacaoResponse>,
 ) {
   return useQuery({
     queryKey: funcionarioKeys.list(filtros),
     queryFn: () => getFuncionarios(filtros),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
-    ...options
+    ...options,
   })
 }
 
@@ -54,7 +61,7 @@ export function useGetFuncionarios(
  */
 export function useGetFuncionarioById(
   id: string,
-  options?: UseQueryOptions<FuncionarioApi>
+  options?: UseQueryOptions<FuncionarioApi>,
 ) {
   return useQuery({
     queryKey: funcionarioKeys.detail(id),
@@ -62,7 +69,7 @@ export function useGetFuncionarioById(
     enabled: !!id,
     staleTime: 10 * 60 * 1000, // 10 minutos
     gcTime: 30 * 60 * 1000, // 30 minutos
-    ...options
+    ...options,
   })
 }
 
@@ -71,7 +78,7 @@ export function useGetFuncionarioById(
  */
 export function useFuncionariosByIds(
   ids: string[],
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   const { data, isLoading, error } = useQueries({
     queries: ids.map((id) => ({
@@ -83,18 +90,23 @@ export function useFuncionariosByIds(
       retry: 2,
     })),
     combine: (results) => ({
-      data: results.reduce((acc, result, index) => {
-        if (result.data) {
-          acc[ids[index]] = result.data
-        }
-        return acc
-      }, {} as Record<string, FuncionarioApi>),
-      isLoading: results.some(result => result.isLoading),
-      error: results.find(result => result.error)?.error,
-      isSuccess: results.every(result => result.isSuccess),
-      hasErrors: results.some(result => result.error),
-      errors: results.filter(result => result.error).map(result => result.error),
-    })
+      data: results.reduce(
+        (acc, result, index) => {
+          if (result.data) {
+            acc[ids[index]] = result.data
+          }
+          return acc
+        },
+        {} as Record<string, FuncionarioApi>,
+      ),
+      isLoading: results.some((result) => result.isLoading),
+      error: results.find((result) => result.error)?.error,
+      isSuccess: results.every((result) => result.isSuccess),
+      hasErrors: results.some((result) => result.error),
+      errors: results
+        .filter((result) => result.error)
+        .map((result) => result.error),
+    }),
   })
 
   return {
@@ -114,16 +126,16 @@ export function useGetFuncionarioByMatricula(
   matricula: string,
   options?: UseQueryOptions<BuscaFuncionarioResponse> & {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: funcionarioKeys.byMatricula(matricula),
     queryFn: () => getFuncionarioByMatricula(matricula),
-    enabled: !!matricula && (options?.enabled !== false),
+    enabled: !!matricula && options?.enabled !== false,
     staleTime: 15 * 60 * 1000, // 15 minutos (dados mais estáveis)
     gcTime: 60 * 60 * 1000, // 1 hora
     retry: 1, // Retry uma vez apenas para buscas específicas
-    ...options
+    ...options,
   })
 }
 
@@ -134,16 +146,16 @@ export function useGetFuncionarioByCpf(
   cpf: string,
   options?: UseQueryOptions<BuscaFuncionarioResponse> & {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: funcionarioKeys.byCpf(cpf),
     queryFn: () => getFuncionarioByCpf(cpf),
-    enabled: !!cpf && (options?.enabled !== false),
+    enabled: !!cpf && options?.enabled !== false,
     staleTime: 15 * 60 * 1000, // 15 minutos
     gcTime: 60 * 60 * 1000, // 1 hora
     retry: 1,
-    ...options
+    ...options,
   })
 }
 
@@ -155,15 +167,15 @@ export function useBuscarFuncionariosPorNome(
   limit = 10,
   options?: Omit<UseQueryOptions<FuncionarioApi[]>, 'queryKey' | 'queryFn'> & {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: funcionarioKeys.byNome(nome),
     queryFn: () => buscarFuncionariosPorNome(nome, limit),
-    enabled: !!nome && nome.length >= 2 && (options?.enabled !== false),
+    enabled: !!nome && nome.length >= 2 && options?.enabled !== false,
     staleTime: 2 * 60 * 1000, // 2 minutos (busca dinâmica)
     gcTime: 5 * 60 * 1000, // 5 minutos
-    ...options
+    ...options,
   })
 }
 
@@ -175,15 +187,15 @@ export function useBuscarFuncionariosPorLotacao(
   limit = 50,
   options?: UseQueryOptions<FuncionarioApi[]> & {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: funcionarioKeys.byLotacao(lotacao),
     queryFn: () => buscarFuncionariosPorLotacao(lotacao, limit),
-    enabled: !!lotacao && (options?.enabled !== false),
+    enabled: !!lotacao && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
-    ...options
+    ...options,
   })
 }
 
@@ -192,14 +204,14 @@ export function useBuscarFuncionariosPorLotacao(
  */
 export function useGetFuncionariosAtivos(
   filtros?: Omit<FuncionarioParametros, 'ativo'>,
-  options?: UseQueryOptions<FuncionariosPaginacaoResponse>
+  options?: UseQueryOptions<FuncionariosPaginacaoResponse>,
 ) {
   return useQuery({
     queryKey: funcionarioKeys.list({ ...filtros, ativo: true }),
     queryFn: () => getFuncionarios({ ...filtros, ativo: true }),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    ...options
+    ...options,
   })
 }
 
@@ -210,14 +222,14 @@ export function useGetFuncionariosAtivos(
  */
 export function useGetLotacoes(
   filtros?: LotacaoParametros,
-  options?: UseQueryOptions<LotacoesPaginacaoResponse>
+  options?: UseQueryOptions<LotacoesPaginacaoResponse>,
 ) {
   return useQuery({
     queryKey: lotacaoKeys.list(filtros),
     queryFn: () => getLotacoes(filtros),
     staleTime: 10 * 60 * 1000, // 10 minutos (dados mais estáveis)
     gcTime: 30 * 60 * 1000, // 30 minutos
-    ...options
+    ...options,
   })
 }
 
@@ -226,7 +238,7 @@ export function useGetLotacoes(
  */
 export function useGetLotacaoById(
   id: string,
-  options?: UseQueryOptions<LotacaoApi>
+  options?: UseQueryOptions<LotacaoApi>,
 ) {
   return useQuery({
     queryKey: lotacaoKeys.detail(id),
@@ -234,7 +246,7 @@ export function useGetLotacaoById(
     enabled: !!id,
     staleTime: 15 * 60 * 1000, // 15 minutos
     gcTime: 60 * 60 * 1000, // 1 hora
-    ...options
+    ...options,
   })
 }
 
@@ -245,16 +257,16 @@ export function useGetLotacaoByCodigo(
   codigo: string,
   options?: UseQueryOptions<BuscaLotacaoResponse> & {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: lotacaoKeys.byCodigo(codigo),
     queryFn: () => getLotacaoByCodigo(codigo),
-    enabled: !!codigo && (options?.enabled !== false),
+    enabled: !!codigo && options?.enabled !== false,
     staleTime: 15 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
     retry: 1,
-    ...options
+    ...options,
   })
 }
 
@@ -266,15 +278,15 @@ export function useBuscarLotacoesPorNome(
   limit = 20,
   options?: UseQueryOptions<LotacaoApi[]> & {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: lotacaoKeys.byNome(nome),
     queryFn: () => buscarLotacoesPorNome(nome, limit),
-    enabled: !!nome && nome.length >= 2 && (options?.enabled !== false),
+    enabled: !!nome && nome.length >= 2 && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
-    ...options
+    ...options,
   })
 }
 
@@ -283,14 +295,14 @@ export function useBuscarLotacoesPorNome(
  */
 export function useGetLotacoesAtivas(
   filtros?: Omit<LotacaoParametros, 'ativo'>,
-  options?: UseQueryOptions<LotacoesPaginacaoResponse>
+  options?: UseQueryOptions<LotacoesPaginacaoResponse>,
 ) {
   return useQuery({
     queryKey: lotacaoKeys.list({ ...filtros, ativo: true }),
     queryFn: () => getLotacoes({ ...filtros, ativo: true }),
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    ...options
+    ...options,
   })
 }
 
@@ -308,14 +320,14 @@ export function useFuncionariosParaAtribuicao(
   },
   options?: {
     enabled?: boolean
-  }
+  },
 ) {
   return useQuery({
     queryKey: [...funcionarioKeys.all, 'para-atribuicao', filtros],
     queryFn: async () => {
       const params: FuncionarioParametros = {
         ativo: true,
-        tamanhoPagina: filtros?.limit || 50
+        tamanhoPagina: filtros?.limit || 50,
       }
 
       if (filtros?.nome) params.nome = filtros.nome

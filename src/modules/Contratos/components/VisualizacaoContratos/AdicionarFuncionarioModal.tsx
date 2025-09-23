@@ -54,9 +54,10 @@ export function AdicionarFuncionarioModal({
   onFechar,
   contratoId,
   tipoGerencia,
-  funcionariosExistentes = []
+  funcionariosExistentes = [],
 }: AdicionarFuncionarioModalProps) {
-  const [funcionarioSelecionado, setFuncionarioSelecionado] = useState<FuncionarioApi | null>(null)
+  const [funcionarioSelecionado, setFuncionarioSelecionado] =
+    useState<FuncionarioApi | null>(null)
   const [observacoes, setObservacoes] = useState('')
   const [opcaoData, setOpcaoData] = useState<'hoje' | 'personalizada'>('hoje')
   const [dataInicio, setDataInicio] = useState<Date>(new Date())
@@ -89,22 +90,23 @@ export function AdicionarFuncionarioModal({
         tipoGerencia,
         dataInicio: dataInicioFinal.toISOString().slice(0, 10), // Formato YYYY-MM-DD
         observacoes: observacoes.trim() || undefined,
-        funcionarioNome: funcionarioSelecionado.nomeCompleto
+        funcionarioNome: funcionarioSelecionado.nomeCompleto,
       },
       {
         onSuccess: () => {
           handleFechar()
-        }
-      }
+        },
+      },
     )
   }
 
   // Verificar se funcionário está inativo
-  const funcionarioInativo = funcionarioSelecionado && !funcionarioSelecionado.ativo
+  const funcionarioInativo =
+    funcionarioSelecionado && !funcionarioSelecionado.ativo
 
   return (
     <Dialog open={aberto} onOpenChange={handleFechar}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5 text-green-600" />
@@ -129,16 +131,17 @@ export function AdicionarFuncionarioModal({
             <Alert className="border-orange-200 bg-orange-50">
               <AlertTriangle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800">
-                <strong>Atenção:</strong> Este funcionário está marcado como inativo no sistema.
-                Você pode prosseguir, mas recomendamos verificar o status antes de confirmar.
+                <strong>Atenção:</strong> Este funcionário está marcado como
+                inativo no sistema. Você pode prosseguir, mas recomendamos
+                verificar o status antes de confirmar.
               </AlertDescription>
             </Alert>
           )}
 
           {/* Preview do funcionário selecionado */}
           {funcionarioSelecionado && (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <div className="mb-3 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
                   <User className="h-5 w-5 text-green-600" />
                 </div>
@@ -146,7 +149,7 @@ export function AdicionarFuncionarioModal({
                   <h4 className="font-semibold text-green-900">
                     {funcionarioSelecionado.nomeCompleto}
                   </h4>
-                  <p className="text-green-700 text-sm">
+                  <p className="text-sm text-green-700">
                     {funcionarioSelecionado.cargo}
                   </p>
                 </div>
@@ -174,7 +177,9 @@ export function AdicionarFuncionarioModal({
                 {funcionarioSelecionado.emailInstitucional && (
                   <div className="flex items-center gap-2">
                     <Mail className="h-3 w-3" />
-                    <span className="truncate">{funcionarioSelecionado.emailInstitucional}</span>
+                    <span className="truncate">
+                      {funcionarioSelecionado.emailInstitucional}
+                    </span>
                   </div>
                 )}
 
@@ -194,13 +199,15 @@ export function AdicionarFuncionarioModal({
 
             <RadioGroup
               value={opcaoData}
-              onValueChange={(value) => setOpcaoData(value as 'hoje' | 'personalizada')}
+              onValueChange={(value) =>
+                setOpcaoData(value as 'hoje' | 'personalizada')
+              }
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="hoje" id="iniciar-hoje" />
                 <Label
                   htmlFor="iniciar-hoje"
-                  className="text-sm font-normal cursor-pointer"
+                  className="cursor-pointer text-sm font-normal"
                 >
                   Iniciar período hoje
                 </Label>
@@ -210,7 +217,7 @@ export function AdicionarFuncionarioModal({
                 <RadioGroupItem value="personalizada" id="data-personalizada" />
                 <Label
                   htmlFor="data-personalizada"
-                  className="text-sm font-normal cursor-pointer"
+                  className="cursor-pointer text-sm font-normal"
                 >
                   Escolher data específica
                 </Label>
@@ -218,8 +225,8 @@ export function AdicionarFuncionarioModal({
             </RadioGroup>
 
             {opcaoData === 'personalizada' && (
-              <div className="space-y-2 ml-6">
-                <Label className="text-xs text-muted-foreground">
+              <div className="ml-6 space-y-2">
+                <Label className="text-muted-foreground text-xs">
                   Selecione a data de início do período:
                 </Label>
                 <DatePicker
@@ -232,8 +239,9 @@ export function AdicionarFuncionarioModal({
             )}
 
             {opcaoData === 'hoje' && (
-              <p className="text-xs text-muted-foreground ml-6">
-                O período de {tipoLabel.toLowerCase()} iniciará hoje ({new Date().toLocaleDateString('pt-BR')})
+              <p className="text-muted-foreground ml-6 text-xs">
+                O período de {tipoLabel.toLowerCase()} iniciará hoje (
+                {new Date().toLocaleDateString('pt-BR')})
               </p>
             )}
           </div>
@@ -258,7 +266,8 @@ export function AdicionarFuncionarioModal({
             <Alert>
               <Plus className="h-4 w-4" />
               <AlertDescription>
-                O funcionário <strong>{funcionarioSelecionado.nomeCompleto}</strong> será
+                O funcionário{' '}
+                <strong>{funcionarioSelecionado.nomeCompleto}</strong> será
                 adicionado como {tipoLabel.toLowerCase()} deste contrato.
               </AlertDescription>
             </Alert>
@@ -280,19 +289,21 @@ export function AdicionarFuncionarioModal({
             onClick={handleConfirmarAdicao}
             disabled={!funcionarioSelecionado || adicionarMutation.isPending}
             className={cn(
-              "min-w-32",
-              funcionarioInativo && "bg-orange-600 hover:bg-orange-700"
+              'min-w-32',
+              funcionarioInativo && 'bg-orange-600 hover:bg-orange-700',
             )}
           >
             {adicionarMutation.isPending ? (
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="mr-2 h-4 w-4" />
               </motion.div>
             ) : null}
-            {adicionarMutation.isPending ? 'Adicionando...' : `Adicionar ${tipoLabel}`}
+            {adicionarMutation.isPending
+              ? 'Adicionando...'
+              : `Adicionar ${tipoLabel}`}
           </Button>
         </DialogFooter>
       </DialogContent>

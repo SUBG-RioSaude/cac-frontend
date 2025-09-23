@@ -14,7 +14,10 @@ interface ActiveContractsCardProps {
   className?: string
 }
 
-export function ActiveContractsCard({ filters, className }: ActiveContractsCardProps) {
+export function ActiveContractsCard({
+  filters,
+  className,
+}: ActiveContractsCardProps) {
   const { metrics, isLoading, error } = useDashboardMetrics(filters)
 
   return (
@@ -26,6 +29,7 @@ export function ActiveContractsCard({ filters, className }: ActiveContractsCardP
       error={error}
       className={className}
       description="Contratos em vigência"
+      data-testid="active-contracts-card"
     />
   )
 }

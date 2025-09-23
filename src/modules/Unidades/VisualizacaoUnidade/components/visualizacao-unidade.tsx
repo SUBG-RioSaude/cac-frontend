@@ -42,7 +42,7 @@ export function VisualizacaoUnidade() {
   if (error || !unidade) {
     return (
       <div className="container mx-auto p-4">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <Button
             variant="outline"
             size="sm"
@@ -56,10 +56,10 @@ export function VisualizacaoUnidade() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-muted-foreground">
+              <h3 className="text-muted-foreground text-lg font-semibold">
                 Unidade não encontrada
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-2 text-sm">
                 Não foi possível carregar as informações da unidade.
               </p>
             </div>
@@ -90,7 +90,7 @@ export function VisualizacaoUnidade() {
           </Button>
           <div>
             <h1 className="text-xl font-bold sm:text-2xl">{unidade.nome}</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {unidade.sigla ? `${unidade.sigla} • ` : ''}
               {unidade.cap.nome}
             </p>
@@ -99,7 +99,11 @@ export function VisualizacaoUnidade() {
       </div>
 
       {/* Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Building className="h-4 w-4" />

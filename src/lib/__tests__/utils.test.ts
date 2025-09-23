@@ -12,7 +12,10 @@ describe('cn', () => {
 
   it('deve lidar com condicionais', () => {
     const condicional = false
-    const resultado = cn('text-red-500', condicional ? 'bg-blue-500' : 'bg-red-500')
+    const resultado = cn(
+      'text-red-500',
+      condicional ? 'bg-blue-500' : 'bg-red-500',
+    )
     expect(resultado).toBe('text-red-500 bg-red-500')
   })
 })

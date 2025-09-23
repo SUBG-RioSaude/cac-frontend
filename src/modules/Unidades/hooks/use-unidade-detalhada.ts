@@ -7,7 +7,10 @@ interface UseUnidadeDetalhadaProps {
   enabled?: boolean
 }
 
-export const useUnidadeDetalhada = ({ id, enabled = true }: UseUnidadeDetalhadaProps) => {
+export const useUnidadeDetalhada = ({
+  id,
+  enabled = true,
+}: UseUnidadeDetalhadaProps) => {
   const [unidade, setUnidade] = useState<UnidadeDetalhada | null>(null)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -22,7 +25,7 @@ export const useUnidadeDetalhada = ({ id, enabled = true }: UseUnidadeDetalhadaP
       console.log('[DEBUG] Iniciando carregamento da unidade:', id)
       setCarregando(true)
       setErro(null)
-      
+
       try {
         console.log('[DEBUG] Chamando API para buscar unidade:', id)
         const dados = await buscarUnidadePorId(id)
@@ -57,6 +60,6 @@ export const useUnidadeDetalhada = ({ id, enabled = true }: UseUnidadeDetalhadaP
     unidade,
     carregando,
     erro,
-    recarregar
+    recarregar,
   }
 }

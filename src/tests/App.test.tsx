@@ -9,13 +9,13 @@ describe('App', () => {
     render(
       <BrowserRouter>
         <App />
-      </BrowserRouter>
+      </BrowserRouter>,
     )
 
     // Verifica se a página de login está sendo renderizada
     expect(screen.getByText('Bem-Vindo(a)!')).toBeInTheDocument()
     expect(screen.getByText('Insira suas credenciais')).toBeInTheDocument()
-    
+
     // Verifica se os campos de login estão presentes
     expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
     expect(screen.getByLabelText('Senha')).toBeInTheDocument()

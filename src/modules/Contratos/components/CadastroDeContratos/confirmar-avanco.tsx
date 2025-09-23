@@ -47,13 +47,13 @@ export default function ConfirmarAvancoModal({
   const isFinalizacao = textoConfirmar.toLowerCase().includes('finalizar')
 
   return (
-    <div className="fixed inset-0 z-[9999] h-screen flex items-center justify-center p-4 md:p-8">
+    <div className="fixed inset-0 z-[9999] flex h-screen items-center justify-center p-4 md:p-8">
       {/* Overlay com blur */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onCancelar}
       />
-      
+
       {/* Modal */}
       <div className="relative w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
         {/* Header */}

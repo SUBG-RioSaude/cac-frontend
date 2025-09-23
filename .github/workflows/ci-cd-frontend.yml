@@ -16,9 +16,13 @@ env:
 jobs:
   # 🧪 QUALIDADE DE CÓDIGO E TESTES
   quality-check:
-    name: 🧪 Quality Check & Tests
+    name: 🧪 Quality Check & Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        node-version: [20, 22]
+      fail-fast: false
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
@@ -28,10 +32,10 @@ jobs:
       with:
         run_install: false
 
-    - name: 🔧 Setup Node.js 20
+    - name: 🔧 Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
 
     - name: 📦 Install Dependencies
@@ -64,14 +68,266 @@ jobs:
     - name: 🏗️ TypeScript Build Check
       run: |
         echo "🏗️ Checking TypeScript compilation..."
-        pnpm build
-        echo "✅ TypeScript build successful!"
 
-    - name: 🧪 Run Tests
+        # Medir tempo de build
+        BUILD_START=$(date +%s)
+        pnpm build
+        BUILD_END=$(date +%s)
+        BUILD_TIME=$((BUILD_END - BUILD_START))
+
+        echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
+        echo "✅ TypeScript build successful in ${BUILD_TIME}s!"
+
+        # Performance budget check
+        if [ $BUILD_TIME -gt 120 ]; then
+          echo "::warning::Build time (${BUILD_TIME}s) exceeds 2 minutes"
+        fi
+
+    - name: 📦 Bundle Size Analysis
       run: |
-        echo "🧪 Running Vitest tests..."
-        pnpm test --run --reporter=verbose --coverage=false
-        echo "✅ All tests passed!"
+        echo "📦 Analyzing bundle size..."
+
+        if [ -d "dist" ]; then
+          # Calcular tamanho do bundle
+          BUNDLE_SIZE_HUMAN=$(du -sh dist/ | cut -f1)
+          BUNDLE_SIZE_BYTES=$(du -sb dist/ | cut -f1)
+
+          echo "## 📦 Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Size | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Bundle | $BUNDLE_SIZE_HUMAN | $([ $BUNDLE_SIZE_BYTES -le 5242880 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Threshold:** ≤ 5MB (5,242,880 bytes)" >> $GITHUB_STEP_SUMMARY
+
+          # Assets breakdown
+          if [ -d "dist/assets" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📁 Assets Breakdown" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            ls -lah dist/assets/ | head -10 >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Warning for large bundles
+          if [ $BUNDLE_SIZE_BYTES -gt 5242880 ]; then
+            echo "⚠️ Bundle size ($BUNDLE_SIZE_HUMAN) exceeds 5MB threshold"
+            echo "::warning::Bundle size is large. Consider code splitting or optimizations."
+          else
+            echo "✅ Bundle size within acceptable limits"
+          fi
+        else
+          echo "⚠️ Build directory not found"
+          echo "::warning::Could not analyze bundle size - dist directory missing"
+        fi
+
+    - name: 🧪 Run Tests with Coverage
+      run: |
+        echo "🧪 Running Vitest tests with coverage..."
+
+        # Medir tempo de testes
+        TEST_START=$(date +%s)
+        pnpm test --run --reporter=verbose --coverage
+        TEST_END=$(date +%s)
+        TEST_TIME=$((TEST_END - TEST_START))
+
+        echo "TEST_TIME=$TEST_TIME" >> $GITHUB_ENV
+        echo "✅ All tests passed in ${TEST_TIME}s!"
+
+        # Performance budget check
+        if [ $TEST_TIME -gt 300 ]; then
+          echo "::warning::Test time (${TEST_TIME}s) exceeds 5 minutes"
+        fi
+
+    - name: 📊 Coverage Report
+      run: |
+        echo "## 📊 Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f coverage/coverage-summary.json ]; then
+          LINES=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          FUNCTIONS=$(jq -r '.total.functions.pct' coverage/coverage-summary.json)
+          BRANCHES=$(jq -r '.total.branches.pct' coverage/coverage-summary.json)
+          STATEMENTS=$(jq -r '.total.statements.pct' coverage/coverage-summary.json)
+
+          echo "| Metric | Coverage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lines | ${LINES}% | $([ ${LINES%.*} -ge 85 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functions | ${FUNCTIONS}% | $([ ${FUNCTIONS%.*} -ge 90 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branches | ${BRANCHES}% | $([ ${BRANCHES%.*} -ge 85 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Statements | ${STATEMENTS}% | $([ ${STATEMENTS%.*} -ge 90 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Thresholds:** Lines ≥85%, Functions ≥90%, Branches ≥85%, Statements ≥90%" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Coverage report not found" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: 🎯 Coverage Enforcement
+      run: |
+        if [ -f coverage/coverage-summary.json ]; then
+          LINES=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          FUNCTIONS=$(jq -r '.total.functions.pct' coverage/coverage-summary.json)
+
+          echo "🎯 Checking coverage thresholds..."
+
+          if (( $(echo "$LINES < 85" | bc -l) )); then
+            echo "❌ Lines coverage ($LINES%) is below threshold (85%)"
+            exit 1
+          fi
+
+          if (( $(echo "$FUNCTIONS < 90" | bc -l) )); then
+            echo "❌ Functions coverage ($FUNCTIONS%) is below threshold (90%)"
+            exit 1
+          fi
+
+          echo "✅ All coverage thresholds met!"
+        else
+          echo "⚠️ Coverage file not found - skipping enforcement"
+        fi
+
+    - name: ⚡ Performance Report
+      run: |
+        echo "## ⚡ Performance Metrics" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Time | Budget | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Build | ${BUILD_TIME}s | ≤ 120s | $([ $BUILD_TIME -le 120 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tests | ${TEST_TIME}s | ≤ 300s | $([ $TEST_TIME -le 300 ] && echo '✅' || echo '⚠️') |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        TOTAL_TIME=$((BUILD_TIME + TEST_TIME))
+        echo "**Total CI Time:** ${TOTAL_TIME}s" >> $GITHUB_STEP_SUMMARY
+
+  # 📊 ANÁLISE DE PR - Bundle Size Comparison
+  pr-analysis:
+    name: 📊 PR Analysis
+    runs-on: ubuntu-latest
+    needs: quality-check
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: 📥 Checkout PR Branch
+      uses: actions/checkout@v4
+
+    - name: 📦 Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        run_install: false
+
+    - name: 🔧 Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+
+    - name: 📦 Install Dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: 🏗️ Build PR Branch
+      run: |
+        echo "🏗️ Building PR branch..."
+        pnpm build
+        PR_SIZE=$(du -sb dist/ | cut -f1)
+        echo "PR_BUNDLE_SIZE=$PR_SIZE" >> $GITHUB_ENV
+
+    - name: 📥 Checkout Base Branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.base_ref }}
+
+    - name: 🏗️ Build Base Branch
+      run: |
+        echo "🏗️ Building base branch..."
+        pnpm install --frozen-lockfile
+        pnpm build
+        BASE_SIZE=$(du -sb dist/ | cut -f1)
+        echo "BASE_BUNDLE_SIZE=$BASE_SIZE" >> $GITHUB_ENV
+
+    - name: 📈 Bundle Size Comparison
+      run: |
+        echo "## 📈 Bundle Size Comparison" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        PR_SIZE_MB=$(echo "scale=2; $PR_BUNDLE_SIZE / 1048576" | bc)
+        BASE_SIZE_MB=$(echo "scale=2; $BASE_BUNDLE_SIZE / 1048576" | bc)
+        DIFF_BYTES=$(($PR_BUNDLE_SIZE - $BASE_BUNDLE_SIZE))
+        DIFF_MB=$(echo "scale=2; $DIFF_BYTES / 1048576" | bc)
+
+        echo "| Branch | Size (MB) |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Base (${{ github.base_ref }}) | ${BASE_SIZE_MB} MB |" >> $GITHUB_STEP_SUMMARY
+        echo "| PR (${{ github.head_ref }}) | ${PR_SIZE_MB} MB |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Difference** | **${DIFF_MB} MB** |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ $DIFF_BYTES -gt 0 ]; then
+          echo "📈 Bundle size increased by ${DIFF_MB} MB" >> $GITHUB_STEP_SUMMARY
+          if [ $DIFF_BYTES -gt 1048576 ]; then
+            echo "::warning::Bundle size increased significantly (+${DIFF_MB} MB)"
+          fi
+        elif [ $DIFF_BYTES -lt 0 ]; then
+          echo "📉 Bundle size decreased by $(echo $DIFF_MB | tr -d '-') MB ✅" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "➖ No change in bundle size" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # 🏷️ VALIDAÇÃO DE COMMITS CONVENCIONAIS
+  commit-validation:
+    name: 🏷️ Commit Validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: 📥 Checkout PR
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🏷️ Validate Conventional Commits
+      run: |
+        echo "🏷️ Validating commit messages in PR..."
+
+        # Instalar commitlint
+        npm install -g @commitlint/cli @commitlint/config-conventional
+
+        echo "## 🏷️ Commit Validation Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Obter commits do PR
+        COMMITS=$(git rev-list --no-merges origin/${{ github.base_ref }}..HEAD)
+        TOTAL_COMMITS=$(echo "$COMMITS" | wc -l)
+        VALID_COMMITS=0
+        INVALID_COMMITS=0
+
+        echo "**Total commits no PR:** $TOTAL_COMMITS" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        for commit in $COMMITS; do
+          COMMIT_MSG=$(git log --format=%s -n 1 $commit)
+          COMMIT_SHORT=$(echo $commit | cut -c1-7)
+
+          if echo "$COMMIT_MSG" | npx commitlint --config /dev/null --extends @commitlint/config-conventional >/dev/null 2>&1; then
+            echo "✅ \`$COMMIT_SHORT\`: $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
+            VALID_COMMITS=$((VALID_COMMITS + 1))
+          else
+            echo "❌ \`$COMMIT_SHORT\`: $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
+            INVALID_COMMITS=$((INVALID_COMMITS + 1))
+          fi
+        done
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Resultado:** $VALID_COMMITS válidos, $INVALID_COMMITS inválidos" >> $GITHUB_STEP_SUMMARY
+
+        if [ $INVALID_COMMITS -gt 0 ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Como corrigir:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Use \`pnpm commit\` para commits guiados" >> $GITHUB_STEP_SUMMARY
+          echo "- Formato: \`tipo(escopo): descrição\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Tipos válidos: feat, fix, docs, style, refactor, test, chore" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "::warning::Alguns commits não seguem o padrão Conventional Commits"
+        else
+          echo "✅ Todos os commits seguem o padrão Conventional Commits!" >> $GITHUB_STEP_SUMMARY
+        fi
 
   # 🐳 BUILD E PUSH VERSIONADO
   build-and-push:
@@ -200,10 +456,47 @@ jobs:
     - name: 📦 Install Dependencies
       run: pnpm install --frozen-lockfile
 
-    - name: 🔍 Audit Dependencies
+    - name: 🔍 Enhanced Security Audit
       run: |
         echo "🔍 Verificando vulnerabilidades nas dependências..."
-        pnpm audit || echo "⚠️ Vulnerabilidades encontradas - revisar antes do deploy"
+
+        # Executar audit e capturar resultados
+        echo "## 🛡️ Security Audit Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if pnpm audit --audit-level=high --json > audit-results.json 2>/dev/null; then
+          echo "✅ Nenhuma vulnerabilidade crítica encontrada" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Vulnerabilidades encontradas:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Contar vulnerabilidades por severidade
+          if [ -f audit-results.json ]; then
+            HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-results.json 2>/dev/null || echo "0")
+            MODERATE=$(jq -r '.metadata.vulnerabilities.moderate // 0' audit-results.json 2>/dev/null || echo "0")
+            LOW=$(jq -r '.metadata.vulnerabilities.low // 0' audit-results.json 2>/dev/null || echo "0")
+
+            echo "| Severidade | Quantidade |" >> $GITHUB_STEP_SUMMARY
+            echo "|------------|------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$HIGH" -gt 0 ]; then
+              echo "::warning::Vulnerabilidades críticas encontradas: $HIGH"
+            fi
+          fi
+
+          echo "💡 Execute \`pnpm audit fix\` para corrigir automaticamente ou \`pnpm audit\` para detalhes" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: 🔒 Dependency Review (PRs)
+      if: github.event_name == 'pull_request'
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: high
+        allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC
 
     - name: 📊 Bundle Size Analysis
       run: |

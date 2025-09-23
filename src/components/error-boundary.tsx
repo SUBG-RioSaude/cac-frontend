@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { createComponentLogger } from '@/lib/logger'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -17,6 +18,8 @@ export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
+  private logger = createComponentLogger('ErrorBoundary', 'components')
+
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, error: null }
@@ -27,11 +30,29 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    this.logger.error(
+      {
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
+        componentStack: errorInfo.componentStack,
+        errorBoundary: 'caught',
+      },
+      'ErrorBoundary caught an error',
+    )
+
     this.props.onError?.(error, errorInfo)
   }
 
   handleRetry = () => {
+    this.logger.info(
+      {
+        action: 'retry',
+        errorBoundary: 'reset',
+      },
+      'ErrorBoundary retry executed',
+    )
+
     this.setState({ hasError: false, error: null })
   }
 

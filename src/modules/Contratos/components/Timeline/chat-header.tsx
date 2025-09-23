@@ -39,9 +39,9 @@ export function ChatHeader({
   onBuscar,
   onConfiguracoes,
   onMostrarParticipantes,
-  className
+  className,
 }: ChatHeaderProps) {
-  const participantesOnline = participantes.filter(p => p.status === 'online')
+  const participantesOnline = participantes.filter((p) => p.status === 'online')
   const participantesAtivos = participantes.slice(0, 3) // Mostrar apenas os 3 primeiros
 
   const getStatusColor = (status: ChatParticipante['status']) => {
@@ -74,21 +74,24 @@ export function ChatHeader({
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
             <Users className="h-5 w-5 text-blue-600" />
           </div>
-          
+
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold">Chat - {numeroContrato}</h3>
               {mensagensNaoLidas > 0 && (
-                <Badge className="bg-red-500 text-white px-2 py-0 text-xs">
+                <Badge className="bg-red-500 px-2 py-0 text-xs text-white">
                   {mensagensNaoLidas}
                 </Badge>
               )}
             </div>
-            
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Circle className={cn('h-2 w-2 fill-current', getStatusColor('online'))} />
+
+            <div className="text-muted-foreground flex items-center gap-2 text-xs">
+              <Circle
+                className={cn('h-2 w-2 fill-current', getStatusColor('online'))}
+              />
               <span>
-                {participantesOnline.length} de {participantes.length} participantes online
+                {participantesOnline.length} de {participantes.length}{' '}
+                participantes online
               </span>
             </div>
           </div>
@@ -105,29 +108,38 @@ export function ChatHeader({
                   className="relative"
                 >
                   <Avatar className="h-8 w-8 border-2 border-white">
-                    <AvatarImage 
-                      src={participante.avatar} 
+                    <AvatarImage
+                      src={participante.avatar}
                       alt={participante.nome}
                     />
                     <AvatarFallback className="text-xs">
-                      {participante.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                      {participante.nome
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   {/* Indicador de status */}
-                  <div className={cn(
-                    'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white',
-                    participante.status === 'online' ? 'bg-green-500' :
-                    participante.status === 'ausente' ? 'bg-yellow-500' : 'bg-gray-400'
-                  )} />
+                  <div
+                    className={cn(
+                      'absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white',
+                      participante.status === 'online'
+                        ? 'bg-green-500'
+                        : participante.status === 'ausente'
+                          ? 'bg-yellow-500'
+                          : 'bg-gray-400',
+                    )}
+                  />
                 </motion.div>
               ))}
             </div>
-            
+
             {participantes.length > 3 && (
               <button
                 onClick={onMostrarParticipantes}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-muted/80"
+                className="bg-muted text-muted-foreground hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium"
               >
                 +{participantes.length - 3}
               </button>
@@ -157,28 +169,28 @@ export function ChatHeader({
                     Ver Participantes ({participantes.length})
                   </DropdownMenuItem>
                 )}
-                
+
                 {onBuscar && (
                   <DropdownMenuItem onClick={onBuscar}>
                     <Search className="mr-2 h-4 w-4" />
                     Buscar Mensagens
                   </DropdownMenuItem>
                 )}
-                
+
                 <DropdownMenuSeparator />
-                
+
                 <DropdownMenuItem disabled>
                   <Phone className="mr-2 h-4 w-4" />
                   Iniciar Chamada
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuItem disabled>
                   <Video className="mr-2 h-4 w-4" />
                   Videoconferência
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuSeparator />
-                
+
                 {onConfiguracoes && (
                   <DropdownMenuItem onClick={onConfiguracoes}>
                     <Settings className="mr-2 h-4 w-4" />
@@ -194,35 +206,35 @@ export function ChatHeader({
       {/* Status detalhado dos participantes (mobile) */}
       <div className="mt-3 block sm:hidden">
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">
+          <p className="text-muted-foreground text-xs font-medium">
             Participantes ({participantes.length})
           </p>
-          
+
           <div className="flex flex-wrap gap-2">
             {participantesAtivos.map((participante) => (
               <div
                 key={participante.id}
-                className="flex items-center gap-2 rounded-full bg-muted px-3 py-1"
+                className="bg-muted flex items-center gap-2 rounded-full px-3 py-1"
               >
-                <Circle 
+                <Circle
                   className={cn(
-                    'h-2 w-2 fill-current', 
-                    getStatusColor(participante.status)
-                  )} 
+                    'h-2 w-2 fill-current',
+                    getStatusColor(participante.status),
+                  )}
                 />
                 <span className="text-xs font-medium">
                   {participante.nome.split(' ')[0]}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   {getStatusLabel(participante.status)}
                 </span>
               </div>
             ))}
-            
+
             {participantes.length > 3 && (
               <button
                 onClick={onMostrarParticipantes}
-                className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80"
+                className="bg-muted text-muted-foreground hover:bg-muted/80 rounded-full px-3 py-1 text-xs font-medium"
               >
                 +{participantes.length - 3} mais
               </button>

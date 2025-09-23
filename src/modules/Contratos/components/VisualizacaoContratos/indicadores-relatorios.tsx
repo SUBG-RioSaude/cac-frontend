@@ -46,11 +46,13 @@ export function IndicadoresRelatorios({
   const [unidadeHover, setUnidadeHover] = useState<number | null>(null)
 
   // Buscar nomes das unidades
-  const unidadesIds = (contrato.unidadesVinculadas || []).map(u => u.unidadeSaudeId).filter(Boolean)
-  const { 
-    data: unidadesData, 
-    isLoading: unidadesLoading 
-  } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+  const unidadesIds = (contrato.unidadesVinculadas || [])
+    .map((u) => u.unidadeSaudeId)
+    .filter(Boolean)
+  const { data: unidadesData, isLoading: unidadesLoading } = useUnidadesByIds(
+    unidadesIds,
+    { enabled: unidadesIds.length > 0 },
+  )
 
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string) => {
@@ -58,8 +60,6 @@ export function IndicadoresRelatorios({
     const unidade = unidadesData?.[unidadeId]
     return unidade?.nome || `Unidade ${unidadeId.slice(-8)}`
   }
-
-
 
   const getStatusPeriodo = (status: string) => {
     const statusConfig = {
@@ -87,16 +87,22 @@ export function IndicadoresRelatorios({
 
   // Cálculos baseados em dados reais
   const valorExecutado = valorTotal - indicadores.saldoAtual
-  
+
   // Calcular progresso temporal (dias vigentes)
   const hoje = new Date()
   const dataInicio = new Date(contrato.dataInicio)
   const dataTermino = new Date(contrato.dataTermino)
-  
-  const diasVigentes = Math.max(0, Math.floor((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24)))
-  const diasTotais = Math.floor((dataTermino.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24))
-  const progressoTemporal = diasTotais > 0 ? Math.min((diasVigentes / diasTotais) * 100, 100) : 0
-  
+
+  const diasVigentes = Math.max(
+    0,
+    Math.floor((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24)),
+  )
+  const diasTotais = Math.floor(
+    (dataTermino.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24),
+  )
+  const progressoTemporal =
+    diasTotais > 0 ? Math.min((diasVigentes / diasTotais) * 100, 100) : 0
+
   // Calcular gasto médio por dia
   const gastoMedioPorDia = diasVigentes > 0 ? valorExecutado / diasVigentes : 0
 
@@ -105,30 +111,48 @@ export function IndicadoresRelatorios({
     const dataInicio = new Date(contrato.dataInicio)
     const dataFim = new Date(contrato.dataTermino)
     const hoje = new Date()
-    
+
     // Calcular meses decorridos para compatibilidade com o gráfico de evolução
-    const mesesDecorridos = Math.max(0, Math.floor((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24 * 30.44)))
-    
-    const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
-                       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-    
+    const mesesDecorridos = Math.max(
+      0,
+      Math.floor(
+        (hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24 * 30.44),
+      ),
+    )
+
+    const mesesNomes = [
+      'Jan',
+      'Fev',
+      'Mar',
+      'Abr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Set',
+      'Out',
+      'Nov',
+      'Dez',
+    ]
+
     const dados = []
     const dataAtual = new Date(dataInicio)
     let mesIndex = 0
-    
-    while (dataAtual <= dataFim && mesIndex < 12) { // Limitar a 12 meses para visualização
+
+    while (dataAtual <= dataFim && mesIndex < 12) {
+      // Limitar a 12 meses para visualização
       const mesAno = `${mesesNomes[dataAtual.getMonth()]}/${dataAtual.getFullYear().toString().slice(-2)}`
       const mesAtual = mesIndex + 1
-      
+
       // Valor esperado baseado no VTM para este mês
       const valorEsperadoMes = vtmTotalContrato * mesAtual
       const percentualEsperado = (valorEsperadoMes / valorTotal) * 100
-      
+
       // Se o mês já passou, usar dados de execução real, senão usar projeção
       const jaPassou = dataAtual < hoje
       let valorReal = 0
       let percentualReal = 0
-      
+
       if (jaPassou && mesAtual <= mesesDecorridos) {
         // Para meses que já passaram, calcular baseado na execução proporcional
         const proporcaoTempo = mesAtual / mesesDecorridos
@@ -139,22 +163,30 @@ export function IndicadoresRelatorios({
         valorReal = valorExecutado
         percentualReal = indicadores.percentualExecutado
       }
-      
+
       dados.push({
         mes: mesAno,
-        percentual: Math.min(jaPassou && mesAtual <= mesesDecorridos ? percentualReal : percentualEsperado, 100),
-        valor: jaPassou && mesAtual <= mesesDecorridos ? valorReal : valorEsperadoMes,
+        percentual: Math.min(
+          jaPassou && mesAtual <= mesesDecorridos
+            ? percentualReal
+            : percentualEsperado,
+          100,
+        ),
+        valor:
+          jaPassou && mesAtual <= mesesDecorridos
+            ? valorReal
+            : valorEsperadoMes,
         esperado: percentualEsperado,
         valorEsperado: valorEsperadoMes,
         isReal: jaPassou && mesAtual <= mesesDecorridos,
-        isAtual: mesAtual === mesesDecorridos
+        isAtual: mesAtual === mesesDecorridos,
       })
-      
+
       // Avançar para o próximo mês
       dataAtual.setMonth(dataAtual.getMonth() + 1)
       mesIndex++
     }
-    
+
     return dados
   })()
 
@@ -207,7 +239,9 @@ export function IndicadoresRelatorios({
                   VTM do Contrato
                 </p>
                 <p className="text-base font-bold break-all text-purple-600 sm:text-xl">
-                  <span className="font-mono">{currencyUtils.formatar(vtmTotalContrato)}/mês</span>
+                  <span className="font-mono">
+                    {currencyUtils.formatar(vtmTotalContrato)}/mês
+                  </span>
                 </p>
               </div>
               <div className="rounded-lg bg-orange-50 p-3 text-center sm:p-4">
@@ -229,24 +263,25 @@ export function IndicadoresRelatorios({
                 {diasVigentes} dias vigentes de {diasTotais} dias
               </p>
               <div className="mt-3">
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-medium text-blue-600">
                     {progressoTemporal.toFixed(1)}%
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {diasTotais - diasVigentes} dias restantes
                   </span>
                 </div>
-                <div className="w-full bg-blue-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+                <div className="h-2.5 w-full rounded-full bg-blue-200">
+                  <div
+                    className="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
                     style={{ width: `${Math.min(progressoTemporal, 100)}%` }}
                   ></div>
                 </div>
               </div>
               {gastoMedioPorDia > 0 && (
-                <p className="text-muted-foreground text-xs mt-2">
-                  Gasto médio: <CurrencyDisplay value={gastoMedioPorDia} />/dia
+                <p className="text-muted-foreground mt-2 text-xs">
+                  Gasto médio: <CurrencyDisplay value={gastoMedioPorDia} />
+                  /dia
                 </p>
               )}
             </div>
@@ -288,16 +323,23 @@ export function IndicadoresRelatorios({
                     <p className="font-semibold">
                       {dadosEvolucao[mesHover].mes}
                     </p>
-                    <p className={`${dadosEvolucao[mesHover].isReal ? 'text-blue-200' : 'text-gray-200'}`}>
-                      {dadosEvolucao[mesHover].percentual.toFixed(1)}% 
-                      {dadosEvolucao[mesHover].isReal ? ' (Real)' : ' (Projetado)'}
+                    <p
+                      className={`${dadosEvolucao[mesHover].isReal ? 'text-blue-200' : 'text-gray-200'}`}
+                    >
+                      {dadosEvolucao[mesHover].percentual.toFixed(1)}%
+                      {dadosEvolucao[mesHover].isReal
+                        ? ' (Real)'
+                        : ' (Projetado)'}
                     </p>
                     <p className="break-all">
                       <CurrencyDisplay value={dadosEvolucao[mesHover].valor} />
                     </p>
                     {dadosEvolucao[mesHover].isReal && (
-                      <p className="text-xs text-gray-300 mt-1">
-                        Esperado: <CurrencyDisplay value={dadosEvolucao[mesHover].valorEsperado} />
+                      <p className="mt-1 text-xs text-gray-300">
+                        Esperado:{' '}
+                        <CurrencyDisplay
+                          value={dadosEvolucao[mesHover].valorEsperado}
+                        />
                       </p>
                     )}
                   </div>
@@ -320,7 +362,7 @@ export function IndicadoresRelatorios({
                     <motion.div
                       className={`w-6 rounded-t transition-all duration-300 sm:w-10 ${
                         mesHover === index
-                          ? item.isReal 
+                          ? item.isReal
                             ? 'bg-gradient-to-t from-blue-600 to-blue-400 shadow-lg'
                             : 'bg-gradient-to-t from-gray-600 to-gray-400 shadow-lg'
                           : item.isReal
@@ -354,20 +396,21 @@ export function IndicadoresRelatorios({
             {/* Legenda do gráfico */}
             <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-gradient-to-t from-blue-500 to-blue-300 rounded"></div>
+                <div className="h-3 w-3 rounded bg-gradient-to-t from-blue-500 to-blue-300"></div>
                 <span className="text-muted-foreground">Executado</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-gradient-to-t from-yellow-500 to-yellow-300 rounded"></div>
+                <div className="h-3 w-3 rounded bg-gradient-to-t from-yellow-500 to-yellow-300"></div>
                 <span className="text-muted-foreground">Atual</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-gradient-to-t from-gray-400 to-gray-200 rounded"></div>
+                <div className="h-3 w-3 rounded bg-gradient-to-t from-gray-400 to-gray-200"></div>
                 <span className="text-muted-foreground">Projetado</span>
               </div>
             </div>
             <div className="text-muted-foreground mt-2 text-center text-xs">
-              Passe o mouse sobre as barras para ver detalhes e comparação com VTM
+              Passe o mouse sobre as barras para ver detalhes e comparação com
+              VTM
             </div>
           </CardContent>
         </Card>
@@ -386,16 +429,26 @@ export function IndicadoresRelatorios({
           <div className="mb-6 rounded-lg bg-blue-50 p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Início do Contrato</p>
-                <p className="font-semibold text-blue-600"><DateDisplay value={contrato.dataInicio} /></p>
+                <p className="text-muted-foreground text-xs">
+                  Início do Contrato
+                </p>
+                <p className="font-semibold text-blue-600">
+                  <DateDisplay value={contrato.dataInicio} />
+                </p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Término Previsto</p>
-                <p className="font-semibold text-blue-600"><DateDisplay value={contrato.dataTermino} /></p>
+                <p className="text-muted-foreground text-xs">
+                  Término Previsto
+                </p>
+                <p className="font-semibold text-blue-600">
+                  <DateDisplay value={contrato.dataTermino} />
+                </p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Duração Total</p>
-                <p className="font-semibold text-blue-600">{contrato.prazoInicialMeses} meses</p>
+                <p className="text-muted-foreground text-xs">Duração Total</p>
+                <p className="font-semibold text-blue-600">
+                  {contrato.prazoInicialMeses} meses
+                </p>
               </div>
             </div>
           </div>
@@ -405,23 +458,30 @@ export function IndicadoresRelatorios({
             {(() => {
               const hoje = new Date()
               const dataInicio = new Date(contrato.dataInicio)
-              
+
               // Calcular períodos baseados na duração do contrato
               const duracaoTotal = contrato.prazoInicialMeses
               const mesesPorPeriodo = Math.ceil(duracaoTotal / 4) // Dividir em 4 períodos
-              
+
               const periodos = []
-              for (let i = 0; i < 4 && i * mesesPorPeriodo < duracaoTotal; i++) {
+              for (
+                let i = 0;
+                i < 4 && i * mesesPorPeriodo < duracaoTotal;
+                i++
+              ) {
                 const inicioMeses = i * mesesPorPeriodo
-                const fimMeses = Math.min((i + 1) * mesesPorPeriodo - 1, duracaoTotal - 1)
-                
+                const fimMeses = Math.min(
+                  (i + 1) * mesesPorPeriodo - 1,
+                  duracaoTotal - 1,
+                )
+
                 const periodoInicio = new Date(dataInicio)
                 periodoInicio.setMonth(periodoInicio.getMonth() + inicioMeses)
-                
+
                 const periodoFim = new Date(dataInicio)
                 periodoFim.setMonth(periodoFim.getMonth() + fimMeses + 1)
                 periodoFim.setDate(periodoFim.getDate() - 1)
-                
+
                 // Determinar status baseado na data atual
                 let status = 'pendente'
                 if (hoje > periodoFim) {
@@ -429,19 +489,19 @@ export function IndicadoresRelatorios({
                 } else if (hoje >= periodoInicio && hoje <= periodoFim) {
                   status = 'em_andamento'
                 }
-                
+
                 const percentualEsperado = ((fimMeses + 1) / duracaoTotal) * 100
-                
+
                 periodos.push({
                   descricao: `Período ${i + 1} (${inicioMeses + 1}º ao ${fimMeses + 1}º mês)`,
                   inicio: periodoInicio.toISOString(),
                   fim: periodoFim.toISOString(),
                   status,
                   percentualEsperado: percentualEsperado.toFixed(1),
-                  valorEsperado: (valorTotal * percentualEsperado) / 100
+                  valorEsperado: (valorTotal * percentualEsperado) / 100,
                 })
               }
-              
+
               return periodos.map((periodo, index) => {
                 const statusConfig = getStatusPeriodo(periodo.status)
                 return (
@@ -469,10 +529,12 @@ export function IndicadoresRelatorios({
                       </div>
                       <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
                         <p className="text-muted-foreground text-xs sm:text-sm">
-                          <DateDisplay value={periodo.inicio} /> - <DateDisplay value={periodo.fim} />
+                          <DateDisplay value={periodo.inicio} /> -{' '}
+                          <DateDisplay value={periodo.fim} />
                         </p>
                         <p className="text-xs text-blue-600">
-                          Esperado: {periodo.percentualEsperado}% (<CurrencyDisplay value={periodo.valorEsperado} />)
+                          Esperado: {periodo.percentualEsperado}% (
+                          <CurrencyDisplay value={periodo.valorEsperado} />)
                         </p>
                       </div>
                     </div>
@@ -490,32 +552,39 @@ export function IndicadoresRelatorios({
                 const dataInicio = new Date(contrato.dataInicio)
                 const duracaoTotal = contrato.prazoInicialMeses
                 const mesesPorPeriodo = Math.ceil(duracaoTotal / 4)
-                
+
                 const periodos = []
-                for (let i = 0; i < 4 && i * mesesPorPeriodo < duracaoTotal; i++) {
+                for (
+                  let i = 0;
+                  i < 4 && i * mesesPorPeriodo < duracaoTotal;
+                  i++
+                ) {
                   const inicioMeses = i * mesesPorPeriodo
-                  const fimMeses = Math.min((i + 1) * mesesPorPeriodo - 1, duracaoTotal - 1)
-                  
+                  const fimMeses = Math.min(
+                    (i + 1) * mesesPorPeriodo - 1,
+                    duracaoTotal - 1,
+                  )
+
                   const periodoInicio = new Date(dataInicio)
                   periodoInicio.setMonth(periodoInicio.getMonth() + inicioMeses)
-                  
+
                   const periodoFim = new Date(dataInicio)
                   periodoFim.setMonth(periodoFim.getMonth() + fimMeses + 1)
                   periodoFim.setDate(periodoFim.getDate() - 1)
-                  
+
                   let status = 'pendente'
                   if (hoje > periodoFim) {
                     status = 'concluido'
                   } else if (hoje >= periodoInicio && hoje <= periodoFim) {
                     status = 'em_andamento'
                   }
-                  
+
                   periodos.push({
                     descricao: `Período ${i + 1}`,
-                    status
+                    status,
                   })
                 }
-                
+
                 return periodos.map((periodo, index) => {
                   const statusConfig = getStatusPeriodo(periodo.status)
                   return (
@@ -552,30 +621,37 @@ export function IndicadoresRelatorios({
           {(() => {
             // Usar dados reais das unidades vinculadas do contrato
             const unidadesReais = contrato.unidadesVinculadas || []
-            
+
             // Se não há unidades vinculadas, mostrar fallback
             if (!unidadesReais || unidadesReais.length === 0) {
               return (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Building className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Nenhuma unidade vinculada</h3>
-                  <p className="text-muted-foreground">Este contrato ainda não possui unidades vinculadas.</p>
+                  <Building className="text-muted-foreground mb-4 h-12 w-12" />
+                  <h3 className="mb-2 text-lg font-semibold">
+                    Nenhuma unidade vinculada
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Este contrato ainda não possui unidades vinculadas.
+                  </p>
                 </div>
               )
             }
 
             // Calcular dados baseados nas unidades reais
             const unidadesComputadas = unidadesReais.map((unidade) => {
-              const percentualValor = contrato.valorTotalAtribuido > 0 
-                ? (unidade.valorAtribuido / contrato.valorTotalAtribuido) * 100 
-                : 0
-              const valorTotalMensal = vtmTotalContrato * (percentualValor / 100)
-              
+              const percentualValor =
+                contrato.valorTotalAtribuido > 0
+                  ? (unidade.valorAtribuido / contrato.valorTotalAtribuido) *
+                    100
+                  : 0
+              const valorTotalMensal =
+                vtmTotalContrato * (percentualValor / 100)
+
               return {
                 ...unidade,
                 nome: getUnidadeNome(unidade.unidadeSaudeId),
                 percentualValor: Math.round(percentualValor * 10) / 10, // Arredondar para 1 decimal
-                valorTotalMensal
+                valorTotalMensal,
               }
             })
 
@@ -583,28 +659,41 @@ export function IndicadoresRelatorios({
               <div className="grid grid-cols-1 gap-6 sm:gap-8 xl:grid-cols-2">
                 {/* Gráfico de Pizza Interativo - Responsivo */}
                 <div className="relative order-2 flex items-center justify-center xl:order-1">
-                  {unidadeHover !== null && unidadeHover < unidadesComputadas.length && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="absolute top-2 left-1/2 z-30 max-w-xs -translate-x-1/2 transform rounded-lg bg-black px-3 py-2 text-xs text-white shadow-xl sm:top-4 sm:px-4 sm:py-3 sm:text-sm"
-                    >
-                      <div className="text-center">
-                        <p className="font-semibold break-words">
-                          {unidadesComputadas[unidadeHover].nome}
-                        </p>
-                        <p>
-                          {unidadesComputadas[unidadeHover].percentualValor}% do total
-                        </p>
-                        <p className="break-all">
-                          <CurrencyDisplay value={unidadesComputadas[unidadeHover].valorTotalMensal} />/mês
-                        </p>
-                        <p className="text-xs text-gray-300 mt-1">
-                          Valor atribuído: <CurrencyDisplay value={unidadesComputadas[unidadeHover].valorAtribuido} />
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
+                  {unidadeHover !== null &&
+                    unidadeHover < unidadesComputadas.length && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute top-2 left-1/2 z-30 max-w-xs -translate-x-1/2 transform rounded-lg bg-black px-3 py-2 text-xs text-white shadow-xl sm:top-4 sm:px-4 sm:py-3 sm:text-sm"
+                      >
+                        <div className="text-center">
+                          <p className="font-semibold break-words">
+                            {unidadesComputadas[unidadeHover].nome}
+                          </p>
+                          <p>
+                            {unidadesComputadas[unidadeHover].percentualValor}%
+                            do total
+                          </p>
+                          <p className="break-all">
+                            <CurrencyDisplay
+                              value={
+                                unidadesComputadas[unidadeHover]
+                                  .valorTotalMensal
+                              }
+                            />
+                            /mês
+                          </p>
+                          <p className="mt-1 text-xs text-gray-300">
+                            Valor atribuído:{' '}
+                            <CurrencyDisplay
+                              value={
+                                unidadesComputadas[unidadeHover].valorAtribuido
+                              }
+                            />
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
 
                   <div className="relative h-48 w-48 sm:h-56 sm:w-56">
                     <svg
@@ -615,14 +704,20 @@ export function IndicadoresRelatorios({
                         const startAngle = unidadesComputadas
                           .slice(0, index)
                           .reduce((acc, u) => acc + u.percentualValor * 3.6, 0)
-                        const endAngle = startAngle + unidade.percentualValor * 3.6
+                        const endAngle =
+                          startAngle + unidade.percentualValor * 3.6
 
-                        const x1 = 50 + 35 * Math.cos((startAngle * Math.PI) / 180)
-                        const y1 = 50 + 35 * Math.sin((startAngle * Math.PI) / 180)
-                        const x2 = 50 + 35 * Math.cos((endAngle * Math.PI) / 180)
-                        const y2 = 50 + 35 * Math.sin((endAngle * Math.PI) / 180)
+                        const x1 =
+                          50 + 35 * Math.cos((startAngle * Math.PI) / 180)
+                        const y1 =
+                          50 + 35 * Math.sin((startAngle * Math.PI) / 180)
+                        const x2 =
+                          50 + 35 * Math.cos((endAngle * Math.PI) / 180)
+                        const y2 =
+                          50 + 35 * Math.sin((endAngle * Math.PI) / 180)
 
-                        const largeArcFlag = unidade.percentualValor > 50 ? 1 : 0
+                        const largeArcFlag =
+                          unidade.percentualValor > 50 ? 1 : 0
 
                         return (
                           <motion.path
@@ -661,7 +756,9 @@ export function IndicadoresRelatorios({
                           <p className="text-lg font-bold text-blue-600 sm:text-2xl">
                             {unidadesComputadas.length}
                           </p>
-                          <p className="text-muted-foreground text-xs">Unidades</p>
+                          <p className="text-muted-foreground text-xs">
+                            Unidades
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -696,7 +793,9 @@ export function IndicadoresRelatorios({
                         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                           <div
                             className={`h-4 w-4 flex-shrink-0 rounded-full shadow-sm sm:h-6 sm:w-6 ${
-                              unidadeHover === index ? 'ring-2 ring-blue-300' : ''
+                              unidadeHover === index
+                                ? 'ring-2 ring-blue-300'
+                                : ''
                             }`}
                             style={{
                               backgroundColor:
@@ -712,11 +811,15 @@ export function IndicadoresRelatorios({
                                 {unidade.percentualValor}% do total
                               </span>
                               <span className="break-all">
-                                <CurrencyDisplay value={unidade.valorTotalMensal} />/mês
+                                <CurrencyDisplay
+                                  value={unidade.valorTotalMensal}
+                                />
+                                /mês
                               </span>
                             </div>
                             <div className="text-muted-foreground mt-1 text-xs">
-                              Valor atribuído: <CurrencyDisplay value={unidade.valorAtribuido} />
+                              Valor atribuído:{' '}
+                              <CurrencyDisplay value={unidade.valorAtribuido} />
                             </div>
                           </div>
                         </div>
@@ -727,7 +830,9 @@ export function IndicadoresRelatorios({
                             <motion.div
                               className={`h-2 rounded-full bg-gradient-to-r ${coresPizza[index % coresPizza.length].gradiente}`}
                               initial={{ width: 0 }}
-                              animate={{ width: `${Math.min(unidade.percentualValor, 100)}%` }}
+                              animate={{
+                                width: `${Math.min(unidade.percentualValor, 100)}%`,
+                              }}
                               transition={{ duration: 0.8, delay: index * 0.1 }}
                             />
                           </div>
@@ -747,9 +852,16 @@ export function IndicadoresRelatorios({
             </h4>
             {(() => {
               const unidadesReais = contrato.unidadesVinculadas || []
-              const maiorParticipacao = unidadesReais.length > 0 
-                ? Math.max(...unidadesReais.map(u => (u.valorAtribuido / contrato.valorTotalAtribuido) * 100))
-                : 0
+              const maiorParticipacao =
+                unidadesReais.length > 0
+                  ? Math.max(
+                      ...unidadesReais.map(
+                        (u) =>
+                          (u.valorAtribuido / contrato.valorTotalAtribuido) *
+                          100,
+                      ),
+                    )
+                  : 0
 
               return (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 sm:gap-6">
@@ -761,7 +873,8 @@ export function IndicadoresRelatorios({
                       VTM do Contrato
                     </p>
                     <p className="text-base font-bold break-all text-blue-600 sm:text-xl">
-                      <CurrencyDisplay value={vtmTotalContrato} />/mês
+                      <CurrencyDisplay value={vtmTotalContrato} />
+                      /mês
                     </p>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
@@ -772,7 +885,8 @@ export function IndicadoresRelatorios({
                       Gasto Médio por Dia
                     </p>
                     <p className="text-base font-bold break-all text-green-600 sm:text-xl">
-                      <CurrencyDisplay value={gastoMedioPorDia} />/dia
+                      <CurrencyDisplay value={gastoMedioPorDia} />
+                      /dia
                     </p>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
@@ -796,7 +910,7 @@ export function IndicadoresRelatorios({
                     <p className="text-base font-bold text-purple-600 sm:text-xl">
                       {progressoTemporal.toFixed(1)}%
                     </p>
-                    <p className="text-muted-foreground text-xs mt-1">
+                    <p className="text-muted-foreground mt-1 text-xs">
                       {diasVigentes} de {diasTotais} dias
                     </p>
                   </div>

@@ -16,7 +16,7 @@ export const LayoutAuthenticated = ({ children }: LayoutAuthenticatedProps) => {
       <SidebarInset>
         {/* Header fixo - nunca sai da tela */}
         <header className="flex-shrink-0 border-b border-gray-100 bg-white shadow-sm">
-          <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center justify-between px-6 py-4">
             <PageBreadcrumb />
             <NotificacoesDropdown />
           </div>
@@ -25,13 +25,11 @@ export const LayoutAuthenticated = ({ children }: LayoutAuthenticatedProps) => {
         {/* Conteúdo principal com scroll */}
         <main className="flex-1 overflow-auto bg-gray-50">
           <ErrorBoundary>
-            <div className="mx-auto px-6">
-              {children}
-            </div>
+            <div className="mx-auto px-6">{children}</div>
           </ErrorBoundary>
         </main>
 
-        <Toaster position='bottom-right' richColors closeButton />
+        <Toaster position="bottom-right" richColors closeButton />
       </SidebarInset>
     </SidebarProvider>
   )

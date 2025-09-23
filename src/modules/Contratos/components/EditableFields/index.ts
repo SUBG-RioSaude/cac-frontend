@@ -6,12 +6,12 @@ export { ConfirmEditModal } from './ConfirmEditModal'
 export { useFieldEditing } from '../../hooks/useFieldEditing'
 export type {
   EditableFieldType,
-  EditableFieldConfig
+  EditableFieldConfig,
 } from '../../config/editable-fields-config'
 export {
   EDITABLE_FIELDS_CONFIG,
   requiresConfirmation,
   isCriticalField,
   getFieldConfig,
-  getFieldLabel
+  getFieldLabel,
 } from '../../config/editable-fields-config'

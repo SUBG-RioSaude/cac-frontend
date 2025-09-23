@@ -1,6 +1,9 @@
 /**
  * Sistema de métricas para monitoramento do fallback da API
  */
+import { createServiceLogger } from './logger'
+
+const logger = createServiceLogger('api-metrics')
 
 interface ApiMetrics {
   gatewaySuccess: number
@@ -18,7 +21,7 @@ class ApiMetricsCollector {
     gatewayFailure: 0,
     directSuccess: 0,
     directFailure: 0,
-    totalRequests: 0
+    totalRequests: 0,
   }
 
   recordGatewaySuccess() {
@@ -47,45 +50,64 @@ class ApiMetricsCollector {
     this.logMetrics('Direct Failure', { reason })
   }
 
-  getMetrics(): ApiMetrics & { 
+  getMetrics(): ApiMetrics & {
     gatewaySuccessRate: number
     fallbackUsageRate: number
     overallSuccessRate: number
   } {
-    const gatewaySuccessRate = this.metrics.totalRequests > 0 
-      ? (this.metrics.gatewaySuccess / this.metrics.totalRequests) * 100 
-      : 0
+    const gatewaySuccessRate =
+      this.metrics.totalRequests > 0
+        ? (this.metrics.gatewaySuccess / this.metrics.totalRequests) * 100
+        : 0
 
-    const fallbackUsageRate = this.metrics.totalRequests > 0 
-      ? ((this.metrics.directSuccess + this.metrics.directFailure) / this.metrics.totalRequests) * 100 
-      : 0
+    const fallbackUsageRate =
+      this.metrics.totalRequests > 0
+        ? ((this.metrics.directSuccess + this.metrics.directFailure) /
+            this.metrics.totalRequests) *
+          100
+        : 0
 
-    const overallSuccessRate = this.metrics.totalRequests > 0 
-      ? ((this.metrics.gatewaySuccess + this.metrics.directSuccess) / this.metrics.totalRequests) * 100 
-      : 0
+    const overallSuccessRate =
+      this.metrics.totalRequests > 0
+        ? ((this.metrics.gatewaySuccess + this.metrics.directSuccess) /
+            this.metrics.totalRequests) *
+          100
+        : 0
 
     return {
       ...this.metrics,
       gatewaySuccessRate: Number(gatewaySuccessRate.toFixed(2)),
       fallbackUsageRate: Number(fallbackUsageRate.toFixed(2)),
-      overallSuccessRate: Number(overallSuccessRate.toFixed(2))
+      overallSuccessRate: Number(overallSuccessRate.toFixed(2)),
     }
   }
 
   private logMetrics(event: string, details?: Record<string, unknown>) {
-    const timestamp = new Date().toISOString()
     const metrics = this.getMetrics()
-    
-    console.log(`[API-METRICS] ${timestamp} - ${event}`, {
-      event,
-      details,
-      summary: {
-        total: metrics.totalRequests,
-        gatewaySuccess: `${metrics.gatewaySuccessRate}%`,
-        fallbackUsage: `${metrics.fallbackUsageRate}%`,
-        overallSuccess: `${metrics.overallSuccessRate}%`
-      }
-    })
+
+    logger.info(
+      {
+        event,
+        details,
+        metrics: {
+          total: metrics.totalRequests,
+          gateway: {
+            success: metrics.gatewaySuccess,
+            failure: metrics.gatewayFailure,
+            successRate: metrics.gatewaySuccessRate,
+          },
+          direct: {
+            success: metrics.directSuccess,
+            failure: metrics.directFailure,
+          },
+          fallbackUsageRate: metrics.fallbackUsageRate,
+          overallSuccessRate: metrics.overallSuccessRate,
+          lastFailure: metrics.lastFailureTime?.toISOString(),
+          lastFailureReason: metrics.lastFailureReason,
+        },
+      },
+      `API Metrics - ${event}`,
+    )
   }
 
   reset() {
@@ -94,30 +116,42 @@ class ApiMetricsCollector {
       gatewayFailure: 0,
       directSuccess: 0,
       directFailure: 0,
-      totalRequests: 0
+      totalRequests: 0,
     }
   }
 
-  // Método para exibir relatório no console
+  // Método para exibir relatório completo
   printReport() {
     const metrics = this.getMetrics()
-    
-    console.group('📊 API Fallback Report')
-    console.log('Total de requisições:', metrics.totalRequests)
-    console.log('Gateway - Sucessos:', metrics.gatewaySuccess)
-    console.log('Gateway - Falhas:', metrics.gatewayFailure)
-    console.log('Direto - Sucessos:', metrics.directSuccess)
-    console.log('Direto - Falhas:', metrics.directFailure)
-    console.log('Taxa de sucesso do Gateway:', `${metrics.gatewaySuccessRate}%`)
-    console.log('Taxa de uso do Fallback:', `${metrics.fallbackUsageRate}%`)
-    console.log('Taxa de sucesso geral:', `${metrics.overallSuccessRate}%`)
-    
-    if (metrics.lastFailureTime) {
-      console.log('Última falha:', metrics.lastFailureTime.toLocaleString())
-      console.log('Motivo da última falha:', metrics.lastFailureReason)
-    }
-    
-    console.groupEnd()
+
+    logger.info(
+      {
+        report: 'api_fallback_complete',
+        totalRequests: metrics.totalRequests,
+        gateway: {
+          success: metrics.gatewaySuccess,
+          failure: metrics.gatewayFailure,
+          successRate: `${metrics.gatewaySuccessRate}%`,
+        },
+        direct: {
+          success: metrics.directSuccess,
+          failure: metrics.directFailure,
+        },
+        rates: {
+          gatewaySuccessRate: `${metrics.gatewaySuccessRate}%`,
+          fallbackUsageRate: `${metrics.fallbackUsageRate}%`,
+          overallSuccessRate: `${metrics.overallSuccessRate}%`,
+        },
+        lastFailure: metrics.lastFailureTime
+          ? {
+              time: metrics.lastFailureTime.toISOString(),
+              localTime: metrics.lastFailureTime.toLocaleString(),
+              reason: metrics.lastFailureReason,
+            }
+          : null,
+      },
+      '📊 API Fallback Report Completo',
+    )
   }
 }
 
@@ -126,5 +160,5 @@ export const apiMetrics = new ApiMetricsCollector()
 
 // Expor no window para debug (apenas em desenvolvimento)
 if (import.meta.env.DEV) {
-  (window as { apiMetrics?: ApiMetricsCollector }).apiMetrics = apiMetrics
+  ;(window as { apiMetrics?: ApiMetricsCollector }).apiMetrics = apiMetrics
 }

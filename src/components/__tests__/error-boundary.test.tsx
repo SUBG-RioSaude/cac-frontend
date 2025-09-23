@@ -1,11 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import '@testing-library/jest-dom'
-import { ErrorBoundary, withErrorBoundary, FormErrorBoundary } from '../error-boundary'
+import {
+  ErrorBoundary,
+  withErrorBoundary,
+  FormErrorBoundary,
+} from '../error-boundary'
 import React from 'react'
 
 // Componente que gera erro para testar
-const ThrowErrorComponent = ({ shouldThrow = false }: { shouldThrow?: boolean }) => {
+const ThrowErrorComponent = ({
+  shouldThrow = false,
+}: {
+  shouldThrow?: boolean
+}) => {
   if (shouldThrow) {
     throw new Error('Test error message')
   }
@@ -27,7 +35,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowErrorComponent />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
     expect(screen.getByTestId('success-component')).toBeInTheDocument()
@@ -37,7 +45,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowErrorComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
     expect(screen.getByText('Algo deu errado')).toBeInTheDocument()
@@ -47,11 +55,11 @@ describe('ErrorBoundary', () => {
 
   it('deve renderizar fallback personalizado quando fornecido', () => {
     const customFallback = <div data-testid="custom-fallback">Custom Error</div>
-    
+
     render(
       <ErrorBoundary fallback={customFallback}>
         <ThrowErrorComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
     expect(screen.getByTestId('custom-fallback')).toBeInTheDocument()
@@ -60,18 +68,18 @@ describe('ErrorBoundary', () => {
 
   it('deve chamar onError quando fornecido', () => {
     const onError = vi.fn()
-    
+
     render(
       <ErrorBoundary onError={onError}>
         <ThrowErrorComponent shouldThrow={true} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
     expect(onError).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
         componentStack: expect.any(String),
-      })
+      }),
     )
   })
 
@@ -83,12 +91,12 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <TestComponent />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
     // Deve mostrar o erro
     expect(screen.getByText('Algo deu errado')).toBeInTheDocument()
-    
+
     // Deve ter o botão de tentar novamente
     expect(screen.getByText('Tentar novamente')).toBeInTheDocument()
   })
@@ -103,16 +111,20 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowErrorWithoutMessage />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
-    expect(screen.getByText('Ocorreu um erro inesperado. Tente novamente.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Ocorreu um erro inesperado. Tente novamente.'),
+    ).toBeInTheDocument()
   })
 })
 
 describe('withErrorBoundary HOC', () => {
   it('deve envolver componente com ErrorBoundary', () => {
-    const TestComponent = () => <div data-testid="wrapped-component">Wrapped</div>
+    const TestComponent = () => (
+      <div data-testid="wrapped-component">Wrapped</div>
+    )
     const WrappedComponent = withErrorBoundary(TestComponent)
 
     render(<WrappedComponent />)
@@ -149,7 +161,7 @@ describe('FormErrorBoundary', () => {
     render(
       <FormErrorBoundary>
         <ThrowErrorComponent />
-      </FormErrorBoundary>
+      </FormErrorBoundary>,
     )
 
     expect(screen.getByTestId('success-component')).toBeInTheDocument()
@@ -165,11 +177,13 @@ describe('FormErrorBoundary', () => {
     render(
       <FormErrorBoundary>
         <ThrowErrorComponent shouldThrow={true} />
-      </FormErrorBoundary>
+      </FormErrorBoundary>,
     )
 
     expect(screen.getByText('Erro no formulário')).toBeInTheDocument()
-    expect(screen.getByText(/Houve um problema ao processar o formulário/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Houve um problema ao processar o formulário/),
+    ).toBeInTheDocument()
     expect(screen.getByText('Recarregar página')).toBeInTheDocument()
 
     // Testa o botão de recarregar

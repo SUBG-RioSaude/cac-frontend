@@ -9,7 +9,7 @@ export const PARTICIPANTES_MOCK: ChatParticipante[] = [
     avatar: '/avatars/joao.jpg',
     tipo: 'fiscal',
     status: 'online',
-    ultimoAcesso: new Date().toISOString()
+    ultimoAcesso: new Date().toISOString(),
   },
   {
     id: '2',
@@ -18,7 +18,7 @@ export const PARTICIPANTES_MOCK: ChatParticipante[] = [
     avatar: '/avatars/maria.jpg',
     tipo: 'gestor',
     status: 'online',
-    ultimoAcesso: new Date().toISOString()
+    ultimoAcesso: new Date().toISOString(),
   },
   {
     id: '3',
@@ -27,7 +27,7 @@ export const PARTICIPANTES_MOCK: ChatParticipante[] = [
     avatar: '/avatars/pedro.jpg',
     tipo: 'usuario',
     status: 'ausente',
-    ultimoAcesso: new Date(Date.now() - 30 * 60 * 1000).toISOString() // 30 min atrás
+    ultimoAcesso: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 min atrás
   },
   {
     id: '4',
@@ -36,8 +36,8 @@ export const PARTICIPANTES_MOCK: ChatParticipante[] = [
     avatar: '/avatars/ana.jpg',
     tipo: 'usuario',
     status: 'offline',
-    ultimoAcesso: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2h atrás
-  }
+    ultimoAcesso: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h atrás
+  },
 ]
 
 // Mock data para mensagens do chat
@@ -49,12 +49,13 @@ export const MENSAGENS_MOCK: ChatMessage[] = [
       id: PARTICIPANTES_MOCK[0].id,
       nome: PARTICIPANTES_MOCK[0].nome,
       avatar: PARTICIPANTES_MOCK[0].avatar,
-      tipo: PARTICIPANTES_MOCK[0].tipo
+      tipo: PARTICIPANTES_MOCK[0].tipo,
     },
-    conteudo: 'Boa tarde pessoal! Iniciando o acompanhamento do contrato. Alguma pendência inicial?',
+    conteudo:
+      'Boa tarde pessoal! Iniciando o acompanhamento do contrato. Alguma pendência inicial?',
     tipo: 'texto',
     dataEnvio: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    lida: true
+    lida: true,
   },
   {
     id: '2',
@@ -62,12 +63,12 @@ export const MENSAGENS_MOCK: ChatMessage[] = [
     remetente: {
       id: 'sistema',
       nome: 'Sistema',
-      tipo: 'sistema'
+      tipo: 'sistema',
     },
     conteudo: 'João Silva foi designado como fiscal administrativo do contrato',
     tipo: 'sistema',
     dataEnvio: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-    lida: true
+    lida: true,
   },
   {
     id: '3',
@@ -76,12 +77,13 @@ export const MENSAGENS_MOCK: ChatMessage[] = [
       id: PARTICIPANTES_MOCK[1].id,
       nome: PARTICIPANTES_MOCK[1].nome,
       avatar: PARTICIPANTES_MOCK[1].avatar,
-      tipo: PARTICIPANTES_MOCK[1].tipo
+      tipo: PARTICIPANTES_MOCK[1].tipo,
     },
-    conteudo: 'Tudo tranquilo por aqui. O fornecedor já enviou a documentação inicial.',
+    conteudo:
+      'Tudo tranquilo por aqui. O fornecedor já enviou a documentação inicial.',
     tipo: 'texto',
     dataEnvio: new Date(Date.now() - 80 * 60 * 1000).toISOString(),
-    lida: true
+    lida: true,
   },
   {
     id: '4',
@@ -90,12 +92,13 @@ export const MENSAGENS_MOCK: ChatMessage[] = [
       id: PARTICIPANTES_MOCK[2].id,
       nome: PARTICIPANTES_MOCK[2].nome,
       avatar: PARTICIPANTES_MOCK[2].avatar,
-      tipo: PARTICIPANTES_MOCK[2].tipo
+      tipo: PARTICIPANTES_MOCK[2].tipo,
     },
-    conteudo: 'Confirmando recebimento das especificações. Vamos dar início aos trabalhos na próxima segunda-feira.',
+    conteudo:
+      'Confirmando recebimento das especificações. Vamos dar início aos trabalhos na próxima segunda-feira.',
     tipo: 'texto',
     dataEnvio: new Date(Date.now() - 70 * 60 * 1000).toISOString(),
-    lida: true
+    lida: true,
   },
   {
     id: '5',
@@ -104,11 +107,12 @@ export const MENSAGENS_MOCK: ChatMessage[] = [
       id: PARTICIPANTES_MOCK[0].id,
       nome: PARTICIPANTES_MOCK[0].nome,
       avatar: PARTICIPANTES_MOCK[0].avatar,
-      tipo: PARTICIPANTES_MOCK[0].tipo
+      tipo: PARTICIPANTES_MOCK[0].tipo,
     },
-    conteudo: 'Perfeito! Estarei acompanhando o cronograma. Qualquer dúvida, podem me contatar.',
+    conteudo:
+      'Perfeito! Estarei acompanhando o cronograma. Qualquer dúvida, podem me contatar.',
     tipo: 'texto',
     dataEnvio: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-    lida: true
-  }
+    lida: true,
+  },
 ]

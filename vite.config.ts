@@ -18,5 +18,31 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/tests/setup-tests.ts',
     tsconfig: './tsconfig.test.json',
+    // Configuração de coverage
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/coverage/**',
+        '**/__tests__/**',
+        '**/*.test.{ts,tsx}',
+        '**/mock*/**',
+        '**/*mock*',
+        '**/*.stories.*',
+      ],
+      thresholds: {
+        global: {
+          branches: 85,
+          functions: 90,
+          lines: 90,
+          statements: 90,
+        },
+      },
+    },
   },
 } as UserConfig)
