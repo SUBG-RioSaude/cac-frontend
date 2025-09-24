@@ -3,7 +3,6 @@ import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,
   AlertaLimiteLegal,
-  BlocoValor,
 } from '../../../types/alteracoes-contratuais'
 import {
   StatusAlteracao,

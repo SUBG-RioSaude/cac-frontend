@@ -160,14 +160,15 @@ export const fetchDashboardMetrics = async (
 
     // Buscar dados do período anterior para contratos vencendo (para comparação)
     let contratosVencendoAnterior = 0
+    const previousMonthDate = subMonths(
+      new Date(filters.periodo.ano, filters.periodo.mes - 1),
+      1,
+    )
+
     try {
-      const previousMonth = subMonths(
-        new Date(filters.periodo.ano, filters.periodo.mes - 1),
-        1,
-      )
       const previousVencendoResponse = await getContratosVencendo(30, {
-        dataInicialDe: format(startOfMonth(previousMonth), 'yyyy-MM-dd'),
-        dataInicialAte: format(endOfMonth(previousMonth), 'yyyy-MM-dd'),
+        dataInicialDe: format(startOfMonth(previousMonthDate), 'yyyy-MM-dd'),
+        dataInicialAte: format(endOfMonth(previousMonthDate), 'yyyy-MM-dd'),
         unidadeSaudeId:
           filters.unidades.length === 1 ? filters.unidades[0] : undefined,
       })
@@ -176,7 +177,7 @@ export const fetchDashboardMetrics = async (
       logger.error(
         {
           operation: 'buscar_vencendo_periodo_anterior',
-          previousMonth: format(previousMonth, 'yyyy-MM-dd'),
+          previousMonth: format(previousMonthDate, 'yyyy-MM-dd'),
           error: error instanceof Error ? error.message : String(error),
         },
         'Erro ao buscar contratos vencendo do período anterior',

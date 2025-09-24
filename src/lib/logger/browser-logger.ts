@@ -1,19 +1,38 @@
-import pino from 'pino'
-import type { StructuredLogger, LogContext, LogMetrics } from './types'
+import pino, { type Level, type LogEvent } from 'pino'
+import type {
+  StructuredLogger,
+  LogContext,
+  LogMetrics,
+  LogLevel,
+} from './types'
 import {
   loggerConfig,
-  browserTransports,
   performanceConfig,
   contextDefaults,
 } from './config'
 
-class BrowserLogger {
-  private logger: pino.Logger
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+const normalizeMessage = (value: unknown): string => {
+  if (typeof value === 'string') return value
+  if (value instanceof Error) return value.message
+  if (value === undefined) return ''
+  try {
+    return JSON.stringify(value)
+  } catch (error) {
+    return String(value)
+  }
+}
+
+class BrowserLogger implements StructuredLogger {
+  readonly raw: pino.Logger
   private context: LogContext = {}
   private timers: Map<string, number> = new Map()
 
   constructor() {
-    this.logger = pino({
+    this.raw = pino({
       level: loggerConfig.level,
       browser: {
         asObject: true,
@@ -37,10 +56,11 @@ class BrowserLogger {
     })
   }
 
-  private handleLog(level: string, logEvent: LogMetrics) {
+  private handleLog(level: Level, logEvent: LogEvent) {
     if (loggerConfig.environment === 'test') return
 
-    const formattedLog = this.formatForConsole(level, logEvent)
+    const metrics = this.createLogMetrics(level, logEvent)
+    const formattedLog = this.formatForConsole(metrics.level, metrics)
 
     switch (level) {
       case 'trace':
@@ -64,7 +84,30 @@ class BrowserLogger {
     }
   }
 
-  private formatForConsole(level: string, logEvent: LogMetrics): string {
+  private createLogMetrics(level: Level, logEvent: LogEvent): LogMetrics {
+    const messages = [...logEvent.messages]
+
+    let context: LogContext = {}
+    if (messages.length > 0 && isPlainObject(messages[0])) {
+      context = messages.shift() as LogContext
+    }
+
+    const message = normalizeMessage(messages.shift())
+
+    return {
+      timestamp: logEvent.ts,
+      level: level as LogLevel,
+      message,
+      context: {
+        ...contextDefaults,
+        ...this.context,
+        ...context,
+      },
+      extra: messages,
+    }
+  }
+
+  private formatForConsole(level: LogLevel, logEvent: LogMetrics): string {
     if (!loggerConfig.pretty) {
       return JSON.stringify(logEvent)
     }
@@ -91,17 +134,21 @@ class BrowserLogger {
       }
     }
 
+    if (logEvent.extra && logEvent.extra.length > 0) {
+      message += ` | extras: ${logEvent.extra.map(normalizeMessage).join(' ')}`
+    }
+
     return message
   }
 
   withContext(newContext: LogContext): StructuredLogger {
     const logger = new BrowserLogger()
     logger.context = { ...this.context, ...newContext }
-    return logger as StructuredLogger
+    return logger
   }
 
   private logWithContext(
-    level: string,
+    level: LogLevel,
     contextOrMessage: LogContext | Error | string,
     msg?: string,
     ...args: unknown[]
@@ -125,7 +172,28 @@ class BrowserLogger {
 
     const finalContext = { ...this.context, ...context }
 
-    this.logger[level as keyof pino.Logger](finalContext, message, ...args)
+    switch (level) {
+      case 'trace':
+        this.raw.trace(finalContext, message, ...args)
+        break
+      case 'debug':
+        this.raw.debug(finalContext, message, ...args)
+        break
+      case 'info':
+        this.raw.info(finalContext, message, ...args)
+        break
+      case 'warn':
+        this.raw.warn(finalContext, message, ...args)
+        break
+      case 'error':
+        this.raw.error(finalContext, message, ...args)
+        break
+      case 'fatal':
+        this.raw.fatal(finalContext, message, ...args)
+        break
+      default:
+        this.raw.info(finalContext, message, ...args)
+    }
   }
 
   // Métodos de logging
@@ -243,5 +311,5 @@ class BrowserLogger {
 }
 
 export const createLogger = (): StructuredLogger => {
-  return new BrowserLogger() as StructuredLogger
+  return new BrowserLogger()
 }

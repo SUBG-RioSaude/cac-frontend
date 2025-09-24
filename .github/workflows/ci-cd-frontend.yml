@@ -5,9 +5,9 @@ name: 🎨 CI/CD - Frontend CAC
 
 on:
   push:
-    branches: [ develop, staging, main ]
+    branches: [ develop, staging, master ]
   pull_request:
-    branches: [ develop, staging, main ]
+    branches: [ develop, staging, master ]
 
 env:
   REGISTRY: docker.io
@@ -16,7 +16,7 @@ env:
 jobs:
   # 🧪 QUALIDADE DE CÓDIGO E TESTES
   quality-check:
-    name: 🧪 Quality Check & Tests (Node ${{ matrix.node-version }})
+    name: 🧪 Testes de qualidade & Testes (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:

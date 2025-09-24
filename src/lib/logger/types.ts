@@ -1,6 +1,11 @@
-import type { Logger as PinoLogger } from 'pino'
+import type {
+  Logger as PinoLogger,
+  Level,
+  LevelWithSilent,
+} from 'pino'
 
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+export type LogLevel = Level
+export type LogLevelWithSilent = LevelWithSilent
 
 export type LogEnvironment = 'development' | 'production' | 'test'
 
@@ -20,14 +25,15 @@ export interface LogContext {
 }
 
 export interface LoggerConfig {
-  level: LogLevel
+  level: LogLevelWithSilent
   environment: LogEnvironment
   pretty?: boolean
   redact?: string[]
   base?: Record<string, unknown>
 }
 
-export interface StructuredLogger extends PinoLogger {
+export interface StructuredLogger {
+  readonly raw: PinoLogger
   withContext: (context: LogContext) => StructuredLogger
   performance: {
     time: (label: string, context?: LogContext) => () => void
@@ -78,4 +84,5 @@ export interface LogMetrics {
     duration?: number
     memory?: number
   }
+  extra?: unknown[]
 }

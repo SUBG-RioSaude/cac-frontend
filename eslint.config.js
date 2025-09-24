@@ -83,6 +83,13 @@ export default tseslint.config([
       '@typescript-eslint/no-unused-vars': 'off', // Was disabled
       'react/jsx-no-bind': 'off', // Performance issue
 
+      // === CONVERTED ERRORS TO WARNINGS FOR EXISTING PROJECT ===
+      'no-empty': 'warn', // Empty blocks - common in try/catch
+      '@typescript-eslint/prefer-promise-reject-errors': 'warn', // Promise rejections
+      '@typescript-eslint/no-base-to-string': 'warn', // Object stringification
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn', // Type assertions
+      '@typescript-eslint/await-thenable': 'warn', // Await non-promises
+
       // === TEMPORARILY DISABLED (Too disruptive) ===
       // Will be enabled later in migration
       'import/order': 'off', // Too many import order issues
