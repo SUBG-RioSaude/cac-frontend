@@ -193,3 +193,24 @@ export interface FiltrosLotacoes {
   sigla?: string
   apenasAtivas?: boolean
 }
+
+// ========== TIPOS DE CRIAÇÃO/ATUALIZAÇÃO ==========
+
+export interface FuncionarioCreateApi {
+  nomeCompleto: string
+  cpf: string
+  matricula: string
+  cargo: string
+  funcao: string
+  situacao: number
+  vinculo: number
+  dataAdmissao: string // ISO date
+  dataExoneracao?: string | null
+  emailInstitucional: string
+  telefone: string
+  lotacaoId: string
+}
+
+export interface FuncionarioUpdateApi extends Partial<FuncionarioCreateApi> {
+  id: string
+}

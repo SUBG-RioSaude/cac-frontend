@@ -197,6 +197,8 @@ export interface FiltrosFornecedor {
 // Filtros para usar com a API (server-side)
 export interface FiltrosFornecedorApi {
   pesquisa?: string
+  cnpj?: string
+  razaoSocial?: string
   status?: string
   cidade?: string
   estado?: string

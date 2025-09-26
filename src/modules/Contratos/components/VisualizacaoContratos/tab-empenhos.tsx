@@ -152,7 +152,7 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
     }
   }, [empenhosIniciais, temEmpenhosIniciais])
   
-  // Só usar o hook se NÃO temos empenhos iniciais, para evitar requisições duplicadas  
+  // Só usar o hook se NÃO temos empenhos iniciais, para evitar requisições duplicadas
   // Memoizar para evitar recriações do hook
   const hookEnabled = useMemo(() => !temEmpenhosIniciais && !!contratoId, [temEmpenhosIniciais, contratoId])
   const {
@@ -442,16 +442,6 @@ export function TabEmpenhos({ contratoId, valorTotalContrato, unidadesVinculadas
         dataEmpenho: dataEmpenhoISO,
         observacao: String(dados.observacao || '').trim()
       }
-      
-      console.log('[DEBUG] Payload sendo enviado:', payload)
-      console.log('[DEBUG] Tipos dos campos:', {
-        contratoId: typeof payload.contratoId,
-        unidadeSaudeId: typeof payload.unidadeSaudeId,
-        numeroEmpenho: typeof payload.numeroEmpenho,
-        valor: typeof payload.valor,
-        dataEmpenho: typeof payload.dataEmpenho,
-        observacao: typeof payload.observacao
-      })
       
       // Criar novo empenho
       await salvarEmpenho(payload)

@@ -1,0 +1,200 @@
+﻿    .toLowerCase()
+    .split(' ')
+    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+    .join(' ')
+}
+
+// ========== CONVERSÃ•ES E MAPEAMENTO ==========
+
+/**
+ * Converte SituacaoFuncional para status simples
+ */
+export function situacaoParaStatus(situacao: SituacaoFuncional, ativo: boolean): "ativo" | "inativo" {
+  if (!ativo || situacao === SituacaoFuncional.INATIVO) {
+    return "inativo"
+  }
+  
+  // SituaÃ§Ãµes que devem aparecer como inativo
+  const situacoesInativas: string[] = [
+    SituacaoFuncional.AFASTADO,
+    SituacaoFuncional.LICENCA
+  ]
+  
+  if (situacoesInativas.includes(situacao)) {
+    return "inativo"
+  }
+  
+  return "ativo"
+}
+
+/**
+ * Converte FuncionarioApi para Usuario (compatibilidade com formulÃ¡rio atual)
+ */
+export function mapearFuncionarioParaUsuario(funcionario: FuncionarioApi): Usuario {
+  return {
+    id: funcionario.id,
+    matricula: formatarMatricula(funcionario.matricula),
+    nome: formatarNome(funcionario.nomeCompleto), // Usar nomeCompleto da API
+    email: funcionario.emailInstitucional || '', // Usar emailInstitucional da API
+    cargo: formatarCargo(funcionario.cargo),
+    departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
+    telefone: funcionario.telefone || '',
+    status: situacaoParaStatus(funcionario.situacaoFuncional || (funcionario.situacao as unknown as SituacaoFuncional), funcionario.ativo)
+  }
+}
+
+/**
+ * Converte FuncionarioApi para UsuarioAtribuido
+ */
+export function mapearFuncionarioParaUsuarioAtribuido(
+  funcionario: FuncionarioApi, 
+  tipo: "fiscal" | "gestor" | null = null
+): UsuarioAtribuido {
+  return {
+    ...mapearFuncionarioParaUsuario(funcionario),
+    tipo
+  }
+}
+
+/**
+ * Converte lista de FuncionarioApi para lista de Usuario
+ */
+export function mapearFuncionariosParaUsuarios(funcionarios: FuncionarioApi[]): Usuario[] {
+  return funcionarios.map(mapearFuncionarioParaUsuario)
+}
+
+// ========== FILTROS E BUSCAS ==========
+
+/**
+ * Filtra funcionÃ¡rios ativos
+ */
+export function filtrarFuncionariosAtivos(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+  return funcionarios.filter(isFuncionarioAtivo)
+}
+
+/**
+ * Filtra funcionÃ¡rios que podem ser fiscais
+ */
+export function filtrarFuncionariosParaFiscalizacao(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+  return funcionarios.filter(podeSerFiscal)
+}
+
+/**
+ * Busca funcionÃ¡rio por matrÃ­cula em uma lista
+ */
+export function buscarPorMatricula(funcionarios: FuncionarioApi[], matricula: string): FuncionarioApi | undefined {
+  const matriculaLimpa = matricula.replace(/\s/g, '').toLowerCase()
+  return funcionarios.find(f => 
+    f.matricula.replace(/\s/g, '').toLowerCase() === matriculaLimpa
+  )
+}
+
+/**
+ * Busca funcionÃ¡rios por nome (busca parcial)
+ */
+export function buscarPorNome(funcionarios: FuncionarioApi[], nome: string): FuncionarioApi[] {
+  if (!nome || nome.length < 2) return []
+  
+  const nomeLimpo = nome.toLowerCase().trim()
+  return funcionarios.filter(f => 
+    f.nome?.toLowerCase().includes(nomeLimpo)
+  )
+}
+
+/**
+ * Busca funcionÃ¡rios por lotaÃ§Ã£o
+ */
+export function filtrarPorLotacao(funcionarios: FuncionarioApi[], lotacao: string): FuncionarioApi[] {
+  if (!lotacao) return funcionarios
+  
+  const lotacaoLimpa = lotacao.toLowerCase().trim()
+  return funcionarios.filter(f => 
+    f.lotacao?.toLowerCase().includes(lotacaoLimpa)
+  )
+}
+
+// ========== AGRUPAMENTO E ORGANIZAÃ‡ÃƒO ==========
+
+/**
+ * Agrupa funcionÃ¡rios por lotaÃ§Ã£o
+ */
+export function agruparPorLotacao(funcionarios: FuncionarioApi[]): Record<string, FuncionarioApi[]> {
+  return funcionarios.reduce((grupos, funcionario) => {
+    const lotacao = funcionario.lotacao || 'Sem lotaÃ§Ã£o'
+    if (!grupos[lotacao]) {
+      grupos[lotacao] = []
+    }
+    grupos[lotacao].push(funcionario)
+    return grupos
+  }, {} as Record<string, FuncionarioApi[]>)
+}
+
+/**
+ * Agrupa funcionÃ¡rios por situaÃ§Ã£o funcional
+ */
+export function agruparPorSituacao(funcionarios: FuncionarioApi[]): Record<SituacaoFuncional, FuncionarioApi[]> {
+  return funcionarios.reduce((grupos, funcionario) => {
+    const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
+    if (!grupos[situacao]) {
+      grupos[situacao] = []
+    }
+    grupos[situacao].push(funcionario)
+    return grupos
+  }, {} as Record<SituacaoFuncional, FuncionarioApi[]>)
+}
+
+/**
+ * Ordena funcionÃ¡rios por nome
+ */
+export function ordenarPorNome(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+  return [...funcionarios].sort((a, b) => {
+    const nomeA = a.nome || ''
+    const nomeB = b.nome || ''
+    return nomeA.localeCompare(nomeB, 'pt-BR', { ignorePunctuation: true })
+  })
+}
+
+/**
+ * Ordena funcionÃ¡rios por matrÃ­cula
+ */
+export function ordenarPorMatricula(funcionarios: FuncionarioApi[]): FuncionarioApi[] {
+  return [...funcionarios].sort((a, b) => 
+    a.matricula.localeCompare(b.matricula)
+  )
+}
+
+// ========== ESTATÃSTICAS ==========
+
+/**
+ * Conta funcionÃ¡rios por situaÃ§Ã£o
+ */
+export function contarPorSituacao(funcionarios: FuncionarioApi[]): Record<SituacaoFuncional, number> {
+  return funcionarios.reduce((contador, funcionario) => {
+    const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
+    contador[situacao] = (contador[situacao] || 0) + 1
+    return contador
+  }, {} as Record<SituacaoFuncional, number>)
+}
+
+/**
+ * Calcula estatÃ­sticas bÃ¡sicas de uma lista de funcionÃ¡rios
+ */
+export function calcularEstatisticas(funcionarios: FuncionarioApi[]) {
+  const total = funcionarios.length
+  const ativos = funcionarios.filter(isFuncionarioAtivo).length
+  const inativos = total - ativos
+  const aptosFiscalizacao = funcionarios.filter(podeSerFiscal).length
+  
+  const porSituacao = contarPorSituacao(funcionarios)
+  const lotacoesUnicas = new Set(funcionarios.map(f => f.lotacao)).size
+  
+  return {
+    total,
+    ativos,
+    inativos,
+    aptosFiscalizacao,
+    percentualAtivos: total > 0 ? (ativos / total) * 100 : 0,
+    porSituacao,
+    lotacoesUnicas
+  }
+}

@@ -262,10 +262,8 @@ export function AlteracoesContratuais({
 
   const handleSubmeter = useCallback(async () => {
     try {
-      console.log('🚀 Submetendo alteração para aprovação...')
       await submeterParaAprovacao()
       
-      console.log('✅ Alteração submetida com sucesso!')
       
       // Mostrar modal de sucesso
       setModalSucesso(true)

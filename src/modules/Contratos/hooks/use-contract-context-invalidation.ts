@@ -50,7 +50,6 @@ export function useContractContextInvalidation(
   const invalidateAll = useCallback(async () => {
     if (!contratoId) return
     
-    console.log('🔄 Invalidating contract context queries for:', contratoId)
     
     await Promise.all([
       // Invalidar dados principais do contrato
@@ -64,7 +63,6 @@ export function useContractContextInvalidation(
       })
     ])
     
-    console.log('✅ Contract context queries invalidated')
   }, [contratoId, queryClient])
   
   /**
@@ -101,7 +99,6 @@ export function useContractContextInvalidation(
   const invalidateUnitsOnly = useCallback(async () => {
     if (!contratoId) return
     
-    console.log('🔄 Invalidating units queries for:', contratoId)
     
     // Para este caso, invalidamos o contexto completo pois as unidades
     // estão integradas no mesmo endpoint

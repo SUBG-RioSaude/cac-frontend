@@ -8,6 +8,7 @@ import {
   getUnidades,
   getUnidadeById,
   buscarUnidadesPorNome,
+  buscarUnidadesPorNomeOuSigla,
   getCaps,
   getCapById,
   buscarCapsPorNome,
@@ -58,6 +59,23 @@ export function useUnidade(id: string, options?: { enabled?: boolean }) {
 }
 
 export function useBuscarUnidades(nome: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: unidadeKeys.search(nome),
+    queryFn: async () => {
+      return await buscarUnidadesPorNomeOuSigla(nome)
+    },
+    enabled: (options?.enabled ?? true) && nome.trim().length >= 2,
+    staleTime: 1 * 60 * 1000, // 1 minuto
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+}
+
+/**
+ * Hook para buscar unidades apenas por nome (comportamento original)
+ * Mantido para compatibilidade se necessário
+ */
+export function useBuscarUnidadesPorNome(nome: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: unidadeKeys.search(nome),
     queryFn: async () => {

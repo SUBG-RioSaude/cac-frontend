@@ -305,7 +305,6 @@ export function BlocosDinamicos({
 
   // Handlers para cada bloco
   const handleClausulasChange = (clausulas: unknown) => {
-    console.log('ðŸ”§ handleClausulasChange:', clausulas)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -316,7 +315,6 @@ export function BlocosDinamicos({
   }
 
   const handleVigenciaChange = (vigencia: unknown) => {
-    console.log('ðŸ”§ handleVigenciaChange:', vigencia)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -327,7 +325,6 @@ export function BlocosDinamicos({
   }
 
   const handleValorChange = (valor: unknown) => {
-    console.log('ðŸ”§ handleValorChange:', valor)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -338,7 +335,6 @@ export function BlocosDinamicos({
   }
 
   const handleFornecedoresChange = (fornecedores: unknown) => {
-    console.log('ðŸ”§ handleFornecedoresChange:', fornecedores)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -349,7 +345,6 @@ export function BlocosDinamicos({
   }
 
   const handleUnidadesChange = (unidades: unknown) => {
-    console.log('🔧 handleUnidadesChange:', unidades)
     onChange({ 
       ...dados, 
       blocos: { 
@@ -360,16 +355,12 @@ export function BlocosDinamicos({
     
     // Invalidar contexto para atualizar nomes das unidades demandante/gestora
     if (onContextChange) {
-      console.log('🔄 Triggering context invalidation after units change')
       onContextChange()
     }
   }
 
-  // FunÃ§Ã£o para renderizar cada bloco
+  // Função para renderizar cada bloco
   const renderBloco = (bloco: BlocoInfo) => {
-    console.log(`ðŸ”§ Renderizando bloco ${bloco.id}:`)
-    console.log('   - dados.blocos:', dados.blocos)
-    console.log(`   - dados.blocos.${bloco.id}:`, dados.blocos?.[bloco.id as keyof typeof dados.blocos])
     
     const blocoProps = {
       dados: (dados.blocos?.[bloco.id as keyof typeof dados.blocos] || {}) as Record<string, unknown>,
@@ -384,7 +375,6 @@ export function BlocosDinamicos({
       required: bloco.obrigatorio
     }
     
-    console.log(`   - blocoProps.dados:`, blocoProps.dados)
 
     switch (bloco.id) {
       case 'clausulas':

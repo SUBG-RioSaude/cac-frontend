@@ -485,6 +485,31 @@ export default function FornecedorForm({
     }
   }, [dadosIniciais, form])
 
+  // Restaurar estados do CEP quando dadosIniciais.cep existe (corrige problema ao voltar de outros steps)
+  useEffect(() => {
+    if (dadosIniciais?.cep) {
+      const cep = dadosIniciais.cep
+      const cepLimpo = cep.replace(/\D/g, '')
+
+      // Se o CEP tem 8 dígitos, marca como válido e preenchido
+      if (cepLimpo.length === 8) {
+        setCepValido(true)
+        setCepPreenchido(true)
+        setCepError(null)
+
+        // Se há empresa encontrada nos dados iniciais, também marca isso
+        if (dadosIniciais.empresaId) {
+          // Simula empresa encontrada para manter consistência da UI
+          setEmpresaEncontrada({
+            id: dadosIniciais.empresaId,
+            cnpj: dadosIniciais.cnpj || '',
+            razaoSocial: dadosIniciais.razaoSocial || '',
+          } as EmpresaResponse)
+        }
+      }
+    }
+  }, [dadosIniciais?.cep, dadosIniciais?.empresaId, dadosIniciais?.cnpj, dadosIniciais?.razaoSocial])
+
   // Função para notificar mudanças de dados sem watch
   const handleDataChange = useCallback((dados: Partial<DadosFornecedor>) => {
     if (onDataChange) {
@@ -497,6 +522,16 @@ export default function FornecedorForm({
     if (!onDataChange) return
 
     const formValues = form.getValues()
+    const empresaIdAtual = formValues.empresaId || empresaEncontrada?.id
+
+    // Debug: Log para monitorar empresaId
+    console.log('🔍 [DEBUG] EmpresaId atual:', {
+      formEmpresaId: formValues.empresaId,
+      empresaEncontradaId: empresaEncontrada?.id,
+      empresaIdFinal: empresaIdAtual,
+      hasEmpresaEncontrada: !!empresaEncontrada
+    })
+
     const dados: Partial<DadosFornecedor> = {
       cnpj: formValues.cnpj || '',
       razaoSocial: formValues.razaoSocial || '',
@@ -511,7 +546,7 @@ export default function FornecedorForm({
       estado: formValues.estado || '',
       cep: formValues.cep || '',
       ativo: formValues.ativo || false,
-      empresaId: formValues.empresaId || empresaEncontrada?.id,
+      empresaId: empresaIdAtual,
       contatos: (formValues.contatos || []).map((contato) => ({
         id: contato.id,
         nome: contato.nome || '',
@@ -520,6 +555,9 @@ export default function FornecedorForm({
         ativo: contato.ativo,
       })),
     }
+
+    // Debug: Log dos dados enviados
+    console.log('📤 [DEBUG] Dados enviados via onDataChange:', dados)
 
     handleDataChange(dados)
   }, [form, handleDataChange, onDataChange, empresaEncontrada?.id])
@@ -583,23 +621,73 @@ export default function FornecedorForm({
         }
 
         const empresaCriada = await cadastrarEmpresaAsync(empresaRequest)
-        
-        // Salvar o ID da empresa criada no formulário
-        if (empresaCriada?.id) {
-          const valoresAtuais = form.getValues()
-          form.setValue('empresaId', empresaCriada.id)
-          
-          // Atualizar os dados com o ID da empresa
-          const dadosAtualizados = {
-            ...valoresAtuais,
-            empresaId: empresaCriada.id
-          }
-          
-          // Propagar mudança se callback estiver disponível
-          if (onDataChange) {
-            onDataChange(dadosAtualizados)
-          }
+
+        // Debug: Log completo da resposta do cadastro
+        console.log('🏭 [FORM] Resposta completa do cadastro:', empresaCriada)
+        console.log('🏭 [FORM] Tipo da resposta:', typeof empresaCriada)
+        console.log('🏭 [FORM] EmpresaId recebido:', empresaCriada?.id)
+        console.log('🏭 [FORM] Estrutura completa:', JSON.stringify(empresaCriada, null, 2))
+
+        // Validação robusta da empresa criada
+        if (!empresaCriada) {
+          console.error('❌ [FORM] ERRO: Resposta vazia do cadastro de empresa')
+          toast.error('Erro no cadastro da empresa', {
+            description: 'Resposta vazia do servidor'
+          })
+          return
         }
+
+        if (!empresaCriada.id) {
+          console.error('❌ [FORM] ERRO CRÍTICO: Empresa criada mas sem ID!')
+          console.error('❌ [FORM] Dados recebidos:', empresaCriada)
+          toast.error('Erro no cadastro da empresa', {
+            description: 'ID da empresa não foi retornado'
+          })
+          return
+        }
+
+        // Salvar o ID da empresa criada no formulário
+        console.log('✅ [FORM] Empresa criada com sucesso:', {
+          empresaId: empresaCriada.id,
+          cnpj: dados.cnpj,
+          razaoSocial: dados.razaoSocial
+        })
+
+        const valoresAtuais = form.getValues()
+        form.setValue('empresaId', empresaCriada.id)
+
+        // Debug: Confirmar que o empresaId foi definido no form
+        console.log('💾 [FORM] EmpresaId definido no form:', form.getValues('empresaId'))
+
+        // Definir empresa encontrada para consistência da UI
+        setEmpresaEncontrada({
+          id: empresaCriada.id,
+          cnpj: empresaCriada.cnpj,
+          razaoSocial: empresaCriada.razaoSocial,
+        } as EmpresaResponse)
+
+        // Atualizar os dados com o ID da empresa
+        const dadosAtualizados = {
+          ...valoresAtuais,
+          empresaId: empresaCriada.id,
+          cnpj: empresaCriada.cnpj,
+          razaoSocial: empresaCriada.razaoSocial,
+        }
+
+        // Debug: Log dos dados atualizados
+        console.log('🔄 [FORM] Dados atualizados com empresaId:', dadosAtualizados)
+
+        // Propagar mudança IMEDIATAMENTE
+        if (onDataChange) {
+          onDataChange(dadosAtualizados)
+          console.log('📤 [FORM] Dados propagados via onDataChange')
+        }
+
+        // Força notificação das mudanças
+        setTimeout(() => {
+          notificarMudancas()
+          console.log('⏰ [FORM] Notificação forçada após timeout')
+        }, 100)
         
         // Notificar componente pai que uma empresa foi cadastrada
         if (onEmpresaCadastrada) {
@@ -616,19 +704,31 @@ export default function FornecedorForm({
       }
 
       // Avança para o próximo step
+      const empresaIdFinal = form.getValues('empresaId') || empresaEncontrada?.id
+
+      // Debug: Log do empresaId no submit
+      console.log('🚀 [DEBUG] Submit - EmpresaId:', {
+        formEmpresaId: form.getValues('empresaId'),
+        empresaEncontradaId: empresaEncontrada?.id,
+        empresaIdFinal: empresaIdFinal,
+        dadosFornecedor: dadosFornecedor
+      })
+
       if (onAdvanceRequest) {
         // Incluir o empresaId nos dados se disponível
         const dadosCompletos = {
           ...dadosFornecedor,
-          empresaId: form.getValues('empresaId') || empresaEncontrada?.id
+          empresaId: empresaIdFinal
         }
+        console.log('📤 [DEBUG] onAdvanceRequest - Dados completos:', dadosCompletos)
         await onAdvanceRequest(dadosCompletos)
       } else {
         // Incluir o empresaId nos dados se disponível
         const dadosCompletos = {
           ...dadosFornecedor,
-          empresaId: form.getValues('empresaId') || empresaEncontrada?.id
+          empresaId: empresaIdFinal
         }
+        console.log('📤 [DEBUG] onSubmit - Dados completos:', dadosCompletos)
         await onSubmit?.(dadosCompletos)
       }
     } catch (error) {

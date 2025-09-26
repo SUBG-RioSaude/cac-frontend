@@ -101,15 +101,8 @@ export function BlocoValor({
 
   // Calcular valores automaticamente (apenas baseado no valor monetário)
   const valoresCalculados = useMemo(() => {
-    console.log('🔧 Calculando valores:', { 
-      operacao: dados.operacao, 
-      valorAjuste: dados.valorAjuste, 
-      valorOriginal,
-      contractFinancials
-    })
     
     if (!dados.operacao || valorOriginal === 0) {
-      console.log('⚠️ Retornando valores padrão: operação ou valorOriginal inválidos')
       return {
         valorAjuste: 0,
         percentualAjuste: 0,
@@ -141,14 +134,6 @@ export function BlocoValor({
     const percentualImpacto = Math.abs(percentualAjuste)
     const excedeLimite = limiteLegal > 0 && percentualImpacto > limiteLegal
 
-    console.log('✅ Valores calculados:', {
-      valorAjuste,
-      percentualAjuste: percentualAjuste.toFixed(2) + '%',
-      novoValorGlobal,
-      percentualImpacto,
-      excedeLimite
-    })
-
     return {
       valorAjuste,
       percentualAjuste,
@@ -156,7 +141,7 @@ export function BlocoValor({
       percentualImpacto,
       excedeLimite
     }
-  }, [dados.operacao, dados.valorAjuste, dados.novoValorGlobal, valorOriginal, limiteLegal, contractFinancials])
+  }, [dados.operacao, dados.valorAjuste, dados.novoValorGlobal, valorOriginal, limiteLegal])
 
   // Emitir alerta de limite legal
   useEffect(() => {
@@ -248,7 +233,6 @@ export function BlocoValor({
 
   // Handler para valores monetários com formatação em tempo real
   const handleValorAjusteChange = useCallback((valorInput: string) => {
-    console.log('🔧 Input valor ajuste:', valorInput)
     
     // Sempre atualizar o campo visual primeiro
     const valorFormatado = formatarValorEmTempoReal(valorInput)
@@ -257,7 +241,6 @@ export function BlocoValor({
     // Parse para valor numérico
     const valorNumerico = parseValorMonetario(valorFormatado)
     
-    console.log('💰 Valor formatado:', valorFormatado, 'Valor numérico:', valorNumerico)
     
     if (valorNumerico > 0) {
       handleFieldChange('valorAjuste', valorNumerico)
@@ -276,12 +259,10 @@ export function BlocoValor({
   useEffect(() => {
     // Se o valor nos dados foi limpo externamente, limpar o campo visual
     if (dados.valorAjuste === undefined && valorAjusteFormatado !== '') {
-      console.log('🧹 Limpando valorAjusteFormatado porque dados.valorAjuste foi limpo')
       setValorAjusteFormatado('')
     }
     
     if (dados.novoValorGlobal === undefined && novoValorGlobalFormatado !== '') {
-      console.log('🧹 Limpando novoValorGlobalFormatado porque dados.novoValorGlobal foi limpo')
       setNovoValorGlobalFormatado('')
     }
   }, [dados.valorAjuste, dados.novoValorGlobal, valorAjusteFormatado, novoValorGlobalFormatado])

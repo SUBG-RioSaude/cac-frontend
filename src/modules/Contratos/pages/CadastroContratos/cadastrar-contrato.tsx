@@ -17,9 +17,6 @@ import type { DadosUnidades } from "@/modules/Contratos/types/unidades"
 import AtribuicaoFiscaisForm, { type DadosAtribuicao } from "@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form"
 import ConfirmarAvancoModal from "@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco"
 import { useCriarContrato, type CriarContratoData } from "@/modules/Contratos/hooks/use-contratos-mutations"
-import DebugPanel from "@/modules/Contratos/components/CadastroDeContratos/debug-panel"
-import DebugPayload from "@/modules/Contratos/components/CadastroDeContratos/debug-payload"
-import { useDebugCadastro } from "@/modules/Contratos/hooks/use-debug-cadastro"
 import { toast } from "sonner"
 import { cnpjUtils } from "@/lib/utils"
 
@@ -42,14 +39,8 @@ export default function CadastrarContrato() {
   >(null)
   const [isFinishing, setIsFinishing] = useState(false)
   const [empresaCadastradaNaSessao, setEmpresaCadastradaNaSessao] = useState<{cnpj: string, razaoSocial: string} | null>(null)
-  const [isGeneratingMock, setIsGeneratingMock] = useState(false)
-
   // React Query mutation hook
   const createContratoMutation = useCriarContrato()
-
-  // Debug hook
-  const debug = useDebugCadastro()
-  const [payloadFinal, setPayloadFinal] = useState<CriarContratoData | null>(null)
 
   const passos = [
     { title: "Dados do Fornecedor" },
@@ -80,24 +71,16 @@ export default function CadastrarContrato() {
         atribuicao: dadosPendentes as DadosAtribuicao,
       }))
       
-      console.log("Dados completos do cadastro:", dadosFinais)
 
       try {
         // Mapear dados para API e criar contrato
         const dadosAPI = mapearDadosParaAPI(dadosFinais)
-        console.log("Dados para API (modal confirmação):", dadosAPI)
         
-        // Usar wrapper de debug para monitorar a chamada
-        await debug.wrapApiCall(
-          () => createContratoMutation.mutateAsync(dadosAPI),
-          'POST',
-          '/Contratos'
-        )
+        await createContratoMutation.mutateAsync(dadosAPI)
         
         // Sucesso será tratado pelo toast no hook
       } catch (error) {
         // Erro será tratado pelo toast no hook
-        console.error('Erro ao criar contrato (modal confirmação):', error)
       }
     } else if (proximoPassoPendente && dadosPendentes) {
       if (proximoPassoPendente === 2) {
@@ -176,25 +159,19 @@ export default function CadastrarContrato() {
 
   const handleFornecedorSubmit = (dados: DadosFornecedor) => {
     setDadosCompletos((prev) => ({ ...prev, fornecedor: dados }))
-    console.log("Dados do fornecedor:", dados)
     setPassoAtual(2)
   }
 
   const handleContratoSubmit = (dados: DadosContrato) => {
-    console.log("📝 [DEBUG] handleContratoSubmit chamado com dados:", dados)
-    console.log("📝 [DEBUG] unidadeDemandanteId nos dados:", dados.unidadeDemandanteId)
-    console.log("📝 [DEBUG] unidadeGestoraId nos dados:", dados.unidadeGestoraId)
     
     setDadosCompletos((prev) => {
       const novosDados = { ...prev, contrato: dados }
-      console.log("📝 [DEBUG] Dados completos após handleContratoSubmit:", novosDados)
       return novosDados
     })
     setPassoAtual(3)
   }
 
   const handleValorContratoChange = (valor: number) => {
-    console.log('handleValorContratoChange chamado com valor:', valor)
     
     // Atualizar o valor total do contrato para uso nas unidades
     setDadosCompletos((prev) => ({
@@ -208,7 +185,6 @@ export default function CadastrarContrato() {
 
   const handleUnidadesSubmit = (dados: DadosUnidades) => {
     setDadosCompletos((prev) => ({ ...prev, unidades: dados }))
-    console.log("Dados das unidades:", dados)
     setPassoAtual(4)
   }
 
@@ -220,25 +196,27 @@ export default function CadastrarContrato() {
       throw new Error('Dados incompletos para criação do contrato')
     }
 
-    // Debug: verificar dados críticos
-    console.log('🔍 [DEBUG] Dados do fornecedor:', fornecedor)
-    console.log('🔍 [DEBUG] Dados do contrato:', contrato)
-    console.log('🔍 [DEBUG] empresaId do fornecedor:', fornecedor.empresaId)
-    console.log('🔍 [DEBUG] unidadeDemandanteId:', contrato.unidadeDemandanteId)
-    console.log('🔍 [DEBUG] unidadeGestoraId:', contrato.unidadeGestoraId)
-
-    // Validação de campos obrigatórios
+    
+            // Exigir pelo menos um funcion�rio com cargo definido (Fiscal ou Gestor)
+    const atribuicoes = atribuicao?.usuariosAtribuidos || []
+    const comTipo = atribuicoes.filter(u => u.tipo === 'fiscal' || u.tipo === 'gestor')
+    if (comTipo.length === 0) {
+      throw new Error('Atribua pelo menos um Fiscal ou Gestor ao contrato antes de finalizar.')
+    }
+// Validar: todos os usu�rios atribu�dos devem ter tipo definido (fiscal/gestor)
+    const usuariosAtribuidos = atribuicao?.usuariosAtribuidos || []
+    const usuariosSemTipo = usuariosAtribuidos.filter(u => u.tipo !== 'fiscal' && u.tipo !== 'gestor')
+    if (usuariosSemTipo.length > 0) {
+      throw new Error('Defina o cargo (Fiscal ou Gestor) para todos os usu�rios atribu�dos antes de continuar.')
+    }
+// Valida��oção de campos obrigatórios
     if (!fornecedor.empresaId) {
       throw new Error('ID da empresa não encontrado. Verifique se a empresa foi cadastrada corretamente.')
     }
     
-    if (!contrato.unidadeDemandanteId) {
-      throw new Error('ID da unidade demandante não encontrado. Verifique se a unidade foi selecionada corretamente.')
-    }
     
-    if (!contrato.unidadeGestoraId) {
-      throw new Error('ID da unidade gestora não encontrado. Verifique se a unidade foi selecionada corretamente.')
-    }
+    
+    
 
     // Converter valor global para número
     const valorGlobal = (() => {
@@ -276,8 +254,7 @@ export default function CadastrarContrato() {
       descricaoObjeto: contrato.descricaoObjeto || undefined,
       tipoContratacao: contrato.tipoContratacao || undefined,
       tipoContrato: contrato.tipoContrato || undefined,
-      unidadeDemandanteId: contrato.unidadeDemandanteId || undefined,
-      unidadeGestoraId: contrato.unidadeGestoraId || undefined,
+      unidadesResponsaveis: contrato.unidadesResponsaveis || [],
       contratacao: contrato.contratacao || undefined,
       vigenciaInicial: contrato.vigenciaInicial || '',
       vigenciaFinal: contrato.vigenciaFinal || '',
@@ -317,16 +294,12 @@ export default function CadastrarContrato() {
         })) || []
     }
 
-    // Debug: salvar payload final
-    setPayloadFinal(payload)
-    console.log('🚀 [DEBUG] Payload final gerado:', payload)
     
     return payload
   }
 
   const handleAtribuicaoSubmit = async (dados: DadosAtribuicao) => {
     setDadosCompletos((prev) => ({ ...prev, atribuicao: dados }))
-    console.log("Dados da atribuição:", dados)
 
     const dadosFinais = {
       fornecedor: dadosCompletos.fornecedor,
@@ -335,19 +308,12 @@ export default function CadastrarContrato() {
       atribuicao: dados,
     }
 
-    console.log("Dados completos do cadastro:", dadosFinais)
 
     try {
       // Mapear dados para API e criar contrato
       const dadosAPI = mapearDadosParaAPI(dadosFinais)
-      console.log("Dados para API:", dadosAPI)
       
-      // Usar wrapper de debug para monitorar a chamada
-      await debug.wrapApiCall(
-        () => createContratoMutation.mutateAsync(dadosAPI),
-        'POST',
-        '/Contratos'
-      )
+      await createContratoMutation.mutateAsync(dadosAPI)
       
       // Sucesso será tratado pelo toast no hook
     } catch (error) {
@@ -356,54 +322,6 @@ export default function CadastrarContrato() {
     }
   }
 
-  // Funções de debug
-  const handlePreencherDadosMock = async (step: number) => {
-    setIsGeneratingMock(true)
-    
-    try {
-      const mockData = await debug.preencherDadosMock(step)
-      
-      if (mockData) {
-        switch (step) {
-          case 1:
-            setDadosCompletos(prev => ({ ...prev, fornecedor: mockData as DadosFornecedor }))
-            break
-          case 2:
-            setDadosCompletos(prev => ({ ...prev, contrato: mockData as DadosContrato }))
-            break
-          case 3:
-            setDadosCompletos(prev => ({ ...prev, unidades: mockData as DadosUnidades }))
-            break
-          case 4:
-            setDadosCompletos(prev => ({ ...prev, atribuicao: mockData as DadosAtribuicao }))
-            break
-        }
-        
-        console.log(`🎭 [DEBUG] Dados mock preenchidos para step ${step}:`, mockData)
-        
-        if (step === 2) {
-          toast.success('Unidades carregadas da API com sucesso!')
-        }
-      }
-    } catch (error) {
-      console.error(`Erro ao gerar mock data para step ${step}:`, error)
-      toast.error(`Erro ao gerar dados mock para step ${step}`)
-    } finally {
-      setIsGeneratingMock(false)
-    }
-  }
-
-  const handleLimparDados = () => {
-    setDadosCompletos({})
-    setPayloadFinal(null)
-    setPassoAtual(1)
-    debug.clearLogs()
-    console.log('🧹 [DEBUG] Dados limpos e reset para step 1')
-  }
-
-  const handleExportarDados = () => {
-    debug.exportarDados(dadosCompletos)
-  }
 
   // Função para obter informações do step atual
   const getStepInfo = (currentStep: number) => {
@@ -468,13 +386,11 @@ export default function CadastrarContrato() {
                 onPrevious={() => setPassoAtual(1)}
                 dadosIniciais={dadosCompletos.contrato}
                 onDataChange={(dados) => {
-                  console.log('🔄 [DEBUG] onDataChange chamado com dados:', dados)
                   setDadosCompletos(prev => {
                     const novosDados = {
                       ...prev,
                       contrato: { ...prev.contrato, ...dados } as DadosContrato
                     }
-                    console.log('🔄 [DEBUG] Dados completos atualizados:', novosDados)
                     return novosDados
                   })
                 }}
@@ -498,20 +414,17 @@ export default function CadastrarContrato() {
               if (typeof valor === 'string' && valor.includes('R$')) {
                 const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
                 const valorNum = parseFloat(valorLimpo)
-                console.log('Convertendo valorTotalContrato:', { valor, valorLimpo, valorNum })
                 return isNaN(valorNum) ? 0 : valorNum
               }
               
               // Se for string numérica, converter para número
               if (typeof valor === 'string') {
                 const valorNum = parseFloat(valor)
-                console.log('Convertendo valorTotalContrato string:', { valor, valorNum })
                 return isNaN(valorNum) ? 0 : valorNum
               }
               
               // Se já for número, retornar como está
               if (typeof valor === 'number') {
-                console.log('valorTotalContrato já é número:', valor)
                 return valor
               }
               
@@ -582,28 +495,10 @@ export default function CadastrarContrato() {
         textoConfirmar={isFinishing ? "Finalizar Cadastro" : "Confirmar"}
       />
 
-      {/* Debug Panel */}
-      <DebugPanel
-        dadosCompletos={dadosCompletos}
-        passoAtual={passoAtual}
-        onPreencherDadosMock={handlePreencherDadosMock}
-        onLimparDados={handleLimparDados}
-        onExportarDados={handleExportarDados}
-        payloadFinal={payloadFinal}
-        apiLogs={debug.apiLogs}
-        isGeneratingMock={isGeneratingMock}
-      />
 
-      {/* Debug Payload */}
-      {payloadFinal && (
-        <div className="mt-6">
-          <DebugPayload 
-            payload={payloadFinal as unknown as Record<string, unknown>} 
-            title="Payload Final para API"
-            className="mt-4"
-          />
-        </div>
-      )}
     </LayoutPagina>
   )
 }
+
+
+

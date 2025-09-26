@@ -14,6 +14,54 @@ vi.mock('@/lib/utils', () => ({
     }),
     aplicarMascara: vi.fn((valor: string) => `R$ ${valor}`)
   },
+  percentualUtils: {
+    formatar: vi.fn((valor: number) => {
+      if (isNaN(valor) || valor === null || valor === undefined) return '0'
+      const numeroFormatado = Number(valor.toFixed(2))
+      return numeroFormatado.toString()
+    }),
+    validar: vi.fn((valor: string | number) => {
+      const valorStr = valor.toString().replace(',', '.')
+      const numero = parseFloat(valorStr)
+      if (isNaN(numero)) return false
+      if (numero < 0 || numero > 100) return false
+      const partesDecimais = valorStr.split('.')[1]
+      if (partesDecimais && partesDecimais.length > 2) return false
+      return true
+    }),
+    validarComMensagem: vi.fn((valor: string | number) => {
+      if (valor === '' || valor === null || valor === undefined) return 'Percentual é obrigatório'
+      const valorStr = valor.toString().replace(',', '.')
+      const numero = parseFloat(valorStr)
+      if (isNaN(numero)) return 'Percentual deve ser um número válido'
+      if (numero < 0) return 'Percentual não pode ser negativo'
+      if (numero > 100) return 'Percentual não pode ser maior que 100%'
+      const partesDecimais = valorStr.split('.')[1]
+      if (partesDecimais && partesDecimais.length > 2) return 'Percentual pode ter no máximo 2 casas decimais'
+      return ''
+    }),
+    normalizarEntrada: vi.fn((valor: string) => {
+      if (!valor) return ''
+      let valorLimpo = valor.replace(/[^0-9.,]/g, '')
+      valorLimpo = valorLimpo.replace(',', '.')
+      const pontos = valorLimpo.split('.')
+      if (pontos.length > 2) valorLimpo = pontos[0] + '.' + pontos.slice(1).join('')
+      if (valorLimpo.includes('.')) {
+        const [inteira, decimal] = valorLimpo.split('.')
+        const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
+        valorLimpo = inteira + (decimalLimitado ? '.' + decimalLimitado : '')
+      }
+      const numero = parseFloat(valorLimpo)
+      if (!isNaN(numero) && numero > 100) return '100'
+      return valorLimpo
+    }),
+    paraNumero: vi.fn((valor: string) => {
+      if (!valor) return 0
+      const valorNormalizado = valor.replace(',', '.')
+      const numero = parseFloat(valorNormalizado)
+      return isNaN(numero) ? 0 : numero
+    })
+  },
   cn: vi.fn((...classes: (string | undefined | null | false)[]) => 
     classes.filter(Boolean).join(' ')
   )
@@ -330,7 +378,7 @@ describe('UnidadesFormMelhorado', () => {
       })
       
       // Com 50% de 200, deve mostrar que faltam 50%
-      expect(screen.getByText('Faltam: 50.00%')).toBeInTheDocument()
+      expect(screen.getByText('Faltam: 50%')).toBeInTheDocument()
     })
 
     it('deve validar valor total alocado', async () => {

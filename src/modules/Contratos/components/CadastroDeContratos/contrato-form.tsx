@@ -9,12 +9,11 @@ import {
   Check,
   X,
   ChevronsUpDown,
-  Loader2,
   Plus,
   Trash2,
   DollarSign,
+  AlertTriangle,
 } from 'lucide-react'
-import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -58,6 +57,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import processoInstrutivoData from '@/modules/Contratos/data/processo-instrutivo.json'
+import { 
+  validateUnidadesResponsaveis
+} from '@/modules/Contratos/types/contrato'
+import type {
+  CriarUnidadeResponsavelPayload
+} from '@/modules/Contratos/types/contrato'
+import { UnidadeResponsavelManager } from './UnidadeResponsavelManager'
+import { useValidarNumeroContrato } from '@/modules/Contratos/hooks/use-validar-numero-contrato'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {
@@ -113,10 +120,7 @@ export interface DadosContrato {
   descricaoObjeto: string
   tipoContratacao: 'Licitacao' | 'Pregao' | 'Dispensa' | 'Inexigibilidade'
   tipoContrato: 'Compra' | 'Prestacao_Servico' | 'Fornecimento' | 'Manutencao'
-  unidadeDemandante: string
-  unidadeGestora: string
-  unidadeDemandanteId?: string
-  unidadeGestoraId?: string
+  unidadesResponsaveis: CriarUnidadeResponsavelPayload[]
   contratacao: 'Centralizada' | 'Descentralizada'
   vigenciaInicial: string
   vigenciaFinal: string
@@ -132,13 +136,18 @@ export interface DadosContrato {
   vinculacaoPCA?: string
 }
 
-const schemaContrato = z.object({
+// Função para criar schema com validação de duplicação dinâmica
+const createSchemaContrato = (isNumeroUnique: boolean | null) => z.object({
   numeroContrato: z
     .string()
     .min(1, 'Número do contrato é obrigatório')
     .refine(
       validarNumeroContrato,
       'Número do contrato deve conter apenas números',
+    )
+    .refine(
+      () => isNumeroUnique !== false,
+      'Este número de contrato já existe no sistema',
     ),
   processos: z
     .array(
@@ -152,10 +161,20 @@ const schemaContrato = z.object({
   descricaoObjeto: z.string().min(1, 'Descrição do objeto é obrigatória'),
   tipoContratacao: z.enum(['Licitacao', 'Pregao', 'Dispensa', 'Inexigibilidade']),
   tipoContrato: z.enum(['Compra', 'Prestacao_Servico', 'Fornecimento', 'Manutencao']),
-  unidadeDemandante: z.string().min(1, 'Unidade demandante é obrigatória'),
-  unidadeGestora: z.string().min(1, 'Unidade gestora é obrigatória'),
-  unidadeDemandanteId: z.string().optional(),
-  unidadeGestoraId: z.string().optional(),
+  unidadesResponsaveis: z
+    .array(z.object({
+      unidadeSaudeId: z.string().min(1, 'ID da unidade é obrigatório'),
+      tipoResponsabilidade: z.number().min(1).max(2), // 1=Demandante, 2=Gestora
+      principal: z.boolean().optional(),
+      observacoes: z.string().optional()
+    }))
+    .min(1, 'É necessário pelo menos uma unidade responsável')
+    .refine((unidades) => unidades.some(u => u.tipoResponsabilidade === 1), {
+      message: 'Unidade demandante é obrigatória'
+    })
+    .refine((unidades) => unidades.some(u => u.tipoResponsabilidade === 2), {
+      message: 'Unidade gestora é obrigatória'
+    }),
   contratacao: z.enum(['Centralizada', 'Descentralizada']),
   vigenciaInicial: z
     .string()
@@ -249,7 +268,9 @@ const schemaContrato = z.object({
   path: ['tipoContratacao']
 })
 
-type FormDataContrato = z.infer<typeof schemaContrato>
+// Schema base para inferir o tipo
+const baseSchemaContrato = createSchemaContrato(null)
+type FormDataContrato = z.infer<typeof baseSchemaContrato>
 
 interface ContratoFormProps {
   onSubmit: (dados: DadosContrato) => void
@@ -294,21 +315,9 @@ export default function ContratoForm({
     setProcessoInstrutivo(processoInstrutivoData)
   }, [])
 
-  // Estados para comboboxes de unidades
-  const [openDemandante, setOpenDemandante] = useState(false)
-  const [openGestora, setOpenGestora] = useState(false)
-  
-  // Carregar unidades da API
-  const { 
-    data: unidadesData, 
-    isLoading: carregandoUnidades,
-    error: erroUnidades 
-  } = useUnidades({ 
-    tamanhoPagina: 100 
-  })
 
   const form = useForm<FormDataContrato>({
-    resolver: zodResolver(schemaContrato),
+    resolver: zodResolver(baseSchemaContrato),
     defaultValues: {
       numeroContrato: '',
       processos: [],
@@ -316,8 +325,7 @@ export default function ContratoForm({
       descricaoObjeto: '',
       tipoContratacao: 'Licitacao',
       tipoContrato: undefined,
-      unidadeDemandante: '',
-      unidadeGestora: '',
+      unidadesResponsaveis: [],
       contratacao: undefined,
       vigenciaInicial: '',
       vigenciaFinal: '',
@@ -335,14 +343,14 @@ export default function ContratoForm({
     },
   })
 
+  // Hook para validar número do contrato em tempo real
+  const numeroContrato = form.watch('numeroContrato')
+  const validacaoNumero = useValidarNumeroContrato(numeroContrato)
+
   // Watch para mudanças em tempo real
   const watchedValues = form.watch()
   const previousDataRef = useRef<string | null>(null)
   const previousValorRef = useRef<string | null>(null)
-
-  // Watch específico para os campos de ID das unidades
-  const watchedUnidadeDemandanteId = form.watch('unidadeDemandanteId')
-  const watchedUnidadeGestoraId = form.watch('unidadeGestoraId')
 
   // Callback memoizado para onDataChange
   const handleDataChange = useCallback((dados: DadosContrato) => {
@@ -376,10 +384,7 @@ export default function ContratoForm({
         descricaoObjeto: dadosIniciais?.descricaoObjeto || '',
         tipoContratacao: dadosIniciais?.tipoContratacao || undefined,
         tipoContrato: dadosIniciais?.tipoContrato || undefined,
-        unidadeDemandante: dadosIniciais?.unidadeDemandante || '',
-        unidadeGestora: dadosIniciais?.unidadeGestora || '',
-        unidadeDemandanteId: dadosIniciais?.unidadeDemandanteId || '',
-        unidadeGestoraId: dadosIniciais?.unidadeGestoraId || '',
+        unidadesResponsaveis: dadosIniciais?.unidadesResponsaveis || [],
         contratacao: dadosIniciais?.contratacao || undefined,
         vigenciaInicial: dadosIniciais?.vigenciaInicial || '',
         vigenciaFinal: dadosIniciais?.vigenciaFinal || '',
@@ -424,6 +429,12 @@ export default function ContratoForm({
       // Usar form.getValues() para obter todos os valores, incluindo os definidos via setValue
       const todosOsValores = form.getValues()
       
+      // Transformar unidades para garantir que principal seja sempre boolean
+      const unidadesResponsaveisTransformadas = (todosOsValores.unidadesResponsaveis || []).map(unidade => ({
+        ...unidade,
+        principal: unidade.principal ?? false
+      }))
+
       const dados = {
         numeroContrato: todosOsValores.numeroContrato || '',
         processos: todosOsValores.processos || [],
@@ -431,10 +442,7 @@ export default function ContratoForm({
         descricaoObjeto: todosOsValores.descricaoObjeto || '',
         tipoContratacao: todosOsValores.tipoContratacao || '',
         tipoContrato: todosOsValores.tipoContrato || '',
-        unidadeDemandante: todosOsValores.unidadeDemandante || '',
-        unidadeGestora: todosOsValores.unidadeGestora || '',
-        unidadeDemandanteId: watchedUnidadeDemandanteId || todosOsValores.unidadeDemandanteId,
-        unidadeGestoraId: watchedUnidadeGestoraId || todosOsValores.unidadeGestoraId,
+        unidadesResponsaveis: unidadesResponsaveisTransformadas,
         contratacao: todosOsValores.contratacao || 'Centralizada',
         vigenciaInicial: todosOsValores.vigenciaInicial || '',
         vigenciaFinal: todosOsValores.vigenciaFinal || '',
@@ -452,26 +460,33 @@ export default function ContratoForm({
       const currentDataString = JSON.stringify(dados)
       if (previousDataRef.current !== currentDataString) {
         previousDataRef.current = currentDataString
-        console.log('🔄 [DEBUG] onDataChange chamado com dados:', dados)
         handleDataChange(dados)
       }
     }
-  }, [watchedValues, handleDataChange, onDataChange, form, watchedUnidadeDemandanteId, watchedUnidadeGestoraId])
+  }, [watchedValues, handleDataChange, onDataChange, form])
 
   const handleFormSubmit = (dados: FormDataContrato) => {
-    // Obter todos os valores do formulário, incluindo os campos definidos via setValue
-    const todosOsValores = form.getValues()
-    
-    // Criar objeto DadosContrato com todos os campos necessários
-    const dadosContrato: DadosContrato = {
-      ...dados,
-      unidadeDemandanteId: watchedUnidadeDemandanteId || todosOsValores.unidadeDemandanteId,
-      unidadeGestoraId: watchedUnidadeGestoraId || todosOsValores.unidadeGestoraId,
+    // Transformar unidades para garantir que principal seja sempre boolean
+    const unidadesResponsaveis = dados.unidadesResponsaveis || []
+    const unidadesComPrincipalDefinido = unidadesResponsaveis.map(unidade => ({
+      ...unidade,
+      principal: unidade.principal ?? false
+    }))
+
+    // Validar unidades responsáveis
+    const validacao = validateUnidadesResponsaveis(unidadesComPrincipalDefinido)
+
+    if (!validacao.isValid) {
+      toast.error(`Erro na validação das unidades: ${validacao.errors.join(', ')}`)
+      return
     }
 
-    console.log('📝 [DEBUG] handleFormSubmit - dados do schema:', dados)
-    console.log('📝 [DEBUG] handleFormSubmit - todos os valores:', todosOsValores)
-    console.log('📝 [DEBUG] handleFormSubmit - dadosContrato final:', dadosContrato)
+    // Criar objeto DadosContrato diretamente dos dados do formulário
+    const dadosContrato: DadosContrato = {
+      ...dados,
+      unidadesResponsaveis: unidadesComPrincipalDefinido
+    }
+
 
     const submitOperation = async () => {
       if (onAdvanceRequest) {
@@ -575,28 +590,45 @@ export default function ContratoForm({
     if (!vigenciaInicial || !vigenciaFinal) return { meses: 0, dias: 0 }
 
     try {
-      const dataInicial = new Date(vigenciaInicial)
-      const dataFinal = new Date(vigenciaFinal)
+      // Parse das datas usando split para evitar problemas de timezone
+      const [anoInicial, mesInicial, diaInicial] = vigenciaInicial.split('-').map(Number)
+      const [anoFinal, mesFinal, diaFinal] = vigenciaFinal.split('-').map(Number)
       
-      if (isNaN(dataInicial.getTime()) || isNaN(dataFinal.getTime())) {
+      if (!anoInicial || !mesInicial || !diaInicial || !anoFinal || !mesFinal || !diaFinal) {
         return { meses: 0, dias: 0 }
       }
 
-      // Calcula a diferença em milissegundos
-      const diferencaMs = dataFinal.getTime() - dataInicial.getTime()
-      
-      if (diferencaMs <= 0) {
+      // Criar datas usando construtor local para evitar problemas de timezone
+      const dataInicial = new Date(anoInicial, mesInicial - 1, diaInicial) // mes - 1 porque Date usa 0-based
+      const dataFinal = new Date(anoFinal, mesFinal - 1, diaFinal)
+
+      if (dataFinal <= dataInicial) {
         return { meses: 0, dias: 0 }
       }
 
-      // Converte para dias
-      const diferencaDias = Math.floor(diferencaMs / (1000 * 60 * 60 * 24))
+      // Cálculo baseado em meses calendário reais (consistente com calcularVigenciaFinal)
+      let anos = dataFinal.getFullYear() - dataInicial.getFullYear()
+      let meses = dataFinal.getMonth() - dataInicial.getMonth()
+      let dias = dataFinal.getDate() - dataInicial.getDate()
+
+      // Ajustar se dias negativos
+      if (dias < 0) {
+        meses--
+        // Calcular dias do mês anterior
+        const ultimoDiaMesAnterior = new Date(dataFinal.getFullYear(), dataFinal.getMonth(), 0).getDate()
+        dias += ultimoDiaMesAnterior
+      }
+
+      // Ajustar se meses negativos
+      if (meses < 0) {
+        anos--
+        meses += 12
+      }
+
+      // Converter anos para meses totais
+      const mesesTotais = anos * 12 + meses
       
-      // Calcula meses e dias restantes
-      const meses = Math.floor(diferencaDias / 30)
-      const dias = diferencaDias % 30
-      
-      return { meses, dias }
+      return { meses: mesesTotais, dias }
     } catch (error) {
       console.error('Erro ao calcular prazo a partir da vigência final:', error)
       return { meses: 0, dias: 0 }
@@ -827,11 +859,62 @@ export default function ContratoForm({
                 control={form.control}
                 name="numeroContrato"
                 render={({ field }) => {
-                  const numeroValue = field.value || ''
-                  const isValidNumero =
-                    numeroValue.length > 0
-                      ? validarNumeroContrato(numeroValue)
-                      : null
+                  // Obter estado da validação de duplicação
+                  const { isChecking, isWaiting, isUnique, conflictData, error } = validacaoNumero
+
+                  // Estado visual baseado na validação
+                  const getVisualState = () => {
+                    if (error) return 'error'
+                    if (isWaiting) return 'waiting'
+                    if (isChecking) return 'checking'
+                    if (isUnique === true) return 'available'
+                    if (isUnique === false) return 'duplicate'
+                    return 'default'
+                  }
+
+                  const visualState = getVisualState()
+
+                  // Classes CSS baseadas no estado
+                  const getInputClasses = () => {
+                    switch (visualState) {
+                      case 'waiting':
+                        return 'border-gray-300 bg-gray-50 pr-10 transition-all duration-300'
+                      case 'checking':
+                        return 'border-blue-300 bg-blue-50 pr-10 transition-all duration-300'
+                      case 'available':
+                        return 'border-green-500 bg-green-50 pr-10 transition-all duration-300'
+                      case 'duplicate':
+                        return 'border-red-500 bg-red-50 pr-10 transition-all duration-300'
+                      case 'error':
+                        return 'border-yellow-500 bg-yellow-50 pr-10 transition-all duration-300'
+                      default:
+                        return 'transition-all duration-300'
+                    }
+                  }
+
+                  // Ícone baseado no estado
+                  const getIcon = () => {
+                    switch (visualState) {
+                      case 'waiting':
+                        return (
+                          <div className="flex items-center justify-center">
+                            <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" />
+                            <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse mx-1" style={{ animationDelay: '0.2s' }} />
+                            <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                          </div>
+                        )
+                      case 'checking':
+                        return <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      case 'available':
+                        return <Check className="h-4 w-4 text-green-500" />
+                      case 'duplicate':
+                        return <X className="h-4 w-4 text-red-500" />
+                      case 'error':
+                        return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      default:
+                        return null
+                    }
+                  }
 
                   return (
                     <FormItem>
@@ -844,30 +927,58 @@ export default function ContratoForm({
                             id="numeroContrato"
                             placeholder="Ex: 20240001"
                             {...field}
+                            disabled={isChecking}
                             onChange={(e) => {
                               // Remove tudo que não é número
                               const apenasNumeros = e.target.value.replace(/\D/g, '')
                               field.onChange(apenasNumeros)
-
                             }}
-                            className={cn(
-                              isValidNumero === true &&
-                                'border-green-500 bg-green-50 pr-10',
-                              isValidNumero === false &&
-                                'border-red-500 bg-red-50 pr-10',
-                            )}
+                            className={cn(getInputClasses())}
                           />
-                          {isValidNumero !== null && (
+                          {visualState !== 'default' && (
                             <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              {isValidNumero ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <X className="h-4 w-4 text-red-500" />
-                              )}
+                              {getIcon()}
                             </div>
                           )}
                         </div>
                       </FormControl>
+                      
+                      {/* Mensagem de status */}
+                      {visualState === 'waiting' && (
+                        <p className="text-xs text-gray-500 mt-1 transition-opacity duration-300">
+                          Aguardando para verificar...
+                        </p>
+                      )}
+                      
+                      {visualState === 'checking' && (
+                        <p className="text-xs text-blue-600 mt-1 transition-opacity duration-300">
+                          Verificando disponibilidade...
+                        </p>
+                      )}
+                      
+                      {visualState === 'available' && (
+                        <p className="text-xs text-green-600 mt-1 transition-all duration-300 animate-in fade-in-0">
+                          ✓ Número disponível
+                        </p>
+                      )}
+                      
+                      {visualState === 'duplicate' && conflictData && (
+                        <div className="text-xs text-red-600 mt-1 transition-all duration-300 animate-in fade-in-0">
+                          <p>❌ Já existe - Contrato #{conflictData.numeroContrato}</p>
+                          {conflictData.empresaRazaoSocial && (
+                            <p className="mt-0.5 text-gray-600 transition-opacity duration-200">
+                              Empresa: {conflictData.empresaRazaoSocial}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {visualState === 'error' && (
+                        <p className="text-xs text-yellow-600 mt-1 transition-all duration-300 animate-in fade-in-0">
+                          ⚠️ Erro na verificação - Tente novamente
+                        </p>
+                      )}
+                      
                       <FormMessage />
                     </FormItem>
                   )
@@ -1277,173 +1388,23 @@ export default function ContratoForm({
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Container para Unidade Demandante */}
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="unidadeDemandante"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="unidadeDemandante" className="mb-2">Unidade Demandante *</FormLabel>
-                    <Popover open={openDemandante} onOpenChange={setOpenDemandante}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openDemandante}
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value || "Busque por uma unidade demandante..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0" align="start">
-                        <Command>
-                          <CommandInput placeholder="Busque por nome da unidade..." />
-                          <CommandList>
-                            {carregandoUnidades ? (
-                              <CommandEmpty>
-                                <div className="flex items-center gap-2 py-2">
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                  Carregando unidades...
-                                </div>
-                              </CommandEmpty>
-                            ) : erroUnidades ? (
-                              <CommandEmpty>Erro ao carregar unidades</CommandEmpty>
-                            ) : (
-                              <>
-                                <CommandEmpty>Nenhuma unidade encontrada</CommandEmpty>
-                                <CommandGroup>
-                                  {unidadesData?.dados?.map((unidade) => (
-                                    <CommandItem
-                                      key={unidade.id}
-                                      value={unidade.nome}
-                                                                                                                    onSelect={(currentValue) => {
-                                         const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
-                                         if (selectedUnit) {
-                                           field.onChange(currentValue === field.value ? "" : currentValue)
-                                           // Atualizar o campo do formulário com o ID
-                                           form.setValue('unidadeDemandanteId', selectedUnit.id)
-                                           console.log('🔍 [DEBUG] Unidade demandante selecionada:', {
-                                             nome: currentValue,
-                                             id: selectedUnit.id
-                                           })
-                                         }
-                                         setOpenDemandante(false)
-                                       }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          field.value === unidade.nome ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      {unidade.nome}
-                                      {unidade.sigla && <span className="ml-auto text-xs text-muted-foreground">({unidade.sigla})</span>}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </>
-                            )}
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Container para Unidade Gestora */}
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="unidadeGestora"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="unidadeGestora" className="mb-2">Unidade Gestora *</FormLabel>
-                    <Popover open={openGestora} onOpenChange={setOpenGestora}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openGestora}
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value || "Busque por uma unidade gestora..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0" align="start">
-                        <Command>
-                          <CommandInput placeholder="Busque por nome da unidade..." />
-                          <CommandList>
-                            {carregandoUnidades ? (
-                              <CommandEmpty>
-                                <div className="flex items-center gap-2 py-2">
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                  Carregando unidades...
-                                </div>
-                              </CommandEmpty>
-                            ) : erroUnidades ? (
-                              <CommandEmpty>Erro ao carregar unidades</CommandEmpty>
-                            ) : (
-                              <>
-                                <CommandEmpty>Nenhuma unidade encontrada</CommandEmpty>
-                                <CommandGroup>
-                                  {unidadesData?.dados?.map((unidade) => (
-                                    <CommandItem
-                                      key={unidade.id}
-                                      value={unidade.nome}
-                                                                                                                    onSelect={(currentValue) => {
-                                         const selectedUnit = unidadesData.dados.find(u => u.nome === currentValue)
-                                         if (selectedUnit) {
-                                           field.onChange(currentValue === field.value ? "" : currentValue)
-                                           // Atualizar o campo do formulário com o ID
-                                           form.setValue('unidadeGestoraId', selectedUnit.id)
-                                           console.log('🔍 [DEBUG] Unidade gestora selecionada:', {
-                                             nome: currentValue,
-                                             id: selectedUnit.id
-                                           })
-                                         }
-                                         setOpenGestora(false)
-                                       }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          field.value === unidade.nome ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      {unidade.nome}
-                                      {unidade.sigla && <span className="ml-auto text-xs text-muted-foreground">({unidade.sigla})</span>}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </>
-                            )}
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          {/* Nova Seção: Gerenciador de Unidades Responsáveis */}
+          <FormField
+            control={form.control}
+            name="unidadesResponsaveis"
+            render={({ field }) => (
+              <FormItem>
+                <UnidadeResponsavelManager
+                  unidades={(field.value || []).map(unidade => ({
+                    ...unidade,
+                    principal: unidade.principal ?? false
+                  }))}
+                  onChange={field.onChange}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Container para Contratação */}
           <div className="space-y-2">
@@ -2294,3 +2255,8 @@ export default function ContratoForm({
     </Form>
   )
 }
+
+
+
+
+

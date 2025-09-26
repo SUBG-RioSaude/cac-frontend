@@ -6,7 +6,6 @@ import { Plus, FileDown } from "lucide-react"
 import { SearchAndFiltersUnidades } from "@/modules/Unidades/ListaUnidades/components/search-and-filters-unidades"
 import { TabelaUnidades } from "@/modules/Unidades/ListaUnidades/components/tabela-unidades"
 import { UnidadesPageSkeleton } from "@/modules/Unidades/ListaUnidades/components/skeletons/unidades-page-skeleton"
-import { useDebounce } from "@/modules/Contratos/hooks/useDebounce"
 import { useUnidades } from "@/modules/Unidades/hooks/use-unidades"
 import { useUpdateUnidade, useDeleteUnidade } from "@/modules/Unidades/hooks/use-unidades-mutations"
 import { mapearUnidadeApi } from "@/modules/Unidades/types/unidade-api"
@@ -15,12 +14,6 @@ import type { FiltrosUnidadesApi } from "@/modules/Unidades/types/unidade-api"
 
 const UnidadesListPage = () => {
   const navigate = useNavigate()
-  const [termoPesquisa, setTermoPesquisa] = useState('')
-  const [filtrosAvancados, setFiltrosAvancados] = useState<{
-    status?: string
-    sigla?: string
-    tipo?: string
-  }>({})
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<(string | number)[]>([])
   const [ordenacao, setOrdenacao] = useState<OrdenacaoParams>({
     coluna: 'nome',
@@ -32,17 +25,14 @@ const UnidadesListPage = () => {
     total: 0
   })
 
-  // Debounce search - 500ms delay like other modules
-  const termoPesquisaDebounced = useDebounce(termoPesquisa, 500)
-
-  // Prepare API filters
-  const filtrosApi: FiltrosUnidadesApi = useMemo(() => ({
-    pagina: paginacao.pagina,
-    tamanhoPagina: paginacao.itensPorPagina,
-    ordenarPor: ordenacao.coluna,
-    direcaoOrdenacao: ordenacao.direcao,
-    nome: termoPesquisaDebounced.trim() || undefined
-  }), [paginacao.pagina, paginacao.itensPorPagina, ordenacao, termoPesquisaDebounced])
+  // Estado único para todos os filtros (incluindo pesquisa)
+  const [filtrosApi, setFiltrosApi] = useState<FiltrosUnidadesApi>({
+    pagina: 1,
+    tamanhoPagina: 10,
+    ordenarPor: 'nome',
+    direcaoOrdenacao: 'asc',
+    ativo: true // Por padrão busca apenas ativas
+  })
 
   // Fetch data with React Query
   const { data: responseData, isLoading, error } = useUnidades(filtrosApi, {
@@ -54,43 +44,22 @@ const UnidadesListPage = () => {
   const updateUnidadeMutation = useUpdateUnidade()
   const deleteUnidadeMutation = useDeleteUnidade()
 
-  // Map API data to local format and apply client-side filters
+  // Map API data to local format - agora usa server-side filtering
   const unidadesFiltradas = useMemo(() => {
     if (!responseData?.dados) return []
+    return responseData.dados.map(mapearUnidadeApi)
+  }, [responseData?.dados])
 
-    let resultado = responseData.dados.map(mapearUnidadeApi)
-
-    // Apply advanced filters (client-side for now)
-    if (filtrosAvancados.status) {
-      resultado = resultado.filter(unidade => 
-        (unidade.status || 'ativo') === filtrosAvancados.status
-      )
-    }
-
-    if (filtrosAvancados.sigla) {
-      resultado = resultado.filter(unidade =>
-        unidade.sigla.toLowerCase().includes(filtrosAvancados.sigla!.toLowerCase())
-      )
-    }
-
-    if (filtrosAvancados.tipo) {
-      // Filtro por tipo baseado na sigla (simplificado)
-      const tipoMap = {
-        ubs: ['UBS'],
-        hospital: ['HOSPITAL', 'HMS'],
-        caps: ['CAPS'],
-        upa: ['UPA'],
-        centro: ['CENTRO', 'CE']
-      }
-      
-      const siglasTipo = tipoMap[filtrosAvancados.tipo as keyof typeof tipoMap] || []
-      resultado = resultado.filter(unidade =>
-        siglasTipo.some(tipo => unidade.sigla.toUpperCase().includes(tipo))
-      )
-    }
-
-    return resultado
-  }, [responseData?.dados, filtrosAvancados])
+  // Sync pagination and ordering with filtrosApi
+  useEffect(() => {
+    setFiltrosApi(prev => ({
+      ...prev,
+      pagina: paginacao.pagina,
+      tamanhoPagina: paginacao.itensPorPagina,
+      ordenarPor: ordenacao.coluna,
+      direcaoOrdenacao: ordenacao.direcao
+    }))
+  }, [paginacao.pagina, paginacao.itensPorPagina, ordenacao])
 
   // Update pagination when data changes
   useEffect(() => {
@@ -159,7 +128,7 @@ const UnidadesListPage = () => {
     document.body.removeChild(link)
   }
 
-  const textoExportar = unidadesSelecionadas.length > 0 
+  const textoExportar = unidadesSelecionadas.length > 0
     ? `Exportar (${unidadesSelecionadas.length})`
     : 'Exportar Todas'
 
@@ -234,10 +203,26 @@ const UnidadesListPage = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <SearchAndFiltersUnidades
-            termoPesquisa={termoPesquisa}
-            onTermoPesquisaChange={setTermoPesquisa}
-            filtros={filtrosAvancados}
-            onFiltrosChange={setFiltrosAvancados}
+            filtrosAtivos={filtrosApi}
+            onFiltrosChange={(novosFiltros) => {
+              // Resetar para página 1 quando houver mudança de filtros (exceto paginação)
+              const jaPossuiPaginacao = 'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
+
+              if (!jaPossuiPaginacao) {
+                setPaginacao(prev => ({ ...prev, pagina: 1 }))
+              }
+
+              // Aplicar filtros diretamente preservando paginação e ordenação
+              setFiltrosApi(prev => ({
+                ...prev,
+                ...novosFiltros,
+                pagina: jaPossuiPaginacao ? novosFiltros.pagina || prev.pagina : 1,
+                tamanhoPagina: novosFiltros.tamanhoPagina || prev.tamanhoPagina,
+                ordenarPor: prev.ordenarPor,
+                direcaoOrdenacao: prev.direcaoOrdenacao
+              }))
+            }}
+            isLoading={isLoading}
           />
         </motion.div>
 

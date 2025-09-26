@@ -666,7 +666,6 @@ export function getLimiteLegal(tipos: TipoAlteracao[]): number {
 export function transformToApiPayload(
   dados: AlteracaoContratualForm
 ): AlteracaoContratualPayload {
-  console.log('🔧 Transformando dados para API:', dados)
   
   const payload: AlteracaoContratualPayload = {
     contratoId: dados.contratoId,
@@ -679,7 +678,6 @@ export function transformToApiPayload(
   // Campos opcionais básicos
   if (dados.dadosBasicos?.fundamentoLegal) {
     // Note: fundamentoLegal não existe no novo formato, vai no justificativa ou observacoes
-    console.log('   ⚠️ fundamentoLegal será ignorado (não existe no novo formato da API)')
   }
   
   // Adicionar data de assinatura se disponível (pode vir do contrato ou ser definida pelo usuário)
@@ -704,7 +702,6 @@ export function transformToApiPayload(
       clausulasIncluidas: clausulas.clausulasIncluidas,
       clausulasAlteradas: clausulas.clausulasAlteradas
     }
-    console.log('   ✅ Bloco clausulas transformado')
   }
 
   if (dados.blocos?.vigencia) {
@@ -717,7 +714,6 @@ export function transformToApiPayload(
       isIndeterminado: vigencia.isIndeterminado,
       observacoes: vigencia.observacoes
     }
-    console.log('   ✅ Bloco vigencia transformado')
   }
 
   if (dados.blocos?.valor) {
@@ -730,13 +726,11 @@ export function transformToApiPayload(
       observacoes: valor.observacoes,
       valorCalculadoAutomaticamente: valor.valorCalculadoAutomaticamente
     }
-    console.log('   ✅ Bloco valor transformado')
   }
 
   // NOVO: Transformar bloco fornecedores
   if (dados.blocos?.fornecedores) {
     const fornecedores = dados.blocos.fornecedores as BlocoFornecedores
-    console.log('   🔧 Transformando fornecedores:', fornecedores)
     
     payload.fornecedores = {
       observacoes: fornecedores.observacoes
@@ -755,13 +749,11 @@ export function transformToApiPayload(
       payload.fornecedores.novoFornecedorPrincipal = fornecedores.novoFornecedorPrincipal
     }
     
-    console.log('   ✅ Bloco fornecedores transformado:', payload.fornecedores)
   }
 
   // NOVO: Transformar bloco unidades  
   if (dados.blocos?.unidades) {
     const unidades = dados.blocos.unidades as BlocoUnidades
-    console.log('   🔧 Transformando unidades:', unidades)
     
     payload.unidades = {
       observacoes: unidades.observacoes
@@ -777,9 +769,7 @@ export function transformToApiPayload(
       payload.unidades.unidadesDesvinculadas = unidades.unidadesDesvinculadas
     }
     
-    console.log('   ✅ Bloco unidades transformado:', payload.unidades)
   }
 
-  console.log('🎯 Payload final para API:', payload)
   return payload
 }

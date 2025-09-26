@@ -139,6 +139,32 @@ export function useCadastrarEmpresa() {
     },
 
     onSuccess: (data, variables, context) => {
+      // Debug: Log detalhado da resposta do hook
+      console.log('✅ [HOOK] Empresa cadastrada - dados recebidos:', data)
+      console.log('🔍 [HOOK] ID da empresa:', data?.id)
+      console.log('🔍 [HOOK] Tipo do ID:', typeof data?.id)
+      console.log('🔍 [HOOK] Dados completos:', JSON.stringify(data, null, 2))
+
+      // Validação robusta do ID
+      if (!data?.id) {
+        console.error('❌ [HOOK] ERRO CRÍTICO: ID não encontrado na resposta!')
+        console.error('❌ [HOOK] Dados recebidos:', data)
+
+        if (context?.loadingToast) {
+          toast.error('Erro no cadastro da empresa', {
+            id: context.loadingToast,
+            description: 'ID da empresa não foi retornado pela API',
+            duration: 5000,
+          })
+        } else {
+          mutation.error('cadastrar empresa', new Error('ID da empresa não retornado'))
+        }
+        return
+      }
+
+      // ID validado com sucesso
+      console.log('🎉 [HOOK] ID validado com sucesso:', data.id)
+
       if (context?.loadingToast) {
         toast.success('Empresa cadastrada com sucesso', {
           id: context.loadingToast,
@@ -497,19 +523,23 @@ export function useFornecedoresResumo(
   const { query: toastQuery } = useToast()
   const { handleApiError } = useErrorHandler()
 
+
+  const queryKey = empresaKeys.fornecedoresResumo(filtros)
+
   return useQuery({
-    queryKey: empresaKeys.fornecedoresResumo(filtros),
+    queryKey,
     queryFn: async () => {
-      return await getFornecedoresResumo(filtros)
+      const result = await getFornecedoresResumo(filtros)
+      return result
     },
-    
+
     enabled: options?.enabled ?? true,
     placeholderData: options?.keepPreviousData ? (prev) => prev : undefined,
     refetchOnMount: options?.refetchOnMount ?? true,
-    
-    // Cache por 2 minutos para dados de resumo
-    staleTime: 2 * 60 * 1000,
-    
+
+    // Cache reduzido para debug - originalmente 2 minutos
+    staleTime: 0, // Desabilitado temporariamente para debug
+
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
@@ -523,7 +553,7 @@ export function useFornecedoresResumo(
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
         const status = (error as { response: { status: number } }).response?.status
-        
+
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
           return true

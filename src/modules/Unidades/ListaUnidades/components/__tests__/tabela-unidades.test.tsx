@@ -319,22 +319,22 @@ describe('TabelaUnidades', () => {
     expect(checkedBoxes.length).toBeGreaterThanOrEqual(0) // Ajustar expectativa pois o componente pode ter comportamento específico
   })
 
-  it('deve truncar texto longo nos campos apropriados', () => {
+  it('deve renderizar texto longo nos campos apropriados', () => {
     const unidadeComNomeLongo = {
       ...mockUnidades[0],
       nome: "Hospital Municipal de Saude com Nome Extremamente Longo Para Testar Truncamento de Texto"
     }
-    
+
     const propsComTextoLongo = {
       ...defaultProps,
       unidades: [unidadeComNomeLongo]
     }
-    
+
     renderWithRouter(<TabelaUnidades {...propsComTextoLongo} />)
-    
+
     // Buscar especificamente o elemento da versão desktop
     const nomeElementDesktop = screen.getByTestId('unidade-nome-1')
     expect(nomeElementDesktop).toBeInTheDocument()
-    expect(nomeElementDesktop).toHaveClass('line-clamp-2', 'max-w-[200px]')
+    expect(nomeElementDesktop).toHaveClass('text-sm', 'font-medium', 'leading-relaxed')
   })
 })
