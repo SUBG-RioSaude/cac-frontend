@@ -75,7 +75,7 @@ export function ContratosPage() {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
 
     setModalExportacaoAberto(false)
   }
@@ -118,7 +118,7 @@ export function ContratosPage() {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
   }
 
   const handleClickExportar = () => {

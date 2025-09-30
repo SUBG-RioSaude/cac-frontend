@@ -124,7 +124,7 @@ export default function FornecedoresListPage() {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
   }
 
   const handleExportarTodos = () => {
@@ -155,7 +155,7 @@ export default function FornecedoresListPage() {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
 
     setModalExportacaoAberto(false)
   }
