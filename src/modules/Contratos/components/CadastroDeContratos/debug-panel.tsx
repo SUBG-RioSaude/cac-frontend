@@ -6,13 +6,6 @@
  * de cadastro de contrato para facilitar testes e desenvolvimento
  */
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Bug,
   ChevronLeft,
@@ -29,11 +22,23 @@ import {
   Clock,
   Loader2,
 } from 'lucide-react'
-import type { DadosFornecedor } from './fornecedor-form'
-import type { DadosContrato } from './contrato-form'
-import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
-import type { DadosAtribuicao } from './atribuicao-fiscais-form'
+import { useState, useEffect } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { CriarContratoData } from '@/modules/Contratos/hooks/use-contratos-mutations'
+import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
+
+import type { DadosAtribuicao } from './atribuicao-fiscais-form'
+import type { DadosContrato } from './contrato-form'
+import type { DadosFornecedor } from './fornecedor-form'
+
+
+
 
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
@@ -49,7 +54,7 @@ interface DebugPanelProps {
   onLimparDados: () => void
   onExportarDados: () => void
   payloadFinal?: CriarContratoData | null
-  apiLogs: Array<{
+  apiLogs: {
     id: string
     timestamp: string
     method: string
@@ -58,11 +63,11 @@ interface DebugPanelProps {
     duration?: number
     data?: unknown
     error?: string
-  }>
+  }[]
   isGeneratingMock?: boolean
 }
 
-export default function DebugPanel({
+const DebugPanel = ({
   dadosCompletos,
   passoAtual,
   onPreencherDadosMock,
@@ -71,7 +76,7 @@ export default function DebugPanel({
   payloadFinal,
   apiLogs,
   isGeneratingMock = false,
-}: DebugPanelProps) {
+}: DebugPanelProps) => {
   const [isVisible, setIsVisible] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [activeTab, setActiveTab] = useState('dados')
@@ -90,7 +95,7 @@ export default function DebugPanel({
   }, [])
 
   const copyToClipboard = (data: unknown) => {
-    navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+    void navigator.clipboard.writeText(JSON.stringify(data, null, 2))
   }
 
   const getStepStatus = (step: number) => {
@@ -126,13 +131,13 @@ export default function DebugPanel({
   const renderStepData = (step: number) => {
     switch (step) {
       case 1:
-        return dadosCompletos.fornecedor || { message: 'Dados não preenchidos' }
+        return dadosCompletos.fornecedor ?? { message: 'Dados não preenchidos' }
       case 2:
-        return dadosCompletos.contrato || { message: 'Dados não preenchidos' }
+        return dadosCompletos.contrato ?? { message: 'Dados não preenchidos' }
       case 3:
-        return dadosCompletos.unidades || { message: 'Dados não preenchidos' }
+        return dadosCompletos.unidades ?? { message: 'Dados não preenchidos' }
       case 4:
-        return dadosCompletos.atribuicao || { message: 'Dados não preenchidos' }
+        return dadosCompletos.atribuicao ?? { message: 'Dados não preenchidos' }
       default:
         return { message: 'Step inválido' }
     }
@@ -434,3 +439,5 @@ export default function DebugPanel({
     </div>
   )
 }
+
+export default DebugPanel

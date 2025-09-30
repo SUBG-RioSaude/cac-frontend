@@ -1,6 +1,7 @@
-import { Button } from '@/components/ui/button'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface ConfirmarAvancoModalProps {
@@ -13,7 +14,7 @@ interface ConfirmarAvancoModalProps {
   textoCancelar?: string
 }
 
-export default function ConfirmarAvancoModal({
+const ConfirmarAvancoModal = ({
   aberto,
   onConfirmar,
   onCancelar,
@@ -21,7 +22,7 @@ export default function ConfirmarAvancoModal({
   descricao = 'Tem certeza que deseja avançar para a próxima etapa? Esta ação não poderá ser desfeita.',
   textoConfirmar = 'Confirmar',
   textoCancelar = 'Cancelar',
-}: ConfirmarAvancoModalProps) {
+}: ConfirmarAvancoModalProps) => {
   useEffect(() => {
     // Previne scroll da página quando modal estiver aberto
     if (aberto) {
@@ -52,6 +53,14 @@ export default function ConfirmarAvancoModal({
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onCancelar}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            onCancelar()
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Fechar modal"
       />
 
       {/* Modal */}
@@ -127,3 +136,5 @@ export default function ConfirmarAvancoModal({
     </div>
   )
 }
+
+export default ConfirmarAvancoModal

@@ -1,4 +1,3 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -10,23 +9,25 @@ import {
   Loader2,
   FileText,
 } from 'lucide-react'
-import { useDebounce } from '@/hooks/use-debounce'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import type { FiltrosUnidadesApi } from '../../types/unidade-api'
 
@@ -45,19 +46,17 @@ function detectarTipoPesquisa(termo: string): Partial<FiltrosUnidadesApi> {
   return { nome: termo.trim() }
 }
 
-const FILTROS_IGNORADOS: Array<keyof FiltrosUnidadesApi> = [
+const FILTROS_IGNORADOS: (keyof FiltrosUnidadesApi)[] = [
   'pagina',
   'tamanhoPagina',
 ]
 
 function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
-  if (!filtros || typeof filtros !== 'object') {
+  if (typeof filtros !== 'object') {
     return {}
   }
   return (
-    Object.entries(filtros) as Array<
-      [keyof FiltrosUnidadesApi, FiltrosUnidadesApi[keyof FiltrosUnidadesApi]]
-    >
+    Object.entries(filtros) as [keyof FiltrosUnidadesApi, FiltrosUnidadesApi[keyof FiltrosUnidadesApi]][]
   ).reduce<FiltrosUnidadesApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
@@ -73,15 +72,12 @@ function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
         acc[key] = undefined
         return acc
       }
-      if (
-        value === null ||
-        (typeof value === 'string' && value.trim() === '')
-      ) {
+      if (typeof value === 'string' && value.trim() === '') {
         return acc
       }
     }
 
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       return acc
     }
 
@@ -118,11 +114,11 @@ interface SearchAndFiltersUnidadesProps {
   isLoading?: boolean
 }
 
-export function SearchAndFiltersUnidades({
+export const SearchAndFiltersUnidades = ({
   onFiltrosChange,
   filtrosAtivos,
   isLoading = false,
-}: SearchAndFiltersUnidadesProps) {
+}: SearchAndFiltersUnidadesProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // Estados locais para UI
@@ -133,7 +129,7 @@ export function SearchAndFiltersUnidades({
     [filtrosAtivos],
   )
   const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(
-    filtrosAtivos.nome || filtrosAtivos.sigla || '',
+    filtrosAtivos.nome ?? filtrosAtivos.sigla ?? '',
   )
   const [filtrosLocais, setFiltrosLocais] =
     useState<FiltrosUnidadesApi>(filtrosBase)
@@ -191,7 +187,7 @@ export function SearchAndFiltersUnidades({
       if (checked) {
         return { ...prev, ativo: status === 'ativo' }
       }
-      const { ativo, ...rest } = prev
+      const { ativo: _ativo, ...rest } = prev
       return rest as FiltrosUnidadesApi
     })
   }, [])
@@ -254,7 +250,7 @@ export function SearchAndFiltersUnidades({
 
                 const filtrosParaEnviar = {
                   pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
                   // Preserva outros filtros ativos (status, cnes, bairro)
                   ...(filtrosLocais.ativo !== undefined && {
                     ativo: filtrosLocais.ativo,
@@ -291,7 +287,7 @@ export function SearchAndFiltersUnidades({
 
                 const filtrosParaEnviar = {
                   pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
                   // Preserva outros filtros ativos (status, cnes, bairro)
                   ...(filtrosLocais.ativo !== undefined && {
                     ativo: filtrosLocais.ativo,
@@ -450,12 +446,12 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: UBS, CAPS..."
-                      value={filtrosLocais.sigla || ''}
+                      value={filtrosLocais.sigla ?? ''}
                       onChange={(e) => {
                         const valor = e.target.value
                         setFiltrosLocais((prev: FiltrosUnidadesApi) => {
                           if (valor === '') {
-                            const { sigla, ...rest } = prev
+                            const { sigla: _sigla, ...rest } = prev
                             return rest as FiltrosUnidadesApi
                           }
                           return { ...prev, sigla: valor }
@@ -489,12 +485,12 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: 2269311, 7654321..."
-                      value={filtrosLocais.cnes || ''}
+                      value={filtrosLocais.cnes ?? ''}
                       onChange={(e) => {
                         const valor = e.target.value
                         setFiltrosLocais((prev: FiltrosUnidadesApi) => {
                           if (valor === '') {
-                            const { cnes, ...rest } = prev
+                            const { cnes: _cnes, ...rest } = prev
                             return rest as FiltrosUnidadesApi
                           }
                           return { ...prev, cnes: valor }
@@ -528,12 +524,12 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: Centro, Copacabana..."
-                      value={filtrosLocais.bairro || ''}
+                      value={filtrosLocais.bairro ?? ''}
                       onChange={(e) => {
                         const valor = e.target.value
                         setFiltrosLocais((prev: FiltrosUnidadesApi) => {
                           if (valor === '') {
-                            const { bairro, ...rest } = prev
+                            const { bairro: _bairro, ...rest } = prev
                             return rest as FiltrosUnidadesApi
                           }
                           return { ...prev, bairro: valor }

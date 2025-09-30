@@ -1,10 +1,12 @@
+import type {
+  AxiosError} from 'axios';
 import axios, {
-  AxiosError,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { getToken, logout, renovarToken } from './auth/auth'
+
 import { apiMetrics } from './api-metrics'
+import { getToken, logout, renovarToken } from './auth/auth'
 
 // Cliente para Gateway (rota principal)
 export const apiGateway = axios.create({

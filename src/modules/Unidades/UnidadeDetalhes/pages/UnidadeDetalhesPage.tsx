@@ -1,18 +1,18 @@
+import { motion } from 'framer-motion'
+import { ArrowLeft, MapPin, Building2, Hash } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowLeft, MapPin, Building2, Hash } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useErrorHandler } from '@/hooks/use-error-handler'
-
 import unidadesData from '@/modules/Unidades/ListaUnidades/data/unidades.json'
 import type { Unidade } from '@/modules/Unidades/ListaUnidades/types/unidade'
 import { ListaContratos } from '@/modules/Unidades/UnidadeDetalhes/components/lista-contratos'
 
-export function UnidadeDetalhesPage() {
+export const UnidadeDetalhesPage = () => {
   const { unidadeId } = useParams<{ unidadeId: string }>()
   const navigate = useNavigate()
   const { handleError } = useErrorHandler()
@@ -39,7 +39,7 @@ export function UnidadeDetalhesPage() {
       setLoading(false)
     }
 
-    carregarUnidade()
+    void carregarUnidade()
   }, [unidadeId, handleError])
 
   if (loading) {
@@ -47,9 +47,9 @@ export function UnidadeDetalhesPage() {
       <div className="from-background to-muted/20 min-h-screen bg-gradient-to-br">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="animate-pulse space-y-6">
-            <div className="bg-muted h-8 w-1/3 rounded"></div>
-            <div className="bg-muted h-32 rounded"></div>
-            <div className="bg-muted h-96 rounded"></div>
+            <div className="bg-muted h-8 w-1/3 rounded" />
+            <div className="bg-muted h-32 rounded" />
+            <div className="bg-muted h-96 rounded" />
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ export function UnidadeDetalhesPage() {
           {/* Lista de Contratos */}
           <div className="lg:col-span-2">
             <ListaContratos
-              contratos={unidade.contratos || []}
+              contratos={unidade.contratos ?? []}
               unidadeNome={unidade.nome}
             />
           </div>

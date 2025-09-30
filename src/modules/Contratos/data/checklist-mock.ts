@@ -1,4 +1,4 @@
-import type { ChecklistData } from '@/modules/Contratos/types/contrato'
+import type { ChecklistData, DocumentoChecklist } from '@/modules/Contratos/types/contrato'
 
 export const CHECKLIST_MOCK: ChecklistData = {
   termoReferencia: {
@@ -34,7 +34,7 @@ export const CHECKLIST_MOCK: ChecklistData = {
 }
 
 export const calcularProgressoChecklist = (checklist: ChecklistData) => {
-  const documentos = Object.values(checklist)
+  const documentos = Object.values(checklist) as DocumentoChecklist[]
   const total = documentos.length
   const entregues = documentos.filter((doc) => doc.entregue).length
   const pendentes = documentos.filter((doc) => !doc.entregue).length

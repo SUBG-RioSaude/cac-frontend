@@ -1,27 +1,28 @@
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ContratoStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusContrato } from '@/types/status'
-import { Button } from '@/components/ui/button'
 import { ExternalLink, FileText, Calendar, Building } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
 import { currencyUtils } from '@/lib/utils'
 import type { ContratoVinculado } from '@/modules/Unidades/ListaUnidades/types/unidade'
-import { DateDisplay } from '@/components/ui/formatters'
+import { parseStatusContrato } from '@/types/status'
 
 interface ListaContratosProps {
   contratos: ContratoVinculado[]
   unidadeNome: string
 }
 
-export function ListaContratos({ contratos }: ListaContratosProps) {
+export const ListaContratos = ({ contratos }: ListaContratosProps) => {
   const navigate = useNavigate()
 
   const handleVisualizarContrato = (contratoId: number) => {
     navigate(`/contratos/${contratoId}`)
   }
 
-  if (!contratos || contratos.length === 0) {
+  if (contratos.length === 0) {
     return (
       <Card className="h-fit">
         <CardContent className="p-6">

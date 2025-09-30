@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
+
 import { Checkbox } from '../checkbox'
 
 describe('Checkbox', () => {
@@ -88,7 +89,7 @@ describe('Checkbox', () => {
     })
 
     it('deve aceitar estado checked inicial', () => {
-      render(<Checkbox checked={true} data-testid="checkbox" />)
+      render(<Checkbox checked data-testid="checkbox" />)
 
       const checkbox = screen.getByTestId('checkbox')
       expect(checkbox).toHaveAttribute('aria-checked', 'true')
@@ -212,7 +213,7 @@ describe('Checkbox', () => {
     })
 
     it('deve mostrar ícone de check quando marcado', () => {
-      render(<Checkbox checked={true} data-testid="checkbox" />)
+      render(<Checkbox checked data-testid="checkbox" />)
 
       const checkbox = screen.getByTestId('checkbox')
       const checkIcon = checkbox.querySelector('svg')

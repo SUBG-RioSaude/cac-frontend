@@ -1,6 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+import { authService } from '../auth-service'
 import { useAuthStore } from '../auth-store'
+import { cookieUtils } from '../cookie-utils'
 
 // Mocks
 vi.mock('../auth-service', () => ({
@@ -58,16 +61,20 @@ Object.defineProperty(window, 'sessionStorage', {
 vi.spyOn(console, 'log').mockImplementation(() => {})
 vi.spyOn(console, 'error').mockImplementation(() => {})
 
-import { authService } from '../auth-service'
-import { cookieUtils } from '../cookie-utils'
+// Type helpers for mocked functions
+const mockedAuthService = vi.mocked(authService)
+const mockedCookieUtils = vi.mocked(cookieUtils)
+// Already mocked objects don't need vi.mocked() wrapper
+const mockedSessionStorage = mockSessionStorage
+const mockedLocation = mockLocation
 
 describe('AuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLocation.href = ''
+    mockedLocation.href = ''
 
     // Mock padr�o para cookies
-    vi.mocked(cookieUtils.getCookie).mockReturnValue(null)
+    mockedCookieUtils.getCookie.mockReturnValue(null)
   })
 
   afterEach(() => {
@@ -93,7 +100,7 @@ describe('AuthStore', () => {
     it('deve fazer login com sucesso', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.login).mockResolvedValue({
+      mockedAuthService.login.mockResolvedValue({
         sucesso: true,
         mensagem: 'C�digo enviado',
       })
@@ -107,7 +114,7 @@ describe('AuthStore', () => {
       })
 
       expect(loginResult!).toBe(true)
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
+      expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
         'auth_email',
         'test@email.com',
       )
@@ -118,7 +125,7 @@ describe('AuthStore', () => {
     it('deve lidar com erro no login', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.login).mockResolvedValue({
+      mockedAuthService.login.mockResolvedValue({
         sucesso: false,
         mensagem: 'Credenciais inv�lidas',
       })
@@ -139,7 +146,7 @@ describe('AuthStore', () => {
     it('deve lidar com exce��o no login', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.login).mockRejectedValue(new Error('Erro de rede'))
+      mockedAuthService.login.mockRejectedValue(new Error('Erro de rede'))
 
       let loginResult: boolean
       await act(async () => {
@@ -165,7 +172,7 @@ describe('AuthStore', () => {
       const mockRefreshToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
-      vi.mocked(authService.confirmarCodigo2FA).mockResolvedValue({
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         dados: {
           token: mockToken,
@@ -183,25 +190,25 @@ describe('AuthStore', () => {
       })
 
       expect(resultado!).toBe(true)
-      expect(cookieUtils.setCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.setCookie).toHaveBeenCalledWith(
         'auth_token',
         mockToken,
         expect.any(Object),
       )
-      expect(cookieUtils.setCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.setCookie).toHaveBeenCalledWith(
         'auth_refresh_token',
         mockRefreshToken,
         expect.any(Object),
       )
       expect(result.current.usuario).toEqual(mockUsuario)
       expect(result.current.estaAutenticado).toBe(true)
-      expect(mockSessionStorage.removeItem).toHaveBeenCalledWith('auth_email')
+      expect(mockedSessionStorage.removeItem).toHaveBeenCalledWith('auth_email')
     })
 
     it('deve lidar com necessidade de trocar senha', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.confirmarCodigo2FA).mockResolvedValue({
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         precisaTrocarSenha: true,
         tokenTrocaSenha: 'token_troca_senha_123',
@@ -216,21 +223,21 @@ describe('AuthStore', () => {
       })
 
       expect(resultado!).toBe(false) // Retorna false pois ainda precisa trocar senha
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
+      expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
         'tokenTrocaSenha',
         'token_troca_senha_123',
       )
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
+      expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
         'auth_context',
         'password_reset',
       )
-      expect(mockLocation.href).toBe('/auth/trocar-senha')
+      expect(mockedLocation.href).toBe('/auth/trocar-senha')
     })
 
     it('deve lidar com tokens inv�lidos', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.confirmarCodigo2FA).mockResolvedValue({
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         dados: {
           token: 'token_invalido',
@@ -254,7 +261,7 @@ describe('AuthStore', () => {
     it('deve lidar com erro na confirma��o', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.confirmarCodigo2FA).mockResolvedValue({
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: false,
         mensagem: 'C�digo inv�lido',
       })
@@ -282,7 +289,7 @@ describe('AuthStore', () => {
       const mockRefreshToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
-      vi.mocked(authService.trocarSenha).mockResolvedValue({
+      mockedAuthService.trocarSenha.mockResolvedValue({
         sucesso: true,
         dados: {
           token: mockToken,
@@ -301,20 +308,20 @@ describe('AuthStore', () => {
       })
 
       expect(resultado!).toBe(true)
-      expect(cookieUtils.setCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.setCookie).toHaveBeenCalledWith(
         'auth_token',
         mockToken,
         expect.any(Object),
       )
-      expect(cookieUtils.setCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.setCookie).toHaveBeenCalledWith(
         'auth_refresh_token',
         mockRefreshToken,
         expect.any(Object),
       )
       expect(result.current.usuario).toEqual(mockUsuario)
       expect(result.current.estaAutenticado).toBe(true)
-      expect(mockSessionStorage.removeItem).toHaveBeenCalledWith('auth_email')
-      expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(
+      expect(mockedSessionStorage.removeItem).toHaveBeenCalledWith('auth_email')
+      expect(mockedSessionStorage.removeItem).toHaveBeenCalledWith(
         'tokenTrocaSenha',
       )
     })
@@ -322,7 +329,7 @@ describe('AuthStore', () => {
     it('deve lidar com erro na troca de senha', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.trocarSenha).mockResolvedValue({
+      mockedAuthService.trocarSenha.mockResolvedValue({
         sucesso: false,
         mensagem: 'Senha muito fraca',
       })
@@ -344,7 +351,7 @@ describe('AuthStore', () => {
     it('deve solicitar recupera��o de senha com sucesso', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.esqueciSenha).mockResolvedValue({
+      mockedAuthService.esqueciSenha.mockResolvedValue({
         sucesso: true,
         mensagem: 'Email enviado',
       })
@@ -355,7 +362,7 @@ describe('AuthStore', () => {
       })
 
       expect(resultado!).toBe(true)
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
+      expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
         'auth_email',
         'test@email.com',
       )
@@ -379,24 +386,24 @@ describe('AuthStore', () => {
 
       const mockRefreshToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
-      vi.mocked(cookieUtils.getCookie).mockReturnValue(mockRefreshToken)
-      vi.mocked(authService.logout).mockResolvedValue()
+      mockedCookieUtils.getCookie.mockReturnValue(mockRefreshToken)
+      mockedAuthService.logout.mockResolvedValue()
 
       act(() => {
         result.current.logout()
       })
 
-      expect(cookieUtils.removeCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.removeCookie).toHaveBeenCalledWith(
         'auth_token',
         expect.any(Object),
       )
-      expect(cookieUtils.removeCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.removeCookie).toHaveBeenCalledWith(
         'auth_refresh_token',
         expect.any(Object),
       )
       expect(result.current.usuario).toBeNull()
       expect(result.current.estaAutenticado).toBe(false)
-      expect(mockSessionStorage.clear).toHaveBeenCalled()
+      expect(mockedSessionStorage.clear).toHaveBeenCalled()
     })
   })
 
@@ -412,8 +419,8 @@ describe('AuthStore', () => {
         'novo_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
       const mockUsuario = { id: 1, email: 'test@email.com', nome: 'Test User' }
 
-      vi.mocked(cookieUtils.getCookie).mockReturnValue(mockRefreshToken)
-      vi.mocked(authService.renovarToken).mockResolvedValue({
+      mockedCookieUtils.getCookie.mockReturnValue(mockRefreshToken)
+      mockedAuthService.renovarToken.mockResolvedValue({
         sucesso: true,
         dados: {
           token: mockNovoToken,
@@ -428,12 +435,12 @@ describe('AuthStore', () => {
       })
 
       expect(resultado!).toBe(true)
-      expect(cookieUtils.setCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.setCookie).toHaveBeenCalledWith(
         'auth_token',
         mockNovoToken,
         expect.any(Object),
       )
-      expect(cookieUtils.setCookie).toHaveBeenCalledWith(
+      expect(mockedCookieUtils.setCookie).toHaveBeenCalledWith(
         'auth_refresh_token',
         mockNovoRefreshToken,
         expect.any(Object),
@@ -447,8 +454,8 @@ describe('AuthStore', () => {
 
       const mockRefreshToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
-      vi.mocked(cookieUtils.getCookie).mockReturnValue(mockRefreshToken)
-      vi.mocked(authService.renovarToken).mockResolvedValue({
+      mockedCookieUtils.getCookie.mockReturnValue(mockRefreshToken)
+      mockedAuthService.renovarToken.mockResolvedValue({
         sucesso: false,
         mensagem: 'Token expirado',
       })
@@ -465,13 +472,13 @@ describe('AuthStore', () => {
 
       expect(resultado!).toBe(false)
       expect(result.current.estaAutenticado).toBe(false)
-      expect(cookieUtils.removeCookie).toHaveBeenCalled()
+      expect(mockedCookieUtils.removeCookie).toHaveBeenCalled()
     })
 
     it('deve retornar false quando n�o h� refresh token', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(cookieUtils.getCookie).mockReturnValue(null)
+      mockedCookieUtils.getCookie.mockReturnValue(null)
 
       let resultado: boolean
       await act(async () => {
@@ -491,11 +498,11 @@ describe('AuthStore', () => {
       const mockRefreshToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
-      vi.mocked(cookieUtils.getCookie)
+      mockedCookieUtils.getCookie
         .mockReturnValueOnce(mockToken)
         .mockReturnValueOnce(mockRefreshToken)
 
-      vi.mocked(authService.verificarAcesso).mockResolvedValue({
+      mockedAuthService.verificarAcesso.mockResolvedValue({
         sucesso: true,
       })
 
@@ -515,15 +522,15 @@ describe('AuthStore', () => {
       const mockRefreshToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
-      vi.mocked(cookieUtils.getCookie)
+      mockedCookieUtils.getCookie
         .mockReturnValue(mockToken)
         .mockReturnValue(mockRefreshToken)
 
-      vi.mocked(authService.verificarAcesso).mockResolvedValue({
+      mockedAuthService.verificarAcesso.mockResolvedValue({
         sucesso: false,
       })
 
-      vi.mocked(authService.renovarToken).mockResolvedValue({
+      mockedAuthService.renovarToken.mockResolvedValue({
         sucesso: true,
         dados: {
           token: mockToken,
@@ -536,13 +543,13 @@ describe('AuthStore', () => {
         await result.current.verificarAutenticacao()
       })
 
-      expect(authService.renovarToken).toHaveBeenCalled()
+      expect(mockedAuthService.renovarToken).toHaveBeenCalled()
     })
 
     it('deve marcar como n�o autenticado quando n�o h� tokens', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(cookieUtils.getCookie).mockReturnValue(null)
+      mockedCookieUtils.getCookie.mockReturnValue(null)
 
       await act(async () => {
         await result.current.verificarAutenticacao()
@@ -581,7 +588,7 @@ describe('AuthStore', () => {
       const tokenCriptografadoValido =
         'abcdef123456789012345678901234567890ABCDEF'
 
-      vi.mocked(authService.confirmarCodigo2FA).mockResolvedValue({
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         dados: {
           token: tokenJWTValido,
@@ -605,7 +612,7 @@ describe('AuthStore', () => {
     it('deve rejeitar tokens com formato inv�lido', async () => {
       const { result } = renderHook(() => useAuthStore())
 
-      vi.mocked(authService.confirmarCodigo2FA).mockResolvedValue({
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         dados: {
           token: 'token.muito.curto',

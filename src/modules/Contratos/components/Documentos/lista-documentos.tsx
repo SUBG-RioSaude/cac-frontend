@@ -1,10 +1,4 @@
-import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import {
   FileText,
   CheckCircle2,
@@ -13,12 +7,19 @@ import {
   Filter,
   Plus,
 } from 'lucide-react'
+import { useState, useMemo } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 import type {
   DocumentoContrato,
   FiltroDocumento,
   EstatisticaDocumentos,
 } from '@/modules/Contratos/types/contrato'
+
 import { CardDocumento } from './card-documento'
 import { FiltroDocumentos } from './filtro-documentos'
 import { NovoDocumentoDialog } from './novo-documento-dialog'
@@ -39,7 +40,7 @@ interface ListaDocumentosProps {
   className?: string
 }
 
-export function ListaDocumentos({
+export const ListaDocumentos = ({
   documentos,
   estatisticas,
   onStatusChange,
@@ -48,7 +49,7 @@ export function ListaDocumentos({
   onAdicionarDocumento,
   usuarioAtual = 'Usuário Atual',
   className,
-}: ListaDocumentosProps) {
+}: ListaDocumentosProps) => {
   const [filtro, setFiltro] = useState<FiltroDocumento>({
     categoria: 'todos',
     status: 'todos',

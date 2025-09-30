@@ -7,6 +7,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+
+import { contratoKeys } from '../lib/query-keys'
 import {
   adicionarFuncionarioContrato,
   removerFuncionarioContrato,
@@ -16,7 +18,6 @@ import {
   getTipoGerenciaLabel,
   type AdicionarFuncionarioPayload,
 } from '../services/contratos-funcionarios-service'
-import { contratoKeys } from '../lib/query-keys'
 import type { ContratoFuncionario } from '../types/contrato'
 
 // ========== INTERFACES ==========
@@ -98,54 +99,54 @@ export function useAdicionarFuncionarioContrato() {
 
   return useMutation({
     mutationFn: async (payload: AdicionarFuncionarioPayloadCompleto) => {
-      const { contratoId, funcionarioNome, ...dados } = payload
+      const { contratoId, funcionarioNome: _funcionarioNome, ...dados } = payload
       return await adicionarFuncionarioContrato(contratoId, dados)
     },
 
-    onMutate: async (payload) => {
+    onMutate: (payload) => {
       const loadingToast = toast.loading(
-        `Adicionando ${payload.funcionarioNome || 'funcionário'} como ${getTipoGerenciaLabel(payload.tipoGerencia).toLowerCase()}...`,
+        `Adicionando ${payload.funcionarioNome ?? 'funcionário'} como ${getTipoGerenciaLabel(payload.tipoGerencia).toLowerCase()}...`,
       )
       return { loadingToast }
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         toast.success(
           `${getTipoGerenciaLabel(variables.tipoGerencia)} adicionado com sucesso`,
           {
             id: context.loadingToast,
             description:
-              variables.funcionarioNome || 'Funcionário vinculado ao contrato',
+              variables.funcionarioNome ?? 'Funcionário vinculado ao contrato',
           },
         )
       }
 
       // Invalidar queries relacionadas ao contrato
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.detail(variables.contratoId),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.all,
       })
       // Invalidar especificamente as queries de funcionários
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['contrato-funcionarios', variables.contratoId],
       })
       // Invalidar queries de histórico de funcionários
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['historico-funcionarios', variables.contratoId],
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['funcionarios-ativos-em', variables.contratoId],
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['periodos-funcionario', variables.contratoId],
       })
     },
 
     onError: (error, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         createErrorToast(
           error,
           variables.tipoGerencia,
@@ -173,49 +174,49 @@ export function useRemoverFuncionarioContrato() {
       )
     },
 
-    onMutate: async (payload) => {
+    onMutate: (payload) => {
       const loadingToast = toast.loading(
-        `Removendo ${payload.funcionarioNome || 'funcionário'} do contrato...`,
+        `Removendo ${payload.funcionarioNome ?? 'funcionário'} do contrato...`,
       )
       return { loadingToast }
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         toast.success(
           `${getTipoGerenciaLabel(variables.tipoGerencia)} removido com sucesso`,
           {
             id: context.loadingToast,
-            description: `${variables.funcionarioNome || 'Funcionário'} não está mais vinculado ao contrato`,
+            description: `${variables.funcionarioNome ?? 'Funcionário'} não está mais vinculado ao contrato`,
           },
         )
       }
 
       // Invalidar queries relacionadas ao contrato
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.detail(variables.contratoId),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.all,
       })
       // Invalidar especificamente as queries de funcionários
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['contrato-funcionarios', variables.contratoId],
       })
       // Invalidar queries de histórico de funcionários
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['historico-funcionarios', variables.contratoId],
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['funcionarios-ativos-em', variables.contratoId],
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['periodos-funcionario', variables.contratoId],
       })
     },
 
     onError: (error, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         createErrorToast(
           error,
           variables.tipoGerencia,
@@ -266,7 +267,7 @@ export function useSubstituirFuncionarioContrato() {
       )
     },
 
-    onMutate: async (payload) => {
+    onMutate: (payload) => {
       const tipoLabel = getTipoGerenciaLabel(payload.tipoGerencia).toLowerCase()
       const loadingToast = toast.loading(`Substituindo ${tipoLabel}...`, {
         description: `Alterando para ${payload.funcionarioNovoNome}`,
@@ -275,7 +276,7 @@ export function useSubstituirFuncionarioContrato() {
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         toast.success(
           `${getTipoGerenciaLabel(variables.tipoGerencia)} substituído com sucesso`,
           {
@@ -286,30 +287,30 @@ export function useSubstituirFuncionarioContrato() {
       }
 
       // Invalidar queries relacionadas ao contrato
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.detail(variables.contratoId),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.all,
       })
       // Invalidar especificamente as queries de funcionários
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['contrato-funcionarios', variables.contratoId],
       })
       // Invalidar queries de histórico de funcionários
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['historico-funcionarios', variables.contratoId],
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['funcionarios-ativos-em', variables.contratoId],
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['periodos-funcionario', variables.contratoId],
       })
     },
 
     onError: (error, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         createErrorToast(
           error,
           variables.tipoGerencia,
@@ -373,6 +374,13 @@ export function useContratoFuncionarios(
     enabled: !!contratoId && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     select: (data: unknown[]): ContratoFuncionario[] => {
+      const safeString = (value: unknown): string | null => {
+        if (value === null || value === undefined) return null
+        if (typeof value === 'string') return value
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        return null // For objects, return null instead of '[object Object]'
+      }
+
       // Mapear dados da API para interface padronizada
       return data.map((item: unknown) => {
         const typedItem = item as Record<string, unknown>
@@ -383,15 +391,11 @@ export function useContratoFuncionarios(
           tipoGerencia: Number(typedItem.tipoGerencia),
           tipoGerenciaDescricao: String(typedItem.tipoGerenciaDescricao),
           dataInicio: String(typedItem.dataInicio),
-          dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
+          dataFim: safeString(typedItem.dataFim),
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao
-            ? String(typedItem.documentoDesignacao)
-            : null,
-          observacoes: typedItem.observacoes
-            ? String(typedItem.observacoes)
-            : null,
+          documentoDesignacao: safeString(typedItem.documentoDesignacao),
+          observacoes: safeString(typedItem.observacoes),
           estaAtivo: Boolean(typedItem.estaAtivo),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           periodoFormatado: String(typedItem.periodoFormatado),
@@ -399,9 +403,7 @@ export function useContratoFuncionarios(
           funcionarioMatricula: String(typedItem.funcionarioMatricula),
           funcionarioCargo: String(typedItem.funcionarioCargo),
           dataCadastro: String(typedItem.dataCadastro),
-          dataAtualizacao: typedItem.dataAtualizacao
-            ? String(typedItem.dataAtualizacao)
-            : '',
+          dataAtualizacao: safeString(typedItem.dataAtualizacao) ?? '',
           ativo: Boolean(typedItem.ativo),
         }
       })

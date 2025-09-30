@@ -1,10 +1,11 @@
 /// <reference types="vitest/globals" />
 /// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../../../tests/test-utils'
-import { IndicadoresRelatorios } from '../indicadores-relatorios'
-import type { ContratoDetalhado } from '../../../types/contrato'
 import React from 'react'
+import { describe, it, expect, vi } from 'vitest'
+
+import { render, screen } from '../../../../../tests/test-utils'
+import type { ContratoDetalhado } from '../../../types/contrato'
+import { IndicadoresRelatorios } from '../indicadores-relatorios'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
@@ -36,7 +37,7 @@ vi.mock('framer-motion', () => ({
       children: React.ReactNode
       [key: string]: unknown
     }) => <span {...props}>{children}</span>,
-    path: ({ ...props }: { [key: string]: unknown }) => <path {...props} />,
+    path: ({ ...props }: Record<string, unknown>) => <path {...props} />,
     svg: ({
       children,
       ...props

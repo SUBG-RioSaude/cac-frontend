@@ -1,20 +1,22 @@
-import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { DateDisplay } from '@/components/ui/formatters'
 import { FileText, ArrowUp, ArrowDown } from 'lucide-react'
+import { useState, useCallback } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 
 // Importar os componentes originais
-import { AlteracoesContratuais } from './index'
+import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
+import type { AlteracaoContrato } from '../../types/contrato'
+import type { TimelineEntry } from '../../types/timeline'
 import { RegistroAlteracoes } from '../VisualizacaoContratos/registro-alteracoes'
 
+import { AlteracoesContratuais } from './index'
+
 // Types
-import type { AlteracaoContrato } from '../../types/contrato'
-import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
-import type { TimelineEntry } from '../../types/timeline'
 
 interface AlteracoesContratuaisContainerProps {
   contratoId: string
@@ -34,7 +36,7 @@ interface AlteracoesContratuaisContainerProps {
 
 type SubAbaAtiva = 'nova-alteracao' | 'historico'
 
-export function AlteracoesContratuaisContainer({
+export const AlteracoesContratuaisContainer = ({
   contratoId,
   numeroContrato,
   valorOriginal = 0,
@@ -45,7 +47,7 @@ export function AlteracoesContratuaisContainer({
   onSaved,
   onSubmitted,
   className,
-}: AlteracoesContratuaisContainerProps) {
+}: AlteracoesContratuaisContainerProps) => {
   const [subabaAtiva, setSubabaAtiva] = useState<SubAbaAtiva>('nova-alteracao')
 
   // Handler para quando uma alteração é salva/submetida - move para histórico
@@ -80,11 +82,11 @@ export function AlteracoesContratuaisContainer({
       if (alt.valor) {
         switch (alt.valor.operacao) {
           case 1: // Acrescentar
-            return valorAtual + (alt.valor.valorAjuste || 0)
+            return valorAtual + (alt.valor.valorAjuste ?? 0)
           case 2: // Diminuir
-            return valorAtual - (alt.valor.valorAjuste || 0)
+            return valorAtual - (alt.valor.valorAjuste ?? 0)
           case 3: // Substituir
-            return alt.valor.novoValorGlobal || valorAtual
+            return alt.valor.novoValorGlobal ?? valorAtual
           default:
             return valorAtual
         }
@@ -108,7 +110,7 @@ export function AlteracoesContratuaisContainer({
       if (alt.vigencia && alt.vigencia.operacao === 1) {
         // Acrescentar
         const data = new Date(dataFimAtual)
-        const valor = alt.vigencia.valorTempo || 0
+        const valor = alt.vigencia.valorTempo ?? 0
 
         switch (alt.vigencia.tipoUnidade) {
           case 1: // Dias
@@ -147,7 +149,7 @@ export function AlteracoesContratuaisContainer({
 
     const dataOriginal = new Date(vigenciaOriginal.dataFim)
     const dataAtual = new Date(
-      calcularVigenciaAtual() || vigenciaOriginal.dataFim,
+      calcularVigenciaAtual() ?? vigenciaOriginal.dataFim,
     )
 
     const diferencaMs = dataAtual.getTime() - dataOriginal.getTime()
@@ -256,7 +258,7 @@ export function AlteracoesContratuaisContainer({
                       <DateDisplay value={vigenciaOriginal.dataInicio} /> -{' '}
                       <DateDisplay
                         value={
-                          calcularVigenciaAtual() || vigenciaOriginal.dataFim
+                          calcularVigenciaAtual() ?? vigenciaOriginal.dataFim
                         }
                       />
                     </span>
@@ -310,7 +312,7 @@ export function AlteracoesContratuaisContainer({
                   ? 'bg-blue-500'
                   : 'bg-gray-400',
               )}
-            ></div>
+             />
             <span className="text-center">Nova Alteração</span>
           </TabsTrigger>
 
@@ -323,7 +325,7 @@ export function AlteracoesContratuaisContainer({
                 'h-2 w-2 rounded-full sm:h-3 sm:w-3',
                 subabaAtiva === 'historico' ? 'bg-green-500' : 'bg-gray-400',
               )}
-            ></div>
+             />
             <span className="text-center">Histórico</span>
             {alteracoes.length > 0 && (
               <Badge variant="secondary" className="text-xs">

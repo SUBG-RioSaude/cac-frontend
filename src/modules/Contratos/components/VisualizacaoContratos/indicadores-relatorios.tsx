@@ -1,10 +1,4 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
-import { currencyUtils } from '@/lib/utils'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
 import {
   TrendingUp,
   Calendar,
@@ -13,6 +7,13 @@ import {
   Target,
   Building,
 } from 'lucide-react'
+import { useState } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
+import { Progress } from '@/components/ui/progress'
+import { currencyUtils } from '@/lib/utils'
 import type {
   PeriodoVigencia,
   UnidadeVinculada,
@@ -36,17 +37,17 @@ interface IndicadoresRelatoriosProps {
   contrato: ContratoDetalhado // Para acesso completo aos dados do contrato
 }
 
-export function IndicadoresRelatorios({
+export const IndicadoresRelatorios = ({
   indicadores,
   valorTotal,
   vtmTotalContrato,
   contrato,
-}: IndicadoresRelatoriosProps) {
+}: IndicadoresRelatoriosProps) => {
   const [mesHover, setMesHover] = useState<number | null>(null)
   const [unidadeHover, setUnidadeHover] = useState<number | null>(null)
 
   // Buscar nomes das unidades
-  const unidadesIds = (contrato.unidadesVinculadas || [])
+  const unidadesIds = (contrato.unidadesVinculadas ?? [])
     .map((u) => u.unidadeSaudeId)
     .filter(Boolean)
   const { data: unidadesData, isLoading: unidadesLoading } = useUnidadesByIds(
@@ -57,8 +58,11 @@ export function IndicadoresRelatorios({
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string) => {
     if (unidadesLoading) return 'Carregando...'
-    const unidade = unidadesData?.[unidadeId]
-    return unidade?.nome || `Unidade ${unidadeId.slice(-8)}`
+    const unidade = unidadesData[unidadeId]
+    if (!unidade) {
+      return `Unidade ${unidadeId.slice(-8)}`
+    }
+    return unidade.nome || `Unidade ${unidadeId.slice(-8)}`
   }
 
   const getStatusPeriodo = (status: string) => {
@@ -80,9 +84,10 @@ export function IndicadoresRelatorios({
       },
     }
 
-    return (
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.pendente
-    )
+    if (status in statusConfig) {
+      return statusConfig[status as keyof typeof statusConfig]
+    }
+    return statusConfig.pendente
   }
 
   // Cálculos baseados em dados reais
@@ -108,15 +113,15 @@ export function IndicadoresRelatorios({
 
   // Gerar dados de evolução baseados na duração real do contrato
   const dadosEvolucao = (() => {
-    const dataInicio = new Date(contrato.dataInicio)
+    const dataInicioEvolucao = new Date(contrato.dataInicio)
     const dataFim = new Date(contrato.dataTermino)
-    const hoje = new Date()
+    const hojeEvolucao = new Date()
 
     // Calcular meses decorridos para compatibilidade com o gráfico de evolução
     const mesesDecorridos = Math.max(
       0,
       Math.floor(
-        (hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24 * 30.44),
+        (hojeEvolucao.getTime() - dataInicioEvolucao.getTime()) / (1000 * 60 * 60 * 24 * 30.44),
       ),
     )
 
@@ -136,7 +141,7 @@ export function IndicadoresRelatorios({
     ]
 
     const dados = []
-    const dataAtual = new Date(dataInicio)
+    const dataAtual = new Date(dataInicioEvolucao)
     let mesIndex = 0
 
     while (dataAtual <= dataFim && mesIndex < 12) {
@@ -149,7 +154,7 @@ export function IndicadoresRelatorios({
       const percentualEsperado = (valorEsperadoMes / valorTotal) * 100
 
       // Se o mês já passou, usar dados de execução real, senão usar projeção
-      const jaPassou = dataAtual < hoje
+      const jaPassou = dataAtual < hojeEvolucao
       let valorReal = 0
       let percentualReal = 0
 
@@ -275,7 +280,7 @@ export function IndicadoresRelatorios({
                   <div
                     className="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
                     style={{ width: `${Math.min(progressoTemporal, 100)}%` }}
-                  ></div>
+                   />
                 </div>
               </div>
               {gastoMedioPorDia > 0 && (
@@ -344,7 +349,7 @@ export function IndicadoresRelatorios({
                     )}
                   </div>
                   <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full transform">
-                    <div className="h-0 w-0 border-t-4 border-r-4 border-l-4 border-transparent border-t-black"></div>
+                    <div className="h-0 w-0 border-t-4 border-r-4 border-l-4 border-transparent border-t-black" />
                   </div>
                 </motion.div>
               )}
@@ -352,7 +357,7 @@ export function IndicadoresRelatorios({
               <div className="flex h-48 items-end justify-center gap-1 overflow-x-auto p-2 pt-8 sm:h-64 sm:gap-3 sm:p-4 sm:pt-12">
                 {dadosEvolucao.map((item, index) => (
                   <motion.div
-                    key={index}
+                    key={item.mes}
                     className="flex min-w-0 flex-shrink-0 cursor-pointer flex-col items-center gap-1 sm:gap-2"
                     onMouseEnter={() => setMesHover(index)}
                     onMouseLeave={() => setMesHover(null)}
@@ -396,15 +401,15 @@ export function IndicadoresRelatorios({
             {/* Legenda do gráfico */}
             <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
               <div className="flex items-center gap-1">
-                <div className="h-3 w-3 rounded bg-gradient-to-t from-blue-500 to-blue-300"></div>
+                <div className="h-3 w-3 rounded bg-gradient-to-t from-blue-500 to-blue-300" />
                 <span className="text-muted-foreground">Executado</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="h-3 w-3 rounded bg-gradient-to-t from-yellow-500 to-yellow-300"></div>
+                <div className="h-3 w-3 rounded bg-gradient-to-t from-yellow-500 to-yellow-300" />
                 <span className="text-muted-foreground">Atual</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="h-3 w-3 rounded bg-gradient-to-t from-gray-400 to-gray-200"></div>
+                <div className="h-3 w-3 rounded bg-gradient-to-t from-gray-400 to-gray-200" />
                 <span className="text-muted-foreground">Projetado</span>
               </div>
             </div>
@@ -456,8 +461,8 @@ export function IndicadoresRelatorios({
           {/* Timeline baseada nos dados reais */}
           <div className="space-y-3 sm:space-y-4">
             {(() => {
-              const hoje = new Date()
-              const dataInicio = new Date(contrato.dataInicio)
+              const hojePeriodos = new Date()
+              const dataInicioPeriodos = new Date(contrato.dataInicio)
 
               // Calcular períodos baseados na duração do contrato
               const duracaoTotal = contrato.prazoInicialMeses
@@ -475,18 +480,18 @@ export function IndicadoresRelatorios({
                   duracaoTotal - 1,
                 )
 
-                const periodoInicio = new Date(dataInicio)
+                const periodoInicio = new Date(dataInicioPeriodos)
                 periodoInicio.setMonth(periodoInicio.getMonth() + inicioMeses)
 
-                const periodoFim = new Date(dataInicio)
+                const periodoFim = new Date(dataInicioPeriodos)
                 periodoFim.setMonth(periodoFim.getMonth() + fimMeses + 1)
                 periodoFim.setDate(periodoFim.getDate() - 1)
 
                 // Determinar status baseado na data atual
                 let status = 'pendente'
-                if (hoje > periodoFim) {
+                if (hojePeriodos > periodoFim) {
                   status = 'concluido'
-                } else if (hoje >= periodoInicio && hoje <= periodoFim) {
+                } else if (hojePeriodos >= periodoInicio && hojePeriodos <= periodoFim) {
                   status = 'em_andamento'
                 }
 
@@ -506,7 +511,7 @@ export function IndicadoresRelatorios({
                 const statusConfig = getStatusPeriodo(periodo.status)
                 return (
                   <motion.div
-                    key={index}
+                    key={periodo.descricao}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -515,7 +520,7 @@ export function IndicadoresRelatorios({
                     <div
                       className="mt-1 h-3 w-3 flex-shrink-0 rounded-full sm:mt-0 sm:h-4 sm:w-4"
                       style={{ backgroundColor: statusConfig.color }}
-                    ></div>
+                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                         <h4 className="text-sm font-semibold break-words sm:text-base">
@@ -548,8 +553,8 @@ export function IndicadoresRelatorios({
           <div className="bg-muted/50 mt-4 rounded-lg p-3 sm:mt-6 sm:p-4">
             <div className="flex h-3 items-center gap-1 overflow-hidden sm:h-4">
               {(() => {
-                const hoje = new Date()
-                const dataInicio = new Date(contrato.dataInicio)
+                const hojeTimeline = new Date()
+                const dataInicioTimeline = new Date(contrato.dataInicio)
                 const duracaoTotal = contrato.prazoInicialMeses
                 const mesesPorPeriodo = Math.ceil(duracaoTotal / 4)
 
@@ -565,17 +570,17 @@ export function IndicadoresRelatorios({
                     duracaoTotal - 1,
                   )
 
-                  const periodoInicio = new Date(dataInicio)
+                  const periodoInicio = new Date(dataInicioTimeline)
                   periodoInicio.setMonth(periodoInicio.getMonth() + inicioMeses)
 
-                  const periodoFim = new Date(dataInicio)
+                  const periodoFim = new Date(dataInicioTimeline)
                   periodoFim.setMonth(periodoFim.getMonth() + fimMeses + 1)
                   periodoFim.setDate(periodoFim.getDate() - 1)
 
                   let status = 'pendente'
-                  if (hoje > periodoFim) {
+                  if (hojeTimeline > periodoFim) {
                     status = 'concluido'
-                  } else if (hoje >= periodoInicio && hoje <= periodoFim) {
+                  } else if (hojeTimeline >= periodoInicio && hojeTimeline <= periodoFim) {
                     status = 'em_andamento'
                   }
 
@@ -585,15 +590,15 @@ export function IndicadoresRelatorios({
                   })
                 }
 
-                return periodos.map((periodo, index) => {
+                return periodos.map((periodo) => {
                   const statusConfig = getStatusPeriodo(periodo.status)
                   return (
                     <div
-                      key={index}
+                      key={periodo.descricao}
                       className="h-full flex-1 rounded"
                       style={{ backgroundColor: statusConfig.color }}
                       title={`${periodo.descricao} - ${statusConfig.label}`}
-                    ></div>
+                     />
                   )
                 })
               })()}
@@ -620,10 +625,10 @@ export function IndicadoresRelatorios({
         <CardContent className="p-3 sm:p-6">
           {(() => {
             // Usar dados reais das unidades vinculadas do contrato
-            const unidadesReais = contrato.unidadesVinculadas || []
+            const unidadesReais = contrato.unidadesVinculadas ?? []
 
             // Se não há unidades vinculadas, mostrar fallback
-            if (!unidadesReais || unidadesReais.length === 0) {
+            if (unidadesReais.length === 0) {
               return (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Building className="text-muted-foreground mb-4 h-12 w-12" />
@@ -721,7 +726,7 @@ export function IndicadoresRelatorios({
 
                         return (
                           <motion.path
-                            key={index}
+                            key={unidade.id}
                             d={`M 50 50 L ${x1} ${y1} A 35 35 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
                             fill={coresPizza[index % coresPizza.length].cor}
                             className="cursor-pointer transition-all duration-300"
@@ -851,11 +856,11 @@ export function IndicadoresRelatorios({
               Resumo Financeiro
             </h4>
             {(() => {
-              const unidadesReais = contrato.unidadesVinculadas || []
+              const unidadesReaisResumo = contrato.unidadesVinculadas ?? []
               const maiorParticipacao =
-                unidadesReais.length > 0
+                unidadesReaisResumo.length > 0
                   ? Math.max(
-                      ...unidadesReais.map(
+                      ...unidadesReaisResumo.map(
                         (u) =>
                           (u.valorAtribuido / contrato.valorTotalAtribuido) *
                           100,

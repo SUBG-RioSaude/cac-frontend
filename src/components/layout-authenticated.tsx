@@ -1,9 +1,10 @@
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import PageBreadcrumb from '@/components/page-breadcrumb'
-import { NotificacoesDropdown } from '@/components/notificacoes-dropdown'
-import { ErrorBoundary } from '@/components/error-boundary'
 import { Toaster } from 'sonner'
+
+import { AppSidebar } from '@/components/app-sidebar'
+import { ErrorBoundary } from '@/components/error-boundary'
+import { NotificacoesDropdown } from '@/components/notificacoes-dropdown'
+import PageBreadcrumb from '@/components/page-breadcrumb'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 interface LayoutAuthenticatedProps {
   children: React.ReactNode

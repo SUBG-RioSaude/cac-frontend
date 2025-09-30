@@ -1,8 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useAuth } from '../use-auth'
-import { useAuthStore } from '@/lib/auth/auth-store'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import * as authModule from '@/lib/auth/auth'
+import { useAuthStore } from '@/lib/auth/auth-store'
+
+import { useAuth } from '../use-auth'
+
 
 // Mock react-router-dom
 const mockNavigate = vi.fn()

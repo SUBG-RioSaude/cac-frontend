@@ -1,4 +1,3 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -11,24 +10,27 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import type { FiltrosFornecedorApi } from '../types/fornecedor'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { useDebounce } from '@/hooks/use-debounce'
+
+import type { FiltrosFornecedorApi } from '../types/fornecedor'
 
 // Função para detectar se o termo é CNPJ ou Razão Social
 function detectarTipoPesquisa(termo: string): Partial<FiltrosFornecedorApi> {
@@ -48,19 +50,17 @@ function detectarTipoPesquisa(termo: string): Partial<FiltrosFornecedorApi> {
   return { razaoSocial: termo.trim() }
 }
 
-const FILTROS_IGNORADOS: Array<keyof FiltrosFornecedorApi> = [
+const FILTROS_IGNORADOS: (keyof FiltrosFornecedorApi)[] = [
   'pagina',
   'tamanhoPagina',
 ]
 
 function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
   return (
-    Object.entries(filtros) as Array<
-      [
+    Object.entries(filtros) as [
         keyof FiltrosFornecedorApi,
         FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
-      ]
-    >
+      ][]
   ).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
@@ -71,15 +71,12 @@ function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
         acc[key] = undefined
         return acc
       }
-      if (
-        value === null ||
-        (typeof value === 'string' && value.trim() === '')
-      ) {
+      if (typeof value === 'string' && value.trim() === '') {
         return acc
       }
     }
 
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       return acc
     }
 
@@ -115,11 +112,11 @@ interface SearchAndFiltersFornecedoresProps {
   isLoading?: boolean
 }
 
-export function SearchAndFiltersFornecedores({
+export const SearchAndFiltersFornecedores = ({
   onFiltrosChange,
   filtrosAtivos,
   isLoading = false,
-}: SearchAndFiltersFornecedoresProps) {
+}: SearchAndFiltersFornecedoresProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // Estados locais para UI
@@ -131,7 +128,7 @@ export function SearchAndFiltersFornecedores({
     [filtrosAtivos],
   )
   const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(
-    filtrosAtivos.cnpj || filtrosAtivos.razaoSocial || '',
+    filtrosAtivos.cnpj ?? filtrosAtivos.razaoSocial ?? '',
   )
   const [filtrosLocais, setFiltrosLocais] =
     useState<FiltrosFornecedorApi>(filtrosBase)
@@ -253,7 +250,7 @@ export function SearchAndFiltersFornecedores({
 
                 const filtrosParaEnviar = {
                   pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
                   // Preserva outros filtros ativos (status, valor, contratos)
                   ...(filtrosLocais.status && { status: filtrosLocais.status }),
                   ...(filtrosLocais.valorMinimo && {
@@ -298,7 +295,7 @@ export function SearchAndFiltersFornecedores({
 
                 const filtrosParaEnviar = {
                   pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
                   // Preserva outros filtros ativos (status, valor, contratos)
                   ...(filtrosLocais.status && { status: filtrosLocais.status }),
                   ...(filtrosLocais.valorMinimo && {
@@ -477,7 +474,7 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMinimo, ...rest } = prev
+                              const { valorMinimo: _valorMinimo, ...rest } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMinimo: Number(valor) }
@@ -502,7 +499,7 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMaximo, ...rest } = prev
+                              const { valorMaximo: _valorMaximo, ...rest } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMaximo: Number(valor) }
@@ -558,7 +555,7 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMinimo, ...rest } = prev
+                              const { contratosMinimo: _contratosMinimo, ...rest } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMinimo: Number(valor) }
@@ -583,7 +580,7 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMaximo, ...rest } = prev
+                              const { contratosMaximo: _contratosMaximo, ...rest } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMaximo: Number(valor) }

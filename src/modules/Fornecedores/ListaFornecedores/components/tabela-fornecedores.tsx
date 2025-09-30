@@ -1,6 +1,11 @@
 import { motion } from 'framer-motion'
+import { Eye, ChevronLeft, ChevronRight } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { CurrencyDisplay, CNPJDisplay } from '@/components/ui/formatters'
+import { FornecedorStatusBadge } from '@/components/ui/status-badge'
 import {
   Table,
   TableBody,
@@ -9,16 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { FornecedorStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusFornecedor } from '@/types/status'
-import { CurrencyDisplay, CNPJDisplay } from '@/components/ui/formatters'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Eye, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useFornecedoresStore } from '../store/fornecedores-store'
 import type {
   Fornecedor,
   PaginacaoParamsFornecedor,
 } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
+import { parseStatusFornecedor } from '@/types/status'
+
+import { useFornecedoresStore } from '../store/fornecedores-store'
+
 
 interface TabelaFornecedoresProps {
   fornecedores: Fornecedor[]
@@ -28,13 +31,13 @@ interface TabelaFornecedoresProps {
   isLoading?: boolean
 }
 
-export function TabelaFornecedores({
+export const TabelaFornecedores = ({
   fornecedores,
   paginacao,
   onPaginacaoChange,
   onAbrirFornecedor,
   isLoading = false,
-}: TabelaFornecedoresProps) {
+}: TabelaFornecedoresProps) => {
   const {
     fornecedoresSelecionados,
     selecionarFornecedor,

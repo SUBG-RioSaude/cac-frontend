@@ -1,20 +1,3 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
-import { DateDisplay } from '@/components/ui/formatters'
 import {
   Clock,
   Calendar,
@@ -26,6 +9,24 @@ import {
   Calculator,
   Info,
 } from 'lucide-react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import type { BlocoVigencia as IBlocoVigencia } from '../../../../types/alteracoes-contratuais'
 import {
@@ -102,7 +103,7 @@ const UNIDADES_TEMPO_CONFIG = {
   [TipoUnidadeTempo.Anos]: { label: 'Anos', singular: 'ano' },
 }
 
-export function BlocoVigencia({
+export const BlocoVigencia = ({
   dados = {},
   onChange,
   contractTerms,
@@ -110,7 +111,7 @@ export function BlocoVigencia({
   disabled = false,
   required = false,
   vigenciaOriginal,
-}: BlocoVigenciaProps) {
+}: BlocoVigenciaProps) => {
   const [calculoAutomatico, setCalculoAutomatico] = useState(true)
   const [novaDataCalculada, setNovaDataCalculada] = useState<string>('')
 
@@ -245,7 +246,7 @@ export function BlocoVigencia({
       </div>
 
       {/* Contexto de Vigência Atual do Contrato */}
-      {contractTerms && (contractTerms.startDate || contractTerms.endDate) && (
+      {contractTerms && (contractTerms.startDate ?? contractTerms.endDate) && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-4">
             <div className="mb-3">
@@ -430,7 +431,7 @@ export function BlocoVigencia({
           <div className="space-y-2">
             <Label>Operação de vigência *</Label>
             <Select
-              value={dados.operacao?.toString() || ''}
+              value={dados.operacao?.toString() ?? ''}
               onValueChange={(value) =>
                 handleFieldChange(
                   'operacao',
@@ -504,7 +505,7 @@ export function BlocoVigencia({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="indeterminado"
-                    checked={dados.isIndeterminado || false}
+                    checked={dados.isIndeterminado ?? false}
                     onCheckedChange={(checked) =>
                       handleFieldChange('isIndeterminado', checked)
                     }
@@ -533,7 +534,7 @@ export function BlocoVigencia({
                   <Input
                     id="nova-data-final"
                     type="date"
-                    value={dados.novaDataFinal || ''}
+                    value={dados.novaDataFinal ?? ''}
                     onChange={(e) =>
                       handleFieldChange('novaDataFinal', e.target.value)
                     }
@@ -571,7 +572,7 @@ export function BlocoVigencia({
                       id="valor-tempo"
                       type="number"
                       min="1"
-                      value={dados.valorTempo || ''}
+                      value={dados.valorTempo ?? ''}
                       onChange={(e) =>
                         handleFieldChange(
                           'valorTempo',
@@ -593,7 +594,7 @@ export function BlocoVigencia({
                   <div className="space-y-2">
                     <Label>Unidade de tempo *</Label>
                     <Select
-                      value={dados.tipoUnidade?.toString() || ''}
+                      value={dados.tipoUnidade?.toString() ?? ''}
                       onValueChange={(value) =>
                         handleFieldChange(
                           'tipoUnidade',
@@ -662,7 +663,7 @@ export function BlocoVigencia({
                           value={
                             calculoAutomatico
                               ? novaDataCalculada
-                              : dados.novaDataFinal || ''
+                              : dados.novaDataFinal ?? ''
                           }
                           onChange={(e) =>
                             handleFieldChange('novaDataFinal', e.target.value)
@@ -724,7 +725,7 @@ export function BlocoVigencia({
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea
                 id="observacoes"
-                value={dados.observacoes || ''}
+                value={dados.observacoes ?? ''}
                 onChange={(e) =>
                   handleFieldChange('observacoes', e.target.value)
                 }

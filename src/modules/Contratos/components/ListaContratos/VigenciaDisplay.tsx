@@ -6,8 +6,9 @@
  */
 
 import { Calendar, CalendarCheck, CalendarX, Clock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+
 import { DateDisplay } from '@/components/ui/formatters'
+import { cn } from '@/lib/utils'
 
 interface VigenciaDisplayProps {
   vigenciaInicio?: string | null
@@ -16,12 +17,12 @@ interface VigenciaDisplayProps {
   compact?: boolean
 }
 
-export function VigenciaDisplay({
+export const VigenciaDisplay = ({
   vigenciaInicio,
   vigenciaFim,
   className,
   compact = false,
-}: VigenciaDisplayProps) {
+}: VigenciaDisplayProps) => {
   // Determinar status da vigência para ícone no modo compact
   const agora = new Date()
   const inicio = vigenciaInicio ? new Date(vigenciaInicio) : null

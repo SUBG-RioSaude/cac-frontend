@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+
 import { Progress } from '../progress'
 
 describe('Progress', () => {
@@ -255,8 +256,9 @@ describe('Progress', () => {
     it('deve renderizar progresso de upload', () => {
       render(
         <div>
-          <label id="upload-label">Upload de arquivo</label>
+          <label htmlFor="upload-progress" id="upload-label">Upload de arquivo</label>
           <Progress
+            id="upload-progress"
             value={75}
             aria-labelledby="upload-label"
             data-testid="progress"

@@ -1,3 +1,6 @@
+import { Building2, Shield, Users } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -7,8 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { Building2, Shield, Users } from 'lucide-react'
 import type { UnidadeResponsavel } from '@/modules/Contratos/types/contrato'
 
 interface ModalUnidadesResponsaveisProps {
@@ -18,12 +19,12 @@ interface ModalUnidadesResponsaveisProps {
   numeroContrato: string
 }
 
-export function ModalUnidadesResponsaveis({
+export const ModalUnidadesResponsaveis = ({
   isOpen,
   onClose,
   unidades,
   numeroContrato,
-}: ModalUnidadesResponsaveisProps) {
+}: ModalUnidadesResponsaveisProps) => {
   const demandantes = unidades.filter(
     (u) => u.tipoResponsabilidade === 1 && u.ativo,
   )

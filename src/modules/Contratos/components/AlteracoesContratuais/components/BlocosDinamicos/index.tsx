@@ -1,14 +1,4 @@
-﻿import { useMemo, useState, useCallback, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { Progress } from '@/components/ui/progress'
-import { cn } from '@/lib/utils'
+﻿import { motion, AnimatePresence } from 'framer-motion'
 import {
   FileText,
   Clock,
@@ -21,12 +11,18 @@ import {
   Info,
   Circle,
 } from 'lucide-react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 
-import { BlocoClausulas } from './BlocoClausulas'
-import { BlocoVigencia } from './BlocoVigencia'
-import { BlocoValor } from './BlocoValor'
-import { BlocoFornecedores } from './BlocoFornecedores'
-import { BlocoUnidades } from './BlocoUnidades'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
+import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
 
 import type {
   AlteracaoContratualForm,
@@ -41,7 +37,14 @@ import {
   getBlocosObrigatorios,
   getBlocosOpcionais,
 } from '../../../../types/alteracoes-contratuais'
-import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+
+import { BlocoClausulas } from './BlocoClausulas'
+import { BlocoFornecedores } from './BlocoFornecedores'
+import { BlocoUnidades } from './BlocoUnidades'
+import { BlocoValor } from './BlocoValor'
+import { BlocoVigencia } from './BlocoVigencia'
+
+
 
 interface TransformedUnidade {
   id: string
@@ -148,7 +151,7 @@ const BLOCOS_CONFIG: Record<string, Omit<BlocoInfo, 'obrigatorio'>> = {
   },
 }
 
-export function BlocosDinamicos({
+export const BlocosDinamicos = ({
   tiposSelecionados = [],
   dados = {},
   onChange,
@@ -156,7 +159,7 @@ export function BlocosDinamicos({
   errors = {},
   disabled = false,
   onContextChange,
-}: BlocosDinamicosProps) {
+}: BlocosDinamicosProps) => {
   // Estado para controlar quais blocos estão expandidos
   const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set())
 
@@ -189,7 +192,7 @@ export function BlocosDinamicos({
               dadosValor.valorAjuste !== null &&
               dadosValor.valorAjuste !== 0,
           ].filter(Boolean).length
-          const valor = dadosValor.valorAjuste || 0
+          const valor = dadosValor.valorAjuste ?? 0
           const operacao =
             dadosValor.operacao === 1
               ? '+'
@@ -203,8 +206,8 @@ export function BlocosDinamicos({
 
           // Calcular percentual para o resumo
           const valorOriginalContrato =
-            contractContext?.financials?.totalValue ||
-            contractContext?.contract?.valorTotal ||
+            contractContext?.financials?.totalValue ??
+            contractContext?.contract?.valorTotal ??
             0
           const percentual =
             valorOriginalContrato > 0
@@ -228,7 +231,7 @@ export function BlocosDinamicos({
           const preenchidos =
             (db.operacao !== undefined ? 1 : 0) +
             (db.valorTempo !== undefined ? 1 : 0)
-          const tempo = db.valorTempo || 0
+          const tempo = db.valorTempo ?? 0
           const unidade =
             db.tipoUnidade === 1
               ? 'dia(s)'
@@ -252,8 +255,8 @@ export function BlocosDinamicos({
         }
         case 'fornecedores': {
           const db = dadosBloco as IBlocoFornecedores
-          const vinculados = db.fornecedoresVinculados?.length || 0
-          const desvinculados = db.fornecedoresDesvinculados?.length || 0
+          const vinculados = db.fornecedoresVinculados?.length ?? 0
+          const desvinculados = db.fornecedoresDesvinculados?.length ?? 0
           const total = vinculados + desvinculados
           return {
             progresso: { atual: total > 0 ? 1 : 0, total: 1 },
@@ -266,14 +269,14 @@ export function BlocosDinamicos({
         }
         case 'unidades': {
           const db = dadosBloco as IBlocoUnidades
-          const vinculadas = db.unidadesVinculadas?.length || 0
-          const desvinculadas = db.unidadesDesvinculadas?.length || 0
+          const vinculadas = db.unidadesVinculadas?.length ?? 0
+          const desvinculadas = db.unidadesDesvinculadas?.length ?? 0
           const total = vinculadas + desvinculadas
 
           // Verificar se valor está 100% distribuído
           const valorContrato =
-            contractContext?.financials?.totalValue ||
-            contractContext?.contract?.valorTotal ||
+            contractContext?.financials?.totalValue ??
+            contractContext?.contract?.valorTotal ??
             0
           let valorCompleto = true
           let resumoValor = ''
@@ -283,21 +286,21 @@ export function BlocosDinamicos({
             const valorJaVinculado =
               contractContext?.units?.linkedUnits?.reduce(
                 (sum: number, unit: TransformedUnidade) =>
-                  sum + (unit.valorAtual || 0),
+                  sum + (unit.valorAtual ?? 0),
                 0,
-              ) || 0
+              ) ?? 0
             const valorNovasVinculadas =
               db.unidadesVinculadas?.reduce(
                 (sum, unit) => sum + unit.valorAtribuido,
                 0,
-              ) || 0
+              ) ?? 0
             const valorDesvinculado =
               db.unidadesDesvinculadas?.reduce((sum, unitId) => {
                 const unidade = contractContext?.units?.linkedUnits?.find(
                   (u: TransformedUnidade) => u.id === unitId,
                 )
-                return sum + (unidade?.valorAtual || 0)
-              }, 0) || 0
+                return sum + (unidade?.valorAtual ?? 0)
+              }, 0) ?? 0
 
             const valorTotalDistribuido =
               valorJaVinculado + valorNovasVinculadas - valorDesvinculado
@@ -321,7 +324,7 @@ export function BlocosDinamicos({
         }
         case 'clausulas': {
           const db = dadosBloco as IBlocoClausulas
-          const keys: Array<keyof IBlocoClausulas> = [
+          const keys: (keyof IBlocoClausulas)[] = [
             'clausulasExcluidas',
             'clausulasIncluidas',
             'clausulasAlteradas',
@@ -457,9 +460,11 @@ export function BlocosDinamicos({
   // Função para renderizar cada bloco
   const renderBloco = (bloco: BlocoInfo) => {
     const blocoProps = {
-      dados: (dados.blocos?.[bloco.id as keyof typeof dados.blocos] ||
+      dados: (dados.blocos?.[bloco.id as keyof typeof dados.blocos] ??
         {}) as Record<string, unknown>,
-      onChange: () => {},
+      onChange: () => {
+        // Implementação específica será feita pelos handlers individuais
+      },
       errors: Object.keys(errors).reduce(
         (acc, key) => {
           if (key.startsWith(`blocos.${bloco.id}.`)) {
@@ -496,8 +501,8 @@ export function BlocosDinamicos({
             {...blocoProps}
             contractFinancials={contractContext?.financials}
             valorOriginal={
-              contractContext?.financials?.totalValue ||
-              contractContext?.contract?.valorTotal ||
+              contractContext?.financials?.totalValue ??
+              contractContext?.contract?.valorTotal ??
               0
             }
             onChange={handleValorChange}
@@ -517,7 +522,7 @@ export function BlocosDinamicos({
             {...blocoProps}
             contractUnits={contractContext?.units}
             contractValue={
-              contractContext?.financials?.totalValue ||
+              contractContext?.financials?.totalValue ??
               contractContext?.contract?.valorTotal
             }
             onChange={handleUnidadesChange}
@@ -584,7 +589,16 @@ export function BlocosDinamicos({
                         ? 'border-blue-200 bg-blue-100 text-blue-700 hover:bg-blue-200'
                         : 'border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200',
                   )}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${bloco.obrigatorio ? 'Obrigatório' : 'Opcional'}: ${bloco.label} - ${bloco.resumo}`}
                   onClick={() => toggleBlock(bloco.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      toggleBlock(bloco.id)
+                    }
+                  }}
                 >
                   <Icon className="h-3 w-3" />
                   <span className="font-medium">{bloco.label}</span>

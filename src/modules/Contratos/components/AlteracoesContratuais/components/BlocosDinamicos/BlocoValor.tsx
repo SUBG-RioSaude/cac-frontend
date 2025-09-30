@@ -1,18 +1,3 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { cn } from '@/lib/utils'
 import {
   DollarSign,
   Plus,
@@ -23,6 +8,22 @@ import {
   AlertCircle,
   CheckCircle,
 } from 'lucide-react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import type { BlocoValor as IBlocoValor } from '../../../../types/alteracoes-contratuais'
 import { OperacaoValor } from '../../../../types/alteracoes-contratuais'
@@ -71,7 +72,7 @@ const OPERACOES_CONFIG = {
   },
 }
 
-export function BlocoValor({
+export const BlocoValor = ({
   dados = {},
   onChange,
   contractFinancials,
@@ -81,7 +82,7 @@ export function BlocoValor({
   valorOriginal = 0,
   limiteLegal = 0,
   onAlertaLimiteLegal,
-}: BlocoValorProps) {
+}: BlocoValorProps) => {
   // Estado para formatação de valores monetários (apenas valor, sem percentual)
   const [valorAjusteFormatado, setValorAjusteFormatado] = useState('')
   const [novoValorGlobalFormatado, setNovoValorGlobalFormatado] = useState('')
@@ -123,7 +124,7 @@ export function BlocoValor({
       }
     }
 
-    let valorAjuste = dados.valorAjuste || 0
+    let valorAjuste = dados.valorAjuste ?? 0
     let novoValorGlobal = valorOriginal
 
     // Calcular novo valor global baseado na operação
@@ -135,7 +136,7 @@ export function BlocoValor({
         novoValorGlobal = valorOriginal - valorAjuste
         break
       case OperacaoValor.Substituir as number:
-        novoValorGlobal = dados.novoValorGlobal || valorOriginal
+        novoValorGlobal = dados.novoValorGlobal ?? valorOriginal
         valorAjuste = novoValorGlobal - valorOriginal
         break
     }
@@ -471,7 +472,7 @@ export function BlocoValor({
           <div className="space-y-2">
             <Label>Operação de valor *</Label>
             <Select
-              value={dados.operacao?.toString() || ''}
+              value={dados.operacao?.toString() ?? ''}
               onValueChange={(value) =>
                 handleFieldChange('operacao', parseInt(value) as OperacaoValor)
               }
@@ -750,7 +751,7 @@ export function BlocoValor({
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea
                 id="observacoes"
-                value={dados.observacoes || ''}
+                value={dados.observacoes ?? ''}
                 onChange={(e) =>
                   handleFieldChange('observacoes', e.target.value)
                 }

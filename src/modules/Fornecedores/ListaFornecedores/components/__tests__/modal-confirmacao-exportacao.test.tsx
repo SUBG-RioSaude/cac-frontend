@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { ModalConfirmacaoExportacao } from '../modal-confirmacao-exportacao'
 
 // Mock do framer-motion
@@ -51,9 +52,10 @@ describe('ModalConfirmacaoExportacao', () => {
 
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
+      const text = element.textContent
       return Boolean(
-        element?.textContent?.includes('250') &&
-          element?.textContent?.includes('fornecedores'),
+        text?.includes('250') &&
+          text.includes('fornecedores'),
       )
     })
     expect(elementos.length).toBeGreaterThan(0)
@@ -64,9 +66,10 @@ describe('ModalConfirmacaoExportacao', () => {
 
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
+      const text = element.textContent
       return Boolean(
-        element?.textContent?.includes('1') &&
-          element?.textContent?.includes('fornecedor'),
+        text?.includes('1') &&
+          text.includes('fornecedor'),
       )
     })
     expect(elementos.length).toBeGreaterThan(0)
@@ -77,9 +80,10 @@ describe('ModalConfirmacaoExportacao', () => {
 
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
+      const text = element.textContent
       return Boolean(
-        element?.textContent?.includes('5') &&
-          element?.textContent?.includes('fornecedores'),
+        text?.includes('5') &&
+          text.includes('fornecedores'),
       )
     })
     expect(elementos.length).toBeGreaterThan(0)

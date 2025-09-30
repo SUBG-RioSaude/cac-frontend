@@ -25,7 +25,6 @@ import {
   getAlteracoesAtivas,
   type PaginacaoResponse,
 } from '../services/alteracoes-contratuais-service'
-
 import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,
@@ -165,7 +164,7 @@ export function useResumoAlteracao(
   return useQuery({
     queryKey: alteracoesContratuaisKeys.resumo(contratoId, dados),
     queryFn: () => gerarResumoAlteracao(contratoId, dados),
-    enabled: !!contratoId && !!dados.tiposAlteracao?.length,
+    enabled: !!contratoId && !!dados.tiposAlteracao.length,
     staleTime: 0, // Sempre fresh para refletir mudanças no formulário
     ...options,
   })
@@ -232,7 +231,7 @@ export function useCriarAlteracaoContratual(
       criarAlteracaoContratual(contratoId, dados),
     onSuccess: (data) => {
       // Invalida listas para refresh
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
 
@@ -285,7 +284,7 @@ export function useConfirmarLimiteLegal(
       )
 
       // Invalida listas
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
 
@@ -326,7 +325,7 @@ export function useAtualizarAlteracaoContratual(
       )
 
       // Invalida listas
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
 
@@ -358,7 +357,7 @@ export function useExcluirAlteracaoContratual(
       })
 
       // Invalida listas
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
 
@@ -395,10 +394,10 @@ export function useSubmeterParaAprovacao(
       )
 
       // Invalida listas e workflow
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.workflow(variables.id),
       })
 
@@ -435,10 +434,10 @@ export function useAprovarAlteracao(
       )
 
       // Invalida queries relacionadas
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.workflow(variables.id),
       })
 
@@ -475,10 +474,10 @@ export function useRejeitarAlteracao(
       )
 
       // Invalida queries relacionadas
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.lists(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: alteracoesContratuaisKeys.workflow(variables.id),
       })
 
@@ -512,7 +511,7 @@ export function useAlteracaoContratualCompleta(id: string) {
     isLoading:
       alteracao.isLoading || workflow.isLoading || documentos.isLoading,
     isError: alteracao.isError || workflow.isError || documentos.isError,
-    error: alteracao.error || workflow.error || documentos.error,
+    error: alteracao.error ?? workflow.error ?? documentos.error,
   }
 }
 

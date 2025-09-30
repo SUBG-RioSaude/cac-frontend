@@ -162,12 +162,12 @@ export const mapFuncionarioToUsuario = (
     id: funcionario.id,
     matricula: funcionario.matricula,
     nome: funcionario.nomeCompleto, // Usar nomeCompleto da API
-    email: funcionario.emailInstitucional || '', // Usar emailInstitucional da API
+    email: funcionario.emailInstitucional ?? '', // Usar emailInstitucional da API
     cargo: funcionario.cargo,
     departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
-    telefone: funcionario.telefone || '',
+    telefone: funcionario.telefone ?? '',
     status: mapSituacaoToStatus(
-      funcionario.situacaoFuncional ||
+      funcionario.situacaoFuncional ??
         (funcionario.situacao as unknown as SituacaoFuncional),
       funcionario.ativo,
     ),

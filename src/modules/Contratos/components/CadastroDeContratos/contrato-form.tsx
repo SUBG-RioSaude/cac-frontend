@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ArrowRight,
   ArrowLeft,
@@ -14,15 +14,12 @@ import {
   DollarSign,
   AlertTriangle,
 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -32,15 +29,6 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Textarea } from '@/components/ui/textarea'
-
-import { Separator } from '@/components/ui/separator'
-import {
   Form,
   FormControl,
   FormField,
@@ -48,19 +36,32 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { useForm } from 'react-hook-form'
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { useFormAsyncOperation } from '@/hooks/use-async-operation'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ButtonLoadingSpinner } from '@/components/ui/loading'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { useFormAsyncOperation } from '@/hooks/use-async-operation'
 import { cn, currencyUtils } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { toast } from 'sonner'
 import processoInstrutivoData from '@/modules/Contratos/data/processo-instrutivo.json'
+import { useValidarNumeroContrato } from '@/modules/Contratos/hooks/use-validar-numero-contrato'
 import { validateUnidadesResponsaveis } from '@/modules/Contratos/types/contrato'
 import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
+
 import { UnidadeResponsavelManager } from './UnidadeResponsavelManager'
-import { useValidarNumeroContrato } from '@/modules/Contratos/hooks/use-validar-numero-contrato'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {
@@ -322,7 +323,7 @@ interface ProcessoInstrutivo {
   sufixos: string[]
 }
 
-export default function ContratoForm({
+const ContratoForm = ({
   onSubmit,
   onCancel,
   onPrevious,
@@ -330,7 +331,7 @@ export default function ContratoForm({
   onAdvanceRequest,
   onDataChange,
   onValorContratoChange,
-}: ContratoFormProps) {
+}: ContratoFormProps) => {
   const { isSubmitting } = useFormAsyncOperation()
   const [tipoTermo, setTipoTermo] = useState<
     'processo_rio' | 'google_drive' | 'texto_livre'
@@ -424,28 +425,28 @@ export default function ContratoForm({
   useEffect(() => {
     if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
       form.reset({
-        numeroContrato: dadosIniciais?.numeroContrato || '',
-        processos: dadosIniciais?.processos || [],
-        categoriaObjeto: dadosIniciais?.categoriaObjeto || '',
-        descricaoObjeto: dadosIniciais?.descricaoObjeto || '',
-        tipoContratacao: dadosIniciais?.tipoContratacao || undefined,
-        tipoContrato: dadosIniciais?.tipoContrato || undefined,
-        unidadesResponsaveis: dadosIniciais?.unidadesResponsaveis || [],
-        contratacao: dadosIniciais?.contratacao || undefined,
-        vigenciaInicial: dadosIniciais?.vigenciaInicial || '',
-        vigenciaFinal: dadosIniciais?.vigenciaFinal || '',
-        prazoInicialMeses: dadosIniciais?.prazoInicialMeses || 12,
-        prazoInicialDias: dadosIniciais?.prazoInicialDias || 0,
+        numeroContrato: dadosIniciais?.numeroContrato ?? '',
+        processos: dadosIniciais?.processos ?? [],
+        categoriaObjeto: dadosIniciais?.categoriaObjeto ?? '',
+        descricaoObjeto: dadosIniciais?.descricaoObjeto ?? '',
+        tipoContratacao: dadosIniciais?.tipoContratacao ?? undefined,
+        tipoContrato: dadosIniciais?.tipoContrato ?? undefined,
+        unidadesResponsaveis: dadosIniciais?.unidadesResponsaveis ?? [],
+        contratacao: dadosIniciais?.contratacao ?? undefined,
+        vigenciaInicial: dadosIniciais?.vigenciaInicial ?? '',
+        vigenciaFinal: dadosIniciais?.vigenciaFinal ?? '',
+        prazoInicialMeses: dadosIniciais?.prazoInicialMeses ?? 12,
+        prazoInicialDias: dadosIniciais?.prazoInicialDias ?? 0,
         valorGlobal: dadosIniciais?.valorGlobal
           ? currencyUtils.aplicarMascara(dadosIniciais.valorGlobal)
           : '',
-        formaPagamento: dadosIniciais?.formaPagamento || undefined,
+        formaPagamento: dadosIniciais?.formaPagamento ?? undefined,
         formaPagamentoComplemento:
-          dadosIniciais?.formaPagamentoComplemento || '',
+          dadosIniciais?.formaPagamentoComplemento ?? '',
         tipoTermoReferencia:
-          dadosIniciais?.tipoTermoReferencia || 'processo_rio',
-        termoReferencia: dadosIniciais?.termoReferencia || '',
-        vinculacaoPCA: dadosIniciais?.vinculacaoPCA || '',
+          dadosIniciais?.tipoTermoReferencia ?? 'processo_rio',
+        termoReferencia: dadosIniciais?.termoReferencia ?? '',
+        vinculacaoPCA: dadosIniciais?.vinculacaoPCA ?? '',
       })
     }
   }, [dadosIniciais, form])
@@ -504,14 +505,14 @@ export default function ContratoForm({
         vigenciaFinal: todosOsValores.vigenciaFinal || '',
         prazoInicialMeses: todosOsValores.prazoInicialMeses || 0,
         prazoInicialDias: todosOsValores.prazoInicialDias || 0,
-        valorGlobal: todosOsValores.valorGlobal || '',
-        formaPagamento: todosOsValores.formaPagamento || 'Mensal',
+        valorGlobal: todosOsValores.valorGlobal ?? '',
+        formaPagamento: todosOsValores.formaPagamento ?? 'Mensal',
         formaPagamentoComplemento:
-          todosOsValores.formaPagamentoComplemento || '',
+          todosOsValores.formaPagamentoComplemento ?? '',
         tipoTermoReferencia:
-          todosOsValores.tipoTermoReferencia || 'processo_rio',
-        termoReferencia: todosOsValores.termoReferencia || '',
-        vinculacaoPCA: todosOsValores.vinculacaoPCA || '',
+          todosOsValores.tipoTermoReferencia ?? 'processo_rio',
+        termoReferencia: todosOsValores.termoReferencia ?? '',
+        vinculacaoPCA: todosOsValores.vinculacaoPCA ?? '',
       }
 
       const currentDataString = JSON.stringify(dados)
@@ -2066,7 +2067,7 @@ export default function ContratoForm({
                                 id="formaPagamentoComplemento"
                                 placeholder="Descreva a forma de pagamento..."
                                 maxLength={100}
-                                value={complementoField.value || ''}
+                                value={complementoField.value ?? ''}
                                 onChange={complementoField.onChange}
                                 onBlur={complementoField.onBlur}
                                 name={complementoField.name}
@@ -2077,7 +2078,7 @@ export default function ContratoForm({
                                 Campo obrigatório quando "Outro" é selecionado
                               </span>
                               <span>
-                                {complementoField.value?.length || 0}/100
+                                {complementoField.value?.length ?? 0}/100
                               </span>
                             </div>
                             <FormMessage />
@@ -2277,7 +2278,7 @@ export default function ContratoForm({
               control={form.control}
               name="termoReferencia"
               render={({ field }) => {
-                const termoValue = field.value || ''
+                const termoValue = field.value ?? ''
                 const isValidURL =
                   termoValue.length > 0 && tipoTermo !== 'texto_livre'
                     ? validarURL(termoValue)
@@ -2338,7 +2339,7 @@ export default function ContratoForm({
               control={form.control}
               name="vinculacaoPCA"
               render={({ field }) => {
-                const pcaValue = field.value || ''
+                const pcaValue = field.value ?? ''
                 const isValidPCA =
                   pcaValue.length > 0 ? validarPCA(pcaValue) : null
 
@@ -2449,3 +2450,5 @@ export default function ContratoForm({
     </Form>
   )
 }
+
+export default ContratoForm

@@ -5,10 +5,11 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+
 import { executeWithFallback } from '@/lib/axios'
-import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
+import { createServiceLogger } from '@/lib/logger'
 import { useToast } from '@/modules/Contratos/hooks/useToast'
-import type { Contrato } from '@/modules/Contratos/types/contrato'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   criarContrato,
   calcularPrazoMeses,
@@ -16,7 +17,10 @@ import {
   gerarNumeroContratoUnico,
 } from '@/modules/Contratos/services/contratos-service'
 import { transformLegacyToUnidadesResponsaveis } from '@/modules/Contratos/types/contrato'
+import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
+
+const logger = createServiceLogger('use-contratos-mutations')
 
 // Tipos para as mutations
 
@@ -42,24 +46,24 @@ export interface CriarContratoData {
   vinculacaoPCA?: string
   empresaId: string
   ativo?: boolean
-  unidadesVinculadas?: Array<{
+  unidadesVinculadas?: {
     unidadeSaudeId: string
     valorAtribuido: number
     vigenciaInicialUnidade: string
     vigenciaFinalUnidade: string
     observacoes?: string
-  }>
-  documentos?: Array<{
+  }[]
+  documentos?: {
     tipoDocumento: string
     urlDocumento: string
     dataEntrega: string
     observacoes?: string
-  }>
-  funcionarios?: Array<{
+  }[]
+  funcionarios?: {
     funcionarioId: string
     tipoGerencia: 1 | 2 // 1=Gestor, 2=Fiscal
     observacoes?: string
-  }>
+  }[]
   // NOVO: Array de unidades responsáveis (preferencial sobre campos únicos)
   unidadesResponsaveis?: CriarUnidadeResponsavelPayload[]
 }
@@ -88,7 +92,8 @@ export function useCriarContrato() {
         payload.unidadesResponsaveis.length > 0
       ) {
         // Usar array fornecido diretamente
-        unidadesResponsaveis = payload.unidadesResponsaveis
+        const { unidadesResponsaveis: unidadesPayload } = payload
+        unidadesResponsaveis = unidadesPayload
       } else if (payload.unidadeDemandanteId && payload.unidadeGestoraId) {
         // Converter campos legados para array
         unidadesResponsaveis = transformLegacyToUnidadesResponsaveis(
@@ -104,14 +109,14 @@ export function useCriarContrato() {
       // Preparar dados para API
       const payloadAPI = {
         // Campos obrigatórios
-        numeroContrato: payload.numeroContrato || gerarNumeroContratoUnico(),
-        categoriaObjeto: payload.categoriaObjeto || '',
-        descricaoObjeto: payload.descricaoObjeto || '',
-        tipoContratacao: payload.tipoContratacao || '',
-        tipoContrato: payload.tipoContrato || '',
+        numeroContrato: payload.numeroContrato ?? gerarNumeroContratoUnico(),
+        categoriaObjeto: payload.categoriaObjeto ?? '',
+        descricaoObjeto: payload.descricaoObjeto ?? '',
+        tipoContratacao: payload.tipoContratacao ?? '',
+        tipoContrato: payload.tipoContrato ?? '',
         // NOVO: Usar array de unidades responsáveis
         unidadesResponsaveis,
-        contratacao: payload.contratacao || '',
+        contratacao: payload.contratacao ?? '',
         vigenciaInicial: converterDataParaISO(payload.vigenciaInicial),
         vigenciaFinal: converterDataParaISO(payload.vigenciaFinal),
         prazoInicialMeses: calcularPrazoMeses(
@@ -126,10 +131,10 @@ export function useCriarContrato() {
                   .replace(',', '.'),
               )
             : payload.valorGlobal,
-        formaPagamento: payload.formaPagamento || '',
-        tipoTermoReferencia: payload.tipoTermoReferencia || '',
-        termoReferencia: payload.termoReferencia || '',
-        vinculacaoPCA: payload.vinculacaoPCA || '',
+        formaPagamento: payload.formaPagamento ?? '',
+        tipoTermoReferencia: payload.tipoTermoReferencia ?? '',
+        termoReferencia: payload.termoReferencia ?? '',
+        vinculacaoPCA: payload.vinculacaoPCA ?? '',
         empresaId: payload.empresaId,
         ativo: payload.ativo ?? true,
         // Campos opcionais
@@ -137,13 +142,13 @@ export function useCriarContrato() {
         processoRio: payload.processoRio,
         processoLegado: payload.processoLegado,
         // Converter funcionários para formato da API
-        funcionarios: (payload.funcionarios || []).map((func) => ({
+        funcionarios: (payload.funcionarios ?? []).map((func) => ({
           funcionarioId: func.funcionarioId,
           tipoGerencia: func.tipoGerencia,
           observacoes: func.observacoes,
         })),
         // Converter unidades vinculadas
-        unidadesVinculadas: (payload.unidadesVinculadas || []).map(
+        unidadesVinculadas: (payload.unidadesVinculadas ?? []).map(
           (unidade) => ({
             unidadeSaudeId: unidade.unidadeSaudeId,
             valorAtribuido:
@@ -168,8 +173,8 @@ export function useCriarContrato() {
     },
     onSuccess: () => {
       // Invalidar queries relacionadas
-      queryClient.invalidateQueries({ queryKey: contratoKeys.all })
-      queryClient.invalidateQueries({ queryKey: contratoKeys.list() })
+      void queryClient.invalidateQueries({ queryKey: contratoKeys.all })
+      void queryClient.invalidateQueries({ queryKey: contratoKeys.list() })
 
       // Mostrar mensagem de sucesso
       success('Contrato criado com sucesso!')
@@ -183,16 +188,16 @@ export function useCriarContrato() {
         status?: number
       },
     ) => {
-      console.error('❌ [HOOK] Erro ao criar contrato:', error)
+      logger.error('❌ [HOOK] Erro ao criar contrato:', error)
 
       // Extrair mensagem específica do erro
       let errorMessage = 'Erro ao criar contrato. Tente novamente.'
 
-      if (error?.message) {
+      if (error.message) {
         errorMessage = error.message
-      } else if (error?.response?.data?.message) {
+      } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message
-      } else if (error?.response?.status === 409) {
+      } else if (error.response?.status === 409) {
         errorMessage =
           'Já existe um contrato com este número ou dados duplicados. Verifique os dados e tente novamente.'
       }
@@ -250,7 +255,7 @@ export function useUpdateContrato() {
 
     onSuccess: (data, _variables, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+      if (context.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
       }
 
@@ -260,18 +265,18 @@ export function useUpdateContrato() {
       // Invalidar caches relevantes
       const invalidateKeys = contratoKeys.invalidateOnUpdate(data.id)
       invalidateKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key })
+        void queryClient.invalidateQueries({ queryKey: key })
       })
     },
 
     onError: (error, _variables, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+      if (context.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.error call
       }
 
       // Rollback optimistic update
-      if (context?.previousContrato) {
+      if (context.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_variables.id),
           context.previousContrato,
@@ -313,7 +318,7 @@ export function useDeleteContrato() {
 
     onSuccess: (_data, id, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+      if (context.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
       }
 
@@ -323,7 +328,7 @@ export function useDeleteContrato() {
       // Invalidar caches
       const invalidateKeys = contratoKeys.invalidateOnDelete(id)
       invalidateKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key })
+        void queryClient.invalidateQueries({ queryKey: key })
       })
 
       // Redirecionar para lista de contratos
@@ -332,7 +337,7 @@ export function useDeleteContrato() {
 
     onError: (error, _id, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+      if (context.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.error call
       }
 
@@ -377,23 +382,23 @@ export function useSuspendContrato() {
     },
 
     onSuccess: (_data, _id, context) => {
-      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+      if (context.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
       }
 
       mutation.success('Contrato suspenso')
 
       // Invalidar listas para refletir mudança de status
-      queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
     },
 
     onError: (error, _id, context) => {
-      if (context?.loadingToast && typeof context.loadingToast === 'string') {
+      if (context.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.error call
       }
 
       // Rollback
-      if (context?.previousContrato) {
+      if (context.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_id),
           context.previousContrato,
@@ -440,20 +445,20 @@ export function useReactivateContrato() {
     },
 
     onSuccess: (_data, _id, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
       mutation.success('Contrato reativado')
-      queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
     },
 
     onError: (error, _id, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
-      if (context?.previousContrato) {
+      if (context.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_id),
           context.previousContrato,
@@ -500,20 +505,20 @@ export function useEncerrarContrato() {
     },
 
     onSuccess: (_data, _id, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
       mutation.success('Contrato encerrado')
-      queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: contratoKeys.lists() })
     },
 
     onError: (error, _id, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
-      if (context?.previousContrato) {
+      if (context.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_id),
           context.previousContrato,

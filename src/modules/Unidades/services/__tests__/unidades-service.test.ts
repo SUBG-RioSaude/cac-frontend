@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import { executeWithFallback, api } from '@/lib/axios'
+
 import {
   getUnidades,
   getUnidadeById,
@@ -23,7 +26,16 @@ vi.mock('@/lib/axios', () => ({
   },
 }))
 
-import { executeWithFallback, api } from '@/lib/axios'
+// Mock configuration helper
+const configureMockApiGet = (behavior: 'resolve' | 'reject', data?: unknown) => {
+  const mockedFunction = vi.mocked
+  const mockedApi = mockedFunction(api)
+  if (behavior === 'resolve') {
+    mockedApi.get.mockResolvedValue(data)
+  } else {
+    mockedApi.get.mockRejectedValue(data)
+  }
+}
 
 describe('Unidades Service', () => {
   beforeEach(() => {
@@ -318,17 +330,17 @@ describe('Unidades Service', () => {
           nome: 'Hospital Central',
           endereco: 'Rua A, 123',
         }
-        vi.mocked(api.get).mockResolvedValue({ data: mockUnidade })
+        configureMockApiGet('resolve', { data: mockUnidade })
 
         const resultado = await buscarUnidadePorId('1')
 
-        expect(api.get).toHaveBeenCalledWith('/unidades/1')
+        expect(vi.mocked(api).get).toHaveBeenCalledWith('/unidades/1')
         expect(resultado).toEqual(mockUnidade)
       })
 
       it('deve propagar erro ao falhar', async () => {
         const erro = new Error('Unidade n�o encontrada')
-        vi.mocked(api.get).mockRejectedValue(erro)
+        configureMockApiGet('reject', erro)
 
         await expect(buscarUnidadePorId('999')).rejects.toThrow(
           'Unidade n�o encontrada',
@@ -450,7 +462,7 @@ describe('Unidades Service', () => {
     it('deve logar e propagar erros em buscarUnidadePorId', async () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const erro = new Error('Erro na API')
-      vi.mocked(api.get).mockRejectedValue(erro)
+      mockApiGet.mockRejectedValue(erro)
 
       await expect(buscarUnidadePorId('1')).rejects.toThrow('Erro na API')
       expect(spy).toHaveBeenCalledWith('Erro ao buscar unidade por ID:', erro)
@@ -473,3 +485,4 @@ describe('Unidades Service', () => {
     })
   })
 })
+

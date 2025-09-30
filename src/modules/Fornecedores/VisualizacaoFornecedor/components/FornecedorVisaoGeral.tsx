@@ -5,14 +5,6 @@
  * Dashboard resumo com métricas e contratos mais relevantes
  */
 
-import { useMemo } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import {
-  ContratoStatusBadge,
-  useContratoStatus,
-} from '@/components/ui/status-badge'
-import { CurrencyDisplay } from '@/components/ui/formatters'
 import {
   TrendingUp,
   Eye,
@@ -21,14 +13,89 @@ import {
   Building,
   Phone,
 } from 'lucide-react'
-import { FornecedorMetricas } from './FornecedorMetricas'
-import { InformacoesFornecedor } from './informacoes-fornecedor'
-import { EnderecoFornecedor } from './endereco-fornecedor'
-import { ContatosFornecedor } from './contatos-fornecedor'
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { CurrencyDisplay } from '@/components/ui/formatters'
+import {
+  ContratoStatusBadge,
+  useContratoStatus,
+} from '@/components/ui/status-badge'
 import { VigenciaDisplay } from '@/modules/Contratos/components/ListaContratos/VigenciaDisplay'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
-import { useNavigate } from 'react-router-dom'
+
+import { ContatosFornecedor } from './contatos-fornecedor'
+import { EnderecoFornecedor } from './endereco-fornecedor'
+import { FornecedorMetricas } from './FornecedorMetricas'
+import { InformacoesFornecedor } from './informacoes-fornecedor'
+
+// Componente para renderizar item de contrato relevante
+interface ContratoRelevantItemProps {
+  contrato: Contrato
+  onVisualizar: (contrato: Contrato) => void
+}
+
+const ContratoRelevantItem = ({
+  contrato,
+  onVisualizar,
+}: ContratoRelevantItemProps) => {
+  const contratoStatus = useContratoStatus(
+    contrato.vigenciaInicial,
+    contrato.vigenciaFinal,
+    contrato.status,
+  )
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50">
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-semibold">
+            {contrato.numeroContrato ?? 'Sem número'}
+          </h4>
+          <ContratoStatusBadge
+            status={contratoStatus}
+            showIcon
+            size="sm"
+          />
+        </div>
+
+        <p className="text-muted-foreground line-clamp-2 text-sm">
+          {contrato.descricaoObjeto ?? 'Descrição não disponível'}
+        </p>
+
+        <div className="text-muted-foreground flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <DollarSign className="h-3 w-3" />
+            <CurrencyDisplay value={contrato.valorGlobal} />
+          </div>
+
+          <div className="flex-1">
+            <VigenciaDisplay
+              vigenciaInicio={contrato.vigenciaInicial}
+              vigenciaFim={contrato.vigenciaFinal}
+              compact
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="ml-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onVisualizar(contrato)}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+
 
 interface FornecedorVisaoGeralProps {
   fornecedor: EmpresaResponse
@@ -36,15 +103,15 @@ interface FornecedorVisaoGeralProps {
   isLoading?: boolean
 }
 
-export function FornecedorVisaoGeral({
+export const FornecedorVisaoGeral = ({
   fornecedor,
   contratos,
   isLoading,
-}: FornecedorVisaoGeralProps) {
+}: FornecedorVisaoGeralProps) => {
   const navigate = useNavigate()
 
   const contratosRelevantes = useMemo(() => {
-    if (!contratos || contratos.length === 0) return []
+    if (contratos.length === 0) return []
 
     // Ordenar contratos por relevância: vencendo primeiro, depois por valor
     const contratosOrdenados = [...contratos].sort((a, b) => {
@@ -64,7 +131,7 @@ export function FornecedorVisaoGeral({
       if (!aVencendo && bVencendo) return 1
 
       // Se ambos estão vencendo ou ambos não estão, ordenar por valor
-      return (b.valorGlobal || 0) - (a.valorGlobal || 0)
+      return b.valorGlobal - a.valorGlobal
     })
 
     return contratosOrdenados.slice(0, 5) // Mostrar apenas os 5 mais relevantes
@@ -114,7 +181,7 @@ export function FornecedorVisaoGeral({
           <Phone className="h-5 w-5" />
           Informações de Contato
         </h3>
-        {fornecedor.contatos && fornecedor.contatos.length > 0 ? (
+        {fornecedor.contatos.length > 0 ? (
           <ContatosFornecedor contatos={fornecedor.contatos} />
         ) : (
           <Card>
@@ -148,7 +215,7 @@ export function FornecedorVisaoGeral({
             <Calendar className="h-5 w-5" />
             Contratos Mais Relevantes
           </h3>
-          {contratos && contratos.length > 5 && (
+          {contratos.length > 5 && (
             <Button
               variant="outline"
               size="sm"
@@ -165,9 +232,9 @@ export function FornecedorVisaoGeral({
           <Card>
             <CardContent className="p-6">
               <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
+                {Array.from({ length: 3 }, (_, index) => (
                   <div
-                    key={i}
+                    key={`visao-geral-skeleton-${index}`}
                     className="flex items-center justify-between rounded-lg border p-4"
                   >
                     <div className="flex-1">
@@ -208,69 +275,6 @@ export function FornecedorVisaoGeral({
             </CardContent>
           </Card>
         )}
-      </div>
-    </div>
-  )
-}
-
-// Componente para renderizar item de contrato relevante
-interface ContratoRelevantItemProps {
-  contrato: Contrato
-  onVisualizar: (contrato: Contrato) => void
-}
-
-function ContratoRelevantItem({
-  contrato,
-  onVisualizar,
-}: ContratoRelevantItemProps) {
-  const contratoStatus = useContratoStatus(
-    contrato.vigenciaInicial,
-    contrato.vigenciaFinal,
-    contrato.status,
-  )
-
-  return (
-    <div className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50">
-      <div className="flex-1 space-y-2">
-        <div className="flex items-center gap-2">
-          <h4 className="text-sm font-semibold">
-            {contrato.numeroContrato || 'Sem número'}
-          </h4>
-          <ContratoStatusBadge
-            status={contratoStatus}
-            showIcon={true}
-            size="sm"
-          />
-        </div>
-
-        <p className="text-muted-foreground line-clamp-2 text-sm">
-          {contrato.descricaoObjeto || 'Descrição não disponível'}
-        </p>
-
-        <div className="text-muted-foreground flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1">
-            <DollarSign className="h-3 w-3" />
-            <CurrencyDisplay value={contrato.valorGlobal || 0} />
-          </div>
-
-          <div className="flex-1">
-            <VigenciaDisplay
-              vigenciaInicio={contrato.vigenciaInicial}
-              vigenciaFim={contrato.vigenciaFinal}
-              compact
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="ml-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onVisualizar(contrato)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   )

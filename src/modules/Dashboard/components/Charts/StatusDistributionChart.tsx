@@ -5,8 +5,10 @@
  * Gráfico pizza/donut mostrando distribuição dos contratos por status
  */
 
+import { PieChart as PieChartIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { PieChart, Pie, Cell } from 'recharts'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
@@ -16,7 +18,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PieChart as PieChartIcon } from 'lucide-react'
+
 import { useDashboardCharts } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
@@ -25,10 +27,10 @@ interface StatusDistributionChartProps {
   className?: string
 }
 
-export function StatusDistributionChart({
+export const StatusDistributionChart = ({
   filters,
   className,
-}: StatusDistributionChartProps) {
+}: StatusDistributionChartProps) => {
   const { statusDistribution, isLoading, error } = useDashboardCharts(filters)
 
   // Configuração do gráfico
@@ -141,8 +143,8 @@ export function StatusDistributionChart({
               innerRadius={60}
               strokeWidth={2}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+              {chartData.map((entry) => (
+                <Cell key={`status-cell-${entry.name}`} fill={entry.fill} />
               ))}
             </Pie>
             <ChartLegend

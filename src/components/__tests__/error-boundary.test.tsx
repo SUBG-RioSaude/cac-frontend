@@ -1,12 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import '@testing-library/jest-dom'
+import { render, screen, fireEvent } from '@testing-library/react'
+import React from 'react'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+
 import {
   ErrorBoundary,
   withErrorBoundary,
   FormErrorBoundary,
 } from '../error-boundary'
-import React from 'react'
 
 // Componente que gera erro para testar
 const ThrowErrorComponent = ({
@@ -44,7 +45,7 @@ describe('ErrorBoundary', () => {
   it('deve renderizar fallback padrão quando ocorre erro', () => {
     render(
       <ErrorBoundary>
-        <ThrowErrorComponent shouldThrow={true} />
+        <ThrowErrorComponent shouldThrow />
       </ErrorBoundary>,
     )
 
@@ -58,7 +59,7 @@ describe('ErrorBoundary', () => {
 
     render(
       <ErrorBoundary fallback={customFallback}>
-        <ThrowErrorComponent shouldThrow={true} />
+        <ThrowErrorComponent shouldThrow />
       </ErrorBoundary>,
     )
 
@@ -71,7 +72,7 @@ describe('ErrorBoundary', () => {
 
     render(
       <ErrorBoundary onError={onError}>
-        <ThrowErrorComponent shouldThrow={true} />
+        <ThrowErrorComponent shouldThrow />
       </ErrorBoundary>,
     )
 
@@ -176,7 +177,7 @@ describe('FormErrorBoundary', () => {
 
     render(
       <FormErrorBoundary>
-        <ThrowErrorComponent shouldThrow={true} />
+        <ThrowErrorComponent shouldThrow />
       </FormErrorBoundary>,
     )
 

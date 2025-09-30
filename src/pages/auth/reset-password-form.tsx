@@ -1,16 +1,16 @@
 'use client'
 
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Check, X } from 'lucide-react'
 import type React from 'react'
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Check, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/lib/auth/auth-store'
 
 interface PasswordRequirement {
@@ -18,7 +18,7 @@ interface PasswordRequirement {
   met: boolean
 }
 
-export default function ResetPasswordForm() {
+const ResetPasswordForm = () => {
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false)
@@ -50,7 +50,7 @@ export default function ResetPasswordForm() {
   useEffect(() => {
     // Redireciona se já estiver autenticado
     if (estaAutenticado) {
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
       navigate(redirectPath, { replace: true })
       return
@@ -73,7 +73,7 @@ export default function ResetPasswordForm() {
     }
   }, [navigate, estaAutenticado])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitAsync = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!senhaValida) {
@@ -87,13 +87,13 @@ export default function ResetPasswordForm() {
     const tokenTrocaSenha = sessionStorage.getItem('tokenTrocaSenha')
 
     // Executa troca de senha
-    const sucesso = await trocarSenha(
+    const resultadoSucesso = await trocarSenha(
       email,
       novaSenha,
-      tokenTrocaSenha || undefined,
+      tokenTrocaSenha ?? undefined,
     )
 
-    if (sucesso) {
+    if (resultadoSucesso) {
       setSucesso('Senha alterada com sucesso!')
 
       // Limpar contexto de recuperação
@@ -105,6 +105,10 @@ export default function ResetPasswordForm() {
         navigate('/login')
       }, 2000)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    void handleSubmitAsync(e)
   }
 
   const containerVariants = {
@@ -372,9 +376,9 @@ export default function ResetPasswordForm() {
                     </Label>
                     <motion.div className="space-y-1">
                       <AnimatePresence>
-                        {requisitosSenha.map((requisito, index) => (
+                        {requisitosSenha.map((requisito) => (
                           <motion.div
-                            key={index}
+                            key={requisito.text}
                             className="flex items-center space-x-2 text-sm"
                             variants={requirementVariants}
                             animate={requisito.met ? 'met' : 'unmet'}
@@ -474,3 +478,5 @@ export default function ResetPasswordForm() {
     </div>
   )
 }
+
+export default ResetPasswordForm

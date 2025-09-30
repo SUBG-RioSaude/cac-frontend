@@ -5,21 +5,7 @@
  * Modal para substituir funcionário vinculado ao contrato
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { DatePicker } from '@/components/ui/date-picker'
 import {
   User,
   ArrowRight,
@@ -32,12 +18,32 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react'
-import { BuscaFuncionarioField } from './BuscaFuncionarioField'
+import { useMemo, useState } from 'react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
+
 import { useSubstituirFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
 import { getTipoGerenciaLabel } from '../../services/contratos-funcionarios-service'
-import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
 import type { ContratoFuncionario } from '../../types/contrato'
-import { cn } from '@/lib/utils'
+
+import { BuscaFuncionarioField } from './BuscaFuncionarioField'
+
+
+
 
 // ========== INTERFACES ==========
 
@@ -55,14 +61,14 @@ interface SubstituirFuncionarioModalProps {
 
 // ========== COMPONENTE ==========
 
-export function SubstituirFuncionarioModal({
+export const SubstituirFuncionarioModal = ({
   aberto,
   onFechar,
   contratoId,
   funcionarioAtual,
   tipoGerencia,
   funcionarioCompleto,
-}: SubstituirFuncionarioModalProps) {
+}: SubstituirFuncionarioModalProps) => {
   const [funcionarioNovo, setFuncionarioNovo] = useState<FuncionarioApi | null>(
     null,
   )
@@ -74,6 +80,30 @@ export function SubstituirFuncionarioModal({
   const substituirMutation = useSubstituirFuncionarioContrato()
 
   const tipoLabel = getTipoGerenciaLabel(tipoGerencia)
+
+  const nomeFuncionarioAtual = useMemo(() => {
+    if (funcionarioCompleto?.nomeCompleto) {
+      return funcionarioCompleto.nomeCompleto
+    }
+
+    if (funcionarioAtual.funcionarioNome) {
+      return funcionarioAtual.funcionarioNome
+    }
+
+    return 'Nome não informado'
+  }, [funcionarioCompleto, funcionarioAtual])
+
+  const cargoFuncionarioAtual = useMemo(() => {
+    if (funcionarioCompleto?.cargo) {
+      return funcionarioCompleto.cargo
+    }
+
+    if ('funcionarioCargo' in funcionarioAtual && funcionarioAtual.funcionarioCargo) {
+      return funcionarioAtual.funcionarioCargo
+    }
+
+    return 'Cargo não informado'
+  }, [funcionarioCompleto, funcionarioAtual])
 
   // Reset do modal quando fechar
   const handleFechar = () => {
@@ -149,15 +179,9 @@ export function SubstituirFuncionarioModal({
                 </div>
 
                 <div className="flex-1">
-                  <h4 className="text-sm font-semibold">
-                    {funcionarioCompleto?.nomeCompleto ||
-                      funcionarioAtual.funcionarioNome ||
-                      'Nome não informado'}
-                  </h4>
+                  <h4 className="text-sm font-semibold">{nomeFuncionarioAtual}</h4>
                   <p className="text-muted-foreground text-xs">
-                    {funcionarioCompleto?.cargo ||
-                      funcionarioAtual.funcionarioCargo ||
-                      'Cargo não informado'}
+                    {cargoFuncionarioAtual}
                   </p>
 
                   {/* Informações adicionais se disponível */}
@@ -249,7 +273,7 @@ export function SubstituirFuncionarioModal({
                     </Label>
                     <DatePicker
                       date={dataInicio}
-                      onDateChange={(date) => setDataInicio(date || new Date())}
+                      onDateChange={(date) => setDataInicio(date ?? new Date())}
                       placeholder="Selecionar data de início"
                       className="w-full"
                     />
@@ -299,11 +323,11 @@ export function SubstituirFuncionarioModal({
                         </span>
                       </div>
                       <p className="text-sm font-medium">
-                        {funcionarioCompleto?.nomeCompleto ||
+                        {funcionarioCompleto?.nomeCompleto ??
                           funcionarioAtual.funcionarioNome}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {funcionarioCompleto?.cargo ||
+                        {funcionarioCompleto?.cargo ??
                           funcionarioAtual.funcionarioCargo}
                       </p>
                     </div>

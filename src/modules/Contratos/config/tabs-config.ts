@@ -136,7 +136,11 @@ export function getDefaultTab(): string {
  * Verifica se uma aba está habilitada
  */
 export function isTabEnabled(tabId: string): boolean {
-  return TABS_CONFIG[tabId]?.enabled ?? false
+  if (tabId in TABS_CONFIG) {
+    return TABS_CONFIG[tabId].enabled
+  }
+
+  return false
 }
 
 /**

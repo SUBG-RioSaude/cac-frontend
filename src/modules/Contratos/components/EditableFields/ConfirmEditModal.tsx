@@ -1,3 +1,7 @@
+import { AlertTriangle, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -6,11 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { AlertTriangle, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { Textarea } from '@/components/ui/textarea'
+
 
 interface ConfirmEditModalProps {
   isOpen: boolean
@@ -24,7 +26,7 @@ interface ConfirmEditModalProps {
   formatValue?: (value: string | number) => string
 }
 
-export function ConfirmEditModal({
+export const ConfirmEditModal = ({
   isOpen,
   onClose,
   onConfirm,
@@ -34,14 +36,14 @@ export function ConfirmEditModal({
   isLoading = false,
   isCritical = false,
   formatValue = (value) => String(value),
-}: ConfirmEditModalProps) {
+}: ConfirmEditModalProps) => {
   const [justification, setJustification] = useState('')
 
   const handleConfirm = async () => {
     try {
       await onConfirm(justification)
       setJustification('')
-    } catch (error) {
+    } catch {
       // Error handling será feito pelo componente pai
     }
   }
@@ -115,7 +117,7 @@ export function ConfirmEditModal({
             Cancelar
           </Button>
           <Button
-            onClick={handleConfirm}
+            onClick={() => { void handleConfirm() }}
             disabled={isLoading || (isCritical && !justification.trim())}
             className="min-w-[100px]"
           >

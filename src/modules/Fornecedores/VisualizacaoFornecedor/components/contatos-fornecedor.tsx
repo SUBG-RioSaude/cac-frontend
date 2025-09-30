@@ -1,12 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Mail, Phone, Smartphone } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ContatoEmpresa } from '@/modules/Empresas/types/empresa'
 
 interface ContatosFornecedorProps {
   contatos: ContatoEmpresa[]
 }
 
-export function ContatosFornecedor({ contatos }: ContatosFornecedorProps) {
+export const ContatosFornecedor = ({ contatos }: ContatosFornecedorProps) => {
   const getIcon = (tipo: 'Email' | 'Telefone' | 'Celular') => {
     switch (tipo) {
       case 'Email':

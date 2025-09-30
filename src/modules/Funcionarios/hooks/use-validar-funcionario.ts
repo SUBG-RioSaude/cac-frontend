@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+
 import { useDebounce } from '@/hooks/use-debounce'
+import { funcionarioKeys } from '@/modules/Funcionarios/lib/query-keys'
 import {
   getFuncionarioByCpf,
   getFuncionarioByMatricula,
 } from '@/modules/Funcionarios/services/funcionarios-service'
-import { funcionarioKeys } from '@/modules/Funcionarios/lib/query-keys'
 
-type ValidacaoState = {
+interface ValidacaoState {
   isChecking: boolean
   isWaiting: boolean
   isAvailable: boolean | null
@@ -15,9 +16,9 @@ type ValidacaoState = {
 }
 
 export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
-  const debounced = useDebounce((rawCpf || '').replace(/\D/g, ''), 600)
+  const debounced = useDebounce(rawCpf.replace(/\D/g, ''), 600)
   const isWaiting =
-    rawCpf?.replace(/\D/g, '') !== debounced && (rawCpf || '').length > 0
+    rawCpf.replace(/\D/g, '') !== debounced && rawCpf.length > 0
   const isValidFormat = debounced.length === 11
 
   const { data, isLoading, isFetching, error } = useQuery({
@@ -26,7 +27,7 @@ export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
       const resp = await getFuncionarioByCpf(debounced)
       return resp.encontrado
     },
-    enabled: isValidFormat && debounced.length > 0,
+    enabled: isValidFormat,
     staleTime: 30000,
     gcTime: 60000,
     retry: false,
@@ -83,9 +84,9 @@ export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
 }
 
 export function useValidarMatriculaUnica(rawMatricula: string): ValidacaoState {
-  const debounced = useDebounce((rawMatricula || '').trim(), 600)
+  const debounced = useDebounce(rawMatricula.trim(), 600)
   const isWaiting =
-    (rawMatricula || '').trim() !== debounced && (rawMatricula || '').length > 0
+    rawMatricula.trim() !== debounced && rawMatricula.length > 0
   const isValidFormat = /^[A-Za-z0-9]{3,20}$/.test(debounced)
 
   const { data, isLoading, isFetching, error } = useQuery({
@@ -94,7 +95,7 @@ export function useValidarMatriculaUnica(rawMatricula: string): ValidacaoState {
       const resp = await getFuncionarioByMatricula(debounced)
       return resp.encontrado
     },
-    enabled: isValidFormat && debounced.length > 0,
+    enabled: isValidFormat,
     staleTime: 30000,
     gcTime: 60000,
     retry: false,

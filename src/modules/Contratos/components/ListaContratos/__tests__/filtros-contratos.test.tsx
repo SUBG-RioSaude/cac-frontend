@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { FiltrosContratos } from '../filtros-contratos'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
+
+import { FiltrosContratos } from '../filtros-contratos'
 
 // Mock das unidades
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({

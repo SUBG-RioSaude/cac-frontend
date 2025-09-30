@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+
 import { cn, cnpjUtils } from '../utils'
 
 describe('cn', () => {
@@ -11,12 +12,18 @@ describe('cn', () => {
   })
 
   it('deve lidar com condicionais', () => {
-    const condicional = false
-    const resultado = cn(
-      'text-red-500',
-      condicional ? 'bg-blue-500' : 'bg-red-500',
-    )
-    expect(resultado).toBe('text-red-500 bg-red-500')
+    const cenarios: [boolean, string][] = [
+      [true, 'text-red-500 bg-blue-500'],
+      [false, 'text-red-500 bg-red-500'],
+    ]
+
+    cenarios.forEach(([condicional, esperado]) => {
+      const resultado = cn(
+        'text-red-500',
+        condicional ? 'bg-blue-500' : 'bg-red-500',
+      )
+      expect(resultado).toBe(esperado)
+    })
   })
 })
 

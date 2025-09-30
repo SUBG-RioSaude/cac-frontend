@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
+
 import { Switch } from '../switch'
 
 describe('Switch', () => {
@@ -98,7 +99,7 @@ describe('Switch', () => {
     })
 
     it('deve aceitar estado checked inicial', () => {
-      render(<Switch checked={true} data-testid="switch" />)
+      render(<Switch checked data-testid="switch" />)
 
       const switchElement = screen.getByTestId('switch')
       expect(switchElement).toHaveAttribute('aria-checked', 'true')
@@ -208,7 +209,7 @@ describe('Switch', () => {
     })
 
     it('deve mostrar thumb na posição ativa quando ativado', () => {
-      render(<Switch checked={true} data-testid="switch" />)
+      render(<Switch checked data-testid="switch" />)
 
       const switchElement = screen.getByTestId('switch')
       const thumb = switchElement.querySelector('[data-slot="switch-thumb"]')
@@ -261,7 +262,7 @@ describe('Switch', () => {
           <Switch
             name="newsletter"
             value="subscribed"
-            checked={true}
+            checked
             data-testid="switch"
           />
         </form>,

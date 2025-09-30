@@ -1,10 +1,3 @@
-import type React from 'react'
-import { useEffect } from 'react'
-
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import {
   Trash2,
   Plus,
@@ -13,10 +6,18 @@ import {
   Edit3,
   ArrowRight,
 } from 'lucide-react'
+import type React from 'react'
+import { useEffect } from 'react'
 import { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { currencyUtils, percentualUtils } from '@/lib/utils'
-import BuscaUnidadeInteligente from './busca-unidade-inteligente'
 import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
+
+import BuscaUnidadeInteligente from './busca-unidade-inteligente'
 
 interface UnidadeContrato {
   id: string
@@ -47,14 +48,14 @@ interface UnidadesFormMelhoradoProps {
   onFinishRequest?: (dados: DadosUnidades) => void
 }
 
-export default function UnidadesFormMelhorado({
+const UnidadesFormMelhorado = ({
   onSubmit,
   onCancel,
   onPrevious,
   dadosIniciais = {},
   valorTotalContrato = 0,
   onFinishRequest,
-}: UnidadesFormMelhoradoProps) {
+}: UnidadesFormMelhoradoProps) => {
   const [dadosUnidades, setDadosUnidades] = useState<DadosUnidades>({
     unidades: [],
     observacoes: '',
@@ -78,12 +79,10 @@ export default function UnidadesFormMelhorado({
   const [percentualContrato, setPercentualContrato] = useState<number>(0)
 
   // Estados para controlar quais campos estão travados (por unidade)
-  const [camposTravados, setCamposTravados] = useState<{
-    [unidadeId: string]: {
+  const [camposTravados, setCamposTravados] = useState<Record<string, {
       valor: boolean
       percentual: boolean
-    }
-  }>({})
+    }>>({})
 
   // Estado para controlar qual unidade está sendo editada
   const [unidadeEmEdicao, setUnidadeEmEdicao] = useState<string | null>(null)
@@ -436,13 +435,13 @@ export default function UnidadesFormMelhorado({
         </h4>
 
         {/* Indicador de status dos campos */}
-        {(getCamposTravados(unidadeSelecionada?.id || '').valor ||
-          getCamposTravados(unidadeSelecionada?.id || '').percentual) && (
+        {(getCamposTravados(unidadeSelecionada?.id ?? '').valor ||
+          getCamposTravados(unidadeSelecionada?.id ?? '').percentual) && (
           <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
             <div className="flex items-center gap-2 text-sm text-blue-700">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+              <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
               <span className="font-medium">
-                {getCamposTravados(unidadeSelecionada?.id || '').valor
+                {getCamposTravados(unidadeSelecionada?.id ?? '').valor
                   ? 'Campo de valor travado - use o percentual para alterar'
                   : 'Campo de percentual travado - use o valor para alterar'}
               </span>
@@ -764,3 +763,5 @@ export default function UnidadesFormMelhorado({
     </form>
   )
 }
+
+export default UnidadesFormMelhorado

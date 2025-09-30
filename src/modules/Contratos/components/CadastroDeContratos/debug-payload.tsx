@@ -1,9 +1,11 @@
+import { Copy, Download, Eye, EyeOff } from 'lucide-react'
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { toast } from 'sonner'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Copy, Download, Eye, EyeOff } from 'lucide-react'
-import { toast } from 'sonner'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 
 interface DebugPayloadProps {
   payload: Record<string, unknown>
@@ -11,11 +13,11 @@ interface DebugPayloadProps {
   className?: string
 }
 
-export default function DebugPayload({
+const DebugPayload = ({
   payload,
   title = 'Debug Payload',
   className,
-}: DebugPayloadProps) {
+}: DebugPayloadProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [copied, setCopied] = React.useState(false)
 
@@ -25,7 +27,7 @@ export default function DebugPayload({
       setCopied(true)
       toast.success('Payload copiado para a área de transferência!')
       setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
+    } catch {
       toast.error('Erro ao copiar payload')
     }
   }
@@ -42,10 +44,6 @@ export default function DebugPayload({
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
     toast.success('Payload baixado com sucesso!')
-  }
-
-  if (!payload) {
-    return null
   }
 
   return (
@@ -77,7 +75,9 @@ export default function DebugPayload({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleCopy}
+              onClick={() => {
+                void handleCopy()
+              }}
               className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700"
             >
               <Copy className="h-4 w-4" />
@@ -120,3 +120,5 @@ export default function DebugPayload({
     </Card>
   )
 }
+
+export default DebugPayload

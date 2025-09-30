@@ -1,6 +1,21 @@
-import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+
 import { Skeleton } from '../skeleton'
+
+const ConditionalSkeleton = ({ loading }: { loading?: boolean }) => {
+  const isLoading = loading === true
+
+  return (
+    <div>
+      {isLoading ? (
+        <Skeleton className="h-8 w-full" data-testid="loading-state" />
+      ) : (
+        <div data-testid="loaded-content">Conteúdo carregado</div>
+      )}
+    </div>
+  )
+}
 
 describe('Skeleton', () => {
   describe('Renderização básica', () => {
@@ -187,21 +202,18 @@ describe('Skeleton', () => {
       expect(screen.getByText('Carregando dados...')).toBeInTheDocument()
     })
 
-    it('deve funcionar com condicionais de loading', () => {
-      const isLoading = true
-
-      render(
-        <div>
-          {isLoading ? (
-            <Skeleton className="h-8 w-full" data-testid="loading-state" />
-          ) : (
-            <div data-testid="loaded-content">Conteúdo carregado</div>
-          )}
-        </div>,
-      )
+    it('deve funcionar com condicionais de loading quando carregando', () => {
+      render(<ConditionalSkeleton loading />)
 
       expect(screen.getByTestId('loading-state')).toBeInTheDocument()
       expect(screen.queryByTestId('loaded-content')).not.toBeInTheDocument()
+    })
+
+    it('deve funcionar com condicionais de loading quando não carregando', () => {
+      render(<ConditionalSkeleton loading={false} />)
+
+      expect(screen.queryByTestId('loading-state')).not.toBeInTheDocument()
+      expect(screen.getByTestId('loaded-content')).toBeInTheDocument()
     })
   })
 })

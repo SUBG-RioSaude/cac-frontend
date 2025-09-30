@@ -6,14 +6,28 @@
  */
 
 import {
+  subMonths,
+  format,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+  isAfter,
+  isBefore,
+} from 'date-fns'
+
+import { createServiceLogger } from '@/lib/logger'
+import {
   getContratos,
   getContratosVencendo,
   getContratosVencidos,
 } from '@/modules/Contratos/services/contratos-service'
+import type {
+  Contrato,
+  ContratoDetalhado,
+  ContratoStatus,
+} from '@/modules/Contratos/types/contrato'
 import { getUnidades } from '@/modules/Unidades/services/unidades-service'
-import { createServiceLogger } from '@/lib/logger'
 
-const logger = createServiceLogger('dashboard-service')
 import type {
   DashboardData,
   DashboardMetrics,
@@ -26,26 +40,14 @@ import type {
   DashboardRisks,
   RiskContract,
 } from '../types/dashboard'
-import type {
-  Contrato,
-  ContratoDetalhado,
-  ContratoStatus,
-} from '@/modules/Contratos/types/contrato'
 import {
   createDashboardMetric,
   classifyContractRisk,
   getRiskReasons,
   isExpiringSoon,
 } from '../utils/dashboard-utils'
-import {
-  subMonths,
-  format,
-  parseISO,
-  startOfMonth,
-  endOfMonth,
-  isAfter,
-  isBefore,
-} from 'date-fns'
+
+const logger = createServiceLogger('dashboard-service')
 
 // ========== FUNÇÕES UTILITÁRIAS ==========
 
@@ -90,7 +92,7 @@ const getPreviousPeriodData = async (
       dataInicialAte: format(previousEndDate, 'yyyy-MM-dd'),
       tamanhoPagina: 1000, // Buscar todos os contratos do período
     })
-    return response.dados || []
+    return response.dados
   } catch (error) {
     logger.error(
       {
@@ -139,14 +141,14 @@ export const fetchDashboardMetrics = async (
         getPreviousPeriodData(filters),
       ])
 
-    const currentContracts = currentResponse.dados || []
+    const currentContracts = currentResponse.dados
     const filteredCurrentContracts = filterContractsByPeriod(
       currentContracts,
       filters,
     )
 
     // Obter dados específicos dos novos endpoints
-    const contratosVencendo = contratosVencendoResponse.totalRegistros || 0
+    const contratosVencendo = contratosVencendoResponse.totalRegistros
 
     // Calcular métricas atuais
     const totalContratos = filteredCurrentContracts.length
@@ -172,7 +174,7 @@ export const fetchDashboardMetrics = async (
         unidadeSaudeId:
           filters.unidades.length === 1 ? filters.unidades[0] : undefined,
       })
-      contratosVencendoAnterior = previousVencendoResponse.totalRegistros || 0
+      contratosVencendoAnterior = previousVencendoResponse.totalRegistros
     } catch (error) {
       logger.error(
         {
@@ -265,14 +267,14 @@ export const fetchStatusDistribution = async (
       getContratosVencidos(filtrosBaseEspecifico), // Contratos vencidos
     ])
 
-    const contracts = allContractsResponse.dados || []
+    const contracts = allContractsResponse.dados
     const filteredContracts = filterContractsByPeriod(contracts, filters)
 
     // Inicializar contadores com dados dos endpoints específicos
     const statusCounts: Record<ContratoStatus, number> = {
       ativo: 0,
-      vencendo: contratosVencendoResponse.totalRegistros || 0,
-      vencido: contratosVencidosResponse.totalRegistros || 0,
+      vencendo: contratosVencendoResponse.totalRegistros,
+      vencido: contratosVencidosResponse.totalRegistros,
       suspenso: 0,
       encerrado: 0,
       rascunho: 0,
@@ -334,7 +336,15 @@ export const fetchStatusDistribution = async (
           },
         ]
   } catch (error) {
-    console.error('Erro ao buscar distribuição por status:', error)
+    logger.error(
+      {
+        operation: 'buscar_distribuicao_status',
+        filters,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar distribuição por status',
+    )
 
     // Retornar array vazio em caso de erro
     return []
@@ -368,7 +378,7 @@ export const fetchStatusTrend = async (
             filters.unidades.length === 1 ? filters.unidades[0] : undefined,
         })
 
-        const contracts = response.dados || []
+        const contracts = response.dados
 
         const monthNames = [
           'Jan',
@@ -393,7 +403,7 @@ export const fetchStatusTrend = async (
           encerrados: contracts.filter((c) => c.status === 'encerrado').length,
           suspensos: contracts.filter((c) => c.status === 'suspenso').length,
         })
-      } catch (monthError) {
+      } catch {
         // Em caso de erro para um mês específico, usar zeros
         months.push({
           mes: format(monthDate, 'MMM'),
@@ -407,7 +417,15 @@ export const fetchStatusTrend = async (
 
     return months
   } catch (error) {
-    console.error('Erro ao buscar tendência de status:', error)
+    logger.error(
+      {
+        operation: 'buscar_tendencia_status',
+        filters,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar tendência de status',
+    )
 
     // Retornar array vazio em caso de erro
     return []
@@ -430,17 +448,15 @@ export const fetchTypeDistribution = async (
         filters.unidades.length === 1 ? filters.unidades[0] : undefined,
     })
 
-    const contracts = response.dados || []
+    const contracts = response.dados
     const filteredContracts = filterContractsByPeriod(contracts, filters)
 
     // Agrupar por tipo
     const typeCounts: Record<string, { quantidade: number; valor: number }> = {}
 
     filteredContracts.forEach((contract) => {
-      const tipo = contract.tipoContrato || 'Outros'
-      if (!typeCounts[tipo]) {
-        typeCounts[tipo] = { quantidade: 0, valor: 0 }
-      }
+      const tipo = contract.tipoContrato ?? 'Outros'
+      typeCounts[tipo] = typeCounts[tipo] ?? { quantidade: 0, valor: 0 }
       typeCounts[tipo].quantidade++
       typeCounts[tipo].valor += contract.valorGlobal || 0
     })
@@ -456,7 +472,7 @@ export const fetchTypeDistribution = async (
     // Converter para formato do gráfico
     const result: TypeDistributionData[] = Object.entries(typeCounts).map(
       ([tipo, data]) => ({
-        tipo: tipoLabels[tipo] || tipo,
+        tipo: tipoLabels[tipo] ?? tipo,
         quantidade: data.quantidade,
         percentual: total > 0 ? (data.quantidade / total) * 100 : 0,
         valor: data.valor,
@@ -470,7 +486,15 @@ export const fetchTypeDistribution = async (
       ? result
       : [{ tipo: 'Nenhum contrato', quantidade: 0, percentual: 0, valor: 0 }]
   } catch (error) {
-    console.error('Erro ao buscar distribuição por tipo:', error)
+    logger.error(
+      {
+        operation: 'buscar_distribuicao_tipo',
+        filters,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar distribuição por tipo',
+    )
 
     // Retornar array vazio em caso de erro
     return []
@@ -494,7 +518,7 @@ export const fetchRecentContracts = async (
         filters.unidades.length === 1 ? filters.unidades[0] : undefined,
     })
 
-    const contracts = response.dados || []
+    const contracts = response.dados
 
     // Ordenar por vigência inicial (mais recente primeiro) como proxy para data de formalização
     const sortedContracts = contracts
@@ -508,20 +532,28 @@ export const fetchRecentContracts = async (
 
     return sortedContracts.map((contract) => ({
       id: contract.id,
-      numero: contract.numeroContrato || `CTRT-${contract.id}`,
+      numero: contract.numeroContrato ?? `CTRT-${contract.id}`,
       objeto:
-        contract.objeto || contract.descricaoObjeto || 'Objeto não informado',
+        contract.objeto ?? contract.descricaoObjeto ?? 'Objeto não informado',
       valor: contract.valorGlobal || 0,
       vigencia: {
-        inicio: contract.vigenciaInicial || '',
-        fim: contract.vigenciaFinal || '',
+        inicio: contract.vigenciaInicial,
+        fim: contract.vigenciaFinal,
       },
-      status: (contract.status as ContratoStatus) || 'ativo',
+      status: contract.status as ContratoStatus,
       fornecedor: contract.empresaId || 'Fornecedor não informado',
-      dataFormalizacao: contract.vigenciaInicial || '',
+      dataFormalizacao: contract.vigenciaInicial,
     }))
   } catch (error) {
-    console.error('Erro ao buscar contratos recentes:', error)
+    logger.error(
+      {
+        operation: 'buscar_contratos_recentes',
+        filters,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar contratos recentes',
+    )
 
     // Retornar array vazio em caso de erro
     return []
@@ -540,29 +572,34 @@ export const fetchRecentActivities = async (): Promise<DashboardActivity[]> => {
       pagina: 1,
     })
 
-    const contracts = response.dados || []
+    const contracts = response.dados
 
     // Simular atividades baseadas nos contratos
     const activities: DashboardActivity[] = contracts.map((contract, index) => {
-      const tipos: Array<
-        'cadastrado' | 'aprovado' | 'atualizado' | 'cancelado' | 'renovado'
-      > = ['cadastrado', 'aprovado', 'atualizado']
+      const tipos: ('cadastrado' | 'aprovado' | 'atualizado' | 'cancelado' | 'renovado')[] = ['cadastrado', 'aprovado', 'atualizado']
       const tipo = tipos[index % tipos.length]
 
       return {
         id: `activity-${contract.id}`,
         tipo,
         contratoId: contract.id,
-        contratoNumero: contract.numeroContrato || `CTRT-${contract.id}`,
+        contratoNumero: contract.numeroContrato ?? `CTRT-${contract.id}`,
         descricao: `Contrato ${tipo} no sistema`,
-        dataHora: contract.vigenciaInicial || new Date().toISOString(),
+        dataHora: contract.vigenciaInicial,
         usuario: 'Sistema',
       }
     })
 
     return activities
   } catch (error) {
-    console.error('Erro ao buscar atividades recentes:', error)
+    logger.error(
+      {
+        operation: 'buscar_atividades_recentes',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar atividades recentes',
+    )
 
     // Retornar array vazio em caso de erro
     return []
@@ -603,14 +640,14 @@ export const fetchRiskAnalysis = async (
       getContratosVencidos(filtrosBaseEspecifico), // Já vencidos
     ])
 
-    const contratos = allContractsResponse.dados || []
+    const contratos = allContractsResponse.dados
     const filteredContracts = filterContractsByPeriod(contratos, filters)
 
     // Dados dos contratos vencendo e vencidos dos endpoints específicos
-    const contratosVencendo = contratosVencendoResponse.dados || []
-    const contratosVencidos = contratosVencidosResponse.dados || []
+    const contratosVencendo = contratosVencendoResponse.dados
+    const contratosVencidos = contratosVencidosResponse.dados
 
-    const riskContracts: { [key: string]: RiskContract[] } = {
+    const riskContracts: Record<string, RiskContract[]> = {
       alto: [],
       medio: [],
       baixo: [],
@@ -620,9 +657,9 @@ export const fetchRiskAnalysis = async (
     contratosVencidos.forEach((contrato) => {
       riskContracts.alto.push({
         id: contrato.id,
-        numero: contrato.numeroContrato || `CTRT-${contrato.id}`,
+        numero: contrato.numeroContrato ?? `CTRT-${contrato.id}`,
         objeto:
-          contrato.objeto || contrato.descricaoObjeto || 'Objeto não informado',
+          contrato.objeto ?? contrato.descricaoObjeto ?? 'Objeto não informado',
         risco: 'alto',
         motivos: ['Contrato vencido', 'Requer renovação urgente'],
         diasVencimento: undefined, // Já vencido
@@ -643,9 +680,9 @@ export const fetchRiskAnalysis = async (
 
       riskContracts.medio.push({
         id: contrato.id,
-        numero: contrato.numeroContrato || `CTRT-${contrato.id}`,
+        numero: contrato.numeroContrato ?? `CTRT-${contrato.id}`,
         objeto:
-          contrato.objeto || contrato.descricaoObjeto || 'Objeto não informado',
+          contrato.objeto ?? contrato.descricaoObjeto ?? 'Objeto não informado',
         risco: 'medio',
         motivos: ['Vencimento próximo', 'Requer atenção para renovação'],
         diasVencimento:
@@ -664,9 +701,9 @@ export const fetchRiskAnalysis = async (
         // Usar função existente para classificar risco de contratos não críticos
         const contratoDetalhado: Partial<ContratoDetalhado> = {
           id: contrato.id,
-          numeroContrato: contrato.numeroContrato || undefined,
-          objeto: contrato.objeto || contrato.descricaoObjeto || undefined,
-          status: contrato.status || undefined,
+          numeroContrato: contrato.numeroContrato ?? undefined,
+          objeto: contrato.objeto ?? contrato.descricaoObjeto ?? undefined,
+          status: contrato.status ?? undefined,
           dataInicio: contrato.vigenciaInicial,
           dataTermino: contrato.vigenciaFinal,
           valorTotal: contrato.valorGlobal,
@@ -682,10 +719,10 @@ export const fetchRiskAnalysis = async (
         if (riskLevel === 'baixo') {
           riskContracts.baixo.push({
             id: contrato.id,
-            numero: contrato.numeroContrato || `CTRT-${contrato.id}`,
+            numero: contrato.numeroContrato ?? `CTRT-${contrato.id}`,
             objeto:
-              contrato.objeto ||
-              contrato.descricaoObjeto ||
+              contrato.objeto ??
+              contrato.descricaoObjeto ??
               'Objeto não informado',
             risco: 'baixo',
             motivos:
@@ -697,10 +734,10 @@ export const fetchRiskAnalysis = async (
           // Se foi classificado como médio risco, adicionar à lista de médio risco
           riskContracts.medio.push({
             id: contrato.id,
-            numero: contrato.numeroContrato || `CTRT-${contrato.id}`,
+            numero: contrato.numeroContrato ?? `CTRT-${contrato.id}`,
             objeto:
-              contrato.objeto ||
-              contrato.descricaoObjeto ||
+              contrato.objeto ??
+              contrato.descricaoObjeto ??
               'Objeto não informado',
             risco: 'medio',
             motivos: reasons,
@@ -738,7 +775,15 @@ export const fetchRiskAnalysis = async (
       total: totalContratos,
     }
   } catch (error) {
-    console.error('Erro ao buscar análise de riscos:', error)
+    logger.error(
+      {
+        operation: 'buscar_analise_riscos',
+        filters,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar análise de riscos',
+    )
 
     // Retornar estrutura vazia em caso de erro
     return {
@@ -824,9 +869,16 @@ export const fetchDashboardData = async (
 export const fetchUnidadesForFilters = async () => {
   try {
     const response = await getUnidades({ tamanhoPagina: 100 })
-    return response.dados || []
+    return response.dados
   } catch (error) {
-    console.error('Erro ao buscar unidades:', error)
+    logger.error(
+      {
+        operation: 'buscar_unidades_filtros',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      'Erro ao buscar unidades para filtros',
+    )
     return []
   }
 }

@@ -1,8 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom'
+import userEvent from '@testing-library/user-event'
 import React from 'react'
+import { describe, it, expect, vi } from 'vitest'
+
 import {
   Select,
   SelectContent,

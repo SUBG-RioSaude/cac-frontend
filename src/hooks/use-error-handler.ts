@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom'
 import { useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export interface ErrorInfo {
   message?: string
@@ -25,7 +25,7 @@ export function useErrorHandler() {
         errorInfo.details = error.stack
       } else if (typeof error === 'object') {
         errorInfo = { ...error }
-        code = code || error.code
+        code = code ?? error.code
       }
 
       // Adicionar informações contextuais
@@ -64,7 +64,7 @@ export function useErrorHandler() {
       navigate(redirectPath, {
         state: {
           error:
-            errorInfo.message || errorInfo.details || 'Erro não especificado',
+            errorInfo.message ?? errorInfo.details ?? 'Erro não especificado',
           fullError: errorInfo,
         },
       })
@@ -77,7 +77,7 @@ export function useErrorHandler() {
       const errorInfo: ErrorInfo = {
         code: response.status,
         message:
-          customMessage ||
+          customMessage ??
           `Erro HTTP ${response.status}: ${response.statusText}`,
         url: response.url,
         timestamp: new Date(),
@@ -102,7 +102,7 @@ export function useErrorHandler() {
             data &&
             typeof data === 'object' &&
             ('message' in data || 'error' in data)
-              ? (data as { message?: string; error?: string }).message ||
+              ? (data as { message?: string; error?: string }).message ??
                 (data as { message?: string; error?: string }).error
               : `Erro ${status}: ${statusText}`,
           details: JSON.stringify(data, null, 2),
@@ -134,9 +134,9 @@ export function useErrorInfo() {
   const navigate = useNavigate()
 
   // Tentar recuperar erro do state da navegação
-  const state = history.state?.usr || {}
-  const error = state.error || null
-  const fullError = state.fullError || null
+  const state = history.state?.usr ?? {}
+  const error = state.error ?? null
+  const fullError = state.fullError ?? null
 
   return {
     error,

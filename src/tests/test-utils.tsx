@@ -1,7 +1,7 @@
-import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter } from 'react-router-dom'
 import { render } from '@testing-library/react'
+import React from 'react'
+import { BrowserRouter } from 'react-router-dom'
 
 // Criar um QueryClient para cada teste para evitar interferências
 const createTestQueryClient = () =>

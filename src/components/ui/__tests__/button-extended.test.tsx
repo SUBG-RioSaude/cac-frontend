@@ -1,5 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { Settings, Edit, Plus } from 'lucide-react'
+import { describe, it, expect, vi } from 'vitest'
+
 import {
   LoadingButton,
   ActionButton,
@@ -9,7 +11,7 @@ import {
   ListButton,
   FloatingActionButton,
 } from '@/components/ui/button-extended'
-import { Settings, Edit, Plus } from 'lucide-react'
+
 
 describe('LoadingButton', () => {
   it('renderiza botão normal quando não está carregando', () => {
@@ -20,7 +22,7 @@ describe('LoadingButton', () => {
 
   it('mostra spinner quando loading=true', () => {
     render(
-      <LoadingButton loading={true} loadingText="Carregando...">
+      <LoadingButton loading loadingText="Carregando...">
         Salvar
       </LoadingButton>,
     )
@@ -29,17 +31,17 @@ describe('LoadingButton', () => {
   })
 
   it('mantém texto original quando loading=true sem loadingText', () => {
-    render(<LoadingButton loading={true}>Salvar</LoadingButton>)
+    render(<LoadingButton loading>Salvar</LoadingButton>)
     expect(screen.getByText('Salvar')).toBeInTheDocument()
   })
 
   it('fica desabilitado quando loading=true', () => {
-    render(<LoadingButton loading={true}>Salvar</LoadingButton>)
+    render(<LoadingButton loading>Salvar</LoadingButton>)
     expect(screen.getByRole('button')).toBeDisabled()
   })
 
   it('respeita disabled prop independente de loading', () => {
-    render(<LoadingButton disabled={true}>Salvar</LoadingButton>)
+    render(<LoadingButton disabled>Salvar</LoadingButton>)
     expect(screen.getByRole('button')).toBeDisabled()
   })
 })
@@ -247,7 +249,7 @@ describe('ListButton', () => {
   })
 
   it('aplica estilo de selecionado quando selected=true', () => {
-    render(<ListButton title="João Silva" selected={true} onClick={vi.fn()} />)
+    render(<ListButton title="João Silva" selected onClick={vi.fn()} />)
     const button = screen.getByRole('button')
     expect(button).toHaveClass('bg-accent')
   })

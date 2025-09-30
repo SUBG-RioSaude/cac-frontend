@@ -1,8 +1,9 @@
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Trash2, MessageSquare, MessageSquareOff } from 'lucide-react'
 import { useState } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
 
@@ -18,16 +19,16 @@ interface UnidadeResponsavelItemProps {
   onUpdateObservacoes: (index: number, observacoes: string) => void
 }
 
-export function UnidadeResponsavelItem({
+export const UnidadeResponsavelItem = ({
   unidade,
   index,
   canRemove,
   onRemove,
   onUpdateObservacoes,
-}: UnidadeResponsavelItemProps) {
+}: UnidadeResponsavelItemProps) => {
   const [showObservacoes, setShowObservacoes] = useState(false)
   const [observacoesValue, setObservacoesValue] = useState(
-    unidade.observacoes || '',
+    unidade.observacoes ?? '',
   )
 
   const tipoLabel =
@@ -109,10 +110,11 @@ export function UnidadeResponsavelItem({
       {/* Observações (expandível) */}
       {showObservacoes && (
         <div className="border-t pt-2">
-          <label className="mb-2 block text-xs font-medium text-gray-700">
+          <label htmlFor={`observacoes-${index}`} className="mb-2 block text-xs font-medium text-gray-700">
             Observações
           </label>
           <Textarea
+            id={`observacoes-${index}`}
             placeholder="Observações sobre esta unidade responsável..."
             value={observacoesValue}
             onChange={(e) => setObservacoesValue(e.target.value)}

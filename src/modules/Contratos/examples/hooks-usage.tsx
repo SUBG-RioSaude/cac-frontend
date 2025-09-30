@@ -4,6 +4,10 @@
  */
 
 import React, { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/button-extended'
+
 import {
   useContratos,
   useCriarContrato,
@@ -12,11 +16,9 @@ import {
   useToast,
 } from '../hooks'
 import type { ContratoParametros } from '../services/contratos-service'
-import { Button } from '@/components/ui/button'
-import { LoadingButton } from '@/components/ui/button-extended'
 
 // Exemplo 1: Lista de contratos com filtros
-function ContratosListExample() {
+const ContratosListExample = () => {
   const [filtros, setFiltros] = useState<ContratoParametros>({
     pagina: 1,
     tamanhoPagina: 20,
@@ -38,7 +40,7 @@ function ContratosListExample() {
       <div className="mb-4 flex items-center justify-between">
         <h2>Contratos ({data?.totalRegistros})</h2>
         <LoadingButton
-          onClick={() => refetch()}
+          onClick={() => { void refetch() }}
           loading={isFetching}
           loadingText="Recarregando..."
           variant="info"
@@ -86,7 +88,7 @@ function ContratosListExample() {
 }
 
 // Exemplo 2: Formulário de criação de contrato
-function CreateContratoExample() {
+const CreateContratoExample = () => {
   const [formData, setFormData] = useState({
     numeroContrato: '',
     descricaoObjeto: '',
@@ -207,7 +209,7 @@ function CreateContratoExample() {
 }
 
 // Exemplo 3: Ações do contrato (atualizar, deletar, suspender)
-function ContratoActionsExample({ contratoId }: { contratoId: string }) {
+const ContratoActionsExample = ({ contratoId }: { contratoId: string }) => {
   const updateMutation = useUpdateContrato()
   const deleteMutation = useDeleteContrato()
   const { success } = useToast()
@@ -262,7 +264,7 @@ function ContratoActionsExample({ contratoId }: { contratoId: string }) {
 }
 
 // Exemplo 4: Como usar os hooks em diferentes cenários
-function DifferentScenariosExample() {
+const DifferentScenariosExample = () => {
   // Cenário 1: Lista sem cache (sempre fresh data)
   const freshContratos = useContratos(
     {},
@@ -311,7 +313,7 @@ function DifferentScenariosExample() {
 
       <section>
         <h3 className="font-bold">Contratos Filtrados</h3>
-        <p>Total encontrado: {filteredContratos.data?.totalRegistros || 0}</p>
+        <p>Total encontrado: {filteredContratos.data?.totalRegistros ?? 0}</p>
       </section>
     </div>
   )

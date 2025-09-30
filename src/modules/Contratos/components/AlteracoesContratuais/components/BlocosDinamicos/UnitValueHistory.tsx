@@ -6,18 +6,6 @@
  * de valores das unidades em alterações contratuais
  */
 
-import { useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import {
   History,
   Clock,
@@ -31,6 +19,19 @@ import {
   RotateCcw,
   AlertCircle,
 } from 'lucide-react'
+import { useState } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 import type { HistoricoAlteracaoValor } from '../../../../types/alteracoes-contratuais'
 
@@ -96,7 +97,7 @@ function formatCurrency(value: number): string {
 }
 
 function getDiferenceIcon(
-  valorAnterior: number = 0,
+  valorAnterior = 0,
   valorNovo: number,
 ): React.ReactNode {
   if (valorNovo > valorAnterior) {
@@ -107,14 +108,14 @@ function getDiferenceIcon(
   return <RefreshCcw className="h-3 w-3 text-blue-600" />
 }
 
-export function UnitValueHistory({
+export const UnitValueHistory = ({
   isOpen,
   onClose,
   unit,
   historico = [],
   onRestore,
   disabled = false,
-}: UnitValueHistoryProps) {
+}: UnitValueHistoryProps) => {
   const [restoringValue, setRestoringValue] = useState<number | null>(null)
 
   const handleRestore = async (valorAnterior: number) => {

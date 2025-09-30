@@ -5,25 +5,27 @@
  */
 
 import { FileText } from 'lucide-react'
-import { LoadingMetricCard } from './MetricCard'
+
 import { useDashboardMetrics } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
+
+import { LoadingMetricCard } from './MetricCard'
 
 interface TotalContractsCardProps {
   filters: DashboardFilters
   className?: string
 }
 
-export function TotalContractsCard({
+export const TotalContractsCard = ({
   filters,
   className,
-}: TotalContractsCardProps) {
+}: TotalContractsCardProps) => {
   const { metrics, isLoading, error } = useDashboardMetrics(filters)
 
   return (
     <LoadingMetricCard
       title="Total de Contratos"
-      metric={metrics?.totalContratos || null}
+      metric={metrics?.totalContratos ?? null}
       icon={FileText}
       isLoading={isLoading}
       error={error}

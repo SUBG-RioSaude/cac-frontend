@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Check, X, Loader2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface EditableTextFieldProps {
   value: string
@@ -14,7 +15,7 @@ interface EditableTextFieldProps {
   type?: 'text' | 'email' | 'tel'
 }
 
-export function EditableTextField({
+export const EditableTextField = ({
   value: initialValue,
   placeholder,
   onSave,
@@ -23,9 +24,9 @@ export function EditableTextField({
   maxLength,
   required = false,
   type = 'text',
-}: EditableTextFieldProps) {
+}: EditableTextFieldProps) => {
   const [value, setValue] = useState(initialValue)
-  const [error, setError] = useState('')
+  const [saveError, setSaveError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function EditableTextField({
 
   const handleSave = async () => {
     if (required && !value.trim()) {
-      setError('Este campo é obrigatório')
+      setSaveError('Este campo é obrigatório')
       return
     }
 
@@ -46,21 +47,21 @@ export function EditableTextField({
 
     try {
       await onSave(value)
-    } catch (error) {
-      setError('Erro ao salvar. Tente novamente.')
+    } catch {
+      setSaveError('Erro ao salvar. Tente novamente.')
     }
   }
 
   const handleCancel = () => {
     setValue(initialValue)
-    setError('')
+    setSaveError('')
     onCancel()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleSave()
+      void handleSave()
     } else if (e.key === 'Escape') {
       handleCancel()
     }
@@ -77,22 +78,24 @@ export function EditableTextField({
           value={value}
           onChange={(e) => {
             setValue(e.target.value)
-            setError('')
+            setSaveError('')
           }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={error ? 'border-red-500 focus:border-red-500' : ''}
+          className={saveError ? 'border-red-500 focus:border-red-500' : ''}
           disabled={isLoading}
         />
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        {saveError && <p className="mt-1 text-xs text-red-500">{saveError}</p>}
       </div>
 
       <div className="flex items-center gap-1">
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleSave}
+          onClick={() => {
+            void handleSave()
+          }}
           disabled={isLoading || !hasChanges}
           className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
         >

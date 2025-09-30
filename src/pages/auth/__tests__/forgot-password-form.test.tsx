@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
-import '@testing-library/jest-dom'
 import React from 'react'
+import '@testing-library/jest-dom'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock simples do componente para testar apenas a estrutura básica
 const MockForgotPasswordForm = () => (

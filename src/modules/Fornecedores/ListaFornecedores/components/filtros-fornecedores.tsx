@@ -1,8 +1,20 @@
+import { Filter, X, ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Sheet,
   SheetContent,
@@ -10,17 +22,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Filter, X, ChevronDown, ChevronRight } from 'lucide-react'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
 import type { FiltrosFornecedor } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
 interface FiltrosFornecedoresProps {
@@ -29,11 +30,11 @@ interface FiltrosFornecedoresProps {
   onLimparFiltros: () => void
 }
 
-export function FiltrosFornecedores({
+export const FiltrosFornecedores = ({
   filtros,
   onFiltrosChange,
   onLimparFiltros,
-}: FiltrosFornecedoresProps) {
+}: FiltrosFornecedoresProps) => {
   const [filtrosAbertos, setFiltrosAbertos] = useState(false)
 
   // Estados para controlar o colapso de cada seção de filtros
@@ -48,7 +49,7 @@ export function FiltrosFornecedores({
   ]
 
   const handleStatusChange = (status: string, checked: boolean) => {
-    const statusAtual = filtros.status || []
+    const statusAtual = filtros.status ?? []
     if (checked) {
       onFiltrosChange({ ...filtros, status: [...statusAtual, status] })
     } else {
@@ -103,7 +104,7 @@ export function FiltrosFornecedores({
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox
                   id={`status-${option.value}`}
-                  checked={filtros.status?.includes(option.value) || false}
+                  checked={filtros.status?.includes(option.value) ?? false}
                   onCheckedChange={(checked) =>
                     handleStatusChange(option.value, checked as boolean)
                   }
@@ -147,7 +148,7 @@ export function FiltrosFornecedores({
                 id="valor-minimo"
                 type="number"
                 placeholder="0"
-                value={filtros.valorMinimo || ''}
+                value={filtros.valorMinimo ?? ''}
                 onChange={(e) =>
                   handleValorChange('valorMinimo', e.target.value)
                 }
@@ -165,7 +166,7 @@ export function FiltrosFornecedores({
                 id="valor-maximo"
                 type="number"
                 placeholder="0"
-                value={filtros.valorMaximo || ''}
+                value={filtros.valorMaximo ?? ''}
                 onChange={(e) =>
                   handleValorChange('valorMaximo', e.target.value)
                 }
@@ -206,7 +207,7 @@ export function FiltrosFornecedores({
                 id="contratos-minimo"
                 type="number"
                 placeholder="0"
-                value={filtros.contratosAtivosMinimo || ''}
+                value={filtros.contratosAtivosMinimo ?? ''}
                 onChange={(e) =>
                   handleContratosChange('contratosAtivosMinimo', e.target.value)
                 }
@@ -224,7 +225,7 @@ export function FiltrosFornecedores({
                 id="contratos-maximo"
                 type="number"
                 placeholder="0"
-                value={filtros.contratosAtivosMaximo || ''}
+                value={filtros.contratosAtivosMaximo ?? ''}
                 onChange={(e) =>
                   handleContratosChange('contratosAtivosMaximo', e.target.value)
                 }

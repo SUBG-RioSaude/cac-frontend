@@ -1,19 +1,19 @@
 'use client'
 
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Loader2, Mail, Send, Check } from 'lucide-react'
 import type React from 'react'
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, Loader2, Mail, Send, Check } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/lib/auth/auth-store'
 
-export default function ForgotPasswordForm() {
+const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('')
   const [sucesso, setSucesso] = useState('')
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
@@ -25,18 +25,18 @@ export default function ForgotPasswordForm() {
   // Redireciona se já estiver autenticado
   useEffect(() => {
     if (estaAutenticado) {
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
       navigate(redirectPath, { replace: true })
     }
   }, [estaAutenticado, navigate])
 
-  const validarEmail = (email: string): boolean => {
+  const validarEmail = (emailValue: string): boolean => {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regexEmail.test(email)
+    return regexEmail.test(emailValue)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitAsync = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validarEmail(email)) {
@@ -48,9 +48,9 @@ export default function ForgotPasswordForm() {
 
     try {
       // Executa esqueci senha
-      const sucesso = await esqueciSenha(email)
+      const resultadoSucesso = await esqueciSenha(email)
 
-      if (sucesso) {
+      if (resultadoSucesso) {
         // Armazenar contexto de recuperação para diferenciá-lo do login 2FA
         sessionStorage.setItem('auth_context', 'password_recovery')
         sessionStorage.setItem('auth_email', email)
@@ -58,7 +58,13 @@ export default function ForgotPasswordForm() {
         // Redirecionar imediatamente para a tela de verificação
         navigate('/auth/verificar-codigo', { replace: true })
       }
-    } catch (error) {}
+    } catch {
+      // Erro já tratado pelo store
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    void handleSubmitAsync(e)
   }
 
   const containerVariants = {
@@ -310,3 +316,5 @@ export default function ForgotPasswordForm() {
     </div>
   )
 }
+
+export default ForgotPasswordForm

@@ -1,10 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import {
   Calendar,
   FileText,
@@ -23,9 +17,18 @@ import {
   Check,
   Info,
 } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+
+
+import type {
+  TipoAlteracao} from '../../../../types/alteracoes-contratuais';
 import {
-  TipoAlteracao,
   TIPOS_ALTERACAO_CONFIG,
   getBlocosObrigatorios,
   getBlocosOpcionais,
@@ -70,12 +73,12 @@ const CORES_MAP = {
   indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
 }
 
-export function TipoAlteracaoSelector({
+export const TipoAlteracaoSelector = ({
   tiposSelecionados = [],
   onChange,
   disabled = false,
   error,
-}: TipoAlteracaoSelectorProps) {
+}: TipoAlteracaoSelectorProps) => {
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false)
 
   // Tipos habilitados - apenas os 3 solicitados pelo usuário

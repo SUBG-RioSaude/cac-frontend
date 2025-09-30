@@ -1,18 +1,4 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMemo, useCallback, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { ContratoStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusContrato } from '@/types/status'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Eye,
   ChevronLeft,
@@ -24,16 +10,33 @@ import {
   Briefcase,
   Archive,
 } from 'lucide-react'
+import { useMemo, useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { CNPJDisplay } from '@/components/ui/formatters'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { cnpjUtils } from '@/lib/utils'
 import type {
   Contrato,
   PaginacaoParams,
 } from '@/modules/Contratos/types/contrato'
-import { useNavigate } from 'react-router-dom'
-import { Skeleton } from '@/components/ui/skeleton'
-import { VigenciaDisplay } from './VigenciaDisplay'
-import { CNPJDisplay } from '@/components/ui/formatters'
-import { cnpjUtils } from '@/lib/utils'
+import { parseStatusContrato } from '@/types/status'
+
 import { ModalUnidadesResponsaveis } from './ModalUnidadesResponsaveis'
+import { VigenciaDisplay } from './VigenciaDisplay'
+
 
 interface TabelaContratosProps {
   contratos: Contrato[]
@@ -48,7 +51,7 @@ interface TabelaContratosProps {
   hideContratadaColumn?: boolean
 }
 
-export function TabelaContratos({
+export const TabelaContratos = ({
   contratos,
   isLoading,
   paginacao,
@@ -58,7 +61,7 @@ export function TabelaContratos({
   onSelecionarTodos,
   totalContratos,
   hideContratadaColumn = false,
-}: TabelaContratosProps) {
+}: TabelaContratosProps) => {
   const navigate = useNavigate()
 
   // Estado para modal de unidades
@@ -99,6 +102,24 @@ export function TabelaContratos({
     if (!contrato.unidadesResponsaveis) return 0
     return contrato.unidadesResponsaveis.filter((u) => u.ativo).length
   }
+
+  const tableSkeletonRowIds = useMemo(
+    () =>
+      Array.from(
+        { length: paginacao.itensPorPagina },
+        (_, index) => `table-skeleton-${index}`,
+      ),
+    [paginacao.itensPorPagina],
+  )
+
+  const mobileSkeletonCardIds = useMemo(
+    () =>
+      Array.from(
+        { length: paginacao.itensPorPagina },
+        (_, index) => `mobile-skeleton-${index}`,
+      ),
+    [paginacao.itensPorPagina],
+  )
 
   const inicio = (paginacao.pagina - 1) * paginacao.itensPorPagina
   const fim = inicio + paginacao.itensPorPagina
@@ -181,14 +202,14 @@ export function TabelaContratos({
             {!hideContratadaColumn && (
               <>
                 <p className="text-lg font-semibold">
-                  {contrato.empresaRazaoSocial ||
-                    contrato.contratada?.razaoSocial ||
+                  {contrato.empresaRazaoSocial ??
+                    contrato.contratada?.razaoSocial ??
                     'Empresa não informada'}
                 </p>
                 <p className="text-muted-foreground text-sm">
                   CNPJ:{' '}
                   <CNPJDisplay
-                    value={contrato.empresaCnpj || contrato.contratada?.cnpj}
+                    value={contrato.empresaCnpj ?? contrato.contratada?.cnpj}
                     fallback="N/A"
                   />
                 </p>
@@ -196,9 +217,9 @@ export function TabelaContratos({
             )}
             <p
               className="text-muted-foreground truncate text-sm"
-              title={contrato.descricaoObjeto || ''}
+              title={contrato.descricaoObjeto ?? ''}
             >
-              {contrato.descricaoObjeto || 'Objeto não informado'}
+              {contrato.descricaoObjeto ?? 'Objeto não informado'}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -221,7 +242,7 @@ export function TabelaContratos({
             <InfoItem
               icon={Briefcase}
               label="Contratação"
-              value={contrato.contratacao || 'N/A'}
+              value={contrato.contratacao ?? 'N/A'}
             />
             <div className="flex items-center gap-2 text-sm">
               <Building className="text-muted-foreground h-4 w-4" />
@@ -250,7 +271,7 @@ export function TabelaContratos({
             <InfoItem
               icon={Archive}
               label="Vínculo PCA"
-              value={contrato.vinculacaoPCA || 'N/A'}
+              value={contrato.vinculacaoPCA ?? 'N/A'}
             />
           </div>
           <div className="flex items-center justify-end border-t pt-3">
@@ -333,9 +354,8 @@ export function TabelaContratos({
                 <TableBody>
                   <AnimatePresence>
                     {isLoading
-                      ? Array.from({ length: paginacao.itensPorPagina }).map(
-                          (_, index) => (
-                            <TableRow key={`skeleton-${index}`}>
+                      ? tableSkeletonRowIds.map((skeletonId) => (
+                          <TableRow key={skeletonId}>
                               <TableCell>
                                 <Skeleton className="h-4 w-4" />
                               </TableCell>
@@ -392,29 +412,29 @@ export function TabelaContratos({
                             </TableCell>
                             <TableCell>
                               <div className="text-primary font-medium">
-                                {contrato.numeroContrato || 'N/A'}
+                                {contrato.numeroContrato ?? 'N/A'}
                               </div>
                               <div className="text-muted-foreground text-xs">
                                 {obterProcessoPriorizado(contrato)}
                               </div>
                               <div
                                 className="text-muted-foreground max-w-48 truncate text-xs"
-                                title={contrato.descricaoObjeto || ''}
+                                title={contrato.descricaoObjeto ?? ''}
                               >
-                                {contrato.descricaoObjeto || 'N/A'}
+                                {contrato.descricaoObjeto ?? 'N/A'}
                               </div>
                             </TableCell>
                             {!hideContratadaColumn && (
                               <TableCell>
                                 <div className="font-medium">
-                                  {contrato.empresaRazaoSocial ||
-                                    contrato.contratada?.razaoSocial ||
+                                  {contrato.empresaRazaoSocial ??
+                                    contrato.contratada?.razaoSocial ??
                                     'N/A'}
                                 </div>
                                 <div className="text-muted-foreground text-xs">
                                   {(() => {
                                     const rawCnpj =
-                                      contrato.empresaCnpj ||
+                                      contrato.empresaCnpj ??
                                       contrato.contratada?.cnpj
                                     const cnpjTexto = rawCnpj
                                       ? cnpjUtils.formatar(rawCnpj)
@@ -426,7 +446,7 @@ export function TabelaContratos({
                             )}
                             <TableCell>
                               <div className="font-medium">
-                                {contrato.contratacao || 'N/A'}
+                                {contrato.contratacao ?? 'N/A'}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -527,9 +547,8 @@ export function TabelaContratos({
                 <TableBody>
                   <AnimatePresence>
                     {isLoading
-                      ? Array.from({ length: paginacao.itensPorPagina }).map(
-                          (_, index) => (
-                            <TableRow key={`skeleton-${index}`}>
+                      ? tableSkeletonRowIds.map((skeletonId) => (
+                          <TableRow key={skeletonId}>
                               <TableCell>
                                 <Skeleton className="h-4 w-4" />
                               </TableCell>
@@ -586,23 +605,23 @@ export function TabelaContratos({
                             </TableCell>
                             <TableCell>
                               <div className="font-medium">
-                                {contrato.numeroContrato || 'N/A'}
+                                {contrato.numeroContrato ?? 'N/A'}
                               </div>
                               <div className="text-muted-foreground max-w-32 truncate text-xs">
-                                {contrato.descricaoObjeto || 'N/A'}
+                                {contrato.descricaoObjeto ?? 'N/A'}
                               </div>
                             </TableCell>
                             {!hideContratadaColumn && (
                               <TableCell>
                                 <div className="max-w-36 truncate font-medium">
-                                  {contrato.empresaRazaoSocial ||
-                                    contrato.contratada?.razaoSocial ||
+                                  {contrato.empresaRazaoSocial ??
+                                    contrato.contratada?.razaoSocial ??
                                     'N/A'}
                                 </div>
                                 <div className="text-muted-foreground text-xs">
                                   {(() => {
                                     const rawCnpj =
-                                      contrato.empresaCnpj ||
+                                      contrato.empresaCnpj ??
                                       contrato.contratada?.cnpj
                                     const cnpjTexto = rawCnpj
                                       ? cnpjUtils.formatar(rawCnpj)
@@ -614,7 +633,7 @@ export function TabelaContratos({
                             )}
                             <TableCell>
                               <div className="font-medium">
-                                {contrato.contratacao || 'N/A'}
+                                {contrato.contratacao ?? 'N/A'}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -681,9 +700,8 @@ export function TabelaContratos({
           <div className="px-4 sm:px-6 lg:hidden">
             <AnimatePresence>
               {isLoading
-                ? Array.from({ length: paginacao.itensPorPagina }).map(
-                    (_, index) => (
-                      <Card key={`mobile-skeleton-${index}`} className="mb-4">
+                ? mobileSkeletonCardIds.map((skeletonId) => (
+                    <Card key={skeletonId} className="mb-4">
                         <CardContent className="p-4">
                           <div className="space-y-3">
                             <Skeleton className="h-4 w-3/4" />
@@ -760,8 +778,8 @@ export function TabelaContratos({
       <ModalUnidadesResponsaveis
         isOpen={modalUnidadesAberto}
         onClose={handleFecharModalUnidades}
-        unidades={contratoSelecionado?.unidadesResponsaveis || []}
-        numeroContrato={contratoSelecionado?.numeroContrato || 'N/A'}
+        unidades={contratoSelecionado?.unidadesResponsaveis ?? []}
+        numeroContrato={contratoSelecionado?.numeroContrato ?? 'N/A'}
       />
     </motion.div>
   )

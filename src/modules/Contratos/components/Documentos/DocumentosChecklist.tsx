@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+
 import type { ChecklistData } from '../../types/contrato'
 
 interface DocumentosChecklistProps {
@@ -18,10 +19,10 @@ const checklistLabels: Record<keyof ChecklistData, string> = {
   publicacaoExtrato: 'Publicação de Extrato Contratual',
 }
 
-export function DocumentosChecklist({
+export const DocumentosChecklist = ({
   checklistData,
   contratoId,
-}: DocumentosChecklistProps) {
+}: DocumentosChecklistProps) => {
   const handleCheckedChange = (
     documentoKey: keyof ChecklistData,
     checked: boolean,

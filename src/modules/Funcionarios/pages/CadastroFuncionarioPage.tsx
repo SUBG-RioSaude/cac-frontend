@@ -1,8 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CadastroFuncionarioForm } from '@/modules/Funcionarios/components/CadastroFuncionarioForm'
 import { UserPlus } from 'lucide-react'
 
-export default function CadastroFuncionarioPage() {
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CadastroFuncionarioForm } from '@/modules/Funcionarios/components/CadastroFuncionarioForm'
+
+const CadastroFuncionarioPage = () => {
   return (
     <div className="py-8">
       <div className="mb-6">
@@ -26,3 +27,5 @@ export default function CadastroFuncionarioPage() {
     </div>
   )
 }
+
+export default CadastroFuncionarioPage

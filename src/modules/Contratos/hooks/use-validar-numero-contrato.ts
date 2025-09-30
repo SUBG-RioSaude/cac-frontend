@@ -4,10 +4,11 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { useDebounce } from '@/hooks/use-debounce'
 import { useState, useEffect, useRef } from 'react'
-import { getContratoByNumero } from '@/modules/Contratos/services/contratos-service'
+
+import { useDebounce } from '@/hooks/use-debounce'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
+import { getContratoByNumero } from '@/modules/Contratos/services/contratos-service'
 
 interface NumeroValidationState {
   isChecking: boolean
@@ -31,7 +32,7 @@ export function useValidarNumeroContrato(
   const [isShowingMinLoading, setIsShowingMinLoading] = useState(false)
 
   // Debounce do número para evitar requests excessivos
-  const debouncedNumero = useDebounce(numeroContrato?.trim() || '', 600)
+  const debouncedNumero = useDebounce(numeroContrato.trim() || '', 600)
 
   // Detectar se está no período de debounce (waiting)
   const isWaiting =
@@ -109,7 +110,7 @@ export function useValidarNumeroContrato(
     if (!debouncedNumero) {
       return {
         isChecking: false,
-        isWaiting: isWaiting, // Mostrar waiting se estiver digitando
+        isWaiting, // Mostrar waiting se estiver digitando
         isUnique: null,
       }
     }
@@ -152,9 +153,9 @@ export function useValidarNumeroContrato(
         isUnique: false,
         conflictData: {
           id: contratoExistente.id,
-          numeroContrato: contratoExistente.numeroContrato || debouncedNumero,
-          empresaRazaoSocial: contratoExistente.empresaRazaoSocial || undefined,
-          empresaCnpj: contratoExistente.empresaCnpj || undefined,
+          numeroContrato: contratoExistente.numeroContrato ?? debouncedNumero,
+          empresaRazaoSocial: contratoExistente.empresaRazaoSocial ?? undefined,
+          empresaCnpj: contratoExistente.empresaCnpj ?? undefined,
         },
         lastChecked: debouncedNumero,
       }

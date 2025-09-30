@@ -167,12 +167,12 @@ export function mapearFuncionarioParaUsuario(
     id: funcionario.id,
     matricula: formatarMatricula(funcionario.matricula),
     nome: formatarNome(funcionario.nomeCompleto), // Usar nomeCompleto da API
-    email: funcionario.emailInstitucional || '', // Usar emailInstitucional da API
+    email: funcionario.emailInstitucional ?? '', // Usar emailInstitucional da API
     cargo: formatarCargo(funcionario.cargo),
     departamento: funcionario.lotacaoNome, // Usar lotacaoNome da API
-    telefone: funcionario.telefone || '',
+    telefone: funcionario.telefone ?? '',
     status: situacaoParaStatus(
-      funcionario.situacaoFuncional ||
+      funcionario.situacaoFuncional ??
         (funcionario.situacao as unknown as SituacaoFuncional),
       funcionario.ativo,
     ),
@@ -270,17 +270,17 @@ export function filtrarPorLotacao(
 export function agruparPorLotacao(
   funcionarios: FuncionarioApi[],
 ): Record<string, FuncionarioApi[]> {
-  return funcionarios.reduce(
-    (grupos, funcionario) => {
-      const lotacao = funcionario.lotacao || 'Sem lotacao'
-      if (!grupos[lotacao]) {
-        grupos[lotacao] = []
-      }
-      grupos[lotacao].push(funcionario)
-      return grupos
-    },
-    {} as Record<string, FuncionarioApi[]>,
-  )
+  const grupos = {} as Record<string, FuncionarioApi[]>
+
+  for (const funcionario of funcionarios) {
+    const lotacao = funcionario.lotacao ?? 'Sem lotacao'
+    if (!(lotacao in grupos)) {
+      grupos[lotacao] = []
+    }
+    grupos[lotacao].push(funcionario)
+  }
+
+  return grupos
 }
 
 /**
@@ -289,17 +289,17 @@ export function agruparPorLotacao(
 export function agruparPorSituacao(
   funcionarios: FuncionarioApi[],
 ): Record<SituacaoFuncional, FuncionarioApi[]> {
-  return funcionarios.reduce(
-    (grupos, funcionario) => {
-      const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
-      if (!grupos[situacao]) {
-        grupos[situacao] = []
-      }
-      grupos[situacao].push(funcionario)
-      return grupos
-    },
-    {} as Record<SituacaoFuncional, FuncionarioApi[]>,
-  )
+  const grupos = {} as Record<SituacaoFuncional, FuncionarioApi[]>
+
+  for (const funcionario of funcionarios) {
+    const situacao = funcionario.situacaoFuncional ?? SituacaoFuncional.ATIVO
+    if (!(situacao in grupos)) {
+      grupos[situacao] = []
+    }
+    grupos[situacao].push(funcionario)
+  }
+
+  return grupos
 }
 
 /**
@@ -309,8 +309,8 @@ export function ordenarPorNome(
   funcionarios: FuncionarioApi[],
 ): FuncionarioApi[] {
   return [...funcionarios].sort((a, b) => {
-    const nomeA = a.nome || ''
-    const nomeB = b.nome || ''
+    const nomeA = a.nome ?? ''
+    const nomeB = b.nome ?? ''
     return nomeA.localeCompare(nomeB, 'pt-BR', { ignorePunctuation: true })
   })
 }
@@ -336,7 +336,7 @@ export function contarPorSituacao(
 ): Record<SituacaoFuncional, number> {
   return funcionarios.reduce(
     (contador, funcionario) => {
-      const situacao = funcionario.situacaoFuncional || SituacaoFuncional.ATIVO
+      const situacao = funcionario.situacaoFuncional ?? SituacaoFuncional.ATIVO
       contador[situacao] = (contador[situacao] || 0) + 1
       return contador
     },

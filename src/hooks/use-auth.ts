@@ -1,7 +1,8 @@
-import { useAuthStore } from '@/lib/auth/auth-store'
-import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { hasAuthCookies } from '@/lib/auth/auth'
+import { useAuthStore } from '@/lib/auth/auth-store'
 
 export const useAuth = () => {
   const authStore = useAuthStore()
@@ -14,7 +15,7 @@ export const useAuth = () => {
     useEffect(() => {
       // Verifica se existem cookies de autenticação
       if (hasAuthCookies()) {
-        verificarAutenticacao()
+        void verificarAutenticacao()
       } else {
         // Se não há cookies, define como não autenticado
         // O store já gerencia isso automaticamente
@@ -33,7 +34,7 @@ export const useAuth = () => {
         // Rota que requer usuário não autenticado
         if (requireGuest && estaAutenticado) {
           const redirectPath =
-            sessionStorage.getItem('redirectAfterLogin') || '/'
+            sessionStorage.getItem('redirectAfterLogin') ?? '/'
           sessionStorage.removeItem('redirectAfterLogin')
           navigate(redirectPath, { replace: true })
         }
@@ -49,7 +50,7 @@ export const useAuth = () => {
 
     useEffect(() => {
       if (estaAutenticado) {
-        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
         sessionStorage.removeItem('redirectAfterLogin')
         navigate(redirectPath, { replace: true })
       }

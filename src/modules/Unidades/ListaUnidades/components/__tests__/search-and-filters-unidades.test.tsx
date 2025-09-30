@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { FiltrosUnidadesApi } from '../../types/unidade-api'
+import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
 
 // Mock para Radix UI pointer events
 Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {

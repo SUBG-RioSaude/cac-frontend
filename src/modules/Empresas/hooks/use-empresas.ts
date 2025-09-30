@@ -3,28 +3,20 @@
  * Integra o service existente com cache, error handling e loading states
  */
 
-import React from 'react'
 import {
   useQuery,
   useMutation,
   useQueryClient,
   useQueries,
 } from '@tanstack/react-query'
+import React from 'react'
 import { toast } from 'sonner'
-import { empresaKeys } from '../lib/query-keys'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
+
 import { useErrorHandler } from '@/hooks/use-error-handler'
-import type {
-  EmpresaRequest,
-  EmpresaResponse,
-  AtualizarEmpresaDto,
-  EmpresaParametros,
-  CriarContatoDto,
-  AtualizarContatoDto,
-  ContatoResponse,
-  ContatoOperationData,
-} from '../types/empresa'
+import { useToast } from '@/modules/Contratos/hooks/useToast'
 import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
+
+import { empresaKeys } from '../lib/query-keys'
 import {
   consultarEmpresaPorCNPJ,
   cadastrarEmpresa,
@@ -38,6 +30,16 @@ import {
   deleteContato,
   getFornecedoresResumo,
 } from '../services/empresa-service'
+import type {
+  EmpresaRequest,
+  EmpresaResponse,
+  AtualizarEmpresaDto,
+  EmpresaParametros,
+  CriarContatoDto,
+  AtualizarContatoDto,
+  ContatoResponse,
+  ContatoOperationData,
+} from '../types/empresa'
 
 // ========== HOOKS EXISTENTES (PRESERVADOS) ==========
 
@@ -79,8 +81,7 @@ export function useConsultarEmpresaPorCNPJ(
       }
 
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         if (status === 404) {
           return false
         }
@@ -97,8 +98,7 @@ export function useConsultarEmpresaPorCNPJ(
       }
 
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
@@ -148,15 +148,15 @@ export function useCadastrarEmpresa() {
       return await cadastrarEmpresa(data)
     },
 
-    onMutate: async () => {
+    onMutate: () => {
       const loadingToast = mutation.loading('Cadastrando empresa')
       return { loadingToast }
     },
 
     onSuccess: (data, variables, context) => {
       // Validação robusta do ID
-      if (!data?.id) {
-        if (context?.loadingToast) {
+      if (!data.id) {
+        if (context.loadingToast) {
           toast.error('Erro no cadastro da empresa', {
             id: context.loadingToast,
             description: 'ID da empresa não foi retornado pela API',
@@ -171,7 +171,7 @@ export function useCadastrarEmpresa() {
         return
       }
 
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         toast.success('Empresa cadastrada com sucesso', {
           id: context.loadingToast,
           description: `ID: ${data.id}`,
@@ -182,18 +182,18 @@ export function useCadastrarEmpresa() {
       }
 
       // Invalidar caches relevantes
-      queryClient.invalidateQueries({ queryKey: empresaKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: empresaKeys.all })
-      queryClient.invalidateQueries({ queryKey: empresaKeys.status() })
+      void queryClient.invalidateQueries({ queryKey: empresaKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: empresaKeys.all })
+      void queryClient.invalidateQueries({ queryKey: empresaKeys.status() })
 
       // Invalidar cache específico do CNPJ cadastrado
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: empresaKeys.byCnpj(variables.cnpj),
       })
     },
 
     onError: (error, _variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         const errorMessage =
           error instanceof Error ? error.message : String(error)
         toast.error('Erro ao cadastrar empresa', {
@@ -241,8 +241,7 @@ export function useEmpresas(
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         if (status >= 400 && status < 500) {
           return false
         }
@@ -252,8 +251,7 @@ export function useEmpresas(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
@@ -284,8 +282,7 @@ export function useEmpresa(id: string, options?: { enabled?: boolean }) {
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         if (status >= 400 && status < 500) {
           return false
         }
@@ -295,8 +292,7 @@ export function useEmpresa(id: string, options?: { enabled?: boolean }) {
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status === 404) {
           handleApiError(error)
@@ -333,16 +329,16 @@ export function useUpdateEmpresa() {
       return await updateEmpresa(data.id, data.dados)
     },
 
-    onMutate: async () => {
+    onMutate: () => {
       const loadingToast = mutation.loading('Atualizando empresa')
       return { loadingToast }
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
-        } catch (error) {
+        } catch {
           // Ignora erro se o toast já foi dismissado
         }
       }
@@ -351,15 +347,15 @@ export function useUpdateEmpresa() {
 
       // Invalidar caches específicos
       empresaKeys.invalidateOnUpdate(variables.id).forEach((queryKey) => {
-        queryClient.invalidateQueries({ queryKey })
+        void queryClient.invalidateQueries({ queryKey })
       })
     },
 
     onError: (error, _variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
-        } catch (error) {
+        } catch {
           // Ignora erro se o toast já foi dismissado
         }
       }
@@ -381,16 +377,16 @@ export function useDeleteEmpresa() {
       return await deleteEmpresa(id)
     },
 
-    onMutate: async () => {
+    onMutate: () => {
       const loadingToast = mutation.loading('Excluindo empresa')
       return { loadingToast }
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
-        } catch (error) {
+        } catch {
           // Ignora erro se o toast já foi dismissado
         }
       }
@@ -399,15 +395,15 @@ export function useDeleteEmpresa() {
 
       // Invalidar caches específicos
       empresaKeys.invalidateOnDelete(variables).forEach((queryKey) => {
-        queryClient.invalidateQueries({ queryKey })
+        void queryClient.invalidateQueries({ queryKey })
       })
     },
 
     onError: (error, _variables, context) => {
-      if (context?.loadingToast) {
+      if (context.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
-        } catch (error) {
+        } catch {
           // Ignora erro se o toast já foi dismissado
         }
       }
@@ -463,7 +459,7 @@ export function useCreateContato() {
       empresaKeys
         .invalidateOnContatoCreate(variables.empresaId)
         .forEach((queryKey) => {
-          queryClient.invalidateQueries({ queryKey })
+          void queryClient.invalidateQueries({ queryKey })
         })
     },
 
@@ -501,7 +497,7 @@ export function useUpdateContato() {
         empresaKeys
           .invalidateOnContatoUpdate(variables.empresaId, variables.contatoId)
           .forEach((queryKey) => {
-            queryClient.invalidateQueries({ queryKey })
+            void queryClient.invalidateQueries({ queryKey })
           })
       }
     },
@@ -533,7 +529,7 @@ export function useDeleteContato() {
       empresaKeys
         .invalidateOnContatoDelete(variables.empresaId, variables.contatoId)
         .forEach((queryKey) => {
-          queryClient.invalidateQueries({ queryKey })
+          void queryClient.invalidateQueries({ queryKey })
         })
     },
 
@@ -578,8 +574,7 @@ export function useFornecedoresResumo(
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         if (status >= 400 && status < 500) {
           return false
         }
@@ -589,8 +584,7 @@ export function useFornecedoresResumo(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
@@ -614,7 +608,7 @@ export function useEmpresasByIds(
   ids: string[],
   options?: { enabled?: boolean },
 ) {
-  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
+  const uniqueIds = Array.from(new Set(ids.filter(Boolean)))
   const queries = useQueries({
     queries: uniqueIds.map((id) => ({
       queryKey: empresaKeys.detail(id),
@@ -629,7 +623,7 @@ export function useEmpresasByIds(
   const map = uniqueIds.reduce<Record<string, EmpresaResponse>>(
     (acc, id, idx) => {
       const q = queries[idx]
-      if (q?.data) acc[id] = q.data
+      if (q.data) acc[id] = q.data
       return acc
     },
     {},
@@ -641,3 +635,4 @@ export function useEmpresasByIds(
 
   return { data: map, isLoading, isFetching, error }
 }
+

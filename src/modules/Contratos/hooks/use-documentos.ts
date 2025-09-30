@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { getDocumentos } from '@/modules/Contratos/services/documentos-service'
-import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
-import { useErrorHandler } from '@/hooks/use-error-handler'
 import { isAxiosError } from 'axios'
+
+import { useErrorHandler } from '@/hooks/use-error-handler'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
+import { getDocumentos } from '@/modules/Contratos/services/documentos-service'
+
 
 /**
  * Hook para buscar a lista de documentos de um contrato.

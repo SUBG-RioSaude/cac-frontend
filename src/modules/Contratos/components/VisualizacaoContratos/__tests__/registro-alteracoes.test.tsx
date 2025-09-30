@@ -1,8 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@/tests/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { RegistroAlteracoes } from '../registro-alteracoes'
+
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
+import { render, screen, fireEvent, waitFor } from '@/tests/test-utils'
+
+import { RegistroAlteracoes } from '../registro-alteracoes'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({

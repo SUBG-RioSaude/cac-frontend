@@ -1,8 +1,7 @@
-import { getFieldConfig } from '../../config/editable-fields-config'
-import { EditableTextField } from './EditableTextField'
-import { EditableCurrencyField } from './EditableCurrencyField'
-import { EditableDateField } from './EditableDateField'
-import { Textarea } from '@/components/ui/textarea'
+import { Check, X, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -10,9 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Check, X, Loader2 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Textarea } from '@/components/ui/textarea'
+
+import { getFieldConfig } from '../../config/editable-fields-config'
+
+import { EditableCurrencyField } from './EditableCurrencyField'
+import { EditableDateField } from './EditableDateField'
+import { EditableTextField } from './EditableTextField'
+
 
 type FieldValue = string | number | Date | null | undefined
 
@@ -24,92 +28,20 @@ interface EditableFieldWrapperProps {
   onCancel: () => void
 }
 
-export function EditableFieldWrapper({
+export const EditableFieldWrapper = ({
   fieldKey,
   value,
   isLoading = false,
   onSave,
   onCancel,
-}: EditableFieldWrapperProps) {
+}: EditableFieldWrapperProps) => {
   const config = getFieldConfig(fieldKey)
 
   if (!config) {
     return null
   }
 
-  // Para campos de texto simples
-  if (config.type === 'text') {
-    return (
-      <EditableTextField
-        value={String(value || '')}
-        onSave={onSave}
-        onCancel={onCancel}
-        isLoading={isLoading}
-        maxLength={config.validation?.maxLength}
-        required={config.validation?.required}
-      />
-    )
-  }
-
-  // Para campos de moeda
-  if (config.type === 'currency') {
-    return (
-      <EditableCurrencyField
-        value={Number(value || 0)}
-        onSave={onSave}
-        onCancel={onCancel}
-        isLoading={isLoading}
-        min={config.validation?.min}
-        max={config.validation?.max}
-      />
-    )
-  }
-
-  // Para campos de data
-  if (config.type === 'date') {
-    return (
-      <EditableDateField
-        value={String(value || '')}
-        onSave={onSave}
-        onCancel={onCancel}
-        isLoading={isLoading}
-      />
-    )
-  }
-
-  // Para campos de textarea
-  if (config.type === 'textarea') {
-    return (
-      <EditableTextareaField
-        value={String(value || '')}
-        fieldName={fieldKey}
-        onSave={onSave}
-        onCancel={onCancel}
-        isLoading={isLoading}
-        maxLength={config.validation?.maxLength}
-        required={config.validation?.required}
-      />
-    )
-  }
-
-  // Para campos de select
-  if (config.type === 'select' && config.options) {
-    return (
-      <EditableSelectField
-        value={String(value || '')}
-        options={config.options}
-        onSave={onSave}
-        onCancel={onCancel}
-        isLoading={isLoading}
-        required={config.validation?.required}
-      />
-    )
-  }
-
-  return null
-}
-
-// Componente para textarea editável
+  // Componente para textarea editável
 interface EditableTextareaFieldProps {
   value: string
   fieldName: string
@@ -120,77 +52,81 @@ interface EditableTextareaFieldProps {
   required?: boolean
 }
 
-function EditableTextareaField({
+const EditableTextareaField = ({
   value: initialValue,
   fieldName,
-  onSave,
-  onCancel,
-  isLoading = false,
+  onSave: handleSave,
+  onCancel: handleCancel,
+  isLoading: loadingState = false,
   maxLength,
   required = false,
-}: EditableTextareaFieldProps) {
-  const [value, setValue] = useState(initialValue)
-  const [error, setError] = useState('')
+}: EditableTextareaFieldProps) => {
+  const [currentValue, setCurrentValue] = useState(initialValue)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     // Focus no textarea quando monta
     const textarea = document.querySelector(
       `textarea[name="${fieldName}"]`,
-    ) as HTMLTextAreaElement
-    textarea?.focus()
+    )
+    if (textarea instanceof HTMLTextAreaElement) {
+      textarea.focus()
+    }
   }, [fieldName])
 
-  const handleSave = async () => {
-    if (required && !value.trim()) {
-      setError('Este campo é obrigatório')
+  const handleSaveField = async () => {
+    if (required && !currentValue.trim()) {
+      setSaveError('Este campo é obrigatório')
       return
     }
 
-    if (value === initialValue) {
-      onCancel()
+    if (currentValue === initialValue) {
+      handleCancel()
       return
     }
 
     try {
-      await onSave(value)
-    } catch (error) {
-      setError('Erro ao salvar. Tente novamente.')
+      await handleSave(currentValue)
+    } catch {
+      setSaveError('Erro ao salvar. Tente novamente.')
     }
   }
 
-  const handleCancel = () => {
-    setValue(initialValue)
-    setError('')
-    onCancel()
+  const handleCancelField = () => {
+    setCurrentValue(initialValue)
+    setSaveError('')
+    handleCancel()
   }
 
-  const hasChanges = value !== initialValue
+  const hasChanges = currentValue !== initialValue
 
   return (
     <div className="space-y-2">
       <Textarea
         name={fieldName}
-        value={value}
+        value={currentValue}
         onChange={(e) => {
-          setValue(e.target.value)
-          setError('')
+          setCurrentValue(e.target.value)
+          setSaveError('')
         }}
         maxLength={maxLength}
         rows={3}
-        disabled={isLoading}
-        className={error ? 'border-red-500 focus:border-red-500' : ''}
+        disabled={loadingState}
+        className={saveError ? 'border-red-500 focus:border-red-500' : ''}
       />
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {saveError && <p className="text-xs text-red-500">{saveError}</p>}
 
       <div className="flex items-center gap-2">
         <Button
           size="sm"
-          onClick={handleSave}
-          disabled={isLoading || !hasChanges}
+          onClick={() => {
+            void handleSaveField()
+          }}
+          disabled={loadingState || !hasChanges}
           className="text-green-600 hover:text-green-700"
         >
-          {isLoading ? (
+          {loadingState ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Check className="mr-2 h-4 w-4" />
@@ -201,8 +137,8 @@ function EditableTextareaField({
         <Button
           size="sm"
           variant="outline"
-          onClick={handleCancel}
-          disabled={isLoading}
+          onClick={handleCancelField}
+          disabled={loadingState}
         >
           <X className="mr-2 h-4 w-4" />
           Cancelar
@@ -215,55 +151,55 @@ function EditableTextareaField({
 // Componente para select editável
 interface EditableSelectFieldProps {
   value: string
-  options: Array<{ value: string; label: string }>
+  options: { value: string; label: string }[]
   onSave: (value: string) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
   required?: boolean
 }
 
-function EditableSelectField({
+const EditableSelectField = ({
   value: initialValue,
   options,
-  onSave,
-  onCancel,
-  isLoading = false,
+  onSave: handleSave,
+  onCancel: handleCancel,
+  isLoading: loadingState = false,
   required = false,
-}: EditableSelectFieldProps) {
-  const [value, setValue] = useState(initialValue)
-  const [error, setError] = useState('')
+}: EditableSelectFieldProps) => {
+  const [currentValue, setCurrentValue] = useState(initialValue)
+  const [saveError, setSaveError] = useState('')
 
-  const handleSave = async () => {
-    if (required && !value) {
-      setError('Este campo é obrigatório')
+  const handleSaveField = async () => {
+    if (required && !currentValue) {
+      setSaveError('Este campo é obrigatório')
       return
     }
 
-    if (value === initialValue) {
-      onCancel()
+    if (currentValue === initialValue) {
+      handleCancel()
       return
     }
 
     try {
-      await onSave(value)
-    } catch (error) {
-      setError('Erro ao salvar. Tente novamente.')
+      await handleSave(currentValue)
+    } catch {
+      setSaveError('Erro ao salvar. Tente novamente.')
     }
   }
 
-  const handleCancel = () => {
-    setValue(initialValue)
-    setError('')
-    onCancel()
+  const handleCancelField = () => {
+    setCurrentValue(initialValue)
+    setSaveError('')
+    handleCancel()
   }
 
-  const hasChanges = value !== initialValue
+  const hasChanges = currentValue !== initialValue
 
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1">
-        <Select value={value} onValueChange={setValue} disabled={isLoading}>
-          <SelectTrigger className={error ? 'border-red-500' : ''}>
+        <Select value={currentValue} onValueChange={setCurrentValue} disabled={isLoading}>
+          <SelectTrigger className={saveError ? 'border-red-500' : ''}>
             <SelectValue placeholder="Selecione..." />
           </SelectTrigger>
           <SelectContent>
@@ -274,18 +210,20 @@ function EditableSelectField({
             ))}
           </SelectContent>
         </Select>
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        {saveError && <p className="mt-1 text-xs text-red-500">{saveError}</p>}
       </div>
 
       <div className="flex items-center gap-1">
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleSave}
-          disabled={isLoading || !hasChanges}
+          onClick={() => {
+            void handleSaveField()
+          }}
+          disabled={loadingState || !hasChanges}
           className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
         >
-          {isLoading ? (
+          {loadingState ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Check className="h-4 w-4" />
@@ -295,8 +233,8 @@ function EditableSelectField({
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleCancel}
-          disabled={isLoading}
+          onClick={handleCancelField}
+          disabled={loadingState}
           className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
         >
           <X className="h-4 w-4" />
@@ -304,4 +242,64 @@ function EditableSelectField({
       </div>
     </div>
   )
+}
+
+  switch (config.type) {
+    case 'text':
+      return (
+        <EditableTextField
+          value={String(value ?? '')}
+          onSave={onSave}
+          onCancel={onCancel}
+          isLoading={isLoading}
+          maxLength={config.validation?.maxLength}
+          required={config.validation?.required}
+        />
+      )
+    case 'currency':
+      return (
+        <EditableCurrencyField
+          value={Number(value ?? 0)}
+          onSave={onSave}
+          onCancel={onCancel}
+          isLoading={isLoading}
+          min={config.validation?.min}
+          max={config.validation?.max}
+        />
+      )
+    case 'date':
+      return (
+        <EditableDateField
+          value={String(value ?? '')}
+          onSave={onSave}
+          onCancel={onCancel}
+          isLoading={isLoading}
+        />
+      )
+    case 'textarea':
+      return (
+        <EditableTextareaField
+          value={String(value ?? '')}
+          fieldName={fieldKey}
+          onSave={onSave}
+          onCancel={onCancel}
+          isLoading={isLoading}
+          maxLength={config.validation?.maxLength}
+          required={config.validation?.required}
+        />
+      )
+    case 'select':
+      return (
+        <EditableSelectField
+          value={String(value ?? '')}
+          options={config.options ?? []}
+          onSave={onSave}
+          onCancel={onCancel}
+          isLoading={isLoading}
+          required={config.validation?.required}
+        />
+      )
+    default:
+      return null
+  }
 }

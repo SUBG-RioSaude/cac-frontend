@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
+
+import type { DashboardFilters } from '../../types/dashboard'
 import {
   calculatePercentageChange,
   getTrend,
@@ -14,8 +18,6 @@ import {
   hasExpiredOrExpiringDocs,
   isExpiringSoon,
 } from '../dashboard-utils'
-import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
-import type { DashboardFilters } from '../../types/dashboard'
 
 // Mock da data para testes previs�veis
 const mockDate = new Date('2024-02-15T10:00:00Z')

@@ -1,16 +1,19 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Building, MapPin } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useUnidadeDetails } from '../hooks/use-unidade-details'
-import { VisaoGeralUnidade } from './visao-geral-unidade'
-import { EnderecoUnidade } from './endereco-unidade'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-export function VisualizacaoUnidade() {
+import { useUnidadeDetails } from '../hooks/use-unidade-details'
+
+import { EnderecoUnidade } from './endereco-unidade'
+import { VisaoGeralUnidade } from './visao-geral-unidade'
+
+export const VisualizacaoUnidade = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [activeTab, setActiveTab] = useState('overview')

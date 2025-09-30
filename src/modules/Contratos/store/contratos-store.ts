@@ -1,8 +1,10 @@
 import { create } from 'zustand'
+
 import type {
   AlteracaoContratualForm,
   AlteracaoContratualState,
 } from '@/modules/Contratos/types/alteracoes-contratuais'
+
 import type {
   ChatMessage,
   ChatParticipante,
@@ -61,7 +63,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   // Actions - Alterações Contratuais
   adicionarAlteracao: (contratoId, alteracao) => {
     const { alteracoesContratuais } = get()
-    const estadoContrato = alteracoesContratuais[contratoId] || {
+    const estadoContrato = alteracoesContratuais[contratoId] ?? {
       alteracoes: [],
       alteracaoAtual: null,
       etapaAtual: 0,
@@ -71,8 +73,8 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
 
     const novaAlteracao = {
       ...alteracao,
-      id: alteracao.id || Date.now().toString(),
-      criadoEm: alteracao.criadoEm || new Date().toISOString(),
+      id: alteracao.id ?? Date.now().toString(),
+      criadoEm: alteracao.criadoEm ?? new Date().toISOString(),
       atualizadoEm: new Date().toISOString(),
     }
 
@@ -90,6 +92,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   atualizarAlteracao: (contratoId, alteracaoAtualizada) => {
     const { alteracoesContratuais } = get()
     const estadoContrato = alteracoesContratuais[contratoId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!estadoContrato || !alteracaoAtualizada.id) return
 
     const alteracoesAtualizadas = estadoContrato.alteracoes.map((alteracao) =>
@@ -116,6 +119,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   removerAlteracao: (contratoId, alteracaoId) => {
     const { alteracoesContratuais } = get()
     const estadoContrato = alteracoesContratuais[contratoId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!estadoContrato) return
 
     const alteracoesFiltradas = estadoContrato.alteracoes.filter(
@@ -135,13 +139,14 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
 
   obterAlteracoes: (contratoId) => {
     const { alteracoesContratuais } = get()
-    return alteracoesContratuais[contratoId]?.alteracoes || []
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    return alteracoesContratuais[contratoId]?.alteracoes ?? []
   },
 
   // Actions - Chat
   adicionarMensagem: (contratoId, mensagem) => {
     const { chats } = get()
-    const chatAtual = chats[contratoId] || {
+    const chatAtual = chats[contratoId] ?? {
       mensagens: [],
       participantes: [],
       contratoId,
@@ -164,11 +169,11 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   marcarMensagemComoLida: (contratoId, mensagemId) => {
     const { chats } = get()
     const chatAtual = chats[contratoId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!chatAtual) return
 
-    const mensagensAtualizadas = chatAtual.mensagens.map(
-      (mensagem: ChatMessage) =>
-        mensagem.id === mensagemId ? { ...mensagem } : mensagem,
+    const mensagensAtualizadas = chatAtual.mensagens.map((mensagem) =>
+      mensagem.id === mensagemId ? { ...mensagem } : mensagem,
     )
 
     set({
@@ -185,7 +190,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
 
   adicionarParticipante: (contratoId, participante) => {
     const { chats } = get()
-    const chatAtual = chats[contratoId] || {
+    const chatAtual = chats[contratoId] ?? {
       mensagens: [],
       participantes: [],
       contratoId,
@@ -195,7 +200,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     }
 
     const participanteExiste = chatAtual.participantes.some(
-      (p: ChatParticipante) => p.id === participante.id,
+      (p) => p.id === participante.id,
     )
     if (participanteExiste) return
 
@@ -213,10 +218,11 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   atualizarStatusParticipante: (contratoId, participanteId, status) => {
     const { chats } = get()
     const chatAtual = chats[contratoId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!chatAtual) return
 
     const participantesAtualizados = chatAtual.participantes.map(
-      (participante: ChatParticipante) =>
+      (participante) =>
         participante.id === participanteId
           ? { ...participante, status, ultimoAcesso: new Date().toISOString() }
           : participante,
@@ -235,7 +241,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
 
   setUserTyping: (contratoId, userId, userName, isTyping) => {
     const { usersTyping } = get()
-    const typingAtual = usersTyping[contratoId] || []
+    const typingAtual = usersTyping[contratoId] ?? []
 
     let novoTyping: TypingStatus[]
     if (isTyping) {
@@ -270,7 +276,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
     // Auto-remover após 3 segundos
     if (isTyping) {
       setTimeout(() => {
-        const current = get().usersTyping[contratoId] || []
+        const current = get().usersTyping[contratoId] ?? []
         const filtered = current.filter(
           (t) => t.userId !== userId || Date.now() - t.timestamp < 3000,
         )
@@ -288,7 +294,7 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   obterChat: (contratoId) => {
     const { chats } = get()
     return (
-      chats[contratoId] || {
+      chats[contratoId] ?? {
         mensagens: [],
         participantes: [],
         contratoId,
@@ -302,9 +308,9 @@ export const useContratosStore = create<ContratosState>((set, get) => ({
   obterMensagensNaoLidas: (contratoId, userId) => {
     const { chats } = get()
     const chat = chats[contratoId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!chat) return 0
 
-    return chat.mensagens.filter((m: ChatMessage) => m.autorId !== userId)
-      .length
+    return chat.mensagens.filter((m) => m.autorId !== userId).length
   },
 }))

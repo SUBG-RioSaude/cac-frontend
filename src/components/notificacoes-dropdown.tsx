@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import {
   Bell,
   Check,
@@ -8,17 +9,17 @@ import {
   AlertTriangle,
   AlertCircle,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState, useRef, useEffect } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   useNotificacoesStore,
   type Notificacao,
 } from '@/lib/notificacoes-store'
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
-export function NotificacoesDropdown() {
+export const NotificacoesDropdown = () => {
   const [aberto, setAberto] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const {

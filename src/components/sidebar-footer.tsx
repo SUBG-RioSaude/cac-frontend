@@ -1,13 +1,13 @@
+import { NavUser } from '@/components/nav-user'
 import { Separator } from '@/components/ui/separator'
 import { useSidebar } from '@/components/ui/sidebar'
 import { obterVersaoApp, obterAnoAtual } from '@/lib/versao'
-import { NavUser } from '@/components/nav-user'
 
 /**
  * Componente de rodapé para a sidebar.
  * Exibe informações sobre o desenvolvedor, versão do aplicativo e menu de usuário.
  */
-export default function SidebarFooter() {
+const SidebarFooter = () => {
   const versaoApp = obterVersaoApp()
   const anoAtual = obterAnoAtual()
   const { state } = useSidebar()
@@ -43,3 +43,5 @@ export default function SidebarFooter() {
     </div>
   )
 }
+
+export default SidebarFooter

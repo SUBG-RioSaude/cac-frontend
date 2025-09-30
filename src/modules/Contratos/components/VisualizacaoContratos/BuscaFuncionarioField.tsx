@@ -5,13 +5,7 @@
  * Campo de busca com autocomplete para seleção de funcionários
  */
 
-import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
 import {
   Search,
   User,
@@ -21,9 +15,16 @@ import {
   XCircle,
   X,
 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import { useBuscarFuncionariosPorNome } from '@/modules/Funcionarios/hooks/use-funcionarios'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
-import { cn } from '@/lib/utils'
 
 // ========== INTERFACES ==========
 
@@ -41,7 +42,7 @@ interface BuscaFuncionarioFieldProps {
 
 // ========== COMPONENTE ==========
 
-export function BuscaFuncionarioField({
+export const BuscaFuncionarioField = ({
   label = 'Buscar funcionário',
   placeholder = 'Digite o nome do funcionário...',
   funcionarioSelecionado,
@@ -51,7 +52,7 @@ export function BuscaFuncionarioField({
   disabled = false,
   required = false,
   className,
-}: BuscaFuncionarioFieldProps) {
+}: BuscaFuncionarioFieldProps) => {
   const [termoBusca, setTermoBusca] = useState('')
   const [mostrarResultados, setMostrarResultados] = useState(false)
   const [focoNoInput, setFocoNoInput] = useState(false)

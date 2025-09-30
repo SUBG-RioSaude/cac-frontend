@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { SidebarProvider } from '@/components/ui/sidebar'
+
 import SidebarFooter from '../sidebar-footer'
 
 // Mock das dependências

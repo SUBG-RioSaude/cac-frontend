@@ -1,19 +1,4 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
-import { DateDisplay } from '@/components/ui/formatters'
 import {
   ExternalLink,
   Edit,
@@ -35,8 +20,24 @@ import {
   Receipt,
   File,
 } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useState } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import type {
   DocumentoContrato,
   StatusDocumento,
@@ -105,22 +106,23 @@ const tipoIcons = {
   File,
 }
 
-export function CardDocumento({
+export const CardDocumento = ({
   documento,
   onStatusChange,
   onLinkChange,
   onObservacoesChange,
   className,
-}: CardDocumentoProps) {
+}: CardDocumentoProps) => {
   const [isEditingLink, setIsEditingLink] = useState(false)
-  const [novoLink, setNovoLink] = useState(documento.linkExterno || '')
+  const [novoLink, setNovoLink] = useState(documento.linkExterno ?? '')
   const [novasObservacoes, setNovasObservacoes] = useState(
-    documento.observacoes || '',
+    documento.observacoes ?? '',
   )
 
   const statusInfo = getStatusInfo(documento.status)
+  const tipoIconeKey = documento.tipo.icone as keyof typeof tipoIcons
   const IconeTipo =
-    tipoIcons[documento.tipo.icone as keyof typeof tipoIcons] || File
+    tipoIconeKey in tipoIcons ? tipoIcons[tipoIconeKey] : File
 
   const handleToggleConferido = (checked: boolean) => {
     if (checked) {
@@ -294,7 +296,7 @@ export function CardDocumento({
           {/* Link externo */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Link do Documento</label>
+              <Label className="text-sm font-medium">Link do Documento</Label>
               <Button
                 variant="ghost"
                 size="sm"
@@ -356,9 +358,9 @@ export function CardDocumento({
           </div>
 
           {/* Observações */}
-          {(documento.observacoes || onObservacoesChange) && (
+          {(Boolean(documento.observacoes) || Boolean(onObservacoesChange)) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Observações</label>
+              <Label className="text-sm font-medium">Observações</Label>
               {onObservacoesChange ? (
                 <Dialog>
                   <DialogTrigger asChild>
@@ -368,7 +370,7 @@ export function CardDocumento({
                       className="h-auto w-full justify-start p-2 text-left"
                     >
                       <div className="text-muted-foreground truncate text-xs">
-                        {documento.observacoes ||
+                        {documento.observacoes ??
                           'Clique para adicionar observações...'}
                       </div>
                     </Button>

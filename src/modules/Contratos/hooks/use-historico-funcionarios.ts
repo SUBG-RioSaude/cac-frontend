@@ -6,6 +6,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+
 import {
   obterHistoricoFuncionarios,
   obterFuncionariosAtivosEm,
@@ -48,6 +49,13 @@ export function useHistoricoFuncionarios(
     enabled: !!contratoId && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     select: (data: unknown[]): HistoricoFuncionario[] => {
+      const safeString = (value: unknown): string | null => {
+        if (value === null || value === undefined) return null
+        if (typeof value === 'string') return value
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        return null // For objects, return null instead of '[object Object]'
+      }
+
       return data.map((item: unknown) => {
         const typedItem = item as Record<string, unknown>
         return {
@@ -56,15 +64,11 @@ export function useHistoricoFuncionarios(
           tipoGerencia: Number(typedItem.tipoGerencia),
           tipoGerenciaDescricao: String(typedItem.tipoGerenciaDescricao),
           dataInicio: String(typedItem.dataInicio),
-          dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
+          dataFim: safeString(typedItem.dataFim),
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao
-            ? String(typedItem.documentoDesignacao)
-            : null,
-          observacoes: typedItem.observacoes
-            ? String(typedItem.observacoes)
-            : null,
+          documentoDesignacao: safeString(typedItem.documentoDesignacao),
+          observacoes: safeString(typedItem.observacoes),
           periodoFormatado: String(typedItem.periodoFormatado),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           estaAtivo: Boolean(typedItem.estaAtivo),
@@ -90,8 +94,15 @@ export function useFuncionariosAtivosEm(
     queryFn: () => obterFuncionariosAtivosEm(contratoId, data!),
     enabled: !!contratoId && !!data && options?.enabled !== false,
     staleTime: 10 * 60 * 1000, // 10 minutos
-    select: (data: unknown[]): HistoricoFuncionario[] => {
-      return data.map((item: unknown) => {
+    select: (responseData: unknown[]): HistoricoFuncionario[] => {
+      const safeString = (value: unknown): string | null => {
+        if (value === null || value === undefined) return null
+        if (typeof value === 'string') return value
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        return null // For objects, return null instead of '[object Object]'
+      }
+
+      return responseData.map((item: unknown) => {
         const typedItem = item as Record<string, unknown>
         return {
           id: String(typedItem.id),
@@ -99,15 +110,11 @@ export function useFuncionariosAtivosEm(
           tipoGerencia: Number(typedItem.tipoGerencia),
           tipoGerenciaDescricao: String(typedItem.tipoGerenciaDescricao),
           dataInicio: String(typedItem.dataInicio),
-          dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
+          dataFim: safeString(typedItem.dataFim),
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao
-            ? String(typedItem.documentoDesignacao)
-            : null,
-          observacoes: typedItem.observacoes
-            ? String(typedItem.observacoes)
-            : null,
+          documentoDesignacao: safeString(typedItem.documentoDesignacao),
+          observacoes: safeString(typedItem.observacoes),
           periodoFormatado: String(typedItem.periodoFormatado),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           estaAtivo: Boolean(typedItem.estaAtivo),
@@ -134,6 +141,13 @@ export function usePeriodosFuncionario(
     enabled: !!contratoId && !!funcionarioId && options?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutos
     select: (data: unknown[]): HistoricoFuncionario[] => {
+      const safeString = (value: unknown): string | null => {
+        if (value === null || value === undefined) return null
+        if (typeof value === 'string') return value
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        return null // For objects, return null instead of '[object Object]'
+      }
+
       return data.map((item: unknown) => {
         const typedItem = item as Record<string, unknown>
         return {
@@ -142,15 +156,11 @@ export function usePeriodosFuncionario(
           tipoGerencia: Number(typedItem.tipoGerencia),
           tipoGerenciaDescricao: String(typedItem.tipoGerenciaDescricao),
           dataInicio: String(typedItem.dataInicio),
-          dataFim: typedItem.dataFim ? String(typedItem.dataFim) : null,
+          dataFim: safeString(typedItem.dataFim),
           motivoAlteracao: Number(typedItem.motivoAlteracao),
           motivoAlteracaoDescricao: String(typedItem.motivoAlteracaoDescricao),
-          documentoDesignacao: typedItem.documentoDesignacao
-            ? String(typedItem.documentoDesignacao)
-            : null,
-          observacoes: typedItem.observacoes
-            ? String(typedItem.observacoes)
-            : null,
+          documentoDesignacao: safeString(typedItem.documentoDesignacao),
+          observacoes: safeString(typedItem.observacoes),
           periodoFormatado: String(typedItem.periodoFormatado),
           diasNaFuncao: Number(typedItem.diasNaFuncao),
           estaAtivo: Boolean(typedItem.estaAtivo),

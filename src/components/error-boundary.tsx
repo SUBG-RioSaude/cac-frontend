@@ -1,6 +1,7 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react'
-import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import React, { Component, type ErrorInfo, type ReactNode } from 'react'
+
+import { Button } from '@/components/ui/button'
 import { createComponentLogger } from '@/lib/logger'
 
 interface ErrorBoundaryProps {
@@ -12,6 +13,33 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean
   error: Error | null
+}
+
+interface DefaultErrorFallbackProps {
+  error: Error | null
+  onRetry: () => void
+}
+
+const DefaultErrorFallback = ({ error, onRetry }: DefaultErrorFallbackProps) => {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 text-center">
+      <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+      <h2 className="mb-2 text-lg font-semibold text-gray-900">
+        Algo deu errado
+      </h2>
+      <p className="mb-4 max-w-md text-gray-600">
+        {error?.message ?? 'Ocorreu um erro inesperado. Tente novamente.'}
+      </p>
+      <Button
+        onClick={onRetry}
+        variant="outline"
+        className="flex items-center gap-2"
+      >
+        <RefreshCw className="h-4 w-4" />
+        Tentar novamente
+      </Button>
+    </div>
+  )
 }
 
 export class ErrorBoundary extends Component<
@@ -74,52 +102,27 @@ export class ErrorBoundary extends Component<
   }
 }
 
-interface DefaultErrorFallbackProps {
-  error: Error | null
-  onRetry: () => void
-}
-
-function DefaultErrorFallback({ error, onRetry }: DefaultErrorFallbackProps) {
-  return (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-      <h2 className="mb-2 text-lg font-semibold text-gray-900">
-        Algo deu errado
-      </h2>
-      <p className="mb-4 max-w-md text-gray-600">
-        {error?.message || 'Ocorreu um erro inesperado. Tente novamente.'}
-      </p>
-      <Button
-        onClick={onRetry}
-        variant="outline"
-        className="flex items-center gap-2"
-      >
-        <RefreshCw className="h-4 w-4" />
-        Tentar novamente
-      </Button>
-    </div>
-  )
-}
-
 // HOC para facilitar o uso
 export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
+  WrappedComponent: React.ComponentType<P>,
   errorFallback?: ReactNode,
 ) {
-  return function WrappedComponent(props: P) {
+  const ComponentWithErrorBoundary = (props: P) => {
     return (
       <ErrorBoundary fallback={errorFallback}>
-        <Component {...props} />
+        <WrappedComponent {...props} />
       </ErrorBoundary>
     )
   }
+
+  return ComponentWithErrorBoundary
 }
 
 // Componente específico para formulários
-export function FormErrorBoundary({ children }: { children: ReactNode }) {
+export const FormErrorBoundary = ({ children }: { children: ReactNode }) => {
   return (
     <ErrorBoundary
-      fallback={
+      fallback={(
         <div className="rounded-lg border border-red-200 bg-red-50 p-6">
           <div className="mb-2 flex items-center gap-2 text-red-800">
             <AlertCircle className="h-5 w-5" />
@@ -138,7 +141,7 @@ export function FormErrorBoundary({ children }: { children: ReactNode }) {
             Recarregar página
           </Button>
         </div>
-      }
+      )}
     >
       {children}
     </ErrorBoundary>

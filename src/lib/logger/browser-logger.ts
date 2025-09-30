@@ -1,15 +1,17 @@
 import pino, { type Level, type LogEvent } from 'pino'
+
+import {
+  loggerConfig,
+  performanceConfig,
+  contextDefaults,
+} from './config'
 import type {
   StructuredLogger,
   LogContext,
   LogMetrics,
   LogLevel,
 } from './types'
-import {
-  loggerConfig,
-  performanceConfig,
-  contextDefaults,
-} from './config'
+
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -21,7 +23,7 @@ const normalizeMessage = (value: unknown): string => {
   if (value === undefined) return ''
   try {
     return JSON.stringify(value)
-  } catch (error) {
+  } catch {
     return String(value)
   }
 }
@@ -29,7 +31,7 @@ const normalizeMessage = (value: unknown): string => {
 class BrowserLogger implements StructuredLogger {
   readonly raw: pino.Logger
   private context: LogContext = {}
-  private timers: Map<string, number> = new Map()
+  private timers = new Map<string, number>()
 
   constructor() {
     this.raw = pino({
@@ -96,7 +98,7 @@ class BrowserLogger implements StructuredLogger {
 
     return {
       timestamp: logEvent.ts,
-      level: level as LogLevel,
+      level,
       message,
       context: {
         ...contextDefaults,
@@ -154,7 +156,7 @@ class BrowserLogger implements StructuredLogger {
     ...args: unknown[]
   ) {
     let context: LogContext = {}
-    let message: string = ''
+    let message = ''
 
     if (typeof contextOrMessage === 'string') {
       message = contextOrMessage
@@ -164,10 +166,10 @@ class BrowserLogger implements StructuredLogger {
         stack: contextOrMessage.stack,
         name: contextOrMessage.name,
       }
-      message = msg || contextOrMessage.message
+      message = msg ?? contextOrMessage.message
     } else {
       context = contextOrMessage
-      message = msg || 'Log entry'
+      message = msg ?? 'Log entry'
     }
 
     const finalContext = { ...this.context, ...context }
@@ -248,7 +250,11 @@ class BrowserLogger implements StructuredLogger {
   // Performance tracking
   performance = {
     time: (label: string, context: LogContext = {}) => {
-      if (!performanceConfig.enabled) return () => {}
+      if (!performanceConfig.enabled) {
+        return () => {
+          // Performance tracking is disabled
+        }
+      }
 
       const startTime = performance.now()
       this.timers.set(label, startTime)

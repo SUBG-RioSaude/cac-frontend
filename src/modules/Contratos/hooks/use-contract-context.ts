@@ -4,16 +4,17 @@
  */
 
 import { useQuery, useQueries } from '@tanstack/react-query'
-import { getContratoDetalhado } from '@/modules/Contratos/services/contratos-service'
+
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
-import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
-import { useUnidade } from '@/modules/Unidades/hooks/use-unidades'
-import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
-import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
+import { getContratoDetalhado } from '@/modules/Contratos/services/contratos-service'
 import {
   getUnidadeDemandantePrincipal,
   getUnidadeGestoraPrincipal,
 } from '@/modules/Contratos/types/contrato'
+import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidade } from '@/modules/Unidades/hooks/use-unidades'
+import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
+import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 
 interface UseContractContextOptions {
   enabled?: boolean
@@ -52,7 +53,7 @@ export function useContractSuppliers(
     options,
   )
   const empresaId = contract?.empresaId
-  const empresaQuery = useEmpresa(empresaId || '', { enabled: !!empresaId })
+  const empresaQuery = useEmpresa(empresaId ?? '', { enabled: !!empresaId })
 
   const mappedMain = empresaQuery.data
     ? {
@@ -63,7 +64,7 @@ export function useContractSuppliers(
           ? ('Ativo' as const)
           : ('Inativo' as const),
         contratosAtivos: 0,
-        valorTotal: contract?.valorTotal || 0,
+        valorTotal: contract?.valorTotal ?? 0,
         cidade: empresaQuery.data.cidade || '',
         estado: empresaQuery.data.estado || '',
       }
@@ -73,7 +74,7 @@ export function useContractSuppliers(
     ...queryResult,
     isLoading: queryResult.isLoading || empresaQuery.isLoading,
     isFetching: queryResult.isFetching || empresaQuery.isFetching,
-    error: queryResult.error || empresaQuery.error,
+    error: queryResult.error ?? empresaQuery.error,
     suppliers: mappedMain ? [mappedMain] : [],
     mainSupplier: mappedMain,
   }
@@ -111,11 +112,11 @@ export function useContractUnits(
     unidadeGestoraId = contract?.unidadeGestoraId as string | undefined
   }
 
-  const unidadeDemandanteQuery = useUnidade(unidadeDemandanteId || '', {
+  const unidadeDemandanteQuery = useUnidade(unidadeDemandanteId ?? '', {
     enabled: !!unidadeDemandanteId && (options?.enabled ?? true),
   })
 
-  const unidadeGestoraQuery = useUnidade(unidadeGestoraId || '', {
+  const unidadeGestoraQuery = useUnidade(unidadeGestoraId ?? '', {
     enabled: !!unidadeGestoraId && (options?.enabled ?? true),
   })
 
@@ -123,7 +124,7 @@ export function useContractUnits(
   const unidadesVinculadasIds =
     contract?.unidadesVinculadas
       ?.map((uv: { unidadeSaudeId: string }) => uv.unidadeSaudeId)
-      .filter(Boolean) || []
+      .filter(Boolean) ?? []
 
   const unidadesVinculadasQueries = useQueries({
     queries: unidadesVinculadasIds.map((unidadeId: string) => ({
@@ -139,29 +140,29 @@ export function useContractUnits(
   // Resolver nomes das unidades com fallbacks robustos
   const demandingUnitName =
     // 1. Primeiro: dados da query da unidade específica
-    unidadeDemandanteQuery.data?.nome ||
+    unidadeDemandanteQuery.data?.nome ??
     // 2. Novo: nome do array unidadesResponsaveis
     (contract?.unidadesResponsaveis
       ? getUnidadeDemandantePrincipal(contract)?.unidadeSaudeNome
-      : null) ||
+      : null) ??
     // 3. Fallback: nome já presente no contrato
-    contract?.unidades?.demandante ||
+    contract?.unidades.demandante ??
     // 4. Fallback: campo legado direto
-    contract?.unidadeDemandante ||
+    contract?.unidadeDemandante ??
     // 5. Se não há nada, retorna null (será mostrado como "Não informado")
     null
 
   const managingUnitName =
     // 1. Primeiro: dados da query da unidade específica
-    unidadeGestoraQuery.data?.nome ||
+    unidadeGestoraQuery.data?.nome ??
     // 2. Novo: nome do array unidadesResponsaveis
     (contract?.unidadesResponsaveis
       ? getUnidadeGestoraPrincipal(contract)?.unidadeSaudeNome
-      : null) ||
+      : null) ??
     // 3. Fallback: nome já presente no contrato
-    contract?.unidades?.gestora ||
+    contract?.unidades.gestora ??
     // 4. Fallback: campo legado direto
-    contract?.unidadeGestora ||
+    contract?.unidadeGestora ??
     // 5. Se não há nada, retorna null (será mostrado como "Não informado")
     null
 
@@ -172,14 +173,14 @@ export function useContractUnits(
         const unidadeVinculada = contract?.unidadesVinculadas?.[index]
         return {
           id: unidadesVinculadasIds[index],
-          codigo: query.data.sigla || query.data.cnes || '',
+          codigo: query.data.sigla ?? query.data.cnes ?? '',
           nome: query.data.nome || `Unidade ${index + 1}`,
           tipo: query.data.tipoUnidadeId
             ? `Tipo ${query.data.tipoUnidadeId}`
             : 'Unidade',
-          endereco: query.data.endereco || '',
-          ativo: query.data.ativo ?? true,
-          valorAtual: unidadeVinculada?.valorAtribuido || 0,
+          endereco: query.data.endereco ?? '',
+          ativo: query.data.ativo !== false,
+          valorAtual: unidadeVinculada?.valorAtribuido ?? 0,
         }
       }
       return null
@@ -204,9 +205,9 @@ export function useContractUnits(
 
   // Agregar erros apenas se as queries foram habilitadas
   const unitsError =
-    (!!unidadeDemandanteId && unidadeDemandanteQuery.error) ||
-    (!!unidadeGestoraId && unidadeGestoraQuery.error) ||
-    unidadesVinculadasQueries.find((q) => q.error)?.error ||
+    (!!unidadeDemandanteId && unidadeDemandanteQuery.error) ??
+    (!!unidadeGestoraId && unidadeGestoraQuery.error) ??
+    unidadesVinculadasQueries.find((q) => q.error)?.error ??
     null
 
   return {
@@ -221,7 +222,7 @@ export function useContractUnits(
       isFetchingDemandante ||
       isFetchingGestora ||
       isFetchingLinkedUnits,
-    error: queryResult.error || unitsError,
+    error: queryResult.error ?? unitsError,
     units: {
       demandante: demandingUnitName,
       gestora: managingUnitName,
@@ -256,9 +257,9 @@ export function useContractFinancials(
 
   return {
     ...queryResult,
-    totalValue: contract?.valorTotal || 0,
-    currentBalance: contract?.indicadores?.saldoAtual || 0,
-    executedPercentage: contract?.indicadores?.percentualExecutado || 0,
+    totalValue: contract?.valorTotal ?? 0,
+    currentBalance: contract?.indicadores.saldoAtual ?? 0,
+    executedPercentage: contract?.indicadores.percentualExecutado ?? 0,
   }
 }
 
@@ -276,10 +277,10 @@ export function useContractTerms(
 
   return {
     ...queryResult,
-    startDate: contract?.dataInicio || null,
-    endDate: contract?.dataTermino || null,
+    startDate: contract?.dataInicio ?? null,
+    endDate: contract?.dataTermino ?? null,
     isActive:
-      contract?.dataInicio && contract?.dataTermino
+      contract?.dataInicio && contract.dataTermino
         ? new Date() >= new Date(contract.dataInicio) &&
           new Date() <= new Date(contract.dataTermino)
         : false,

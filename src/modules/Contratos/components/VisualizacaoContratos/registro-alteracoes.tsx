@@ -1,21 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from '@/components/ui/collapsible'
 import {
   Clock,
   FileText,
@@ -41,17 +24,35 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
-import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
-import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
-import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
-import { cn, currencyUtils } from '@/lib/utils'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible'
 import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
-import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
-import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn, currencyUtils } from '@/lib/utils'
 import {
   useHistoricoFuncionarios,
   type HistoricoFuncionario,
 } from '@/modules/Contratos/hooks/use-historico-funcionarios'
+import type { AlteracaoContratualResponse } from '@/modules/Contratos/types/alteracoes-contratuais'
+import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
+import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
+import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 
 interface RegistroAlteracoesProps {
   contratoId: string // Necessário para buscar histórico de funcionários
@@ -217,12 +218,12 @@ interface SmartBadgeProps {
   showTooltip?: boolean
 }
 
-function SmartBadge({
+const SmartBadge = ({
   result,
   variant = 'default',
   className = '',
   showTooltip = true,
-}: SmartBadgeProps) {
+}: SmartBadgeProps) => {
   const getVariantForStatus = () => {
     if (result.status === 'error') return 'destructive'
     if (result.status === 'loading') return 'secondary'
@@ -269,7 +270,7 @@ interface CollapsibleBlockProps {
   defaultOpen?: boolean
 }
 
-function CollapsibleBlock({
+const CollapsibleBlock = ({
   icon: Icon,
   title,
   summary,
@@ -278,7 +279,7 @@ function CollapsibleBlock({
   titleColor,
   children,
   defaultOpen = false,
-}: CollapsibleBlockProps) {
+}: CollapsibleBlockProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
@@ -326,12 +327,14 @@ function renderDetalhesAlteracao(
 ) {
   // Se for uma entrada de funcionário, renderizar detalhes específicos
   if (entrada.origem === 'funcionario') {
-    const dadosFuncionario = entrada.dados as DadosFuncionario
+    const dadosFuncionario = entrada.dados as DadosFuncionario | null
     if (!dadosFuncionario) return null
 
-    const funcionario = dadosFuncionario.funcionario
-    const acao = dadosFuncionario.acao
-    const funcionarioAnterior = dadosFuncionario.funcionarioAnterior
+    const {
+      funcionario,
+      acao,
+      funcionarioAnterior,
+    } = dadosFuncionario
 
     return (
       <div className="bg-muted/30 mb-3 rounded-lg p-3 text-sm">
@@ -435,7 +438,7 @@ function renderDetalhesAlteracao(
 
   // Para entradas da nova API, usar os dados estruturados
   const alteracao = entrada.dados as unknown as AlteracaoContrato
-  if (!alteracao) return null
+  if (alteracao === null || alteracao === undefined) return null
 
   const sections = []
 
@@ -521,7 +524,7 @@ function renderDetalhesAlteracao(
     const valorTexto = alteracao.valor.valorAjuste
       ? currencyUtils.formatar(alteracao.valor.valorAjuste)
       : ''
-    const summary = `${operacaoTexto}${valorTexto ? ' ' + valorTexto : ''}`
+    const summary = `${operacaoTexto}${valorTexto ? ` ${  valorTexto}` : ''}`
 
     sections.push(
       <CollapsibleBlock
@@ -566,9 +569,9 @@ function renderDetalhesAlteracao(
   // Detalhes de Fornecedores
   if (alteracao.fornecedores) {
     const vinculados =
-      alteracao.fornecedores.fornecedoresVinculados?.length || 0
+      alteracao.fornecedores.fornecedoresVinculados?.length ?? 0
     const desvinculados =
-      alteracao.fornecedores.fornecedoresDesvinculados?.length || 0
+      alteracao.fornecedores.fornecedoresDesvinculados?.length ?? 0
     const summary =
       `${vinculados > 0 ? `+${vinculados} vinculados` : ''}${vinculados > 0 && desvinculados > 0 ? ', ' : ''}${desvinculados > 0 ? `-${desvinculados} desvinculados` : ''}`.trim() ||
       'Alterações nos fornecedores'
@@ -584,14 +587,14 @@ function renderDetalhesAlteracao(
         titleColor="text-orange-800"
       >
         <div className="mt-2 space-y-2 text-sm">
-          {(alteracao.fornecedores.fornecedoresVinculados?.length || 0) > 0 && (
+          {(alteracao.fornecedores.fornecedoresVinculados?.length ?? 0) > 0 && (
             <div>
               <span className="font-medium">Vinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.fornecedores.fornecedoresVinculados?.map(
                   (id: string, idx: number) => (
                     <SmartBadge
-                      key={`vinc-${idx}`}
+                      key={id ?? `forn-vinc-${idx}`}
                       result={getEmpresaNome(id)}
                       variant="default"
                     />
@@ -600,7 +603,7 @@ function renderDetalhesAlteracao(
               </div>
             </div>
           )}
-          {(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) >
+          {(alteracao.fornecedores.fornecedoresDesvinculados?.length ?? 0) >
             0 && (
             <div>
               <span className="font-medium">Desvinculados:</span>
@@ -608,7 +611,7 @@ function renderDetalhesAlteracao(
                 {alteracao.fornecedores.fornecedoresDesvinculados?.map(
                   (id: string, idx: number) => (
                     <SmartBadge
-                      key={`desv-${idx}`}
+                      key={id ?? `forn-desv-${idx}`}
                       result={getEmpresaNome(id)}
                       variant="destructive"
                     />
@@ -630,8 +633,8 @@ function renderDetalhesAlteracao(
               </div>
             </div>
           )}
-          {!(alteracao.fornecedores.fornecedoresVinculados?.length || 0) &&
-            !(alteracao.fornecedores.fornecedoresDesvinculados?.length || 0) &&
+          {!(alteracao.fornecedores.fornecedoresVinculados?.length ?? 0) &&
+            !(alteracao.fornecedores.fornecedoresDesvinculados?.length ?? 0) &&
             !alteracao.fornecedores.novoFornecedorPrincipal && (
               <div className="text-xs text-gray-600">
                 Sem alterações detalhadas.
@@ -650,8 +653,8 @@ function renderDetalhesAlteracao(
 
   // Detalhes de Unidades
   if (alteracao.unidades) {
-    const vinculadas = alteracao.unidades.unidadesVinculadas?.length || 0
-    const desvinculadas = alteracao.unidades.unidadesDesvinculadas?.length || 0
+    const vinculadas = alteracao.unidades.unidadesVinculadas?.length ?? 0
+    const desvinculadas = alteracao.unidades.unidadesDesvinculadas?.length ?? 0
     const summary =
       `${vinculadas > 0 ? `+${vinculadas} vinculadas` : ''}${vinculadas > 0 && desvinculadas > 0 ? ', ' : ''}${desvinculadas > 0 ? `-${desvinculadas} desvinculadas` : ''}`.trim() ||
       'Alterações nas unidades'
@@ -667,7 +670,7 @@ function renderDetalhesAlteracao(
         titleColor="text-teal-800"
       >
         <div className="mt-2 space-y-2 text-sm">
-          {(alteracao.unidades.unidadesVinculadas?.length || 0) > 0 && (
+          {(alteracao.unidades.unidadesVinculadas?.length ?? 0) > 0 && (
             <div>
               <span className="font-medium">Vinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
@@ -686,7 +689,7 @@ function renderDetalhesAlteracao(
                     const unidadeId =
                       typeof unidade === 'string'
                         ? unidade
-                        : unidade?.unidadeSaudeId || unidade?.id
+                        : (unidade.unidadeSaudeId || unidade.id)
 
                     // Se não conseguir extrair o ID, pular esta unidade
                     if (!unidadeId) return null
@@ -694,7 +697,7 @@ function renderDetalhesAlteracao(
                     const nomeResult = getUnidadeNome(unidadeId)
 
                     return (
-                      <div key={`uv-${idx}`} className="flex items-center">
+                      <div key={unidadeId ?? `unid-vinc-${idx}`} className="flex items-center">
                         <SmartBadge result={nomeResult} variant="default" />
                         {typeof unidade === 'object' &&
                           unidade.valorAtribuido && (
@@ -711,14 +714,14 @@ function renderDetalhesAlteracao(
               </div>
             </div>
           )}
-          {(alteracao.unidades.unidadesDesvinculadas?.length || 0) > 0 && (
+          {(alteracao.unidades.unidadesDesvinculadas?.length ?? 0) > 0 && (
             <div>
               <span className="font-medium">Desvinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.unidades.unidadesDesvinculadas?.map(
                   (id: string, idx: number) => (
                     <SmartBadge
-                      key={`ud-${idx}`}
+                      key={id ?? `unid-desv-${idx}`}
                       result={getUnidadeNome(id)}
                       variant="destructive"
                     />
@@ -727,8 +730,8 @@ function renderDetalhesAlteracao(
               </div>
             </div>
           )}
-          {!(alteracao.unidades.unidadesVinculadas?.length || 0) &&
-            !(alteracao.unidades.unidadesDesvinculadas?.length || 0) && (
+          {!(alteracao.unidades.unidadesVinculadas?.length ?? 0) &&
+            !(alteracao.unidades.unidadesDesvinculadas?.length ?? 0) && (
               <div className="text-xs text-gray-600">
                 Sem alterações detalhadas.
               </div>
@@ -796,13 +799,13 @@ function renderDetalhesAlteracao(
   ) : null
 }
 
-export function RegistroAlteracoes({
+export const RegistroAlteracoes = ({
   contratoId,
   alteracoes,
   entradasTimeline = [],
   onMarcarChatComoAlteracao,
   onAdicionarObservacao,
-}: RegistroAlteracoesProps) {
+}: RegistroAlteracoesProps) => {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [filtroStatus, setFiltroStatus] = useState<string>('todos')
   const [termoPesquisa, setTermoPesquisa] = useState('')
@@ -819,7 +822,7 @@ export function RegistroAlteracoes({
   // Build lookup of empresa IDs -> razão social to enrich fornecedores section
   const fornecedoresIds = useMemo(() => {
     const ids: string[] = []
-    for (const alt of alteracoes || []) {
+    for (const alt of alteracoes ?? []) {
       if (alt.fornecedores) {
         if (Array.isArray(alt.fornecedores.fornecedoresVinculados)) {
           ids.push(...alt.fornecedores.fornecedoresVinculados.filter(Boolean))
@@ -854,7 +857,7 @@ export function RegistroAlteracoes({
           fullId: idStr,
         }
       }
-      const nome = empresasLookup.data?.[idStr]?.razaoSocial
+      const nome = empresasLookup.data[idStr]?.razaoSocial ?? null
       if (!nome) {
         return {
           nome: `ID: ${idStr.slice(-8)}`,
@@ -870,7 +873,7 @@ export function RegistroAlteracoes({
   // Build lookup of unidades IDs -> nome to enrich unidades section
   const unidadesIds = useMemo(() => {
     const ids: string[] = []
-    for (const alt of alteracoes || []) {
+    for (const alt of alteracoes ?? []) {
       if (alt.unidades) {
         // Extrair IDs das unidades vinculadas (podem ser strings ou objetos)
         if (alt.unidades.unidadesVinculadas) {
@@ -879,7 +882,7 @@ export function RegistroAlteracoes({
               const id =
                 typeof unidade === 'string'
                   ? unidade
-                  : unidade?.unidadeSaudeId || unidade?.id
+                  : (unidade.unidadeSaudeId ?? unidade.id)
               if (id) ids.push(String(id))
             },
           )
@@ -911,7 +914,7 @@ export function RegistroAlteracoes({
           fullId: idStr,
         }
       }
-      const nome = unidadesLookup.data?.[idStr]?.nome
+      const nome = unidadesLookup.data[idStr]?.nome ?? null
       if (!nome) {
         return {
           nome: `ID: ${idStr.slice(-8)}`,
@@ -936,11 +939,11 @@ export function RegistroAlteracoes({
     }
 
     if (typeof alteracao.status === 'number') {
-      return statusMap[alteracao.status] || 'indefinido'
+      return statusMap[alteracao.status] ?? 'indefinido'
     }
 
     // Fallback para strings antigas
-    return String(alteracao.status || 'indefinido').toLowerCase()
+    return String(alteracao.status ?? 'indefinido').toLowerCase()
   }
 
   const getTituloStatus = (status: string) => {
@@ -1032,7 +1035,7 @@ export function RegistroAlteracoes({
       dataHora: entry.dataEvento,
       responsavel: entry.autor.nome,
       origem: 'timeline' as const,
-      dados: entry.alteracaoContratual || entry.milestone,
+      dados: entry.alteracaoContratual ?? entry.milestone,
       prioridade: entry.prioridade,
       tags: entry.tags,
     }),
@@ -1040,7 +1043,7 @@ export function RegistroAlteracoes({
 
   // Converter histórico de funcionários para formato unificado
   const funcionariosUnificados: EntradaUnificada[] = useMemo(() => {
-    if (!historicoFuncionarios || historicoFuncionarios.length === 0) return []
+    if (!historicoFuncionarios?.length) return []
 
     // Criar entradas baseadas nas mudanças de funcionários
     const entradas: EntradaUnificada[] = []
@@ -1065,42 +1068,52 @@ export function RegistroAlteracoes({
       )
 
       periodosOrdenados.forEach((periodo, index) => {
-        const tipoLabel = periodo.tipoGerenciaDescricao
-        const funcionarioNome = periodo.funcionarioNome
-        const matricula = periodo.funcionarioMatricula
+        const {
+          id: periodoId,
+          tipoGerenciaDescricao,
+          funcionarioNome,
+          funcionarioMatricula,
+          dataInicio,
+          dataFim,
+          estaAtivo,
+          motivoAlteracaoDescricao,
+        } = periodo
+
+        const tipoLabel = tipoGerenciaDescricao
+        const matricula = funcionarioMatricula
 
         // Entrada para adição/início do período
         if (
           index === 0 ||
           !periodosOrdenados[index - 1] ||
-          new Date(periodosOrdenados[index - 1].dataFim || '').getTime() <
-            new Date(periodo.dataInicio).getTime() - 86400000
+          new Date(periodosOrdenados[index - 1].dataFim ?? '').getTime() <
+            new Date(dataInicio).getTime() - 86400000
         ) {
           // Novo período (não é continuação)
           entradas.push({
-            id: `func-add-${periodo.id}`,
+            id: `func-add-${periodoId}`,
             tipo: 'designacao_fiscais',
             titulo: `${tipoLabel} Designado`,
             descricao: `${funcionarioNome} (${matricula}) foi designado como ${tipoLabel.toLowerCase()}`,
-            dataHora: periodo.dataInicio,
+            dataHora: dataInicio,
             responsavel: 'Sistema',
             origem: 'funcionario' as const,
             dados: {
               funcionario: periodo,
               acao: 'adicionado',
             } as DadosFuncionario,
-            status: periodo.estaAtivo ? 'ativo' : 'inativo',
+            status: estaAtivo ? 'ativo' : 'inativo',
           })
         }
 
         // Entrada para remoção/fim do período
-        if (periodo.dataFim) {
+        if (dataFim) {
           entradas.push({
-            id: `func-rem-${periodo.id}`,
+            id: `func-rem-${periodoId}`,
             tipo: 'remocao_fiscais',
             titulo: `${tipoLabel} Removido`,
-            descricao: `${funcionarioNome} (${matricula}) foi removido da função de ${tipoLabel.toLowerCase()}${periodo.motivoAlteracaoDescricao ? ` - ${periodo.motivoAlteracaoDescricao}` : ''}`,
-            dataHora: periodo.dataFim,
+            descricao: `${funcionarioNome} (${matricula}) foi removido da função de ${tipoLabel.toLowerCase()}${motivoAlteracaoDescricao ? ` - ${motivoAlteracaoDescricao}` : ''}`,
+            dataHora: dataFim,
             responsavel: 'Sistema',
             origem: 'funcionario' as const,
             dados: {
@@ -1115,15 +1128,15 @@ export function RegistroAlteracoes({
         const proximoPeriodo = periodosOrdenados[index + 1]
         if (
           proximoPeriodo &&
-          periodo.dataFim &&
+          dataFim &&
           Math.abs(
             new Date(proximoPeriodo.dataInicio).getTime() -
-              new Date(periodo.dataFim).getTime(),
+              new Date(dataFim).getTime(),
           ) < 86400000
         ) {
           // É uma substituição
           entradas.push({
-            id: `func-subst-${periodo.id}-${proximoPeriodo.id}`,
+            id: `func-subst-${periodoId}-${proximoPeriodo.id}`,
             tipo: 'substituicao_fiscais',
             titulo: `${tipoLabel} Substituído`,
             descricao: `${funcionarioNome} (${matricula}) foi substituído por ${proximoPeriodo.funcionarioNome} (${proximoPeriodo.funcionarioMatricula})`,
@@ -1250,7 +1263,7 @@ export function RegistroAlteracoes({
       reajuste: Calculator,
     }
 
-    const Icone = icones[tipo as keyof typeof icones] || Info
+    const Icone = icones[tipo as keyof typeof icones] ?? Info
     return <Icone className="h-5 w-5" />
   }
 
@@ -1264,7 +1277,7 @@ export function RegistroAlteracoes({
         critica: 'bg-red-100 text-red-600',
       }
       return (
-        coresPrioridade[prioridade as keyof typeof coresPrioridade] ||
+        coresPrioridade[prioridade as keyof typeof coresPrioridade] ??
         'bg-gray-100 text-gray-600'
       )
     }
@@ -1384,7 +1397,7 @@ export function RegistroAlteracoes({
         <CardContent className="p-6">
           <div className="relative">
             {/* Linha vertical */}
-            <div className="bg-border absolute top-0 bottom-0 left-6 w-0.5"></div>
+            <div className="bg-border absolute top-0 bottom-0 left-6 w-0.5" />
 
             <div className="space-y-6">
               {entradasPaginadas.length === 0 ? (
@@ -1497,7 +1510,7 @@ export function RegistroAlteracoes({
                                   </Badge>
                                 )}
                               {(entrada.dados as unknown as AlteracaoContrato)
-                                ?.requerConfirmacaoLimiteLegal && (
+                                .requerConfirmacaoLimiteLegal && (
                                 <Badge
                                   variant="destructive"
                                   className="flex items-center gap-1 text-xs"
@@ -1509,7 +1522,7 @@ export function RegistroAlteracoes({
                               {entrada.origem === 'contrato' &&
                                 (
                                   entrada.dados as unknown as AlteracaoContratualResponse
-                                )?.podeSerEditada && (
+                                ).podeSerEditada && (
                                   <Badge
                                     variant="outline"
                                     className="border-green-200 text-xs text-green-700"
@@ -1546,7 +1559,7 @@ export function RegistroAlteracoes({
                           <div className="mb-3 flex flex-wrap gap-1">
                             {entrada.tags.map((tag, i) => (
                               <Badge
-                                key={i}
+                                key={`tag-${tag}-${entrada.id}-${i}`}
                                 variant="secondary"
                                 className="text-xs"
                               >

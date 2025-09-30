@@ -1,11 +1,10 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Reply, MoreHorizontal, Edit2, Copy, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { DateDisplay } from '@/components/ui/formatters'
-import { Reply, MoreHorizontal, Edit2, Copy, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DateDisplay } from '@/components/ui/formatters'
+import { cn } from '@/lib/utils'
 import type { ChatMessage as ChatMessageType } from '@/modules/Contratos/types/timeline'
 
 interface ChatMessageProps {
@@ -25,7 +26,7 @@ interface ChatMessageProps {
   className?: string
 }
 
-export function ChatMessage({
+export const ChatMessage = ({
   mensagem,
   isOwn,
   showAvatar = true,
@@ -33,7 +34,7 @@ export function ChatMessage({
   onEditar,
   onExcluir,
   className,
-}: ChatMessageProps) {
+}: ChatMessageProps) => {
   const [showActions, setShowActions] = useState(false)
 
   const formatarHora = (dataHora: string) => {
@@ -216,7 +217,7 @@ export function ChatMessage({
               <DropdownMenuContent align={isOwn ? 'end' : 'start'}>
                 <DropdownMenuItem
                   onClick={() =>
-                    navigator.clipboard.writeText(mensagem.conteudo)
+                    void navigator.clipboard.writeText(mensagem.conteudo)
                   }
                 >
                   <Copy className="mr-2 h-4 w-4" />

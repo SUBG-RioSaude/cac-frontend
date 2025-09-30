@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { useForm } from 'react-hook-form'
-import { describe, it, expect } from 'vitest'
-import '@testing-library/jest-dom'
 import React from 'react'
+import { useForm } from 'react-hook-form'
+import '@testing-library/jest-dom'
+import { describe, it, expect } from 'vitest'
+
 import {
   Form,
   FormItem,
@@ -373,7 +374,7 @@ describe('Form Components', () => {
       const fieldData = screen.getByTestId('form-field-data')
       expect(fieldData).toBeInTheDocument()
 
-      const data = JSON.parse(fieldData.textContent || '{}')
+      const data = JSON.parse(fieldData.textContent ?? '{}')
       expect(data.name).toBe('test')
       expect(data.id).toBeDefined()
       expect(data.formItemId).toBeDefined()

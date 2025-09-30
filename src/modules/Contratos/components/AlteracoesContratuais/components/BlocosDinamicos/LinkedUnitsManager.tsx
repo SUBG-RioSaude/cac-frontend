@@ -1,11 +1,3 @@
-import { useState, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import {
   Building2,
   Plus,
@@ -17,6 +9,15 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react'
+import { useState, useCallback } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import type { UnidadeVinculada } from '../../../../types/alteracoes-contratuais'
 
@@ -52,14 +53,14 @@ const CORES_TIPO: Record<string, string> = {
   Unidade: 'bg-gray-100 text-gray-700',
 }
 
-export function LinkedUnitsManager({
+export const LinkedUnitsManager = ({
   unidadesVinculadas = [],
   onChange,
   getUnitDetails,
   disabled = false,
   errors = {},
   contractValue,
-}: LinkedUnitsManagerProps) {
+}: LinkedUnitsManagerProps) => {
   const [editingUnit, setEditingUnit] = useState<EditingUnit | null>(null)
 
   const handleRemoveUnit = useCallback(
@@ -76,7 +77,7 @@ export function LinkedUnitsManager({
     setEditingUnit({
       id: unit.unidadeSaudeId,
       valor: unit.valorAtribuido.toString(),
-      observacoes: unit.observacoes || '',
+      observacoes: unit.observacoes ?? '',
     })
   }, [])
 
@@ -310,7 +311,7 @@ export function LinkedUnitsManager({
                       />
                     ) : (
                       <p className="text-sm text-gray-700">
-                        {unit.observacoes || 'Sem observações específicas'}
+                        {unit.observacoes ?? 'Sem observações específicas'}
                       </p>
                     )}
                   </div>

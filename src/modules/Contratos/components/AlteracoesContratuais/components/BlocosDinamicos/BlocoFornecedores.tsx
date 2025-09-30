@@ -1,12 +1,3 @@
-import { useState, useCallback, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn, cnpjUtils } from '@/lib/utils'
-import { useDebounce } from '@/hooks/use-debounce'
 import {
   Users,
   Search,
@@ -18,13 +9,23 @@ import {
   AlertCircle,
   CheckCircle,
 } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { useDebounce } from '@/hooks/use-debounce'
+import { cn, cnpjUtils } from '@/lib/utils'
 import { useFornecedoresResumo } from '@/modules/Empresas/hooks/use-empresas'
+import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+
 import type {
   BlocoFornecedores as IBlocoFornecedores,
   FornecedorAlteracao,
 } from '../../../../types/alteracoes-contratuais'
-import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
 
 interface TransformedFornecedor {
   id: string
@@ -63,14 +64,14 @@ function transformSupplierApiData(
   }
 }
 
-export function BlocoFornecedores({
+export const BlocoFornecedores = ({
   dados = {},
   onChange,
   contractSuppliers,
   errors = {},
   disabled = false,
   required = false,
-}: BlocoFornecedoresProps) {
+}: BlocoFornecedoresProps) => {
   const [busca, setBusca] = useState('')
   const simplifiedMode = Boolean(contractSuppliers?.mainSupplier)
   const debouncedBusca = useDebounce(busca, 800)
@@ -97,7 +98,7 @@ export function BlocoFornecedores({
 
   // Fornecedores transformados da API
   const fornecedoresApi = useMemo(() => {
-    return fornecedoresResponse?.itens?.map(transformSupplierApiData) || []
+    return fornecedoresResponse?.itens?.map(transformSupplierApiData) ?? []
   }, [fornecedoresResponse])
 
   // Filtrar fornecedores disponíveis (excluir já vinculados/desvinculados)
@@ -128,7 +129,7 @@ export function BlocoFornecedores({
         empresa: fornecedoresApi.find(
           (f: TransformedFornecedor) => f.id === fv.empresaId,
         ),
-      })) || []
+      })) ?? []
     )
   }, [dados.fornecedoresVinculados, fornecedoresApi])
 
@@ -139,7 +140,7 @@ export function BlocoFornecedores({
         ?.map((id: string) =>
           fornecedoresApi.find((f: TransformedFornecedor) => f.id === id),
         )
-        .filter((f): f is TransformedFornecedor => Boolean(f)) || []
+        .filter((f): f is TransformedFornecedor => Boolean(f)) ?? []
     )
   }, [dados.fornecedoresDesvinculados, fornecedoresApi])
 
@@ -173,7 +174,7 @@ export function BlocoFornecedores({
         } as IBlocoFornecedores)
       } else {
         const vinculados = [
-          ...(dados.fornecedoresVinculados || []),
+          ...(dados.fornecedoresVinculados ?? []),
           novoVinculado,
         ]
         handleFieldChange('fornecedoresVinculados', vinculados)
@@ -199,7 +200,7 @@ export function BlocoFornecedores({
         )
       } else {
         const desvinculados = [
-          ...(dados.fornecedoresDesvinculados || []),
+          ...(dados.fornecedoresDesvinculados ?? []),
           fornecedorId,
         ]
         handleFieldChange('fornecedoresDesvinculados', desvinculados)
@@ -218,7 +219,7 @@ export function BlocoFornecedores({
       const vinculados =
         dados.fornecedoresVinculados?.filter(
           (f: FornecedorAlteracao) => f.empresaId !== fornecedorId,
-        ) || []
+        ) ?? []
       handleFieldChange('fornecedoresVinculados', vinculados)
     },
     [dados.fornecedoresVinculados, handleFieldChange],
@@ -229,7 +230,7 @@ export function BlocoFornecedores({
       const desvinculados =
         dados.fornecedoresDesvinculados?.filter(
           (id: string) => id !== fornecedorId,
-        ) || []
+        ) ?? []
       handleFieldChange('fornecedoresDesvinculados', desvinculados)
     },
     [dados.fornecedoresDesvinculados, handleFieldChange],
@@ -244,7 +245,7 @@ export function BlocoFornecedores({
       const vinculados =
         dados.fornecedoresVinculados?.map((f: FornecedorAlteracao) =>
           f.empresaId === fornecedorId ? { ...f, [campo]: valor } : f,
-        ) || []
+        ) ?? []
       handleFieldChange('fornecedoresVinculados', vinculados)
     },
     [dados.fornecedoresVinculados, handleFieldChange],
@@ -261,14 +262,14 @@ export function BlocoFornecedores({
   // Verificar se tem alterações
   const temAlteracoes = useMemo(() => {
     return (
-      (dados.fornecedoresVinculados?.length || 0) > 0 ||
-      (dados.fornecedoresDesvinculados?.length || 0) > 0
+      (dados.fornecedoresVinculados?.length ?? 0) > 0 ||
+      (dados.fornecedoresDesvinculados?.length ?? 0) > 0
     )
   }, [dados])
   const invalidSimplified = useMemo(() => {
     if (!simplifiedMode || !temAlteracoes) return false
-    const cV = dados.fornecedoresVinculados?.length || 0
-    const cD = dados.fornecedoresDesvinculados?.length || 0
+    const cV = dados.fornecedoresVinculados?.length ?? 0
+    const cD = dados.fornecedoresDesvinculados?.length ?? 0
     return cV !== 1 || cD !== 1
   }, [
     simplifiedMode,
@@ -576,7 +577,7 @@ export function BlocoFornecedores({
                         type="number"
                         min="0"
                         max="100"
-                        value={fv.percentualParticipacao || ''}
+                        value={fv.percentualParticipacao ?? ''}
                         onChange={(e) =>
                           handleAtualizarFornecedorVinculado(
                             fv.empresaId,
@@ -595,7 +596,7 @@ export function BlocoFornecedores({
                         type="number"
                         min="0"
                         step="0.01"
-                        value={fv.valorAtribuido || ''}
+                        value={fv.valorAtribuido ?? ''}
                         onChange={(e) =>
                           handleAtualizarFornecedorVinculado(
                             fv.empresaId,
@@ -611,7 +612,7 @@ export function BlocoFornecedores({
                     <div className="space-y-1">
                       <Label className="text-xs">Observações</Label>
                       <Input
-                        value={fv.observacoes || ''}
+                        value={fv.observacoes ?? ''}
                         onChange={(e) =>
                           handleAtualizarFornecedorVinculado(
                             fv.empresaId,
@@ -688,7 +689,7 @@ export function BlocoFornecedores({
             </Label>
             <Textarea
               id="observacoes-fornecedores"
-              value={dados.observacoes || ''}
+              value={dados.observacoes ?? ''}
               onChange={(e) => handleFieldChange('observacoes', e.target.value)}
               disabled={disabled}
               rows={3}

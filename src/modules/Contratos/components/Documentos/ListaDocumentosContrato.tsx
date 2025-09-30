@@ -1,7 +1,13 @@
+import {
+  ExternalLink,
+  File,
+  Loader2,
+  Trash2,
+  AlertCircle,
+  Upload,
+} from 'lucide-react'
 import { useState } from 'react'
-import { useDocumentos, useDeleteDocumento } from '../../hooks'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DateDisplay } from '@/components/ui/formatters'
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -14,6 +20,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters'
 import {
   Table,
   TableBody,
@@ -22,24 +31,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import {
-  ExternalLink,
-  File,
-  Loader2,
-  Trash2,
-  AlertCircle,
-  Upload,
-} from 'lucide-react'
+
+import { useDocumentos, useDeleteDocumento } from '../../hooks'
 import type { DocumentoContratoDto } from '../../types/contrato'
 
 interface ListaDocumentosContratoProps {
   contratoId: string
 }
 
-export function ListaDocumentosContrato({
+export const ListaDocumentosContrato = ({
   contratoId,
-}: ListaDocumentosContratoProps) {
+}: ListaDocumentosContratoProps) => {
   const { data: documentos, isLoading, error } = useDocumentos(contratoId)
   const deleteMutation = useDeleteDocumento()
 
@@ -119,7 +121,7 @@ export function ListaDocumentosContrato({
                     <TableCell className="space-x-2 text-right">
                       <Button variant="outline" size="icon" asChild>
                         <a
-                          href={doc.linkExterno || '#'}
+                          href={doc.linkExterno ?? '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                         >

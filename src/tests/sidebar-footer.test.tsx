@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+
 import SidebarFooter from '@/components/sidebar-footer'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { VERSAO_APP } from '@/lib/versao'

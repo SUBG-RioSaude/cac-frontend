@@ -5,13 +5,14 @@
  * Gerencia carregamento e cache dos dados do dashboard
  */
 
-import { useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+
+import { fetchDashboardData } from '../services/dashboard-service'
 import type {
   DashboardFilters,
   UseDashboardDataResult,
 } from '../types/dashboard'
-import { fetchDashboardData } from '../services/dashboard-service'
 
 /**
  * Hook para gerenciar dados do dashboard com cache e refetch
@@ -34,13 +35,13 @@ export const useDashboardData = (
   })
 
   const refetch = useCallback(() => {
-    queryRefetch()
+    void queryRefetch()
   }, [queryRefetch])
 
   return {
-    data: data || null,
+    data: data ?? null,
     isLoading,
-    error: error?.message || null,
+    error: error?.message ?? null,
     refetch,
   }
 }
@@ -52,7 +53,7 @@ export const useDashboardMetrics = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
 
   return {
-    metrics: data?.metrics || null,
+    metrics: data?.metrics ?? null,
     isLoading,
     error,
   }
@@ -65,9 +66,9 @@ export const useDashboardCharts = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
 
   return {
-    statusDistribution: data?.statusDistribution || [],
-    statusTrend: data?.statusTrend || [],
-    typeDistribution: data?.typeDistribution || [],
+    statusDistribution: data?.statusDistribution ?? [],
+    statusTrend: data?.statusTrend ?? [],
+    typeDistribution: data?.typeDistribution ?? [],
     isLoading,
     error,
   }
@@ -80,7 +81,7 @@ export const useRiskAnalysis = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
 
   return {
-    riskAnalysis: data?.riskAnalysis || null,
+    riskAnalysis: data?.riskAnalysis ?? null,
     isLoading,
     error,
   }
@@ -93,8 +94,8 @@ export const useRecentData = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
 
   return {
-    recentContracts: data?.recentContracts || [],
-    recentActivities: data?.recentActivities || [],
+    recentContracts: data?.recentContracts ?? [],
+    recentActivities: data?.recentActivities ?? [],
     isLoading,
     error,
   }

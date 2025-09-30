@@ -1,4 +1,5 @@
 import axios from 'axios'
+
 import type {
   LoginRequest,
   LoginResponse,
@@ -179,8 +180,8 @@ export const authService = {
   async verificarAcesso(): Promise<VerificarAcessoResponse> {
     try {
       const response = await authApi.get<VerificarAcessoResponse>(
-        '/usuariopermissaosistema/verificar-acesso/' +
-          import.meta.env.SYSTEM_ID,
+        `/usuariopermissaosistema/verificar-acesso/${ 
+          import.meta.env.SYSTEM_ID}`,
       )
       return response.data
     } catch (erro: unknown) {

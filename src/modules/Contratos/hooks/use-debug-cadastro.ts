@@ -7,13 +7,17 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import type { DadosFornecedor } from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
-import type { DadosContrato } from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
-import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
+
+import { createServiceLogger } from '@/lib/logger'
 import type { DadosAtribuicao } from '@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form'
-import { getUnidades } from '@/modules/Unidades/services/unidades-service'
+import type { DadosContrato } from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
+import type { DadosFornecedor } from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
+import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
 import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
+import { getUnidades } from '@/modules/Unidades/services/unidades-service'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
+const logger = createServiceLogger('use-debug-cadastro')
 
 interface ApiLog {
   id: string
@@ -42,10 +46,10 @@ export function useDebugCadastro() {
     try {
       const savedLogs = localStorage.getItem('debug-cadastro-logs')
       if (savedLogs) {
-        setApiLogs(JSON.parse(savedLogs))
+        setApiLogs(JSON.parse(savedLogs) as DebugLog[])
       }
     } catch (error) {
-      console.warn('Erro ao carregar logs do localStorage:', error)
+      logger.warn('Erro ao carregar logs do localStorage:', error)
     }
   }, [])
 
@@ -57,7 +61,7 @@ export function useDebugCadastro() {
         JSON.stringify(apiLogs.slice(-50)),
       ) // Manter apenas os 50 mais recentes
     } catch (error) {
-      console.warn('Erro ao salvar logs no localStorage:', error)
+      logger.warn('Erro ao salvar logs no localStorage:', error)
     }
   }, [apiLogs])
 
@@ -159,7 +163,7 @@ export function useDebugCadastro() {
       RS: { min: 90000000, max: 99999999 }, // 90000-000 a 99999-999
     }
 
-    const faixaEstado = faixasCep[estado] || faixasCep['SP'] // Default para SP se estado não encontrado
+    const faixaEstado = faixasCep[estado] ?? faixasCep.SP // Default para SP se estado não encontrado
     const cepNumerico =
       Math.floor(Math.random() * (faixaEstado.max - faixaEstado.min + 1)) +
       faixaEstado.min
@@ -359,12 +363,12 @@ export function useDebugCadastro() {
       return {
         id: unidadeApi.id,
         nome: unidadeApi.nome,
-        codigo: `${unidadeApi.sigla || 'UNK'}-${unidadeApi.id.slice(-3)}`,
-        ug: unidadeApi.uo?.toString() || '',
-        sigla: unidadeApi.sigla || '',
-        cnpj: unidadeApi.cnes || '',
+        codigo: `${unidadeApi.sigla ?? 'UNK'}-${unidadeApi.id.slice(-3)}`,
+        ug: unidadeApi.uo?.toString() ?? '',
+        sigla: unidadeApi.sigla ?? '',
+        cnpj: unidadeApi.cnes ?? '',
         cep: '',
-        endereco: unidadeApi.endereco || '',
+        endereco: unidadeApi.endereco ?? '',
         cidade: '',
         estado: '',
         responsavel: '',
@@ -376,14 +380,14 @@ export function useDebugCadastro() {
 
     // Tentar obter unidades reais da API
     let unidadesDisponiveis: UnidadeHospitalar[] = []
-    let unidadeDemandanteSelecionada: string = ''
-    let unidadeGestoraSelecionada: string = ''
-    let unidadeDemandanteIdSelecionado: string = ''
-    let unidadeGestoraIdSelecionado: string = ''
+    let unidadeDemandanteSelecionada = ''
+    let unidadeGestoraSelecionada = ''
+    let unidadeDemandanteIdSelecionado = ''
+    let unidadeGestoraIdSelecionado = ''
 
     try {
       const responseUnidades = await getUnidades({ tamanhoPagina: 50 })
-      if (responseUnidades?.dados && responseUnidades.dados.length > 0) {
+      if (responseUnidades.dados.length > 0) {
         // Mapear e filtrar apenas unidades ativas
         unidadesDisponiveis = responseUnidades.dados
           .filter((u) => u.ativo)
@@ -407,7 +411,7 @@ export function useDebugCadastro() {
         }
       }
     } catch (error) {
-      console.warn(
+      logger.warn(
         'Erro ao buscar unidades da API, usando fallback mock:',
         error,
       )
@@ -465,29 +469,23 @@ export function useDebugCadastro() {
           ]
         : undefined
 
+    const numeroContratoFormatado = `CONT-${ano}-${numeroSequencial.toString().padStart(4, '0')}`
+    const processoFormatado = `${String(timestamp).slice(-5)}.${String(timestamp).slice(-11, -5)}/${ano}-${Math.floor(Math.random() * 89) + 10}`
+    const tiposContratacao = ['Licitacao', 'Pregao', 'Dispensa', 'Inexigibilidade'] as const
+    const tiposContrato = ['Compra', 'Prestacao_Servico', 'Fornecimento', 'Manutencao'] as const
+
     return {
-      numeroContrato: `CONT-${ano}-${numeroSequencial.toString().padStart(4, '0')}`,
+      numeroContrato: numeroContratoFormatado,
       processos: [
         {
           tipo: 'sei' as const,
-          valor: `${String(timestamp).slice(-5)}.${String(timestamp).slice(-11, -5)}/${ano}-${Math.floor(Math.random() * 89) + 10}`,
+          valor: processoFormatado,
         },
       ],
       categoriaObjeto: categorias[categoriaIndex],
       descricaoObjeto: `Contrato para ${categorias[categoriaIndex].toLowerCase()} - ID: ${String(timestamp).slice(-6)}`,
-      tipoContratacao: ['Licitacao', 'Pregao', 'Dispensa', 'Inexigibilidade'][
-        Math.floor(Math.random() * 4)
-      ] as 'Licitacao' | 'Pregao' | 'Dispensa' | 'Inexigibilidade',
-      tipoContrato: [
-        'Compra',
-        'Prestacao_Servico',
-        'Fornecimento',
-        'Manutencao',
-      ][categoriaIndex % 4] as
-        | 'Compra'
-        | 'Prestacao_Servico'
-        | 'Fornecimento'
-        | 'Manutencao',
+      tipoContratacao: tiposContratacao[Math.floor(Math.random() * 4)],
+      tipoContrato: tiposContrato[categoriaIndex % 4],
       // Array de unidades responsáveis (demandantes e gestoras)
       unidadesResponsaveis: [
         {
@@ -742,16 +740,19 @@ export function useDebugCadastro() {
     async (step: number) => {
       if (step === 2) {
         // Step 2 é assíncrono por causa da API de unidades
-        return await getMockContrato()
+        return getMockContrato()
       }
 
-      const mockData = {
-        1: getMockFornecedor(),
-        3: getMockUnidades(),
-        4: getMockAtribuicao(),
+      switch (step) {
+        case 1:
+          return getMockFornecedor()
+        case 3:
+          return getMockUnidades()
+        case 4:
+          return getMockAtribuicao()
+        default:
+          return null
       }
-
-      return mockData[step as keyof typeof mockData] || null
     },
     [getMockFornecedor, getMockContrato, getMockUnidades, getMockAtribuicao],
   )

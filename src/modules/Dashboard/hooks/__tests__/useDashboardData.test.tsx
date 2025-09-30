@@ -1,6 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+import { fetchDashboardData } from '../../services/dashboard-service'
+import type { DashboardFilters } from '../../types/dashboard'
 import {
   useDashboardData,
   useDashboardMetrics,
@@ -8,14 +11,11 @@ import {
   useRiskAnalysis,
   useRecentData,
 } from '../useDashboardData'
-import type { DashboardFilters } from '../../types/dashboard'
 
 // Mock do dashboard service
 vi.mock('../../services/dashboard-service', () => ({
   fetchDashboardData: vi.fn(),
 }))
-
-import { fetchDashboardData } from '../../services/dashboard-service'
 
 // Helper para criar wrapper com QueryClient
 const createQueryWrapper = () => {

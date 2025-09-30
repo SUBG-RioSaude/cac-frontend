@@ -4,15 +4,19 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+
+import { useErrorHandler } from '@/hooks/use-error-handler'
+import { createServiceLogger } from '@/lib/logger'
+import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   getContratos,
   getContratoDetalhado,
   type ContratoParametros,
 } from '@/modules/Contratos/services/contratos-service'
-import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
-import { useErrorHandler } from '@/hooks/use-error-handler'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
+
+const logger = createServiceLogger('use-contratos')
 
 export function useContratos(
   filtros: ContratoParametros = {},
@@ -38,8 +42,7 @@ export function useContratos(
     retry: (failureCount, error: unknown) => {
       // Não retry para erros de cliente (4xx)
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         if (status >= 400 && status < 500) {
           return false
         }
@@ -50,10 +53,9 @@ export function useContratos(
     throwOnError: (error: unknown) => {
       // Para erros críticos (5xx, 401, 403), usar o error handler que redireciona
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
-        if (status && (status >= 500 || status === 401 || status === 403)) {
+        if (status >= 500 || status === 401 || status === 403) {
           handleApiError(error)
           return true
         }
@@ -89,8 +91,7 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         if (status >= 400 && status < 500) {
           return false
         }
@@ -100,8 +101,7 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status === 404) {
           // Para 404, redirecionar para página específica
@@ -109,7 +109,7 @@ export function useContrato(id: string, options?: { enabled?: boolean }) {
           return true
         }
 
-        if (status && (status >= 500 || status === 401 || status === 403)) {
+        if (status >= 500 || status === 401 || status === 403) {
           handleApiError(error)
           return true
         }
@@ -151,10 +151,9 @@ export function useContratosVencendo(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
-        if (status && (status >= 500 || status === 401 || status === 403)) {
+        if (status >= 500 || status === 401 || status === 403) {
           handleApiError(error)
           return true
         }
@@ -189,10 +188,9 @@ export function useContratosVencidos(options?: { enabled?: boolean }) {
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
-        if (status && (status >= 500 || status === 401 || status === 403)) {
+        if (status >= 500 || status === 401 || status === 403) {
           handleApiError(error)
           return true
         }
@@ -219,7 +217,7 @@ export function useContratoDetalhado(
         const resultado = await getContratoDetalhado(id)
         return resultado
       } catch (error) {
-        console.error('🎯 Hook: Erro capturado:', error)
+        logger.error('🎯 Hook: Erro capturado:', error)
         throw error
       }
     },
@@ -228,8 +226,7 @@ export function useContratoDetalhado(
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         // Não retry para erros de cliente (4xx)
         if (status >= 400 && status < 500) {
           return false
@@ -240,8 +237,7 @@ export function useContratoDetalhado(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status === 404) {
           // Para 404, redirecionar para página específica
@@ -249,7 +245,7 @@ export function useContratoDetalhado(
           return true
         }
 
-        if (status && (status >= 500 || status === 401 || status === 403)) {
+        if (status >= 500 || status === 401 || status === 403) {
           handleApiError(error)
           return true
         }

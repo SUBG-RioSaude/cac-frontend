@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
+import { Home, PenBoxIcon } from 'lucide-react'
 import { BrowserRouter } from 'react-router-dom'
 import { describe, it, expect, vi } from 'vitest'
-import { Home, PenBoxIcon } from 'lucide-react'
+
 import { NavMain } from '@/components/nav-main'
 import { SidebarProvider } from '@/components/ui/sidebar'
 

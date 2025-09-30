@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import '@testing-library/jest-dom'
-import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { LayoutAuthenticated } from '../layout-authenticated'
+import { render, screen } from '@testing-library/react'
 import React from 'react'
+import { BrowserRouter } from 'react-router-dom'
+import '@testing-library/jest-dom'
+import { describe, it, expect } from 'vitest'
+
+import { LayoutAuthenticated } from '../layout-authenticated'
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -5,12 +5,14 @@
  * Gráfico de barras horizontais mostrando distribuição por tipo de contrato
  */
 
+import { BarChart3 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
 import { CurrencyDisplay } from '@/components/ui/formatters'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BarChart3 } from 'lucide-react'
+
 import { useDashboardCharts } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
@@ -31,10 +33,10 @@ const chartConfig = {
   },
 }
 
-export function TypeDistributionChart({
+export const TypeDistributionChart = ({
   filters,
   className,
-}: TypeDistributionChartProps) {
+}: TypeDistributionChartProps) => {
   const { typeDistribution, isLoading, error } = useDashboardCharts(filters)
 
   // Preparar dados para o gráfico
@@ -142,7 +144,7 @@ export function TypeDistributionChart({
               cursor={false}
               content={({ active, payload }) => {
                 if (active && payload?.length) {
-                  const data = payload[0].payload
+                  const data = payload[0].payload as { tipo: string; quantidade: number; percentual: number; valor: number }
                   return (
                     <div className="bg-background rounded-lg border p-2 shadow-sm">
                       <div className="grid gap-2">

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useUpdateContrato } from './use-contratos-mutations'
+
 import {
   requiresConfirmation,
   isCriticalField,
@@ -8,6 +8,8 @@ import {
   getFieldsInGroup,
 } from '../config/editable-fields-config'
 import type { ContratoDetalhado } from '../types/contrato'
+
+import { useUpdateContrato } from './use-contratos-mutations'
 
 type FieldValue = string | number | Date | null | undefined
 
@@ -168,7 +170,7 @@ export function useFieldEditing({
         }
       }
 
-      return String(value || '')
+      return String(value ?? '')
     },
     [],
   )

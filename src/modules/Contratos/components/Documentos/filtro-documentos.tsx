@@ -1,6 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Search, X, RotateCcw } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -8,10 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { Search, X, RotateCcw } from 'lucide-react'
-
 import type {
   DocumentoContrato,
   FiltroDocumento,
@@ -45,12 +46,12 @@ const categoriaOptions = [
   { value: 'opcional', label: 'Opcionais' },
 ]
 
-export function FiltroDocumentos({
+export const FiltroDocumentos = ({
   filtro,
   onFiltroChange,
   documentos,
   className,
-}: FiltroDocumentosProps) {
+}: FiltroDocumentosProps) => {
   const tiposUsados = Array.from(new Set(documentos.map((d) => d.tipo.id)))
     .map((tipoId) => TIPOS_DOCUMENTO.find((t) => t.id === tipoId))
     .filter(Boolean)
@@ -110,7 +111,7 @@ export function FiltroDocumentos({
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
             placeholder="Buscar por nome, descrição, tipo ou responsável..."
-            value={filtro.busca || ''}
+            value={filtro.busca ?? ''}
             onChange={(e) =>
               onFiltroChange({ ...filtro, busca: e.target.value })
             }
@@ -132,9 +133,9 @@ export function FiltroDocumentos({
         <div className="grid gap-4 sm:grid-cols-3">
           {/* Filtro por categoria */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Categoria</label>
+            <Label className="text-sm font-medium" htmlFor="categoria-select">Categoria</Label>
             <Select
-              value={filtro.categoria || 'todos'}
+              value={filtro.categoria ?? 'todos'}
               onValueChange={(value) =>
                 onFiltroChange({
                   ...filtro,
@@ -142,7 +143,7 @@ export function FiltroDocumentos({
                 })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger id="categoria-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -157,9 +158,9 @@ export function FiltroDocumentos({
 
           {/* Filtro por status */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
+            <Label className="text-sm font-medium" htmlFor="status-select">Status</Label>
             <Select
-              value={filtro.status || 'todos'}
+              value={filtro.status ?? 'todos'}
               onValueChange={(value) =>
                 onFiltroChange({
                   ...filtro,
@@ -167,7 +168,7 @@ export function FiltroDocumentos({
                 })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger id="status-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -196,9 +197,9 @@ export function FiltroDocumentos({
 
           {/* Filtro por tipo */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Tipo de Documento</label>
+            <Label className="text-sm font-medium" htmlFor="tipo-select">Tipo de Documento</Label>
             <Select
-              value={filtro.tipo || 'todos'}
+              value={filtro.tipo ?? 'todos'}
               onValueChange={(value) =>
                 onFiltroChange({
                   ...filtro,
@@ -206,7 +207,7 @@ export function FiltroDocumentos({
                 })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger id="tipo-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -234,7 +235,7 @@ export function FiltroDocumentos({
 
         {/* Filtros rápidos por status */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Filtros Rápidos</label>
+          <Label className="text-sm font-medium">Filtros Rápidos</Label>
           <div className="flex flex-wrap gap-2">
             {statusOptions.slice(1).map((option) => {
               const isActive = filtro.status === option.value

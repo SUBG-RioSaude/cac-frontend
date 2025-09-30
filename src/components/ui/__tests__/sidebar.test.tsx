@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi } from 'vitest'
 import '@testing-library/jest-dom'
+import userEvent from '@testing-library/user-event'
 import React from 'react'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock do next-themes
 vi.mock('next-themes', () => ({
@@ -116,7 +116,7 @@ describe('Sidebar Components', () => {
 
       const wrapper = document.querySelector(
         '[data-slot="sidebar-wrapper"]',
-      ) as HTMLElement
+      )!
       expect(wrapper.style.getPropertyValue('--sidebar-width')).toBe('16rem')
       expect(wrapper.style.getPropertyValue('--sidebar-width-icon')).toBe(
         '3rem',
@@ -379,7 +379,7 @@ describe('Sidebar Components', () => {
     it('deve manter estado controlado quando props são fornecidas', () => {
       const onOpenChange = vi.fn()
       const { rerender } = render(
-        <SidebarProvider open={true} onOpenChange={onOpenChange}>
+        <SidebarProvider open onOpenChange={onOpenChange}>
           <SidebarTrigger data-testid="controlled-trigger" />
         </SidebarProvider>,
       )

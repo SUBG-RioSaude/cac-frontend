@@ -36,9 +36,9 @@ export function useAsyncOperation<T = any>(): UseAsyncOperationResult<T> {
         const result = await operation()
         return result
       } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err))
-        setError(error)
-        throw error
+        const errorInstance = err instanceof Error ? err : new Error(String(err))
+        setError(errorInstance)
+        throw errorInstance
       } finally {
         setIsPending(false)
       }

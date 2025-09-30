@@ -5,8 +5,9 @@
  * Exibe KPIs e métricas principais de um fornecedor
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, DollarSign } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyDisplay } from '@/components/ui/formatters'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
@@ -20,10 +21,10 @@ interface Metricas {
   valorTotal: number
 }
 
-export function FornecedorMetricas({
+export const FornecedorMetricas = ({
   contratos,
   isLoading,
-}: FornecedorMetricasProps) {
+}: FornecedorMetricasProps) => {
   const calcularMetricas = (): Metricas => {
     let valorTotal = 0
 
@@ -42,8 +43,8 @@ export function FornecedorMetricas({
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <Card key={i}>
+        {Array.from({ length: 2 }, (_, i) => (
+          <Card key={`metricas-skeleton-${i}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />

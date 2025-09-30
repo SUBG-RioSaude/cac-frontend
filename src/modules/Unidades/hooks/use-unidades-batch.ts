@@ -5,9 +5,13 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect, useMemo } from 'react'
-import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
+
+import { createServiceLogger } from '@/lib/logger'
 import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
+import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
+const logger = createServiceLogger('use-unidades-batch')
 
 /**
  * Hook para busca otimizada de múltiplas unidades
@@ -19,13 +23,13 @@ export function useUnidadesBatch(
 ) {
   const queryClient = useQueryClient()
   const [unidadesData, setUnidadesData] = useState<
-    Record<string, UnidadeSaudeApi>
+    Partial<Record<string, UnidadeSaudeApi>>
   >({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   const uniqueIds = useMemo(() => {
-    return Array.from(new Set((ids || []).filter(Boolean)))
+    return Array.from(new Set(ids.filter(Boolean)))
   }, [ids])
 
   const enabled = options?.enabled ?? true
@@ -40,7 +44,7 @@ export function useUnidadesBatch(
         setIsLoading(true)
         setError(null)
 
-        const resultMap: Record<string, UnidadeSaudeApi> = {}
+        const resultMap: Partial<Record<string, UnidadeSaudeApi>> = {}
         const idsToFetch: string[] = []
 
         // Verificar cache primeiro
@@ -63,9 +67,13 @@ export function useUnidadesBatch(
               // Cachear o resultado
               queryClient.setQueryData(unidadeKeys.detail(id), unidade)
               return { id, data: unidade, success: true }
-            } catch (error) {
-              console.warn(`Erro ao buscar unidade ${id}:`, error)
-              return { id, error, success: false }
+            } catch (fetchError) {
+              logger.warn({
+                operation: 'buscar_unidade_batch',
+                unidadeId: id,
+                error: fetchError instanceof Error ? fetchError.message : String(fetchError)
+              }, `Erro ao buscar unidade ${id}`)
+              return { id, error: fetchError, success: false }
             }
           })
 
@@ -84,14 +92,19 @@ export function useUnidadesBatch(
 
         setUnidadesData(resultMap)
       } catch (err) {
-        setError(err as Error)
-        console.error('Erro ao buscar unidades em lote:', err)
+        const errorObj = err as Error
+        setError(errorObj)
+        logger.error({
+          operation: 'buscar_unidades_lote',
+          error: errorObj.message,
+          stack: errorObj.stack
+        }, 'Erro ao buscar unidades em lote')
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchUnidades()
+    void fetchUnidades()
   }, [uniqueIds, enabled, queryClient])
 
   return {
@@ -99,7 +112,10 @@ export function useUnidadesBatch(
     isLoading,
     error,
     // Helper para obter nome da unidade
-    getNome: (id: string) => unidadesData[id]?.nome || `Unidade ${id}`,
+    getNome: (id: string) => {
+      const unidade = unidadesData[id]
+      return unidade?.nome ?? `Unidade ${id}`
+    },
     // Verificar se uma unidade específica está carregando
     isUnidadeLoading: (id: string) => isLoading && !unidadesData[id],
   }

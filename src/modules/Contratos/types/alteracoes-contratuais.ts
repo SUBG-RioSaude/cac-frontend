@@ -249,12 +249,12 @@ export interface AlteracaoContratualPayload {
 
 // Interface para bloco de cláusulas (API)
 export interface BlocoClausulasApi {
-  clausulasAlteradas: Array<{
+  clausulasAlteradas: {
     numeroClausula: string
     textoOriginal: string
     textoAlterado: string
     tipoAlteracao: 'substituir' | 'incluir' | 'excluir'
-  }>
+  }[]
 }
 
 // Interface para bloco de vigência (API)
@@ -278,21 +278,21 @@ export interface BlocoValorApi {
 // Interface para bloco de fornecedores (API)
 export interface BlocoFornecedoresApi {
   operacao: OperacaoFornecedor
-  fornecedoresAfetados: Array<{
+  fornecedoresAfetados: {
     id: string
     nome: string
     cnpj: string
-  }>
+  }[]
 }
 
 // Interface para bloco de unidades (API)
 export interface BlocoUnidadesApi {
   operacao: OperacaoUnidade
-  unidadesAfetadas: Array<{
+  unidadesAfetadas: {
     id: string
     nome: string
     codigo: string
-  }>
+  }[]
 }
 
 // Interface para blocos dinâmicos (API)
@@ -384,13 +384,13 @@ export interface AlteracaoContratualResponse {
 
 // Interface para alerta de limite legal
 export interface AlertaLimiteLegal {
-  limites: Array<{
+  limites: {
     tipo: 'acrescimo' | 'prazo' | 'objeto'
     limiteLegal: number
     valorAtual: number
     severidade: 'alerta' | 'critico'
     observacoes?: string
-  }>
+  }[]
   fundamentacaoLegal?: string
 }
 
@@ -676,7 +676,7 @@ export function getLimiteLegal(tipos: TipoAlteracao[]): number {
     // Verificar se o tipo existe no config antes de acessar
     if (tipo in TIPOS_ALTERACAO_CONFIG) {
       const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
-      const limite = config.limiteLegal || 0
+      const limite = config.limiteLegal ?? 0
       if (limite > maiorLimite) {
         maiorLimite = limite
       }
@@ -698,12 +698,12 @@ export function transformToApiPayload(
     contratoId: dados.contratoId,
     tiposAlteracao: dados.tiposAlteracao,
     justificativa: dados.dadosBasicos.justificativa,
-    status: dados.status || StatusAlteracao.Rascunho,
+    status: dados.status ?? StatusAlteracao.Rascunho,
     dataEfeito: dados.dataEfeito,
   }
 
   // Campos opcionais básicos
-  if (dados.dadosBasicos?.fundamentoLegal) {
+  if (dados.dadosBasicos.fundamentoLegal) {
     // Note: fundamentoLegal não existe no novo formato, vai no justificativa ou observacoes
   }
 
@@ -722,8 +722,8 @@ export function transformToApiPayload(
   }
 
   // Transformar blocos dinâmicos
-  if (dados.blocos?.clausulas) {
-    const clausulas = dados.blocos.clausulas
+  if (dados.blocos.clausulas) {
+    const { clausulas } = dados.blocos
     payload.clausulas = {
       clausulasExcluidas: clausulas.clausulasExcluidas,
       clausulasIncluidas: clausulas.clausulasIncluidas,
@@ -731,8 +731,8 @@ export function transformToApiPayload(
     }
   }
 
-  if (dados.blocos?.vigencia) {
-    const vigencia = dados.blocos.vigencia
+  if (dados.blocos.vigencia) {
+    const { vigencia } = dados.blocos
     payload.vigencia = {
       operacao: vigencia.operacao,
       tipoUnidade: vigencia.tipoUnidade,
@@ -743,8 +743,8 @@ export function transformToApiPayload(
     }
   }
 
-  if (dados.blocos?.valor) {
-    const valor = dados.blocos.valor
+  if (dados.blocos.valor) {
+    const { valor } = dados.blocos
     payload.valor = {
       operacao: valor.operacao,
       valorAjuste: valor.valorAjuste,
@@ -756,8 +756,8 @@ export function transformToApiPayload(
   }
 
   // NOVO: Transformar bloco fornecedores
-  if (dados.blocos?.fornecedores) {
-    const fornecedores = dados.blocos.fornecedores
+  if (dados.blocos.fornecedores) {
+    const { fornecedores } = dados.blocos
 
     payload.fornecedores = {
       observacoes: fornecedores.observacoes,
@@ -787,8 +787,8 @@ export function transformToApiPayload(
   }
 
   // NOVO: Transformar bloco unidades
-  if (dados.blocos?.unidades) {
-    const unidades = dados.blocos.unidades
+  if (dados.blocos.unidades) {
+    const { unidades } = dados.blocos
 
     payload.unidades = {
       observacoes: unidades.observacoes,

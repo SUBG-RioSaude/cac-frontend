@@ -1,11 +1,3 @@
-import { useState, useCallback, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import {
   Building2,
   Search,
@@ -15,19 +7,29 @@ import {
   Loader2,
   DollarSign,
 } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import {
   useUnidades,
   useBuscarUnidades,
 } from '@/modules/Unidades/hooks/use-unidades'
+import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
 import type {
   BlocoUnidades as IBlocoUnidades,
   UnidadeVinculada,
 } from '../../../../types/alteracoes-contratuais'
-import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
 import { LinkedUnitsManager } from './LinkedUnitsManager'
-import { UnlinkedUnitsManager } from './UnlinkedUnitsManager'
 import { UnitValueEditor } from './UnitValueEditor'
+import { UnlinkedUnitsManager } from './UnlinkedUnitsManager'
 
 interface TransformedUnidade {
   id: string
@@ -60,11 +62,11 @@ interface BlocoUnidadesProps {
 function transformUnidadeApiData(unidade: UnidadeSaudeApi): TransformedUnidade {
   return {
     id: unidade.id,
-    codigo: unidade.sigla || `UN${unidade.id.slice(-3)}`,
+    codigo: unidade.sigla ?? `UN${unidade.id.slice(-3)}`,
     nome: unidade.nome,
-    tipo: unidade.cap?.nome || 'Unidade',
+    tipo: unidade.cap?.nome ?? 'Unidade',
     endereco: unidade.endereco
-      ? `${unidade.endereco}, ${unidade.bairro || ''}`.trim().replace(/,$/, '')
+      ? `${unidade.endereco}, ${unidade.bairro ?? ''}`.trim().replace(/,$/, '')
       : 'Endereço não informado',
     ativo: unidade.ativo,
   }
@@ -78,7 +80,7 @@ const CORES_TIPO: Record<string, string> = {
   Unidade: 'bg-gray-100 text-gray-700',
 }
 
-export function BlocoUnidades({
+export const BlocoUnidades = ({
   dados = {},
   onChange,
   contractUnits,
@@ -86,7 +88,7 @@ export function BlocoUnidades({
   errors = {},
   disabled = false,
   required = false,
-}: BlocoUnidadesProps) {
+}: BlocoUnidadesProps) => {
   const [busca, setBusca] = useState('')
   const [valueEditorUnit, setValueEditorUnit] =
     useState<TransformedUnidade | null>(null)
@@ -118,7 +120,7 @@ export function BlocoUnidades({
   // Unidades da API transformadas
   const unidadesApi = useMemo(() => {
     const unidades = shouldSearch ? unidadesBusca : unidadesResponse?.dados
-    return unidades?.map(transformUnidadeApiData) || []
+    return unidades?.map(transformUnidadeApiData) ?? []
   }, [shouldSearch, unidadesBusca, unidadesResponse])
 
   // Unidades já vinculadas ao contrato atual (disponíveis para desvincular)
@@ -133,9 +135,9 @@ export function BlocoUnidades({
 
   // Filtrar unidades disponíveis para vincular (excluir já vinculadas no contrato atual e nas alterações)
   const unidadesDisponiveis = useMemo(() => {
-    const jaVinculadasIds = contractUnits?.linkedUnits?.map((u) => u.id) || []
+    const jaVinculadasIds = contractUnits?.linkedUnits?.map((u) => u.id) ?? []
     const vinculadasAlteracoes =
-      dados.unidadesVinculadas?.map((uv) => uv.unidadeSaudeId) || []
+      dados.unidadesVinculadas?.map((uv) => uv.unidadeSaudeId) ?? []
 
     return unidadesApi.filter((u) => {
       return (
@@ -158,7 +160,7 @@ export function BlocoUnidades({
   const valorCalculations = useMemo(() => {
     // Valor das unidades já vinculadas no contrato atual
     const valorJaVinculado = unidadesJaVinculadas.reduce(
-      (sum, unit) => sum + (unit.valorAtual || 0),
+      (sum, unit) => sum + (unit.valorAtual ?? 0),
       0,
     )
 
@@ -167,14 +169,14 @@ export function BlocoUnidades({
       dados.unidadesVinculadas?.reduce(
         (sum, unit) => sum + unit.valorAtribuido,
         0,
-      ) || 0
+      ) ?? 0
 
     // Valor das unidades sendo desvinculadas (precisa ser subtraído)
     const valorDesvinculado =
       dados.unidadesDesvinculadas?.reduce((sum, unitId) => {
         const unidade = unidadesJaVinculadas.find((u) => u.id === unitId)
-        return sum + (unidade?.valorAtual || 0)
-      }, 0) || 0
+        return sum + (unidade?.valorAtual ?? 0)
+      }, 0) ?? 0
 
     // Total distribuído após as alterações
     const valorTotalDistribuido =
@@ -225,7 +227,7 @@ export function BlocoUnidades({
 
   const handleSaveLinkedUnit = useCallback(
     (unidadeVinculada: UnidadeVinculada) => {
-      const vinculadas = [...(dados.unidadesVinculadas || []), unidadeVinculada]
+      const vinculadas = [...(dados.unidadesVinculadas ?? []), unidadeVinculada]
       handleFieldChange('unidadesVinculadas', vinculadas)
       setValueEditorUnit(null)
     },
@@ -241,7 +243,7 @@ export function BlocoUnidades({
 
   const handleDesvincularUnidade = useCallback(
     (unidadeId: string) => {
-      const desvinculadas = [...(dados.unidadesDesvinculadas || []), unidadeId]
+      const desvinculadas = [...(dados.unidadesDesvinculadas ?? []), unidadeId]
       handleFieldChange('unidadesDesvinculadas', desvinculadas)
     },
     [dados.unidadesDesvinculadas, handleFieldChange],
@@ -267,15 +269,15 @@ export function BlocoUnidades({
   // Verificar se tem alterações
   const temAlteracoes = useMemo(() => {
     return (
-      (dados.unidadesVinculadas?.length || 0) > 0 ||
-      (dados.unidadesDesvinculadas?.length || 0) > 0
+      (dados.unidadesVinculadas?.length ?? 0) > 0 ||
+      (dados.unidadesDesvinculadas?.length ?? 0) > 0
     )
   }, [dados])
 
   // Contar por tipo (simplificado)
   const contagemPorTipo = useMemo(() => {
-    const vinculadas = dados.unidadesVinculadas?.length || 0
-    const desvinculadas = dados.unidadesDesvinculadas?.length || 0
+    const vinculadas = dados.unidadesVinculadas?.length ?? 0
+    const desvinculadas = dados.unidadesDesvinculadas?.length ?? 0
     return { vinculadas, desvinculadas }
   }, [dados])
 
@@ -318,7 +320,7 @@ export function BlocoUnidades({
           )}
 
           {/* Contexto resumido do contrato atual */}
-          {(contractUnits?.demandingUnit || contractUnits?.managingUnit) && (
+          {(contractUnits?.demandingUnit ?? contractUnits?.managingUnit) && (
             <div className="flex items-center gap-2">
               {contractUnits.demandingUnit && (
                 <Badge variant="outline" className="text-xs">
@@ -461,8 +463,8 @@ export function BlocoUnidades({
 
       {/* Contexto de Unidades Atual do Contrato */}
       {contractUnits &&
-        (contractUnits.demandingUnit ||
-          contractUnits.managingUnit ||
+        (contractUnits.demandingUnit ??
+          contractUnits.managingUnit ??
           contractUnits.linkedUnits.length > 0) && (
           <Card className="border-teal-200 bg-teal-50">
             <CardContent className="pt-4">
@@ -478,7 +480,7 @@ export function BlocoUnidades({
                     Unidade Demandante
                   </Label>
                   <p className="font-medium text-teal-900">
-                    {contractUnits.demandingUnit || 'Não informado'}
+                    {contractUnits.demandingUnit ?? 'Não informado'}
                   </p>
                 </div>
                 <div>
@@ -486,7 +488,7 @@ export function BlocoUnidades({
                     Unidade Gestora
                   </Label>
                   <p className="font-medium text-teal-900">
-                    {contractUnits.managingUnit || 'Não informado'}
+                    {contractUnits.managingUnit ?? 'Não informado'}
                   </p>
                 </div>
               </div>
@@ -509,7 +511,7 @@ export function BlocoUnidades({
                             variant="outline"
                             className="bg-teal-100 text-xs text-teal-700"
                           >
-                            {unit.nome || `Unidade ${index + 1}`}
+                            {unit.nome ?? `Unidade ${index + 1}`}
                           </Badge>
                         ))}
                       {contractUnits.linkedUnits.length > 3 && (
@@ -564,7 +566,7 @@ export function BlocoUnidades({
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
-                      }).format(unidade.valorAtual || 0)}
+                      }).format(unidade.valorAtual ?? 0)}
                     </div>
                   </div>
 
@@ -709,7 +711,7 @@ export function BlocoUnidades({
 
       {/* Unidades vinculadas com valor */}
       <LinkedUnitsManager
-        unidadesVinculadas={dados.unidadesVinculadas || []}
+        unidadesVinculadas={dados.unidadesVinculadas ?? []}
         onChange={handleUpdateLinkedUnits}
         getUnitDetails={getUnitDetails}
         disabled={disabled}
@@ -719,7 +721,7 @@ export function BlocoUnidades({
 
       {/* Unidades desvinculadas */}
       <UnlinkedUnitsManager
-        unidadesDesvinculadas={dados.unidadesDesvinculadas || []}
+        unidadesDesvinculadas={dados.unidadesDesvinculadas ?? []}
         onChange={handleUpdateUnlinkedUnits}
         getUnitDetails={getUnitDetails}
         disabled={disabled}
@@ -735,7 +737,7 @@ export function BlocoUnidades({
             </Label>
             <Textarea
               id="observacoes-unidades"
-              value={dados.observacoes || ''}
+              value={dados.observacoes ?? ''}
               onChange={(e) => handleFieldChange('observacoes', e.target.value)}
               disabled={disabled}
               rows={3}
@@ -760,13 +762,13 @@ export function BlocoUnidades({
               Resumo das Alterações
             </h4>
             <div className="space-y-1 text-blue-800">
-              {(dados.unidadesVinculadas?.length || 0) > 0 && (
+              {(dados.unidadesVinculadas?.length ?? 0) > 0 && (
                 <div>
                   • {dados.unidadesVinculadas!.length} unidade(s) serão
                   vinculadas ao contrato
                 </div>
               )}
-              {(dados.unidadesDesvinculadas?.length || 0) > 0 && (
+              {(dados.unidadesDesvinculadas?.length ?? 0) > 0 && (
                 <div>
                   • {dados.unidadesDesvinculadas!.length} unidade(s) serão
                   desvinculadas do contrato
@@ -783,8 +785,8 @@ export function BlocoUnidades({
               )}
               <div className="mt-2 text-xs text-blue-600">
                 Total de alterações:{' '}
-                {(dados.unidadesVinculadas?.length || 0) +
-                  (dados.unidadesDesvinculadas?.length || 0)}{' '}
+                {(dados.unidadesVinculadas?.length ?? 0) +
+                  (dados.unidadesDesvinculadas?.length ?? 0)}{' '}
                 unidades
               </div>
             </div>
@@ -807,7 +809,7 @@ export function BlocoUnidades({
         disabled={disabled}
         mode={valueEditorUnit?.__editMode ? 'edit' : 'create'}
         existingValue={
-          valueEditorUnit?.__editMode ? valueEditorUnit?.valorAtual || 0 : 0
+          valueEditorUnit?.__editMode ? valueEditorUnit?.valorAtual ?? 0 : 0
         }
       />
     </div>

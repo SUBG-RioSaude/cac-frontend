@@ -5,6 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Package Manager
 Este projeto utiliza **pnpm exclusivamente**.
 
+
+##Regras
+
+SEMPRE programar de acordo com as regras de lint do projeto para evitar erros e redundâncias.
+
 ## Comandos principais:
 - `pnpm dev` - Servidor de desenvolvimento
 - `pnpm build` - Build de produção (inclui verificação TypeScript)

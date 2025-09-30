@@ -5,7 +5,7 @@ import type { LogContext, StructuredLogger } from './types'
 let loggerInstance: StructuredLogger
 
 export const getLogger = (): StructuredLogger => {
-  if (!loggerInstance) {
+  if (typeof loggerInstance === 'undefined') {
     loggerInstance = createLogger()
   }
   return loggerInstance
@@ -37,7 +37,7 @@ export const createHookLogger = (
   hook: string,
   module?: string,
 ): StructuredLogger => {
-  return logger.withContext({ module: module || 'hooks', component: hook })
+  return logger.withContext({ module: module ?? 'hooks', component: hook })
 }
 
 // Utility functions para contextos comuns
@@ -101,20 +101,20 @@ export const logError = (
       stack: error.stack,
       name: error.name,
     },
-    customMessage || error.message,
+    customMessage ?? error.message,
   )
 }
 
 export const logWarning = (warning: string, context?: LogContext): void => {
-  logger.warn(context || {}, warning)
+  logger.warn(context ?? {}, warning)
 }
 
 export const logInfo = (message: string, context?: LogContext): void => {
-  logger.info(context || {}, message)
+  logger.info(context ?? {}, message)
 }
 
 export const logDebug = (message: string, context?: LogContext): void => {
-  logger.debug(context || {}, message)
+  logger.debug(context ?? {}, message)
 }
 
 // Re-export types for convenience

@@ -1,5 +1,6 @@
-import { Button } from '@/components/ui/button'
 import { AlertTriangle, FileDown, X } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 
 interface ModalConfirmacaoExportacaoProps {
   isOpen: boolean
@@ -8,12 +9,12 @@ interface ModalConfirmacaoExportacaoProps {
   totalFornecedores: number
 }
 
-export function ModalConfirmacaoExportacao({
+export const ModalConfirmacaoExportacao = ({
   isOpen,
   onClose,
   onConfirm,
   totalFornecedores,
-}: ModalConfirmacaoExportacaoProps) {
+}: ModalConfirmacaoExportacaoProps) => {
   // Se não estiver aberto, não renderiza nada
   if (!isOpen) {
     return null
@@ -26,6 +27,14 @@ export function ModalConfirmacaoExportacao({
         data-testid="modal-overlay"
         className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            onClose()
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Fechar modal"
       />
 
       {/* Modal */}

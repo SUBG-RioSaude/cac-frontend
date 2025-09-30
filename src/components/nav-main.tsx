@@ -1,6 +1,6 @@
 import { ChevronRight, type LucideIcon } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import {
   Collapsible,
@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
-export function NavMain({
+export const NavMain = ({
   items,
 }: {
   items: {
@@ -33,7 +33,7 @@ export function NavMain({
       url: string
     }[]
   }[]
-}) {
+}) => {
   const location = useLocation()
   const navigate = useNavigate()
   const { state } = useSidebar()
@@ -50,12 +50,14 @@ export function NavMain({
 
     // Verifica se algum subitem está ativo
     if (subItems) {
-      return subItems.some((subItem) => location.pathname === subItem.url)
-    }
-
-    // Para itens com subitens, verifica se a URL atual começa com a URL do item
-    if (subItems && itemUrl !== '#' && itemUrl !== '/') {
-      return location.pathname.startsWith(itemUrl)
+      const hasActiveSubItem = subItems.some((subItem) => location.pathname === subItem.url)
+      if (hasActiveSubItem) {
+        return true
+      }
+      // Para itens com subitens, verifica se a URL atual começa com a URL do item
+      if (itemUrl !== '#' && itemUrl !== '/') {
+        return location.pathname.startsWith(itemUrl)
+      }
     }
 
     return false
@@ -127,7 +129,7 @@ export function NavMain({
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.items?.map((subItem) => {
+                        {item.items.map((subItem) => {
                           const isSubActive = isSubItemActive(subItem.url)
                           return (
                             <SidebarMenuSubItem key={subItem.title}>

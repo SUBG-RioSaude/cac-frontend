@@ -1,13 +1,14 @@
+import { Plus, Minus, Edit3, AlertCircle, Info } from 'lucide-react'
 import { useState, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DateDisplay } from '@/components/ui/formatters'
-import { Plus, Minus, Edit3, AlertCircle, Info } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import type { BlocoClausulas as IBlocoClausulas } from '../../../../types/alteracoes-contratuais'
 
@@ -28,14 +29,14 @@ interface BlocoClausulasProps {
   required?: boolean
 }
 
-export function BlocoClausulas({
+export const BlocoClausulas = ({
   dados = {},
   onChange,
   contractInfo,
   errors = {},
   disabled = false,
   required = false,
-}: BlocoClausulasProps) {
+}: BlocoClausulasProps) => {
   const [activeTab, setActiveTab] = useState('excluidas')
 
   const handleFieldChange = useCallback(
@@ -82,7 +83,7 @@ export function BlocoClausulas({
 
   const inserirTemplate = useCallback(
     (field: keyof IBlocoClausulas, template: string) => {
-      const valorAtual = dados[field] || ''
+      const valorAtual = dados[field] ?? ''
       const novoValor = valorAtual ? `${valorAtual}\n\n${template}` : template
       handleFieldChange(field, novoValor)
     },
@@ -139,7 +140,7 @@ export function BlocoClausulas({
                   Número do Contrato
                 </Label>
                 <p className="font-mono font-medium text-purple-900">
-                  {contractInfo.numeroContrato || 'Não informado'}
+                  {contractInfo.numeroContrato ?? 'Não informado'}
                 </p>
               </div>
               <div>
@@ -218,7 +219,7 @@ export function BlocoClausulas({
                 </Label>
                 <Textarea
                   id="clausulas-excluidas"
-                  value={dados.clausulasExcluidas || ''}
+                  value={dados.clausulasExcluidas ?? ''}
                   onChange={(e) =>
                     handleFieldChange('clausulasExcluidas', e.target.value)
                   }
@@ -282,7 +283,7 @@ export function BlocoClausulas({
                 </Label>
                 <Textarea
                   id="clausulas-incluidas"
-                  value={dados.clausulasIncluidas || ''}
+                  value={dados.clausulasIncluidas ?? ''}
                   onChange={(e) =>
                     handleFieldChange('clausulasIncluidas', e.target.value)
                   }
@@ -347,7 +348,7 @@ export function BlocoClausulas({
                 </Label>
                 <Textarea
                   id="clausulas-alteradas"
-                  value={dados.clausulasAlteradas || ''}
+                  value={dados.clausulasAlteradas ?? ''}
                   onChange={(e) =>
                     handleFieldChange('clausulasAlteradas', e.target.value)
                   }

@@ -5,8 +5,10 @@
 
 import { executeWithFallback } from '@/lib/axios'
 import { createServiceLogger } from '@/lib/logger'
+import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
 const logger = createServiceLogger('empresa-service')
+
 import type {
   EmpresaRequest,
   EmpresaResponse,
@@ -18,7 +20,6 @@ import type {
   ContatoResponse,
   PaginacaoFornecedoresApi,
 } from '../types/empresa'
-import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
 // ========== FUNÇÕES EXISTENTES (PRESERVADAS) ==========
 
@@ -34,7 +35,7 @@ export async function cadastrarEmpresa(
       empresaData: {
         cnpj: dadosEmpresa.cnpj,
         razaoSocial: dadosEmpresa.razaoSocial,
-        hasContacts: dadosEmpresa.contatos?.length > 0,
+        hasContacts: dadosEmpresa.contatos.length > 0,
       },
     },
     'Iniciando cadastro de empresa',
@@ -45,7 +46,7 @@ export async function cadastrarEmpresa(
     method: 'post',
     url: '/Empresas',
     data: dadosEmpresa,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
 
   // Log da resposta da API
@@ -131,14 +132,14 @@ export async function consultarEmpresaPorCNPJ(
     const response = await executeWithFallback<EmpresaResponse>({
       method: 'get',
       url: `/Empresas/cnpj/${cnpj}`,
-      baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+      baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
     })
     return response.data
   } catch (error) {
     // Se retornar 404, significa que a empresa não foi encontrada
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response: { status: number } }
-      if (axiosError.response?.status === 404) {
+      if (axiosError.response.status === 404) {
         return null
       }
     }
@@ -159,11 +160,11 @@ export async function getEmpresas(
     method: 'get',
     url: '/Empresas',
     params: {
-      pagina: parametros?.pagina || 1,
-      tamanhoPagina: parametros?.tamanhoPagina || 10,
+      pagina: parametros?.pagina ?? 1,
+      tamanhoPagina: parametros?.tamanhoPagina ?? 10,
       ...parametros,
     },
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
   return response.data
 }
@@ -176,7 +177,7 @@ export async function getEmpresaById(id: string): Promise<EmpresaResponse> {
   const response = await executeWithFallback<EmpresaResponse>({
     method: 'get',
     url: `/Empresas/${id}`,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
   return response.data
 }
@@ -193,7 +194,7 @@ export async function updateEmpresa(
     method: 'put',
     url: `/Empresas/${id}`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
   return response.data
 }
@@ -206,7 +207,7 @@ export async function deleteEmpresa(id: string): Promise<void> {
   await executeWithFallback({
     method: 'delete',
     url: `/Empresas/${id}`,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
 }
 
@@ -214,11 +215,11 @@ export async function deleteEmpresa(id: string): Promise<void> {
  * Busca status de empresas
  * GET /api/Empresas/status
  */
-export async function getEmpresasStatus(): Promise<{ [key: string]: number }> {
-  const response = await executeWithFallback<{ [key: string]: number }>({
+export async function getEmpresasStatus(): Promise<Record<string, number>> {
+  const response = await executeWithFallback<Record<string, number>>({
     method: 'get',
     url: '/Empresas/status',
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
   return response.data
 }
@@ -237,7 +238,7 @@ export async function createContato(
     method: 'post',
     url: `/empresas/${empresaId}/contatos`,
     data: contato,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
   return response.data
 }
@@ -255,7 +256,7 @@ export async function updateContato(
     method: 'put',
     url: `/empresas/${empresaId}/contatos/${contatoId}`,
     data: contato,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
   return response.data
 }
@@ -271,7 +272,7 @@ export async function deleteContato(
   await executeWithFallback({
     method: 'delete',
     url: `/empresas/${empresaId}/contatos/${contatoId}`,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
 }
 
@@ -285,8 +286,8 @@ export async function getFornecedoresResumo(
   filtros?: FiltrosFornecedorApi,
 ): Promise<PaginacaoFornecedoresApi> {
   const params = {
-    pagina: filtros?.pagina || 1,
-    tamanhoPagina: filtros?.tamanhoPagina || 10,
+    pagina: filtros?.pagina ?? 1,
+    tamanhoPagina: filtros?.tamanhoPagina ?? 10,
     ...(filtros?.cnpj && { cnpj: filtros.cnpj }),
     ...(filtros?.razaoSocial && { razaoSocial: filtros.razaoSocial }),
     ...(filtros?.status && { status: filtros.status }),
@@ -306,7 +307,7 @@ export async function getFornecedoresResumo(
     method: 'get',
     url: '/empresas/resumo-contratos',
     params,
-    baseURL: import.meta.env.VITE_API_URL_EMPRESA,
+    baseURL: import.meta.env.VITE_API_URL_EMPRESA as string,
   })
 
   return response.data
