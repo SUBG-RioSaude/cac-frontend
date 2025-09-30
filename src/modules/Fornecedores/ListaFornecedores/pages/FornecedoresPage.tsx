@@ -233,7 +233,7 @@ export default function FornecedoresListPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <SearchAndFiltersFornecedores 
+          <SearchAndFiltersFornecedores
           onFiltrosChange={useCallback((novosFiltros: FiltrosFornecedorApi) => {
             setFiltros(prev => {
               // Verifica se já possui paginação nos novos filtros
@@ -252,6 +252,7 @@ export default function FornecedoresListPage() {
           }, [])}
           filtrosAtivos={filtros}
           isLoading={isFetching}
+          totalResultados={apiResponse?.totalItens}
         />
         </motion.div>
 
