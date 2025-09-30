@@ -5,9 +5,9 @@ name: 🎨 CI/CD - Frontend CAC
 
 on:
   push:
-    branches: [ develop, staging, main ]
+    branches: [develop, staging, master]
   pull_request:
-    branches: [ develop, staging, main ]
+    branches: [develop, staging, master]
 
 env:
   REGISTRY: docker.io
@@ -18,60 +18,60 @@ jobs:
   quality-check:
     name: 🧪 Quality Check & Tests
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
 
-    - name: 📦 Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        run_install: false
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
 
-    - name: 🔧 Setup Node.js 20
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
+      - name: 🔧 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
-    - name: 📦 Install Dependencies
-      run: pnpm install --frozen-lockfile
+      - name: 📦 Install Dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: 🔍 Code Quality Check
-      run: |
-        echo "🔍 Running ESLint..."
-        pnpm lint
-        echo "✅ ESLint passed!"
+      - name: 🔍 Code Quality Check
+        run: |
+          echo "🔍 Running ESLint..."
+          pnpm lint
+          echo "✅ ESLint passed!"
 
-    - name: 🎨 Format Check
-      continue-on-error: true
-      run: |
-        echo "🎨 Checking code formatting..."
-        if pnpm format:check; then
-          echo "✅ Code formatting is correct!"
-        else
-          echo "⚠️ Code formatting issues found - consider running 'pnpm format'"
-          echo "::warning::Code formatting issues detected. Run 'pnpm format' to fix automatically."
-        fi
+      - name: 🎨 Format Check
+        continue-on-error: true
+        run: |
+          echo "🎨 Checking code formatting..."
+          if pnpm format:check; then
+            echo "✅ Code formatting is correct!"
+          else
+            echo "⚠️ Code formatting issues found - consider running 'pnpm format'"
+            echo "::warning::Code formatting issues detected. Run 'pnpm format' to fix automatically."
+          fi
 
-    # 💡 DESCOMENTE PARA TORNAR FORMATAÇÃO OBRIGATÓRIA:
-    # - name: 🎨 Format Check (Strict)
-    #   run: |
-    #     echo "🎨 Checking code formatting (strict mode)..."
-    #     pnpm format:check
-    #     echo "✅ Code formatting is correct!"
+      # 💡 DESCOMENTE PARA TORNAR FORMATAÇÃO OBRIGATÓRIA:
+      # - name: 🎨 Format Check (Strict)
+      #   run: |
+      #     echo "🎨 Checking code formatting (strict mode)..."
+      #     pnpm format:check
+      #     echo "✅ Code formatting is correct!"
 
-    - name: 🏗️ TypeScript Build Check
-      run: |
-        echo "🏗️ Checking TypeScript compilation..."
-        pnpm build
-        echo "✅ TypeScript build successful!"
+      - name: 🏗️ TypeScript Build Check
+        run: |
+          echo "🏗️ Checking TypeScript compilation..."
+          pnpm build
+          echo "✅ TypeScript build successful!"
 
-    - name: 🧪 Run Tests
-      run: |
-        echo "🧪 Running Vitest tests..."
-        pnpm test --run --reporter=verbose --coverage=false
-        echo "✅ All tests passed!"
+      - name: 🧪 Run Tests
+        run: |
+          echo "🧪 Running Vitest tests..."
+          pnpm test --run --reporter=verbose --coverage=false
+          echo "✅ All tests passed!"
 
   # 🐳 BUILD E PUSH VERSIONADO
   build-and-push:
@@ -79,101 +79,101 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality-check
     if: github.event_name == 'push'
-    
+
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
 
-    - name: 🔧 Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: 🔐 Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: 🏷️ Generate Version Tags
-      id: meta
-      run: |
-        # Gera timestamp para versionamento
-        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-        BRANCH_NAME=$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g')
-        
-        # Tags baseadas na branch
-        BASE_TAG="${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}"
-        
-        if [[ "${{ github.ref_name }}" == "main" ]]; then
-          # Production: v1.0.0, v1.0.0-abc1234, latest
-          VERSION="v1.0.${GITHUB_RUN_NUMBER}"
-          TAGS="${BASE_TAG}:${VERSION}"
-          TAGS="${TAGS},${BASE_TAG}:${VERSION}-${SHORT_SHA}"
-          TAGS="${TAGS},${BASE_TAG}:latest"
-          TAGS="${TAGS},${BASE_TAG}:stable"
-        elif [[ "${{ github.ref_name }}" == "staging" ]]; then
-          # Staging: staging-v1.0.0, staging-timestamp
-          VERSION="staging-v1.0.${GITHUB_RUN_NUMBER}"
-          TAGS="${BASE_TAG}:${VERSION}"
-          TAGS="${TAGS},${BASE_TAG}:staging-${TIMESTAMP}"
-          TAGS="${TAGS},${BASE_TAG}:staging"
-        else
-          # Development: develop-timestamp, develop-sha
-          TAGS="${BASE_TAG}:develop-${TIMESTAMP}"
-          TAGS="${TAGS},${BASE_TAG}:develop-${SHORT_SHA}"
-          TAGS="${TAGS},${BASE_TAG}:develop"
-        fi
-        
-        echo "🏷️ Tags geradas: ${TAGS}"
-        echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-        echo "version=${VERSION:-develop-${TIMESTAMP}}" >> $GITHUB_OUTPUT
-        echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+      - name: 🏷️ Generate Version Tags
+        id: meta
+        run: |
+          # Gera timestamp para versionamento
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          BRANCH_NAME=$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g')
 
-    - name: 🐳 Build and Push to Docker Hub
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: Dockerfile
-        platforms: linux/amd64
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          NODE_ENV=production
-          BUILD_TIME=${{ steps.meta.outputs.timestamp }}
-        labels: |
-          org.opencontainers.image.title=CAC Frontend
-          org.opencontainers.image.description=Interface React/TypeScript para o sistema CAC
-          org.opencontainers.image.source=${{ github.repositoryUrl }}
-          org.opencontainers.image.revision=${{ github.sha }}
-          org.opencontainers.image.version=${{ steps.meta.outputs.version }}
-          org.opencontainers.image.created=${{ steps.meta.outputs.timestamp }}
+          # Tags baseadas na branch
+          BASE_TAG="${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}"
 
-    - name: 📋 Summary
-      run: |
-        echo "## 🎉 Build Concluído com Sucesso!" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📦 Imagem Gerada:" >> $GITHUB_STEP_SUMMARY
-        echo "- **Versão:** \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Tags:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🐳 Como usar:" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🌐 Tecnologias:" >> $GITHUB_STEP_SUMMARY
-        echo "- **React 19** + TypeScript 5.8" >> $GITHUB_STEP_SUMMARY
-        echo "- **Vite 7** + TailwindCSS 4" >> $GITHUB_STEP_SUMMARY
-        echo "- **shadcn/ui** + Radix UI" >> $GITHUB_STEP_SUMMARY
-        echo "- **pnpm** + Vitest" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY
-        echo "- [Docker Hub](https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
-        echo "- [Repositório](${{ github.repositoryUrl }})" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            # Production: v1.0.0, v1.0.0-abc1234, latest
+            VERSION="v1.0.${GITHUB_RUN_NUMBER}"
+            TAGS="${BASE_TAG}:${VERSION}"
+            TAGS="${TAGS},${BASE_TAG}:${VERSION}-${SHORT_SHA}"
+            TAGS="${TAGS},${BASE_TAG}:latest"
+            TAGS="${TAGS},${BASE_TAG}:stable"
+          elif [[ "${{ github.ref_name }}" == "staging" ]]; then
+            # Staging: staging-v1.0.0, staging-timestamp
+            VERSION="staging-v1.0.${GITHUB_RUN_NUMBER}"
+            TAGS="${BASE_TAG}:${VERSION}"
+            TAGS="${TAGS},${BASE_TAG}:staging-${TIMESTAMP}"
+            TAGS="${TAGS},${BASE_TAG}:staging"
+          else
+            # Development: develop-timestamp, develop-sha
+            TAGS="${BASE_TAG}:develop-${TIMESTAMP}"
+            TAGS="${TAGS},${BASE_TAG}:develop-${SHORT_SHA}"
+            TAGS="${TAGS},${BASE_TAG}:develop"
+          fi
+
+          echo "🏷️ Tags geradas: ${TAGS}"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION:-develop-${TIMESTAMP}}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+      - name: 🐳 Build and Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+            BUILD_TIME=${{ steps.meta.outputs.timestamp }}
+          labels: |
+            org.opencontainers.image.title=CAC Frontend
+            org.opencontainers.image.description=Interface React/TypeScript para o sistema CAC
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.timestamp }}
+
+      - name: 📋 Summary
+        run: |
+          echo "## 🎉 Build Concluído com Sucesso!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Imagem Gerada:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Versão:** \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tags:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Como usar:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🌐 Tecnologias:" >> $GITHUB_STEP_SUMMARY
+          echo "- **React 19** + TypeScript 5.8" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vite 7** + TailwindCSS 4" >> $GITHUB_STEP_SUMMARY
+          echo "- **shadcn/ui** + Radix UI" >> $GITHUB_STEP_SUMMARY
+          echo "- **pnpm** + Vitest" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY
+          echo "- [Docker Hub](https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [Repositório](${{ github.repositoryUrl }})" >> $GITHUB_STEP_SUMMARY
 
   # 🔍 ANÁLISE DE SEGURANÇA E QUALIDADE
   security-analysis:
@@ -181,33 +181,33 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality-check
     if: github.event_name == 'push' && github.ref_name == 'main'
-    
+
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
 
-    - name: 📦 Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        run_install: false
+      - name: 📦 Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
 
-    - name: 🔧 Setup Node.js 20
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
+      - name: 🔧 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
-    - name: 📦 Install Dependencies
-      run: pnpm install --frozen-lockfile
+      - name: 📦 Install Dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: 🔍 Audit Dependencies
-      run: |
-        echo "🔍 Verificando vulnerabilidades nas dependências..."
-        pnpm audit || echo "⚠️ Vulnerabilidades encontradas - revisar antes do deploy"
+      - name: 🔍 Audit Dependencies
+        run: |
+          echo "🔍 Verificando vulnerabilidades nas dependências..."
+          pnpm audit || echo "⚠️ Vulnerabilidades encontradas - revisar antes do deploy"
 
-    - name: 📊 Bundle Size Analysis
-      run: |
-        echo "📊 Analisando tamanho do bundle..."
-        pnpm build
-        echo "📁 Arquivos gerados:"
-        ls -la dist/assets/ || echo "Diretório dist não encontrado"
+      - name: 📊 Bundle Size Analysis
+        run: |
+          echo "📊 Analisando tamanho do bundle..."
+          pnpm build
+          echo "📁 Arquivos gerados:"
+          ls -la dist/assets/ || echo "Diretório dist não encontrado"
