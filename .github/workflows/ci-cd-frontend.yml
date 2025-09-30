@@ -104,7 +104,7 @@ jobs:
           # Tags baseadas na branch
           BASE_TAG="${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}"
 
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
+          if [[ "${{ github.ref_name }}" == "master" ]]; then
             # Production: v1.0.0, v1.0.0-abc1234, latest
             VERSION="v1.0.${GITHUB_RUN_NUMBER}"
             TAGS="${BASE_TAG}:${VERSION}"
@@ -180,7 +180,7 @@ jobs:
     name: 🔍 Security & Quality Analysis
     runs-on: ubuntu-latest
     needs: quality-check
-    if: github.event_name == 'push' && github.ref_name == 'main'
+    if: github.event_name == 'push' && github.ref_name == 'master'
 
     steps:
       - name: 📥 Checkout Code
