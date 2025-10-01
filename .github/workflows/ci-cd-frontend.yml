@@ -5,9 +5,9 @@ name: 🎨 CI/CD - Frontend CAC
 
 on:
   push:
-    branches: [ develop, staging, master ]
+    branches: [develop, staging, master]
   pull_request:
-    branches: [ develop, staging, master ]
+    branches: [develop, staging, master]
 
 env:
   REGISTRY: docker.io
@@ -40,7 +40,7 @@ jobs:
       - name: 🔍 Code Quality Check
         run: |
           echo "🔍 Running ESLint..."
-          pnpm lint
+          pnpm lint --fix
           echo "✅ ESLint passed!"
 
       - name: 🎨 Format Check
