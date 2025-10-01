@@ -64,7 +64,7 @@ const UnidadesFormMelhorado = ({
 
   // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
   useEffect(() => {
-    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
+    if (Object.keys(dadosIniciais).length > 0) {
       setDadosUnidades({
         unidades: [],
         observacoes: '',
@@ -96,7 +96,7 @@ const UnidadesFormMelhorado = ({
       return { valor: false, percentual: false }
     }
 
-    const estado = camposTravados[unidadeId] || {
+    const estado = camposTravados[unidadeId] ?? {
       valor: false,
       percentual: false,
     }
@@ -114,7 +114,7 @@ const UnidadesFormMelhorado = ({
     }
 
     setCamposTravados((prev) => {
-      const estadoAtual = prev[unidadeId] || { valor: false, percentual: false }
+      const estadoAtual = prev[unidadeId] ?? { valor: false, percentual: false }
       const novoEstado = {
         ...prev,
         [unidadeId]: {

@@ -65,10 +65,18 @@ export function clearAuthCookies(): void {
   cookieUtils.removeCookie('auth_refresh_token')
 }
 
+// Interface para payload do JWT
+interface JWTPayload {
+  exp: number
+  iat: number
+  sub: string
+  email: string
+}
+
 // Função para validar se um token está próximo de expirar
 export function isTokenNearExpiry(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split('.')[1])) as JWTPayload
     const exp = payload.exp * 1000 // Converte para milissegundos
     const now = Date.now()
     const timeUntilExpiry = exp - now
@@ -83,7 +91,7 @@ export function isTokenNearExpiry(token: string): boolean {
 // Função para obter informações do token (sem validação de assinatura)
 export function getTokenInfo(token: string) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split('.')[1])) as JWTPayload
     return {
       exp: new Date(payload.exp * 1000),
       iat: new Date(payload.iat * 1000),

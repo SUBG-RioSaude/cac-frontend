@@ -169,12 +169,15 @@ const BuscaUnidadeInteligente = ({
   const destacarTexto = (texto: string, termo: string) => {
     if (!termo) return texto
 
-    const regex = new RegExp(`(${termo})`, 'gi')
+    // Escapar caracteres especiais do regex
+    const termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex = new RegExp(`(${termoEscapado})`, 'gi')
     const partes = texto.split(regex)
 
-    return partes.map((parte, index) =>
+    return partes.map((parte) =>
       regex.test(parte) ? (
-        <mark key={index} className="rounded bg-blue-200 px-1 text-blue-900">
+        <mark key={`highlight-${parte}`} className="rounded bg-blue-200 px-1 text-blue-900">
           {parte}
         </mark>
       ) : (

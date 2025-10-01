@@ -184,16 +184,16 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
  * Verifica se um campo requer confirmação
  */
 export function requiresConfirmation(fieldKey: string): boolean {
-  const config = EDITABLE_FIELDS_CONFIG[fieldKey]
-  return config ? config.requiresConfirmation : false
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return EDITABLE_FIELDS_CONFIG[fieldKey]?.requiresConfirmation ?? false
 }
 
 /**
  * Verifica se um campo é crítico
  */
 export function isCriticalField(fieldKey: string): boolean {
-  const config = EDITABLE_FIELDS_CONFIG[fieldKey]
-  return config ? config.isCritical : false
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return EDITABLE_FIELDS_CONFIG[fieldKey]?.isCritical ?? false
 }
 
 /**
@@ -209,8 +209,8 @@ export function getFieldConfig(
  * Obtém o label de um campo
  */
 export function getFieldLabel(fieldKey: string): string {
-  const config = EDITABLE_FIELDS_CONFIG[fieldKey]
-  return config ? config.label : fieldKey
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return EDITABLE_FIELDS_CONFIG[fieldKey]?.label ?? fieldKey
 }
 
 // Agrupamento de campos por seção
@@ -237,6 +237,6 @@ export const FIELD_GROUPS = {
 }
 
 export function getFieldsInGroup(groupKey: string): string[] {
-  const group = FIELD_GROUPS[groupKey as keyof typeof FIELD_GROUPS]
-  return group ?? []
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return FIELD_GROUPS[groupKey as keyof typeof FIELD_GROUPS] ?? []
 }

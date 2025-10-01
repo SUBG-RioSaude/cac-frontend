@@ -226,6 +226,13 @@ export const BlocoVigencia = ({
   const operacaoSelecionada =
     dados.operacao !== undefined ? OPERACOES_CONFIG[dados.operacao] : null
 
+  const startDate = contractTerms?.startDate ?? null
+  const endDate = contractTerms?.endDate ?? null
+  const isContractActive = contractTerms?.isActive ?? false
+  const hasContractDates = contractTerms
+    ? Boolean(startDate ?? endDate)
+    : false
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -246,7 +253,7 @@ export const BlocoVigencia = ({
       </div>
 
       {/* Contexto de Vigência Atual do Contrato */}
-      {contractTerms && (contractTerms.startDate ?? contractTerms.endDate) && (
+      {contractTerms && hasContractDates && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-4">
             <div className="mb-3">
@@ -259,8 +266,8 @@ export const BlocoVigencia = ({
               <div>
                 <Label className="text-xs text-green-600">Data de Início</Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.startDate ? (
-                    <DateDisplay value={contractTerms.startDate} />
+                  {startDate ? (
+                    <DateDisplay value={startDate} />
                   ) : (
                     'Não informado'
                   )}
@@ -271,8 +278,8 @@ export const BlocoVigencia = ({
                   Data de Término
                 </Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.endDate ? (
-                    <DateDisplay value={contractTerms.endDate} />
+                  {endDate ? (
+                    <DateDisplay value={endDate} />
                   ) : (
                     'Não informado'
                   )}
@@ -281,10 +288,10 @@ export const BlocoVigencia = ({
               <div>
                 <Label className="text-xs text-green-600">Duração Total</Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.startDate && contractTerms.endDate
+                  {startDate && endDate
                     ? (() => {
-                        const inicio = new Date(contractTerms.startDate)
-                        const fim = new Date(contractTerms.endDate)
+                        const inicio = new Date(startDate)
+                        const fim = new Date(endDate)
                         const diffTime = fim.getTime() - inicio.getTime()
                         const diffDays = Math.ceil(
                           diffTime / (1000 * 60 * 60 * 24),
@@ -300,26 +307,26 @@ export const BlocoVigencia = ({
                 <p
                   className={cn(
                     'flex items-center gap-1 font-medium',
-                    contractTerms.isActive ? 'text-green-700' : 'text-red-700',
+                    isContractActive ? 'text-green-700' : 'text-red-700',
                   )}
                 >
                   <div
                     className={cn(
                       'h-2 w-2 rounded-full',
-                      contractTerms.isActive ? 'bg-green-500' : 'bg-red-500',
+                      isContractActive ? 'bg-green-500' : 'bg-red-500',
                     )}
                   />
-                  {contractTerms.isActive ? 'Ativo' : 'Vencido'}
+                  {isContractActive ? 'Ativo' : 'Vencido'}
                 </p>
               </div>
             </div>
-            {contractTerms.endDate && (
+            {endDate && (
               <div className="mt-3 border-t border-green-200 pt-3">
                 <Label className="text-xs text-green-600">Tempo Restante</Label>
                 <p className="font-medium text-green-900">
                   {(() => {
                     const hoje = new Date()
-                    const fim = new Date(contractTerms.endDate)
+                    const fim = new Date(endDate)
                     const diffTime = fim.getTime() - hoje.getTime()
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
@@ -356,8 +363,8 @@ export const BlocoVigencia = ({
                     Data de Término Atual
                   </Label>
                   <p className="text-lg font-medium text-gray-900">
-                    {contractTerms.endDate ? (
-                      <DateDisplay value={contractTerms.endDate} />
+                    {endDate ? (
+                      <DateDisplay value={endDate} />
                     ) : (
                       'N/A'
                     )}
@@ -387,7 +394,7 @@ export const BlocoVigencia = ({
                     dados.novaDataFinal ? (
                       <DateDisplay value={dados.novaDataFinal} />
                     ) : dados.valorTempo && dados.tipoUnidade !== undefined ? (
-                      `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade]?.label?.toLowerCase()}`
+                      `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade].label.toLowerCase()}`
                     ) : (
                       'N/A'
                     )}
@@ -675,8 +682,7 @@ export const BlocoVigencia = ({
                           )}
                         />
 
-                        {vigenciaOriginal &&
-                          dados.valorTempo &&
+                        {dados.valorTempo !== undefined &&
                           dados.tipoUnidade !== undefined && (
                             <div className="rounded-md bg-blue-50 p-3 text-sm">
                               <div className="space-y-1 text-blue-800">

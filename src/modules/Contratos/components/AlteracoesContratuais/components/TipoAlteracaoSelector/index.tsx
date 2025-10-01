@@ -194,12 +194,11 @@ export const TipoAlteracaoSelector = ({
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {tiposOrdenados.map((config: TipoAlteracaoConfig) => {
               const Icon =
-                ICONES_MAP[config.icone as keyof typeof ICONES_MAP] || FileText
+                ICONES_MAP[config.icone as keyof typeof ICONES_MAP]
               const isSelected = tiposSelecionados.includes(config.tipo)
               const isEnabled = tiposHabilitados.has(config.tipo)
               const corClasse =
-                CORES_MAP[config.cor as keyof typeof CORES_MAP] ||
-                CORES_MAP.gray
+                CORES_MAP[config.cor as keyof typeof CORES_MAP]
 
               return (
                 <motion.button
@@ -401,8 +400,8 @@ export const TipoAlteracaoSelector = ({
                             </span>
                             <ul className="mt-1 ml-2 list-inside list-disc text-gray-600">
                               {config.exemplos.map(
-                                (exemplo: string, index: number) => (
-                                  <li key={index} className="text-xs">
+                                (exemplo: string) => (
+                                  <li key={exemplo} className="text-xs">
                                     {exemplo}
                                   </li>
                                 ),

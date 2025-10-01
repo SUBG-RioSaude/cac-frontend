@@ -20,7 +20,7 @@ vi.mock('@/lib/utils', () => ({
   },
   percentualUtils: {
     formatar: vi.fn((valor: number) => {
-      if (isNaN(valor) || valor === null || valor === undefined) return '0'
+      if (isNaN(valor)) return '0'
       const numeroFormatado = Number(valor.toFixed(2))
       return numeroFormatado.toString()
     }),
@@ -34,7 +34,7 @@ vi.mock('@/lib/utils', () => ({
       return true
     }),
     validarComMensagem: vi.fn((valor: string | number) => {
-      if (valor === '' || valor === null || valor === undefined)
+      if (valor === '')
         return 'Percentual é obrigatório'
       const valorStr = valor.toString().replace(',', '.')
       const numero = parseFloat(valorStr)

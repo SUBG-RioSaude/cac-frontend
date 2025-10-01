@@ -437,8 +437,8 @@ function renderDetalhesAlteracao(
   }
 
   // Para entradas da nova API, usar os dados estruturados
+  if (!entrada.dados) return null
   const alteracao = entrada.dados as unknown as AlteracaoContrato
-  if (alteracao === null || alteracao === undefined) return null
 
   const sections = []
 
@@ -592,9 +592,9 @@ function renderDetalhesAlteracao(
               <span className="font-medium">Vinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.fornecedores.fornecedoresVinculados?.map(
-                  (id: string, idx: number) => (
+                  (id: string) => (
                     <SmartBadge
-                      key={id ?? `forn-vinc-${idx}`}
+                      key={id}
                       result={getEmpresaNome(id)}
                       variant="default"
                     />
@@ -609,9 +609,9 @@ function renderDetalhesAlteracao(
               <span className="font-medium">Desvinculados:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.fornecedores.fornecedoresDesvinculados?.map(
-                  (id: string, idx: number) => (
+                  (id: string) => (
                     <SmartBadge
-                      key={id ?? `forn-desv-${idx}`}
+                      key={id}
                       result={getEmpresaNome(id)}
                       variant="destructive"
                     />
@@ -683,7 +683,6 @@ function renderDetalhesAlteracao(
                           id?: string
                           valorAtribuido?: number
                         },
-                    idx: number,
                   ) => {
                     // Extrair o ID correto, seja string direta ou objeto com unidadeSaudeId
                     const unidadeId =
@@ -697,7 +696,7 @@ function renderDetalhesAlteracao(
                     const nomeResult = getUnidadeNome(unidadeId)
 
                     return (
-                      <div key={unidadeId ?? `unid-vinc-${idx}`} className="flex items-center">
+                      <div key={unidadeId} className="flex items-center">
                         <SmartBadge result={nomeResult} variant="default" />
                         {typeof unidade === 'object' &&
                           unidade.valorAtribuido && (
@@ -719,9 +718,9 @@ function renderDetalhesAlteracao(
               <span className="font-medium">Desvinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alteracao.unidades.unidadesDesvinculadas?.map(
-                  (id: string, idx: number) => (
+                  (id: string) => (
                     <SmartBadge
-                      key={id ?? `unid-desv-${idx}`}
+                      key={id}
                       result={getUnidadeNome(id)}
                       variant="destructive"
                     />
@@ -822,7 +821,7 @@ export const RegistroAlteracoes = ({
   // Build lookup of empresa IDs -> razão social to enrich fornecedores section
   const fornecedoresIds = useMemo(() => {
     const ids: string[] = []
-    for (const alt of alteracoes ?? []) {
+    for (const alt of alteracoes) {
       if (alt.fornecedores) {
         if (Array.isArray(alt.fornecedores.fornecedoresVinculados)) {
           ids.push(...alt.fornecedores.fornecedoresVinculados.filter(Boolean))
@@ -857,7 +856,8 @@ export const RegistroAlteracoes = ({
           fullId: idStr,
         }
       }
-      const nome = empresasLookup.data[idStr]?.razaoSocial ?? null
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const nome = empresasLookup.data[idStr]?.razaoSocial
       if (!nome) {
         return {
           nome: `ID: ${idStr.slice(-8)}`,
@@ -873,7 +873,7 @@ export const RegistroAlteracoes = ({
   // Build lookup of unidades IDs -> nome to enrich unidades section
   const unidadesIds = useMemo(() => {
     const ids: string[] = []
-    for (const alt of alteracoes ?? []) {
+    for (const alt of alteracoes) {
       if (alt.unidades) {
         // Extrair IDs das unidades vinculadas (podem ser strings ou objetos)
         if (alt.unidades.unidadesVinculadas) {
@@ -882,6 +882,7 @@ export const RegistroAlteracoes = ({
               const id =
                 typeof unidade === 'string'
                   ? unidade
+                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                   : (unidade.unidadeSaudeId ?? unidade.id)
               if (id) ids.push(String(id))
             },
@@ -914,7 +915,7 @@ export const RegistroAlteracoes = ({
           fullId: idStr,
         }
       }
-      const nome = unidadesLookup.data[idStr]?.nome ?? null
+      const nome = unidadesLookup.data[idStr]?.nome
       if (!nome) {
         return {
           nome: `ID: ${idStr.slice(-8)}`,
@@ -943,6 +944,7 @@ export const RegistroAlteracoes = ({
     }
 
     // Fallback para strings antigas
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     return String(alteracao.status ?? 'indefinido').toLowerCase()
   }
 
@@ -1043,20 +1045,21 @@ export const RegistroAlteracoes = ({
 
   // Converter histórico de funcionários para formato unificado
   const funcionariosUnificados: EntradaUnificada[] = useMemo(() => {
-    if (!historicoFuncionarios?.length) return []
+    if (!historicoFuncionarios.length) return []
 
     // Criar entradas baseadas nas mudanças de funcionários
     const entradas: EntradaUnificada[] = []
 
     // Agrupar por funcionário e tipo para detectar padrões
-    const funcionariosPorTipo = historicoFuncionarios.reduce(
+    const funcionariosPorTipo = historicoFuncionarios.reduce<Record<string, HistoricoFuncionario[]>>(
       (acc, hist) => {
         const key = `${hist.funcionarioId}-${hist.tipoGerencia}`
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!acc[key]) acc[key] = []
         acc[key].push(hist)
         return acc
       },
-      {} as Record<string, HistoricoFuncionario[]>,
+      {},
     )
 
     // Para cada funcionário/tipo, criar eventos baseados nas transições
@@ -1083,10 +1086,12 @@ export const RegistroAlteracoes = ({
         const matricula = funcionarioMatricula
 
         // Entrada para adição/início do período
+        const periodoAnterior = periodosOrdenados[index - 1]
         if (
           index === 0 ||
-          !periodosOrdenados[index - 1] ||
-          new Date(periodosOrdenados[index - 1].dataFim ?? '').getTime() <
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          !periodoAnterior ||
+          new Date(periodoAnterior.dataFim ?? '').getTime() <
             new Date(dataInicio).getTime() - 86400000
         ) {
           // Novo período (não é continuação)
@@ -1127,6 +1132,7 @@ export const RegistroAlteracoes = ({
         // Detectar substituições (quando há um período seguinte imediatamente)
         const proximoPeriodo = periodosOrdenados[index + 1]
         if (
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           proximoPeriodo &&
           dataFim &&
           Math.abs(
@@ -1263,6 +1269,7 @@ export const RegistroAlteracoes = ({
       reajuste: Calculator,
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const Icone = icones[tipo as keyof typeof icones] ?? Info
     return <Icone className="h-5 w-5" />
   }
@@ -1277,7 +1284,7 @@ export const RegistroAlteracoes = ({
         critica: 'bg-red-100 text-red-600',
       }
       return (
-        coresPrioridade[prioridade as keyof typeof coresPrioridade] ??
+        coresPrioridade[prioridade as keyof typeof coresPrioridade] ||
         'bg-gray-100 text-gray-600'
       )
     }
@@ -1557,9 +1564,9 @@ export const RegistroAlteracoes = ({
                         {/* Tags */}
                         {entrada.tags && entrada.tags.length > 0 && (
                           <div className="mb-3 flex flex-wrap gap-1">
-                            {entrada.tags.map((tag, i) => (
+                            {entrada.tags.map((tag) => (
                               <Badge
-                                key={`tag-${tag}-${entrada.id}-${i}`}
+                                key={`tag-${tag}-${entrada.id}`}
                                 variant="secondary"
                                 className="text-xs"
                               >

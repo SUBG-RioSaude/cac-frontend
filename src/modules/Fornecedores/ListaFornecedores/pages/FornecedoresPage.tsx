@@ -127,7 +127,7 @@ const FornecedoresListPage = () => {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
   }
 
   const handleExportarTodos = () => {
@@ -152,7 +152,7 @@ const FornecedoresListPage = () => {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
 
     setModalExportacaoAberto(false)
   }
@@ -231,12 +231,10 @@ const FornecedoresListPage = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <SearchAndFiltersFornecedores
-            onFiltrosChange={useCallback(
-              (novosFiltros: FiltrosFornecedorApi) => {
-                setFiltros((prev) => {
-                  // Verifica se já possui paginação nos novos filtros
-                  const jaPossuiPaginacao =
-                    'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
+          onFiltrosChange={useCallback((novosFiltros: FiltrosFornecedorApi) => {
+            setFiltros(prev => {
+              // Verifica se já possui paginação nos novos filtros
+              const jaPossuiPaginacao = 'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
 
                   const filtrosFinais = {
                     ...prev,
@@ -245,17 +243,14 @@ const FornecedoresListPage = () => {
                     ...(jaPossuiPaginacao ? {} : { pagina: 1 }),
                   }
 
-                  // Evita re-renders desnecessários
-                  return filtrosSaoIguais(prev, filtrosFinais)
-                    ? prev
-                    : filtrosFinais
-                })
-              },
-              [],
-            )}
-            filtrosAtivos={filtros}
-            isLoading={isFetching}
-          />
+              // Evita re-renders desnecessários
+              return filtrosSaoIguais(prev, filtrosFinais) ? prev : filtrosFinais
+            })
+          }, [])}
+          filtrosAtivos={filtros}
+          isLoading={isFetching}
+          totalResultados={apiResponse?.totalItens}
+        />
         </motion.div>
 
         {/* Tabela */}

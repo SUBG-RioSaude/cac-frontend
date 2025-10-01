@@ -98,13 +98,14 @@ export const BlocoFornecedores = ({
 
   // Fornecedores transformados da API
   const fornecedoresApi = useMemo(() => {
-    return fornecedoresResponse?.itens?.map(transformSupplierApiData) ?? []
+    const itens = fornecedoresResponse?.itens ?? []
+    return itens.map(transformSupplierApiData)
   }, [fornecedoresResponse])
 
   // Filtrar fornecedores disponíveis (excluir já vinculados/desvinculados)
   const fornecedoresDisponiveis = useMemo(() => {
-    const currentId = simplifiedMode
-      ? contractSuppliers?.mainSupplier?.id
+    const currentId = simplifiedMode && contractSuppliers
+      ? contractSuppliers.mainSupplier.id
       : undefined
     return fornecedoresApi.filter((f) => {
       const notVinculado = !dados.fornecedoresVinculados?.some(
@@ -118,7 +119,7 @@ export const BlocoFornecedores = ({
     fornecedoresApi,
     dados,
     simplifiedMode,
-    contractSuppliers?.mainSupplier?.id,
+    contractSuppliers,
   ])
 
   // Fornecedores vinculados com dados completos
@@ -162,8 +163,8 @@ export const BlocoFornecedores = ({
         valorAtribuido: 0,
       }
 
-      if (simplifiedMode) {
-        const currentId = contractSuppliers?.mainSupplier?.id
+      if (simplifiedMode && contractSuppliers) {
+        const currentId = contractSuppliers.mainSupplier.id
         if (currentId && fornecedorId === currentId) return
 
         onChange({
@@ -185,15 +186,15 @@ export const BlocoFornecedores = ({
       onChange,
       handleFieldChange,
       simplifiedMode,
-      contractSuppliers?.mainSupplier?.id,
+      contractSuppliers,
     ],
   )
 
   const handleDesvincularFornecedor = useCallback(
     (fornecedorId: string) => {
-      if (simplifiedMode) {
+      if (simplifiedMode && contractSuppliers) {
         // Em modo simplificado, mantemos exatamente 1 desvinculado (o atual)
-        const currentId = contractSuppliers?.mainSupplier?.id
+        const currentId = contractSuppliers.mainSupplier.id
         handleFieldChange(
           'fornecedoresDesvinculados',
           currentId ? [currentId] : [],
@@ -210,7 +211,7 @@ export const BlocoFornecedores = ({
       dados.fornecedoresDesvinculados,
       handleFieldChange,
       simplifiedMode,
-      contractSuppliers?.mainSupplier?.id,
+      contractSuppliers,
     ],
   )
 
@@ -342,8 +343,7 @@ export const BlocoFornecedores = ({
                 </p>
               </div>
             </div>
-            {contractSuppliers.suppliers &&
-              contractSuppliers.suppliers.length > 1 && (
+            {contractSuppliers.suppliers.length > 1 && (
                 <div className="mt-3 border-t border-orange-200 pt-3">
                   <Label className="text-xs text-orange-600">
                     Fornecedores Adicionais

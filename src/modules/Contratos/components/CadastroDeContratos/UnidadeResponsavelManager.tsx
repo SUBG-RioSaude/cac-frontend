@@ -96,7 +96,7 @@ export const UnidadeResponsavelManager = ({
   const unidadesComNome: UnidadeComNome[] = useMemo(() => {
     return unidades.map((unidade) => {
       const unidadeData =
-        unidadesSelecionadasMap?.[unidade.unidadeSaudeId] ??
+        unidadesSelecionadasMap[unidade.unidadeSaudeId] ??
         todasUnidadesEncontradas.find((u) => u.id === unidade.unidadeSaudeId)
       return {
         ...unidade,

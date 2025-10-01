@@ -64,7 +64,7 @@ function transformUnidadeApiData(unidade: UnidadeSaudeApi): TransformedUnidade {
     id: unidade.id,
     codigo: unidade.sigla ?? `UN${unidade.id.slice(-3)}`,
     nome: unidade.nome,
-    tipo: unidade.cap?.nome ?? 'Unidade',
+    tipo: unidade.cap.nome || 'Unidade',
     endereco: unidade.endereco
       ? `${unidade.endereco}, ${unidade.bairro ?? ''}`.trim().replace(/,$/, '')
       : 'Endereço não informado',
@@ -125,7 +125,7 @@ export const BlocoUnidades = ({
 
   // Unidades já vinculadas ao contrato atual (disponíveis para desvincular)
   const unidadesJaVinculadas = useMemo(() => {
-    if (!contractUnits?.linkedUnits) return []
+    if (!contractUnits) return []
 
     // Filtrar unidades já vinculadas que não estão nas desvinculadas
     return contractUnits.linkedUnits.filter(
@@ -135,7 +135,9 @@ export const BlocoUnidades = ({
 
   // Filtrar unidades disponíveis para vincular (excluir já vinculadas no contrato atual e nas alterações)
   const unidadesDisponiveis = useMemo(() => {
-    const jaVinculadasIds = contractUnits?.linkedUnits?.map((u) => u.id) ?? []
+    const jaVinculadasIds = contractUnits
+      ? contractUnits.linkedUnits.map((u) => u.id)
+      : []
     const vinculadasAlteracoes =
       dados.unidadesVinculadas?.map((uv) => uv.unidadeSaudeId) ?? []
 
@@ -210,6 +212,16 @@ export const BlocoUnidades = ({
 
   // Manter compatibilidade com código existente
   const currentAllocatedValue = valorCalculations.valorNovasVinculadas
+
+  const demandingUnit = contractUnits?.demandingUnit ?? null
+  const managingUnit = contractUnits?.managingUnit ?? null
+  const linkedUnits = contractUnits ? contractUnits.linkedUnits : []
+  const linkedUnitsCount = linkedUnits.length
+  const hasUnitsSummary = contractUnits
+    ? Boolean(demandingUnit ?? managingUnit)
+    : false
+  const hasUnitsContext = hasUnitsSummary ? true : linkedUnitsCount > 0
+  const editModeUnit = valueEditorUnit?.__editMode ? valueEditorUnit : null
 
   const handleFieldChange = useCallback(
     (field: keyof IBlocoUnidades, value: unknown) => {
@@ -320,16 +332,16 @@ export const BlocoUnidades = ({
           )}
 
           {/* Contexto resumido do contrato atual */}
-          {(contractUnits?.demandingUnit ?? contractUnits?.managingUnit) && (
+          {contractUnits && hasUnitsSummary && (
             <div className="flex items-center gap-2">
-              {contractUnits.demandingUnit && (
+              {demandingUnit && (
                 <Badge variant="outline" className="text-xs">
-                  Demandante: {contractUnits.demandingUnit}
+                  Demandante: {demandingUnit}
                 </Badge>
               )}
-              {contractUnits.managingUnit && (
+              {managingUnit && (
                 <Badge variant="outline" className="text-xs">
-                  Gestora: {contractUnits.managingUnit}
+                  Gestora: {managingUnit}
                 </Badge>
               )}
             </div>
@@ -462,10 +474,7 @@ export const BlocoUnidades = ({
       )}
 
       {/* Contexto de Unidades Atual do Contrato */}
-      {contractUnits &&
-        (contractUnits.demandingUnit ??
-          contractUnits.managingUnit ??
-          contractUnits.linkedUnits.length > 0) && (
+      {contractUnits && hasUnitsContext && (
           <Card className="border-teal-200 bg-teal-50">
             <CardContent className="pt-4">
               <div className="mb-3">
@@ -480,7 +489,7 @@ export const BlocoUnidades = ({
                     Unidade Demandante
                   </Label>
                   <p className="font-medium text-teal-900">
-                    {contractUnits.demandingUnit ?? 'Não informado'}
+                    {demandingUnit ?? 'Não informado'}
                   </p>
                 </div>
                 <div>
@@ -488,43 +497,42 @@ export const BlocoUnidades = ({
                     Unidade Gestora
                   </Label>
                   <p className="font-medium text-teal-900">
-                    {contractUnits.managingUnit ?? 'Não informado'}
+                    {managingUnit ?? 'Não informado'}
                   </p>
                 </div>
               </div>
-              {contractUnits.linkedUnits &&
-                contractUnits.linkedUnits.length > 0 && (
-                  <div className="mt-3 border-t border-teal-200 pt-3">
-                    <Label className="text-xs text-teal-600">
-                      Unidades Vinculadas Adicionais
-                    </Label>
-                    <p className="text-sm text-teal-800">
-                      {contractUnits.linkedUnits.length} unidade(s)
-                      adicional(is) vinculada(s) ao contrato
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {contractUnits.linkedUnits
-                        .slice(0, 3)
-                        .map((unit: TransformedUnidade, index: number) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="bg-teal-100 text-xs text-teal-700"
-                          >
-                            {unit.nome ?? `Unidade ${index + 1}`}
-                          </Badge>
-                        ))}
-                      {contractUnits.linkedUnits.length > 3 && (
+              {linkedUnitsCount > 0 && (
+                <div className="mt-3 border-t border-teal-200 pt-3">
+                  <Label className="text-xs text-teal-600">
+                    Unidades Vinculadas Adicionais
+                  </Label>
+                  <p className="text-sm text-teal-800">
+                    {linkedUnitsCount} unidade(s)
+                    adicional(is) vinculada(s) ao contrato
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {linkedUnits
+                      .slice(0, 3)
+                      .map((unit: TransformedUnidade, index: number) => (
                         <Badge
+                          key={unit.id}
                           variant="outline"
                           className="bg-teal-100 text-xs text-teal-700"
                         >
-                          +{contractUnits.linkedUnits.length - 3} mais
+                          {unit.nome || `Unidade ${index + 1}`}
                         </Badge>
-                      )}
-                    </div>
+                      ))}
+                    {linkedUnitsCount > 3 && (
+                      <Badge
+                        variant="outline"
+                        className="bg-teal-100 text-xs text-teal-700"
+                      >
+                        +{linkedUnitsCount - 3} mais
+                      </Badge>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -807,10 +815,8 @@ export const BlocoUnidades = ({
         contractValue={contractValue}
         valorRestante={valorCalculations.valorRestante}
         disabled={disabled}
-        mode={valueEditorUnit?.__editMode ? 'edit' : 'create'}
-        existingValue={
-          valueEditorUnit?.__editMode ? valueEditorUnit?.valorAtual ?? 0 : 0
-        }
+        mode={editModeUnit ? 'edit' : 'create'}
+        existingValue={editModeUnit?.valorAtual ?? 0}
       />
     </div>
   )

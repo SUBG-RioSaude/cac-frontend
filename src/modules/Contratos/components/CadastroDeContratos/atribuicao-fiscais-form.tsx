@@ -62,10 +62,13 @@ const AtribuicaoFiscaisForm = ({
 
   // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
   useEffect(() => {
-    if (dadosIniciais?.usuariosAtribuidos) {
-      setUsuariosAtribuidos(dadosIniciais.usuariosAtribuidos)
+    const { usuariosAtribuidos: usuarios } = dadosIniciais
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (usuarios && usuarios.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      setUsuariosAtribuidos(usuarios)
     }
-  }, [dadosIniciais?.usuariosAtribuidos])
+  }, [dadosIniciais])
 
   // Buscar funcionários da API
   const {
@@ -254,6 +257,7 @@ const AtribuicaoFiscaisForm = ({
               )}
 
               {/* Error state */}
+              {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
               {erroFuncionarios && !carregandoFuncionarios && (
                 <div className="py-8 text-center text-red-500">
                   <X className="mx-auto mb-3 h-12 w-12 text-red-300" />
