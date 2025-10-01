@@ -229,9 +229,7 @@ export const BlocoVigencia = ({
   const startDate = contractTerms?.startDate ?? null
   const endDate = contractTerms?.endDate ?? null
   const isContractActive = contractTerms?.isActive ?? false
-  const hasContractDates = contractTerms
-    ? Boolean(startDate ?? endDate)
-    : false
+  const hasContractDates = contractTerms ? Boolean(startDate ?? endDate) : false
 
   return (
     <div className="space-y-6">
@@ -278,11 +276,7 @@ export const BlocoVigencia = ({
                   Data de Término
                 </Label>
                 <p className="font-medium text-green-900">
-                  {endDate ? (
-                    <DateDisplay value={endDate} />
-                  ) : (
-                    'Não informado'
-                  )}
+                  {endDate ? <DateDisplay value={endDate} /> : 'Não informado'}
                 </p>
               </div>
               <div>
@@ -363,11 +357,7 @@ export const BlocoVigencia = ({
                     Data de Término Atual
                   </Label>
                   <p className="text-lg font-medium text-gray-900">
-                    {endDate ? (
-                      <DateDisplay value={endDate} />
-                    ) : (
-                      'N/A'
-                    )}
+                    {endDate ? <DateDisplay value={endDate} /> : 'N/A'}
                   </p>
                 </div>
                 <div>
@@ -670,7 +660,7 @@ export const BlocoVigencia = ({
                           value={
                             calculoAutomatico
                               ? novaDataCalculada
-                              : dados.novaDataFinal ?? ''
+                              : (dados.novaDataFinal ?? '')
                           }
                           onChange={(e) =>
                             handleFieldChange('novaDataFinal', e.target.value)

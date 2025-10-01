@@ -33,7 +33,10 @@ const VerifyForm = () => {
   useEffect(() => {
     const emailArmazenado = sessionStorage.getItem('auth_email')
     const contextoAuthRaw = sessionStorage.getItem('auth_context')
-    const contextoAuth = (contextoAuthRaw === 'login' || contextoAuthRaw === 'password_recovery') ? contextoAuthRaw : 'login'
+    const contextoAuth =
+      contextoAuthRaw === 'login' || contextoAuthRaw === 'password_recovery'
+        ? contextoAuthRaw
+        : 'login'
 
     if (!emailArmazenado) {
       navigate('/login')
@@ -336,44 +339,54 @@ const VerifyForm = () => {
                       variants={containerVariants}
                     >
                       {codigo.map((digito, index) => {
-                        const positions = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth']
+                        const positions = [
+                          'first',
+                          'second',
+                          'third',
+                          'fourth',
+                          'fifth',
+                          'sixth',
+                        ]
                         return (
-                        <motion.div key={`codigo-${positions[index]}`} custom={index}>
                           <motion.div
-                            variants={codeInputVariants}
-                            animate={
-                              indiceFocado === index
-                                ? 'focused'
-                                : digito
-                                  ? 'filled'
-                                  : 'idle'
-                            }
-                            whileHover={{ scale: codigoExpirado ? 1 : 1.02 }}
-                            transition={{ duration: 0.2 }}
+                            key={`codigo-${positions[index]}`}
+                            custom={index}
                           >
-                            <Input
-                              ref={(el) => {
-                                inputRefs.current[index] = el
-                              }}
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={1}
-                              value={digito}
-                              onChange={(e) =>
-                                handleCodeChange(index, e.target.value)
+                            <motion.div
+                              variants={codeInputVariants}
+                              animate={
+                                indiceFocado === index
+                                  ? 'focused'
+                                  : digito
+                                    ? 'filled'
+                                    : 'idle'
                               }
-                              onKeyDown={(e) => handleKeyDown(index, e)}
-                              onFocus={() => setIndiceFocado(index)}
-                              onBlur={() => setIndiceFocado(null)}
-                              disabled={codigoExpirado}
-                              className={`h-12 w-12 border-2 text-center text-lg font-bold transition-all duration-200 ${
-                                codigoExpirado
-                                  ? 'cursor-not-allowed opacity-50'
-                                  : ''
-                              }`}
-                            />
+                              whileHover={{ scale: codigoExpirado ? 1 : 1.02 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Input
+                                ref={(el) => {
+                                  inputRefs.current[index] = el
+                                }}
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={1}
+                                value={digito}
+                                onChange={(e) =>
+                                  handleCodeChange(index, e.target.value)
+                                }
+                                onKeyDown={(e) => handleKeyDown(index, e)}
+                                onFocus={() => setIndiceFocado(index)}
+                                onBlur={() => setIndiceFocado(null)}
+                                disabled={codigoExpirado}
+                                className={`h-12 w-12 border-2 text-center text-lg font-bold transition-all duration-200 ${
+                                  codigoExpirado
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : ''
+                                }`}
+                              />
+                            </motion.div>
                           </motion.div>
-                        </motion.div>
                         )
                       })}
                     </motion.div>

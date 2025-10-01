@@ -55,11 +55,7 @@ const ContratoRelevantItem = ({
           <h4 className="text-sm font-semibold">
             {contrato.numeroContrato ?? 'Sem número'}
           </h4>
-          <ContratoStatusBadge
-            status={contratoStatus}
-            showIcon
-            size="sm"
-          />
+          <ContratoStatusBadge status={contratoStatus} showIcon size="sm" />
         </div>
 
         <p className="text-muted-foreground line-clamp-2 text-sm">
@@ -94,8 +90,6 @@ const ContratoRelevantItem = ({
     </div>
   )
 }
-
-
 
 interface FornecedorVisaoGeralProps {
   fornecedor: EmpresaResponse

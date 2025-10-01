@@ -400,7 +400,7 @@ export const ieUtils: IEUtils = {
       mask: '###.###.###/####',
       validate: (ie: string) => {
         if (ie.length !== 13) return false
-        const seq = `${ie.slice(0, 3)  }0${  ie.slice(3, 11)}`
+        const seq = `${ie.slice(0, 3)}0${ie.slice(3, 11)}`
         const dv1 = ieUtils.mod10(seq, [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2])
         if (parseInt(ie[11]) !== dv1) return false
         const dv2 = ieUtils.mod11(
@@ -879,7 +879,7 @@ export const dateUtils = {
         dateString.includes('+') ||
         dateString.includes('-', 10)
           ? dateString
-          : `${dateString  }Z`
+          : `${dateString}Z`
 
       const date = new Date(isoString)
 
@@ -913,7 +913,7 @@ export const dateUtils = {
         dateString.includes('+') ||
         dateString.includes('-', 10)
           ? dateString
-          : `${dateString  }Z`
+          : `${dateString}Z`
 
       const date = new Date(isoString)
 
@@ -1256,14 +1256,14 @@ export const percentualUtils = {
     // Evita múltiplos pontos
     const pontos = valorLimpo.split('.')
     if (pontos.length > 2) {
-      valorLimpo = `${pontos[0]  }.${  pontos.slice(1).join('')}`
+      valorLimpo = `${pontos[0]}.${pontos.slice(1).join('')}`
     }
 
     // Limita a 2 casas decimais
     if (valorLimpo.includes('.')) {
       const [inteira, decimal] = valorLimpo.split('.')
       const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
-      valorLimpo = inteira + (decimalLimitado ? `.${  decimalLimitado}` : '')
+      valorLimpo = inteira + (decimalLimitado ? `.${decimalLimitado}` : '')
     }
 
     // Limita valor máximo a 100

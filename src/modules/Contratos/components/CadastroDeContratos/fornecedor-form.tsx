@@ -321,12 +321,12 @@ const FornecedorForm = ({
 
         // Preenche todos os campos do formulário de uma vez
         const contatosMapeados = data.contatos.map((contato, index) => ({
-            id: (index + 1).toString(),
-            nome: contato.nome,
-            valor: contato.valor,
-            tipo: contato.tipo,
-            ativo: true,
-          }))
+          id: (index + 1).toString(),
+          nome: contato.nome,
+          valor: contato.valor,
+          tipo: contato.tipo,
+          ativo: true,
+        }))
 
         form.reset({
           cnpj: cnpjUtils.formatar(data.cnpj),
@@ -605,7 +605,10 @@ const FornecedorForm = ({
     }
 
     const contatosValidos = dadosFornecedor.contatos.filter(
-      (contato) => Boolean(contato.nome) && Boolean(contato.valor) && Boolean(contato.tipo),
+      (contato) =>
+        Boolean(contato.nome) &&
+        Boolean(contato.valor) &&
+        Boolean(contato.tipo),
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
@@ -767,7 +770,6 @@ const FornecedorForm = ({
     }
     return `${apenasNumeros.slice(0, 5)}-${apenasNumeros.slice(5, 8)}`
   }
-
 
   // Função para aplicar máscara no telefone fixo
   const aplicarMascaraTelefoneFixo = (valor: string) => {

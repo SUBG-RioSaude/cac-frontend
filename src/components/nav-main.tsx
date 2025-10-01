@@ -50,7 +50,9 @@ export const NavMain = ({
 
     // Verifica se algum subitem está ativo
     if (subItems) {
-      const hasActiveSubItem = subItems.some((subItem) => location.pathname === subItem.url)
+      const hasActiveSubItem = subItems.some(
+        (subItem) => location.pathname === subItem.url,
+      )
       if (hasActiveSubItem) {
         return true
       }

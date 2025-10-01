@@ -17,7 +17,6 @@ import { EditableCurrencyField } from './EditableCurrencyField'
 import { EditableDateField } from './EditableDateField'
 import { EditableTextField } from './EditableTextField'
 
-
 type FieldValue = string | number | Date | null | undefined
 
 interface EditableFieldWrapperProps {
@@ -42,207 +41,211 @@ export const EditableFieldWrapper = ({
   }
 
   // Componente para textarea editável
-interface EditableTextareaFieldProps {
-  value: string
-  fieldName: string
-  onSave: (value: string) => Promise<void>
-  onCancel: () => void
-  isLoading?: boolean
-  maxLength?: number
-  required?: boolean
-}
+  interface EditableTextareaFieldProps {
+    value: string
+    fieldName: string
+    onSave: (value: string) => Promise<void>
+    onCancel: () => void
+    isLoading?: boolean
+    maxLength?: number
+    required?: boolean
+  }
 
-const EditableTextareaField = ({
-  value: initialValue,
-  fieldName,
-  onSave: handleSave,
-  onCancel: handleCancel,
-  isLoading: loadingState = false,
-  maxLength,
-  required = false,
-}: EditableTextareaFieldProps) => {
-  const [currentValue, setCurrentValue] = useState(initialValue)
-  const [saveError, setSaveError] = useState('')
+  const EditableTextareaField = ({
+    value: initialValue,
+    fieldName,
+    onSave: handleSave,
+    onCancel: handleCancel,
+    isLoading: loadingState = false,
+    maxLength,
+    required = false,
+  }: EditableTextareaFieldProps) => {
+    const [currentValue, setCurrentValue] = useState(initialValue)
+    const [saveError, setSaveError] = useState('')
 
-  useEffect(() => {
-    // Focus no textarea quando monta
-    const textarea = document.querySelector(
-      `textarea[name="${fieldName}"]`,
+    useEffect(() => {
+      // Focus no textarea quando monta
+      const textarea = document.querySelector(`textarea[name="${fieldName}"]`)
+      if (textarea instanceof HTMLTextAreaElement) {
+        textarea.focus()
+      }
+    }, [fieldName])
+
+    const handleSaveField = async () => {
+      if (required && !currentValue.trim()) {
+        setSaveError('Este campo é obrigatório')
+        return
+      }
+
+      if (currentValue === initialValue) {
+        handleCancel()
+        return
+      }
+
+      try {
+        await handleSave(currentValue)
+      } catch {
+        setSaveError('Erro ao salvar. Tente novamente.')
+      }
+    }
+
+    const handleCancelField = () => {
+      setCurrentValue(initialValue)
+      setSaveError('')
+      handleCancel()
+    }
+
+    const hasChanges = currentValue !== initialValue
+
+    return (
+      <div className="space-y-2">
+        <Textarea
+          name={fieldName}
+          value={currentValue}
+          onChange={(e) => {
+            setCurrentValue(e.target.value)
+            setSaveError('')
+          }}
+          maxLength={maxLength}
+          rows={3}
+          disabled={loadingState}
+          className={saveError ? 'border-red-500 focus:border-red-500' : ''}
+        />
+
+        {saveError && <p className="text-xs text-red-500">{saveError}</p>}
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => {
+              void handleSaveField()
+            }}
+            disabled={loadingState || !hasChanges}
+            className="text-green-600 hover:text-green-700"
+          >
+            {loadingState ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="mr-2 h-4 w-4" />
+            )}
+            Salvar
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCancelField}
+            disabled={loadingState}
+          >
+            <X className="mr-2 h-4 w-4" />
+            Cancelar
+          </Button>
+        </div>
+      </div>
     )
-    if (textarea instanceof HTMLTextAreaElement) {
-      textarea.focus()
-    }
-  }, [fieldName])
+  }
 
-  const handleSaveField = async () => {
-    if (required && !currentValue.trim()) {
-      setSaveError('Este campo é obrigatório')
-      return
+  // Componente para select editável
+  interface EditableSelectFieldProps {
+    value: string
+    options: { value: string; label: string }[]
+    onSave: (value: string) => Promise<void>
+    onCancel: () => void
+    isLoading?: boolean
+    required?: boolean
+  }
+
+  const EditableSelectField = ({
+    value: initialValue,
+    options,
+    onSave: handleSave,
+    onCancel: handleCancel,
+    isLoading: loadingState = false,
+    required = false,
+  }: EditableSelectFieldProps) => {
+    const [currentValue, setCurrentValue] = useState(initialValue)
+    const [saveError, setSaveError] = useState('')
+
+    const handleSaveField = async () => {
+      if (required && !currentValue) {
+        setSaveError('Este campo é obrigatório')
+        return
+      }
+
+      if (currentValue === initialValue) {
+        handleCancel()
+        return
+      }
+
+      try {
+        await handleSave(currentValue)
+      } catch {
+        setSaveError('Erro ao salvar. Tente novamente.')
+      }
     }
 
-    if (currentValue === initialValue) {
+    const handleCancelField = () => {
+      setCurrentValue(initialValue)
+      setSaveError('')
       handleCancel()
-      return
     }
 
-    try {
-      await handleSave(currentValue)
-    } catch {
-      setSaveError('Erro ao salvar. Tente novamente.')
-    }
-  }
+    const hasChanges = currentValue !== initialValue
 
-  const handleCancelField = () => {
-    setCurrentValue(initialValue)
-    setSaveError('')
-    handleCancel()
-  }
-
-  const hasChanges = currentValue !== initialValue
-
-  return (
-    <div className="space-y-2">
-      <Textarea
-        name={fieldName}
-        value={currentValue}
-        onChange={(e) => {
-          setCurrentValue(e.target.value)
-          setSaveError('')
-        }}
-        maxLength={maxLength}
-        rows={3}
-        disabled={loadingState}
-        className={saveError ? 'border-red-500 focus:border-red-500' : ''}
-      />
-
-      {saveError && <p className="text-xs text-red-500">{saveError}</p>}
-
+    return (
       <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          onClick={() => {
-            void handleSaveField()
-          }}
-          disabled={loadingState || !hasChanges}
-          className="text-green-600 hover:text-green-700"
-        >
-          {loadingState ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Check className="mr-2 h-4 w-4" />
+        <div className="flex-1">
+          <Select
+            value={currentValue}
+            onValueChange={setCurrentValue}
+            disabled={isLoading}
+          >
+            <SelectTrigger className={saveError ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {saveError && (
+            <p className="mt-1 text-xs text-red-500">{saveError}</p>
           )}
-          Salvar
-        </Button>
+        </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCancelField}
-          disabled={loadingState}
-        >
-          <X className="mr-2 h-4 w-4" />
-          Cancelar
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              void handleSaveField()
+            }}
+            disabled={loadingState || !hasChanges}
+            className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+          >
+            {loadingState ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="h-4 w-4" />
+            )}
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleCancelField}
+            disabled={loadingState}
+            className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-    </div>
-  )
-}
-
-// Componente para select editável
-interface EditableSelectFieldProps {
-  value: string
-  options: { value: string; label: string }[]
-  onSave: (value: string) => Promise<void>
-  onCancel: () => void
-  isLoading?: boolean
-  required?: boolean
-}
-
-const EditableSelectField = ({
-  value: initialValue,
-  options,
-  onSave: handleSave,
-  onCancel: handleCancel,
-  isLoading: loadingState = false,
-  required = false,
-}: EditableSelectFieldProps) => {
-  const [currentValue, setCurrentValue] = useState(initialValue)
-  const [saveError, setSaveError] = useState('')
-
-  const handleSaveField = async () => {
-    if (required && !currentValue) {
-      setSaveError('Este campo é obrigatório')
-      return
-    }
-
-    if (currentValue === initialValue) {
-      handleCancel()
-      return
-    }
-
-    try {
-      await handleSave(currentValue)
-    } catch {
-      setSaveError('Erro ao salvar. Tente novamente.')
-    }
+    )
   }
-
-  const handleCancelField = () => {
-    setCurrentValue(initialValue)
-    setSaveError('')
-    handleCancel()
-  }
-
-  const hasChanges = currentValue !== initialValue
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1">
-        <Select value={currentValue} onValueChange={setCurrentValue} disabled={isLoading}>
-          <SelectTrigger className={saveError ? 'border-red-500' : ''}>
-            <SelectValue placeholder="Selecione..." />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {saveError && <p className="mt-1 text-xs text-red-500">{saveError}</p>}
-      </div>
-
-      <div className="flex items-center gap-1">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            void handleSaveField()
-          }}
-          disabled={loadingState || !hasChanges}
-          className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
-        >
-          {loadingState ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Check className="h-4 w-4" />
-          )}
-        </Button>
-
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={handleCancelField}
-          disabled={loadingState}
-          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  )
-}
 
   switch (config.type) {
     case 'text':

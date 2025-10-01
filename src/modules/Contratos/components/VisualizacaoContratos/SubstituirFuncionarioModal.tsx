@@ -42,9 +42,6 @@ import type { ContratoFuncionario } from '../../types/contrato'
 
 import { BuscaFuncionarioField } from './BuscaFuncionarioField'
 
-
-
-
 // ========== INTERFACES ==========
 
 interface SubstituirFuncionarioModalProps {
@@ -98,7 +95,10 @@ export const SubstituirFuncionarioModal = ({
       return funcionarioCompleto.cargo
     }
 
-    if ('funcionarioCargo' in funcionarioAtual && funcionarioAtual.funcionarioCargo) {
+    if (
+      'funcionarioCargo' in funcionarioAtual &&
+      funcionarioAtual.funcionarioCargo
+    ) {
       return funcionarioAtual.funcionarioCargo
     }
 
@@ -179,7 +179,9 @@ export const SubstituirFuncionarioModal = ({
                 </div>
 
                 <div className="flex-1">
-                  <h4 className="text-sm font-semibold">{nomeFuncionarioAtual}</h4>
+                  <h4 className="text-sm font-semibold">
+                    {nomeFuncionarioAtual}
+                  </h4>
                   <p className="text-muted-foreground text-xs">
                     {cargoFuncionarioAtual}
                   </p>

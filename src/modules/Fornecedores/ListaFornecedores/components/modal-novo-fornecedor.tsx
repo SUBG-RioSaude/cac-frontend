@@ -29,7 +29,6 @@ import { Separator } from '@/components/ui/separator'
 import { useCEP } from '@/hooks/use-cep'
 import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
 
-
 interface Contato {
   id: string
   nome: string

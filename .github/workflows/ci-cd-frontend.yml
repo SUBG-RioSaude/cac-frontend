@@ -16,12 +16,8 @@ env:
 jobs:
   # 🧪 QUALIDADE DE CÓDIGO E TESTES
   quality-check:
-    name: 🧪 Testes de qualidade & Testes (Node ${{ matrix.node-version }})
+    name: 🧪 Testes de qualidade & Testes (Node 20 LTS)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20, 22]
-      fail-fast: false
 
     steps:
       - name: 📥 Checkout Code
@@ -32,10 +28,10 @@ jobs:
         with:
           run_install: false
 
-      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      - name: 🔧 Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '20'
           cache: 'pnpm'
 
       - name: 📦 Install Dependencies
@@ -227,14 +223,14 @@ jobs:
       - name: 📦 Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.node-version }}-${{ github.sha }}
+          name: build-${{ github.sha }}
           path: dist/
           retention-days: 7
 
       - name: 📊 Upload Coverage Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node-version }}-${{ github.sha }}
+          name: coverage-${{ github.sha }}
           path: coverage/
           retention-days: 7
 

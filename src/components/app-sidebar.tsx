@@ -19,10 +19,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-
-
 import { Separator } from './ui/separator'
-
 
 const data = {
   user: {
@@ -98,7 +95,9 @@ const data = {
   ],
 }
 
-export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+export const AppSidebar = ({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) => {
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="h-svh" {...props}>
       <SidebarHeader>

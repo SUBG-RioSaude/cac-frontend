@@ -101,11 +101,14 @@ export const TabelaUnidades = ({
   }
 
   const handleVisualizarUnidade = (unidade: Unidade) => {
-    logger.debug({
-      operation: 'navegar_para_unidade',
-      unidadeId: unidade.id,
-      idType: typeof unidade.id
-    }, 'Navegando para visualizar unidade')
+    logger.debug(
+      {
+        operation: 'navegar_para_unidade',
+        unidadeId: unidade.id,
+        idType: typeof unidade.id,
+      },
+      'Navegando para visualizar unidade',
+    )
     onVisualizarUnidade(unidade)
   }
 

@@ -172,7 +172,9 @@ export function useAlteracoesContratuais({
 
     // Validar blocos obrigatórios
     if (dados.tiposAlteracao && dados.tiposAlteracao.length > 0) {
-      const blocosObrigatoriosValidacao = getBlocosObrigatorios(dados.tiposAlteracao)
+      const blocosObrigatoriosValidacao = getBlocosObrigatorios(
+        dados.tiposAlteracao,
+      )
 
       // Validar bloco vigência
       if (blocosObrigatoriosValidacao.has('vigencia')) {
@@ -180,13 +182,13 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.vigencia.operacao'] =
             'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
-          const {vigencia} = dados.blocos
+          const { vigencia } = dados.blocos
           if (typeof vigencia.operacao !== 'number') {
             novosErrors['blocos.vigencia.operacao'] =
               'Operação de vigência é obrigatória'
           } else {
             // Validações específicas por operação
-            const {operacao} = vigencia
+            const { operacao } = vigencia
 
             if (operacao === OperacaoVigencia.Substituir) {
               if (!vigencia.novaDataFinal) {
@@ -219,14 +221,14 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.valor.operacao'] =
             'Bloco Valor é obrigatório para os tipos selecionados'
         } else {
-          const {valor} = dados.blocos
+          const { valor } = dados.blocos
 
           if (typeof valor.operacao !== 'number') {
             novosErrors['blocos.valor.operacao'] =
               'Operação de valor é obrigatória'
           } else {
             // Validações específicas por operação
-            const {operacao} = valor
+            const { operacao } = valor
 
             if (operacao === OperacaoValor.Substituir) {
               // Para substituir, precisa do novo valor global
@@ -255,7 +257,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.fornecedores'] =
             'Bloco Fornecedores é obrigatório para os tipos selecionados'
         } else {
-          const {fornecedores} = dados.blocos
+          const { fornecedores } = dados.blocos
           // Check if we have any fornecedor operations
           const hasVinculados =
             fornecedores.fornecedoresVinculados &&
@@ -280,7 +282,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.unidades'] =
             'Bloco Unidades é obrigatório para os tipos selecionados'
         } else {
-          const {unidades} = dados.blocos
+          const { unidades } = dados.blocos
 
           // Check if we have any unidades operations
           const hasVinculadas =
@@ -303,7 +305,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.clausulas.clausulasAlteradas'] =
             'Bloco Cláusulas é obrigatório para os tipos selecionados'
         } else {
-          const {clausulas} = dados.blocos
+          const { clausulas } = dados.blocos
           if (
             !clausulas.clausulasAlteradas ||
             clausulas.clausulasAlteradas.length === 0
@@ -353,7 +355,9 @@ export function useAlteracoesContratuais({
 
     // Validar blocos obrigatórios
     if (dados.tiposAlteracao && dados.tiposAlteracao.length > 0) {
-      const blocosObrigatoriosValidacao = getBlocosObrigatorios(dados.tiposAlteracao)
+      const blocosObrigatoriosValidacao = getBlocosObrigatorios(
+        dados.tiposAlteracao,
+      )
 
       // Validar bloco vigência
       if (blocosObrigatoriosValidacao.has('vigencia')) {
@@ -361,13 +365,13 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.vigencia.operacao'] =
             'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
-          const {vigencia} = dados.blocos
+          const { vigencia } = dados.blocos
           if (typeof vigencia.operacao !== 'number') {
             novosErrors['blocos.vigencia.operacao'] =
               'Operação de vigência é obrigatória'
           } else {
             // Validações específicas por operação
-            const {operacao} = vigencia
+            const { operacao } = vigencia
 
             if (operacao === OperacaoVigencia.Substituir) {
               if (!vigencia.novaDataFinal) {
@@ -401,7 +405,7 @@ export function useAlteracoesContratuais({
             'Bloco Valor é obrigatório para os tipos selecionados'
         } else {
           const valor = dados.blocos.valor as Partial<BlocoValor>
-          const {operacao} = valor
+          const { operacao } = valor
 
           if (operacao === undefined) {
             novosErrors['blocos.valor.operacao'] =
@@ -430,7 +434,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.fornecedores'] =
             'Bloco Fornecedores é obrigatório para os tipos selecionados'
         } else {
-          const {fornecedores} = dados.blocos
+          const { fornecedores } = dados.blocos
           // Check if we have any fornecedor operations
           const hasVinculados =
             fornecedores.fornecedoresVinculados &&
@@ -455,7 +459,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.unidades'] =
             'Bloco Unidades é obrigatório para os tipos selecionados'
         } else {
-          const {unidades} = dados.blocos
+          const { unidades } = dados.blocos
 
           // Check if we have any unidades operations
           const hasVinculadas =
@@ -478,7 +482,7 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.clausulas.clausulasAlteradas'] =
             'Bloco Cláusulas é obrigatório para os tipos selecionados'
         } else {
-          const {clausulas} = dados.blocos
+          const { clausulas } = dados.blocos
           if (
             !clausulas.clausulasAlteradas ||
             clausulas.clausulasAlteradas.length === 0

@@ -28,8 +28,6 @@ import {
 } from '@/modules/Contratos/hooks/use-contratos-mutations'
 import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
 
-
-
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
   contrato?: DadosContrato
@@ -140,7 +138,7 @@ const CadastrarContrato = () => {
       valorGlobal,
       formaPagamento:
         contrato.formaPagamento === 'Outro'
-          ? contrato.formaPagamentoComplemento ?? contrato.formaPagamento
+          ? (contrato.formaPagamentoComplemento ?? contrato.formaPagamento)
           : contrato.formaPagamento,
       tipoTermoReferencia: contrato.tipoTermoReferencia,
       termoReferencia: contrato.termoReferencia,
@@ -321,7 +319,6 @@ const CadastrarContrato = () => {
     setDadosCompletos((prev) => ({ ...prev, unidades: dados }))
     setPassoAtual(4)
   }
-
 
   const handleAtribuicaoSubmit = async (dados: DadosAtribuicao) => {
     setDadosCompletos((prev) => ({ ...prev, atribuicao: dados }))

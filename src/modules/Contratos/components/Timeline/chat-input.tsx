@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
-
 interface ChatInputProps {
   valor: string
   onChange: (input: string) => void

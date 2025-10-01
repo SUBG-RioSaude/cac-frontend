@@ -127,7 +127,11 @@ export const UnitValueHistory = ({
       onRestore(valorAnterior)
       onClose()
     } catch (error) {
-      logError(error as Error, { scope: 'UnitValueHistory' }, 'Erro ao restaurar valor')
+      logError(
+        error as Error,
+        { scope: 'UnitValueHistory' },
+        'Erro ao restaurar valor',
+      )
     } finally {
       setRestoringValue(null)
     }
@@ -283,9 +287,7 @@ export const UnitValueHistory = ({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  handleRestore(entrada.valorNovo)
-                                }
+                                onClick={() => handleRestore(entrada.valorNovo)}
                                 disabled={disabled || restoringValue !== null}
                                 className="mt-2 text-xs"
                               >

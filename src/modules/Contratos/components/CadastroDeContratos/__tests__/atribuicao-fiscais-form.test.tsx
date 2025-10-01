@@ -7,7 +7,6 @@ import { usuariosMock } from '@/modules/Contratos/data/usuarios-mock'
 
 import AtribuicaoFiscaisForm from '../atribuicao-fiscais-form'
 
-
 const mockFuncionarios = usuariosMock.map((usuario) => ({
   id: usuario.id,
   nome: usuario.nome,

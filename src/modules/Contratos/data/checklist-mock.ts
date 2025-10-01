@@ -1,4 +1,7 @@
-import type { ChecklistData, DocumentoChecklist } from '@/modules/Contratos/types/contrato'
+import type {
+  ChecklistData,
+  DocumentoChecklist,
+} from '@/modules/Contratos/types/contrato'
 
 export const CHECKLIST_MOCK: ChecklistData = {
   termoReferencia: {

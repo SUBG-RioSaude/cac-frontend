@@ -119,17 +119,26 @@ export function useStatusConfig() {
       // Obter configuração específica ou fallback
       switch (domain) {
         case 'contrato': {
-          const contratoConfig = domainConfig as Record<StatusContrato, StatusConfig>
+          const contratoConfig = domainConfig as Record<
+            StatusContrato,
+            StatusConfig
+          >
           const contratoStatus = parseStatusContrato(status)
           return contratoConfig[contratoStatus]
         }
         case 'fornecedor': {
-          const fornecedorConfig = domainConfig as Record<StatusFornecedor, StatusConfig>
+          const fornecedorConfig = domainConfig as Record<
+            StatusFornecedor,
+            StatusConfig
+          >
           const fornecedorStatus = parseStatusFornecedor(status)
           return fornecedorConfig[fornecedorStatus]
         }
         case 'unidade': {
-          const unidadeConfig = domainConfig as Record<StatusUnidade, StatusConfig>
+          const unidadeConfig = domainConfig as Record<
+            StatusUnidade,
+            StatusConfig
+          >
           const unidadeStatus = parseStatusUnidade(status)
           return unidadeConfig[unidadeStatus]
         }
@@ -139,7 +148,6 @@ export function useStatusConfig() {
     },
     [statusConfigMap],
   )
-
 
   // Função especial para status de contratos com lógica de vigência
   const getContratoStatusFromVigencia = useCallback(
@@ -193,7 +201,17 @@ export const useContratoStatus = (
 ): StatusContrato => {
   const { getContratoStatusFromVigencia } = useStatusConfig()
   return useMemo(
-    () => getContratoStatusFromVigencia(vigenciaInicial, vigenciaFinal, statusAtual),
-    [vigenciaInicial, vigenciaFinal, statusAtual, getContratoStatusFromVigencia],
+    () =>
+      getContratoStatusFromVigencia(
+        vigenciaInicial,
+        vigenciaFinal,
+        statusAtual,
+      ),
+    [
+      vigenciaInicial,
+      vigenciaFinal,
+      statusAtual,
+      getContratoStatusFromVigencia,
+    ],
   )
 }

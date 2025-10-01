@@ -140,7 +140,10 @@ export const ModalAlertaLimiteLegal = ({
             </CardHeader>
             <CardContent className="space-y-4">
               {alerta.limites.map((limite: LimiteLegal) => (
-                <div key={`${limite.tipo}-${limite.valorAtual}`} className="space-y-2">
+                <div
+                  key={`${limite.tipo}-${limite.valorAtual}`}
+                  className="space-y-2"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {getIconForTipo(limite.tipo)}

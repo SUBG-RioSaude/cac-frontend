@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { useStatusConfig } from '../use-status-config'
 
-
 describe('useStatusConfig', () => {
   describe('getStatusConfig', () => {
     describe('Dom�nio contrato', () => {

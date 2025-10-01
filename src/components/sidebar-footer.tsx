@@ -41,7 +41,7 @@ const SidebarFooter = () => {
       </div>
       <div>
         <span className="text-muted-foreground">Commit:</span>{' '}
-        <code className="rounded bg-muted px-1 font-mono text-xs">
+        <code className="bg-muted rounded px-1 font-mono text-xs">
           {metadata.commitSha}
         </code>
       </div>
@@ -60,7 +60,7 @@ const SidebarFooter = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="cursor-help p-2 text-center transition-colors hover:bg-sidebar-accent">
+              <div className="hover:bg-sidebar-accent cursor-help p-2 text-center transition-colors">
                 <div className="text-sidebar-foreground/60 font-mono text-xs">
                   v{versaoApp}
                 </div>
@@ -85,7 +85,7 @@ const SidebarFooter = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="text-sidebar-foreground/60 cursor-help font-mono text-xs transition-colors hover:text-sidebar-foreground/80">
+                <div className="text-sidebar-foreground/60 hover:text-sidebar-foreground/80 cursor-help font-mono text-xs transition-colors">
                   v{versaoApp}
                 </div>
               </TooltipTrigger>

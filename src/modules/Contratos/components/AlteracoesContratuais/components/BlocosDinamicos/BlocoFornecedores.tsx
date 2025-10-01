@@ -104,9 +104,10 @@ export const BlocoFornecedores = ({
 
   // Filtrar fornecedores disponíveis (excluir já vinculados/desvinculados)
   const fornecedoresDisponiveis = useMemo(() => {
-    const currentId = simplifiedMode && contractSuppliers
-      ? contractSuppliers.mainSupplier.id
-      : undefined
+    const currentId =
+      simplifiedMode && contractSuppliers
+        ? contractSuppliers.mainSupplier.id
+        : undefined
     return fornecedoresApi.filter((f) => {
       const notVinculado = !dados.fornecedoresVinculados?.some(
         (v: FornecedorAlteracao) => v.empresaId === f.id,
@@ -115,12 +116,7 @@ export const BlocoFornecedores = ({
       const notCurrent = currentId ? f.id !== currentId : true
       return notVinculado && notDesvinculado && notCurrent
     })
-  }, [
-    fornecedoresApi,
-    dados,
-    simplifiedMode,
-    contractSuppliers,
-  ])
+  }, [fornecedoresApi, dados, simplifiedMode, contractSuppliers])
 
   // Fornecedores vinculados com dados completos
   const fornecedoresVinculadosCompletos = useMemo(() => {
@@ -181,13 +177,7 @@ export const BlocoFornecedores = ({
         handleFieldChange('fornecedoresVinculados', vinculados)
       }
     },
-    [
-      dados,
-      onChange,
-      handleFieldChange,
-      simplifiedMode,
-      contractSuppliers,
-    ],
+    [dados, onChange, handleFieldChange, simplifiedMode, contractSuppliers],
   )
 
   const handleDesvincularFornecedor = useCallback(
@@ -344,16 +334,16 @@ export const BlocoFornecedores = ({
               </div>
             </div>
             {contractSuppliers.suppliers.length > 1 && (
-                <div className="mt-3 border-t border-orange-200 pt-3">
-                  <Label className="text-xs text-orange-600">
-                    Fornecedores Adicionais
-                  </Label>
-                  <p className="text-sm text-orange-800">
-                    {contractSuppliers.suppliers.length - 1} fornecedor(es)
-                    adicional(is) vinculado(s)
-                  </p>
-                </div>
-              )}
+              <div className="mt-3 border-t border-orange-200 pt-3">
+                <Label className="text-xs text-orange-600">
+                  Fornecedores Adicionais
+                </Label>
+                <p className="text-sm text-orange-800">
+                  {contractSuppliers.suppliers.length - 1} fornecedor(es)
+                  adicional(is) vinculado(s)
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

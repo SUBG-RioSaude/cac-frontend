@@ -34,8 +34,7 @@ vi.mock('@/lib/utils', () => ({
       return true
     }),
     validarComMensagem: vi.fn((valor: string | number) => {
-      if (valor === '')
-        return 'Percentual é obrigatório'
+      if (valor === '') return 'Percentual é obrigatório'
       const valorStr = valor.toString().replace(',', '.')
       const numero = parseFloat(valorStr)
       if (isNaN(numero)) return 'Percentual deve ser um número válido'
@@ -52,11 +51,11 @@ vi.mock('@/lib/utils', () => ({
       valorLimpo = valorLimpo.replace(',', '.')
       const pontos = valorLimpo.split('.')
       if (pontos.length > 2)
-        valorLimpo = `${pontos[0]  }.${  pontos.slice(1).join('')}`
+        valorLimpo = `${pontos[0]}.${pontos.slice(1).join('')}`
       if (valorLimpo.includes('.')) {
         const [inteira, decimal] = valorLimpo.split('.')
         const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
-        valorLimpo = inteira + (decimalLimitado ? `.${  decimalLimitado}` : '')
+        valorLimpo = inteira + (decimalLimitado ? `.${decimalLimitado}` : '')
       }
       const numero = parseFloat(valorLimpo)
       if (!isNaN(numero) && numero > 100) return '100'

@@ -110,7 +110,10 @@ export const UnidadeResponsavelItem = ({
       {/* Observações (expandível) */}
       {showObservacoes && (
         <div className="border-t pt-2">
-          <label htmlFor={`observacoes-${index}`} className="mb-2 block text-xs font-medium text-gray-700">
+          <label
+            htmlFor={`observacoes-${index}`}
+            className="mb-2 block text-xs font-medium text-gray-700"
+          >
             Observações
           </label>
           <Textarea

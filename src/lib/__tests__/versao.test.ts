@@ -15,15 +15,14 @@ import {
 
 // Mock das variáveis globais injetadas pelo Vite
 declare global {
-   
   var __APP_VERSION__: string
-   
+
   var __COMMIT_SHA__: string
-   
+
   var __BUILD_NUMBER__: string
-   
+
   var __BUILD_TIMESTAMP__: string
-   
+
   var __APP_ENVIRONMENT__: string
 }
 
@@ -113,7 +112,7 @@ describe('lib/versao', () => {
       globalThis.__BUILD_NUMBER__ = '789'
       const versaoCompleta = obterVersaoCompleta()
       expect(versaoCompleta).toBe(
-        '1.0.0-staging.789+abc1234 (Build #789, 2025-10-01)'
+        '1.0.0-staging.789+abc1234 (Build #789, 2025-10-01)',
       )
     })
   })

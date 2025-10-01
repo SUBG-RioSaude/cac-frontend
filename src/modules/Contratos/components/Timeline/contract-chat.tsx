@@ -324,7 +324,9 @@ export const ContractChat = ({
                 </p>
 
                 <Button
-                  onClick={() => { void handleEnviarMensagem() }}
+                  onClick={() => {
+                    void handleEnviarMensagem()
+                  }}
                   disabled={!novaMensagem.trim() || isLoading}
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700"

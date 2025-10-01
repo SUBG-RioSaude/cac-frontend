@@ -11,7 +11,6 @@ import type {
 
 import { TabelaUnidades } from '../tabela-unidades'
 
-
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
   motion: {

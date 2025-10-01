@@ -137,7 +137,8 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
     error: unidadesErrorRaw,
   } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
 
-  const unidadesError = unidadesErrorRaw instanceof Error ? unidadesErrorRaw : null
+  const unidadesError =
+    unidadesErrorRaw instanceof Error ? unidadesErrorRaw : null
 
   const fiscalSkeletonIds = useMemo(
     () => ['fiscal-skeleton-0', 'fiscal-skeleton-1'],
@@ -156,8 +157,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
     [],
   )
   const enderecoSkeletonIds = useMemo(
-    () =>
-      Array.from({ length: 6 }, (_, index) => `endereco-skeleton-${index}`),
+    () => Array.from({ length: 6 }, (_, index) => `endereco-skeleton-${index}`),
     [],
   )
 
@@ -309,7 +309,9 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
     originalValue?: number,
     currentValue?: number,
   ) => {
-    return Boolean(originalValue && currentValue && originalValue !== currentValue)
+    return Boolean(
+      originalValue && currentValue && originalValue !== currentValue,
+    )
   }
 
   const getTipoContratacaoBadge = (tipo: string) => {
@@ -781,7 +783,10 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     {funcionariosLoading ? (
                       <div className="space-y-4">
                         {fiscalSkeletonIds.map((placeholderId) => (
-                          <Skeleton key={placeholderId} className="h-32 w-full" />
+                          <Skeleton
+                            key={placeholderId}
+                            className="h-32 w-full"
+                          />
                         ))}
                       </div>
                     ) : fiscaisAtivos.length === 0 ? (
@@ -838,7 +843,10 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     {funcionariosLoading ? (
                       <div className="space-y-4">
                         {gestorSkeletonIds.map((placeholderId) => (
-                          <Skeleton key={placeholderId} className="h-32 w-full" />
+                          <Skeleton
+                            key={placeholderId}
+                            className="h-32 w-full"
+                          />
                         ))}
                       </div>
                     ) : gestoresAtivos.length === 0 ? (
@@ -1062,7 +1070,9 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
 
                         return (
                           <div
-                            key={contato.id || `${contato.tipo}-${contato.valor}`}
+                            key={
+                              contato.id || `${contato.tipo}-${contato.valor}`
+                            }
                             className="flex items-center gap-3 rounded-lg border p-3"
                           >
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
@@ -1083,7 +1093,9 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                                     {' - '}
                                   </>
                                 )}
-                                <span className="capitalize">{contato.tipo}</span>
+                                <span className="capitalize">
+                                  {contato.tipo}
+                                </span>
                               </p>
                             </div>
                           </div>
@@ -1092,7 +1104,9 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     ) : contrato.fornecedor.contatos.length > 0 ? (
                       contrato.fornecedor.contatos.map((contato) => (
                         <div
-                          key={String(contato.id ?? `${contato.tipo}-${contato.valor}`)}
+                          key={String(
+                            contato.id ?? `${contato.tipo}-${contato.valor}`,
+                          )}
                           className="flex items-center gap-3 rounded-lg border p-3"
                         >
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
@@ -1263,7 +1277,10 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                                       unidadesData[u.unidadeSaudeId]?.sigla
                                     return (
                                       <div
-                                        key={u.id || `${u.unidadeSaudeId}-demandante`}
+                                        key={
+                                          u.id ||
+                                          `${u.unidadeSaudeId}-demandante`
+                                        }
                                         className="bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1"
                                       >
                                         <span className="text-sm font-medium">
@@ -1284,9 +1301,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                               </>
                             )
                           } else {
-                          const id = contratoComIds.unidadeDemandanteId
-                          const nome = getUnidadeNome(id)
-                          const sigla = id ? unidadesData[id]?.sigla : undefined
+                            const id = contratoComIds.unidadeDemandanteId
+                            const nome = getUnidadeNome(id)
+                            const sigla = id
+                              ? unidadesData[id]?.sigla
+                              : undefined
                             return (
                               <div className="flex flex-wrap gap-2">
                                 <div className="bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1">
@@ -1347,7 +1366,9 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                                       unidadesData[u.unidadeSaudeId]?.sigla
                                     return (
                                       <div
-                                        key={u.id || `${u.unidadeSaudeId}-gestora`}
+                                        key={
+                                          u.id || `${u.unidadeSaudeId}-gestora`
+                                        }
                                         className="bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1"
                                       >
                                         <span className="text-sm font-medium">
@@ -1368,9 +1389,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                               </>
                             )
                           } else {
-                          const id = contratoComIds.unidadeGestoraId
-                          const nome = getUnidadeNome(id)
-                          const sigla = id ? unidadesData[id]?.sigla : undefined
+                            const id = contratoComIds.unidadeGestoraId
+                            const nome = getUnidadeNome(id)
+                            const sigla = id
+                              ? unidadesData[id]?.sigla
+                              : undefined
                             return (
                               <div className="flex flex-wrap gap-2">
                                 <div className="bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1">
@@ -1416,7 +1439,10 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                       {unidadesLoading ? (
                         <div className="space-y-4">
                           {unidadeSkeletonIds.map((placeholderId) => (
-                            <div key={placeholderId} className="rounded-lg border p-4">
+                            <div
+                              key={placeholderId}
+                              className="rounded-lg border p-4"
+                            >
                               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                 <div className="flex-1 space-y-2">
                                   <Skeleton className="h-6 w-3/4" />
@@ -1485,7 +1511,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                           <div
                             key={String(
                               unidade.id ??
-                              `${unidade.nome}-${unidade.percentualValor}`
+                                `${unidade.nome}-${unidade.percentualValor}`,
                             )}
                             className="rounded-lg border p-4"
                           >

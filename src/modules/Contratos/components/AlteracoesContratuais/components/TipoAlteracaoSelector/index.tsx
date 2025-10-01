@@ -25,9 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-
-import type {
-  TipoAlteracao} from '../../../../types/alteracoes-contratuais';
+import type { TipoAlteracao } from '../../../../types/alteracoes-contratuais'
 import {
   TIPOS_ALTERACAO_CONFIG,
   getBlocosObrigatorios,
@@ -193,12 +191,10 @@ export const TipoAlteracaoSelector = ({
           {/* Lista de tipos ordenada */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {tiposOrdenados.map((config: TipoAlteracaoConfig) => {
-              const Icon =
-                ICONES_MAP[config.icone as keyof typeof ICONES_MAP]
+              const Icon = ICONES_MAP[config.icone as keyof typeof ICONES_MAP]
               const isSelected = tiposSelecionados.includes(config.tipo)
               const isEnabled = tiposHabilitados.has(config.tipo)
-              const corClasse =
-                CORES_MAP[config.cor as keyof typeof CORES_MAP]
+              const corClasse = CORES_MAP[config.cor as keyof typeof CORES_MAP]
 
               return (
                 <motion.button
@@ -399,13 +395,11 @@ export const TipoAlteracaoSelector = ({
                               {config.label}:
                             </span>
                             <ul className="mt-1 ml-2 list-inside list-disc text-gray-600">
-                              {config.exemplos.map(
-                                (exemplo: string) => (
-                                  <li key={exemplo} className="text-xs">
-                                    {exemplo}
-                                  </li>
-                                ),
-                              )}
+                              {config.exemplos.map((exemplo: string) => (
+                                <li key={exemplo} className="text-xs">
+                                  {exemplo}
+                                </li>
+                              ))}
                             </ul>
                           </div>
                         ))}

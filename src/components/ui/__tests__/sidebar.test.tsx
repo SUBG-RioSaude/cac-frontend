@@ -114,9 +114,7 @@ describe('Sidebar Components', () => {
         </SidebarProvider>,
       )
 
-      const wrapper = document.querySelector(
-        '[data-slot="sidebar-wrapper"]',
-      )!
+      const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]')!
       expect(wrapper.style.getPropertyValue('--sidebar-width')).toBe('16rem')
       expect(wrapper.style.getPropertyValue('--sidebar-width-icon')).toBe(
         '3rem',

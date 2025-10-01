@@ -68,7 +68,10 @@ export function useCreateUnidade() {
       }
 
       // Log de erro
-      logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Erro ao criar unidade')
+      logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Erro ao criar unidade',
+      )
       toast.error('Erro ao criar unidade de saúde', {
         description:
           error instanceof Error
@@ -146,7 +149,13 @@ export function useUpdateUnidade() {
       }
 
       // Log de erro
-      logger.error({ error: error instanceof Error ? error.message : String(error), unidadeId: variables.id }, 'Erro ao atualizar unidade')
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          unidadeId: variables.id,
+        },
+        'Erro ao atualizar unidade',
+      )
       toast.error('Erro ao atualizar unidade de saúde', {
         description:
           error instanceof Error
@@ -208,7 +217,10 @@ export function useDeleteUnidade() {
       }
 
       // Log de erro
-      logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Erro ao deletar unidade')
+      logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Erro ao deletar unidade',
+      )
       toast.error('Erro ao remover unidade de saúde', {
         description:
           error instanceof Error

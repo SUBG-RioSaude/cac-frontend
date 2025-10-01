@@ -68,11 +68,17 @@ export function useUnidadesBatch(
               queryClient.setQueryData(unidadeKeys.detail(id), unidade)
               return { id, data: unidade, success: true }
             } catch (fetchError) {
-              logger.warn({
-                operation: 'buscar_unidade_batch',
-                unidadeId: id,
-                error: fetchError instanceof Error ? fetchError.message : String(fetchError)
-              }, `Erro ao buscar unidade ${id}`)
+              logger.warn(
+                {
+                  operation: 'buscar_unidade_batch',
+                  unidadeId: id,
+                  error:
+                    fetchError instanceof Error
+                      ? fetchError.message
+                      : String(fetchError),
+                },
+                `Erro ao buscar unidade ${id}`,
+              )
               return { id, error: fetchError, success: false }
             }
           })
@@ -94,11 +100,14 @@ export function useUnidadesBatch(
       } catch (err) {
         const errorObj = err as Error
         setError(errorObj)
-        logger.error({
-          operation: 'buscar_unidades_lote',
-          error: errorObj.message,
-          stack: errorObj.stack
-        }, 'Erro ao buscar unidades em lote')
+        logger.error(
+          {
+            operation: 'buscar_unidades_lote',
+            error: errorObj.message,
+            stack: errorObj.stack,
+          },
+          'Erro ao buscar unidades em lote',
+        )
       } finally {
         setIsLoading(false)
       }

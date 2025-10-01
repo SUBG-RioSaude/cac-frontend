@@ -52,7 +52,8 @@ export function useHistoricoFuncionarios(
       const safeString = (value: unknown): string | null => {
         if (value === null || value === undefined) return null
         if (typeof value === 'string') return value
-        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        if (typeof value === 'number' || typeof value === 'boolean')
+          return String(value)
         return null // For objects, return null instead of '[object Object]'
       }
 
@@ -98,7 +99,8 @@ export function useFuncionariosAtivosEm(
       const safeString = (value: unknown): string | null => {
         if (value === null || value === undefined) return null
         if (typeof value === 'string') return value
-        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        if (typeof value === 'number' || typeof value === 'boolean')
+          return String(value)
         return null // For objects, return null instead of '[object Object]'
       }
 
@@ -144,7 +146,8 @@ export function usePeriodosFuncionario(
       const safeString = (value: unknown): string | null => {
         if (value === null || value === undefined) return null
         if (typeof value === 'string') return value
-        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        if (typeof value === 'number' || typeof value === 'boolean')
+          return String(value)
         return null // For objects, return null instead of '[object Object]'
       }
 

@@ -15,13 +15,12 @@ import {
 } from './ui/breadcrumb'
 import { SidebarTrigger } from './ui/sidebar'
 
-
 const PageBreadcrumb = () => {
   const logger = createComponentLogger('PageBreadcrumb', 'navigation')
   const location = useLocation()
 
   // Extrair ID do contrato manualmente da URL
-  const contratoId = (/\/contratos\/([^/]+)/.exec(location.pathname))?.[1]
+  const contratoId = /\/contratos\/([^/]+)/.exec(location.pathname)?.[1]
   const isContratoRoute = !!contratoId
 
   logger.debug(
@@ -98,7 +97,7 @@ const PageBreadcrumb = () => {
         crumbs.push({ label, href: currentPath })
       } else if (
         currentPath.includes('/fornecedores/') &&
-        (/^[a-f0-9-]{36}$/.exec(segment))
+        /^[a-f0-9-]{36}$/.exec(segment)
       ) {
         // Handle fornecedores route
         crumbs.push({ label: `Fornecedor ${segment}`, href: currentPath })

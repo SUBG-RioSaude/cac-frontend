@@ -79,10 +79,15 @@ const UnidadesFormMelhorado = ({
   const [percentualContrato, setPercentualContrato] = useState<number>(0)
 
   // Estados para controlar quais campos estão travados (por unidade)
-  const [camposTravados, setCamposTravados] = useState<Record<string, {
-      valor: boolean
-      percentual: boolean
-    }>>({})
+  const [camposTravados, setCamposTravados] = useState<
+    Record<
+      string,
+      {
+        valor: boolean
+        percentual: boolean
+      }
+    >
+  >({})
 
   // Estado para controlar qual unidade está sendo editada
   const [unidadeEmEdicao, setUnidadeEmEdicao] = useState<string | null>(null)

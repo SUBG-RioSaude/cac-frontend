@@ -324,10 +324,7 @@ describe('useDeleteDocumento', () => {
 
     // Aguardar o optimistic update ser aplicado
     await waitFor(() => {
-      const cacheData = queryClient.getQueryData([
-        'documentos',
-        contratoId,
-      ])!
+      const cacheData = queryClient.getQueryData(['documentos', contratoId])!
       expect(cacheData).toEqual([])
     })
 

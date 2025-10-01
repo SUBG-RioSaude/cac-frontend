@@ -40,7 +40,6 @@ import { getTipoGerenciaLabel } from '../../services/contratos-funcionarios-serv
 
 import { BuscaFuncionarioField } from './BuscaFuncionarioField'
 
-
 // ========== INTERFACES ==========
 
 interface AdicionarFuncionarioModalProps {

@@ -59,9 +59,9 @@ const FILTROS_IGNORADOS: (keyof FiltrosFornecedorApi)[] = [
 function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
   return (
     Object.entries(filtros) as [
-        keyof FiltrosFornecedorApi,
-        FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
-      ][]
+      keyof FiltrosFornecedorApi,
+      FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
+    ][]
   ).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
@@ -143,7 +143,8 @@ export const SearchAndFiltersFornecedores = ({
 
   // Estado para mostrar loading durante debounce
   // Só mostra loading se tiver 3+ caracteres e ainda não terminou o debounce
-  const isSearching = termoPesquisaLocal !== termoPesquisaDebounced &&
+  const isSearching =
+    termoPesquisaLocal !== termoPesquisaDebounced &&
     termoPesquisaLocal.trim() !== '' &&
     termoPesquisaLocal.trim().length >= 3
 
@@ -219,7 +220,7 @@ export const SearchAndFiltersFornecedores = ({
     setTermoPesquisaLocal('')
 
     // Remove cnpj e razaoSocial dos filtros locais
-    setFiltrosLocais(prev => {
+    setFiltrosLocais((prev) => {
       const filtrosSemPesquisa = { ...prev }
       delete filtrosSemPesquisa.cnpj
       delete filtrosSemPesquisa.razaoSocial
@@ -230,11 +231,21 @@ export const SearchAndFiltersFornecedores = ({
       pagina: 1,
       tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
       // Preserva outros filtros ativos
-      ...(filtrosLocais.status !== undefined && { status: filtrosLocais.status }),
-      ...(filtrosLocais.valorMinimo !== undefined && { valorMinimo: filtrosLocais.valorMinimo }),
-      ...(filtrosLocais.valorMaximo !== undefined && { valorMaximo: filtrosLocais.valorMaximo }),
-      ...(filtrosLocais.contratosMinimo !== undefined && { contratosMinimo: filtrosLocais.contratosMinimo }),
-      ...(filtrosLocais.contratosMaximo !== undefined && { contratosMaximo: filtrosLocais.contratosMaximo }),
+      ...(filtrosLocais.status !== undefined && {
+        status: filtrosLocais.status,
+      }),
+      ...(filtrosLocais.valorMinimo !== undefined && {
+        valorMinimo: filtrosLocais.valorMinimo,
+      }),
+      ...(filtrosLocais.valorMaximo !== undefined && {
+        valorMaximo: filtrosLocais.valorMaximo,
+      }),
+      ...(filtrosLocais.contratosMinimo !== undefined && {
+        contratosMinimo: filtrosLocais.contratosMinimo,
+      }),
+      ...(filtrosLocais.contratosMaximo !== undefined && {
+        contratosMaximo: filtrosLocais.contratosMaximo,
+      }),
       cnpj: undefined,
       razaoSocial: undefined,
     }
@@ -280,9 +291,12 @@ export const SearchAndFiltersFornecedores = ({
   useEffect(() => {
     // Se há termo de pesquisa e o input não está focado, restaura o foco
     // Isso evita perda de foco durante re-renders causados por atualizações da API
-    if (termoPesquisaLocal.length > 0 &&
-        document.activeElement !== inputRef.current &&
-        !isFilterOpen) { // Não restaurar foco se dropdown de filtros estiver aberto
+    if (
+      termoPesquisaLocal.length > 0 &&
+      document.activeElement !== inputRef.current &&
+      !isFilterOpen
+    ) {
+      // Não restaurar foco se dropdown de filtros estiver aberto
       // Usar requestAnimationFrame para garantir que o foco seja restaurado após o render
       requestAnimationFrame(() => {
         inputRef.current?.focus()
@@ -297,7 +311,7 @@ export const SearchAndFiltersFornecedores = ({
     >
       {/* Search Bar */}
       <motion.div
-        className="relative max-w-md flex-1 min-h-[44px]"
+        className="relative min-h-[44px] max-w-md flex-1"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -350,40 +364,46 @@ export const SearchAndFiltersFornecedores = ({
 
         {/* Mensagem informativa quando digitar menos de 3 caracteres - Posicionamento absoluto */}
         <AnimatePresence>
-          {termoPesquisaLocal.trim().length > 0 && termoPesquisaLocal.trim().length < 3 && (
-            <motion.div
-              id="search-hint"
-              role="status"
-              aria-live="polite"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 mt-1 flex items-center gap-2 text-muted-foreground text-sm bg-background/95 backdrop-blur-sm px-3 py-2 rounded-md border shadow-sm z-10"
-            >
-              <Info className="h-4 w-4 flex-shrink-0" />
-              <span>Digite pelo menos 3 caracteres para buscar</span>
-            </motion.div>
-          )}
+          {termoPesquisaLocal.trim().length > 0 &&
+            termoPesquisaLocal.trim().length < 3 && (
+              <motion.div
+                id="search-hint"
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="text-muted-foreground bg-background/95 absolute top-full left-0 z-10 mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm shadow-sm backdrop-blur-sm"
+              >
+                <Info className="h-4 w-4 flex-shrink-0" />
+                <span>Digite pelo menos 3 caracteres para buscar</span>
+              </motion.div>
+            )}
         </AnimatePresence>
 
         {/* Contador de resultados - Posicionamento absoluto */}
         <AnimatePresence>
-          {termoPesquisaLocal.trim().length >= 3 && totalResultados !== undefined && !isSearching && (
-            <motion.div
-              role="status"
-              aria-live="polite"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 mt-1 z-10"
-            >
-              <Badge variant="secondary" className="text-xs shadow-sm">
-                {totalResultados} {totalResultados === 1 ? 'fornecedor encontrado' : 'fornecedores encontrados'}
-              </Badge>
-            </motion.div>
-          )}
+          {termoPesquisaLocal.trim().length >= 3 &&
+            totalResultados !== undefined &&
+            !isSearching && (
+              <motion.div
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 z-10 mt-1"
+              >
+                <Badge variant="secondary" className="text-xs shadow-sm">
+                  {totalResultados}{' '}
+                  {totalResultados === 1
+                    ? 'fornecedor encontrado'
+                    : 'fornecedores encontrados'}
+                </Badge>
+              </motion.div>
+            )}
         </AnimatePresence>
       </motion.div>
 
@@ -534,7 +554,8 @@ export const SearchAndFiltersFornecedores = ({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMinimo: _valorMinimo, ...rest } = prev
+                              const { valorMinimo: _valorMinimo, ...rest } =
+                                prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMinimo: Number(valor) }
@@ -559,7 +580,8 @@ export const SearchAndFiltersFornecedores = ({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMaximo: _valorMaximo, ...rest } = prev
+                              const { valorMaximo: _valorMaximo, ...rest } =
+                                prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMaximo: Number(valor) }
@@ -615,7 +637,10 @@ export const SearchAndFiltersFornecedores = ({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMinimo: _contratosMinimo, ...rest } = prev
+                              const {
+                                contratosMinimo: _contratosMinimo,
+                                ...rest
+                              } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMinimo: Number(valor) }
@@ -640,7 +665,10 @@ export const SearchAndFiltersFornecedores = ({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMaximo: _contratosMaximo, ...rest } = prev
+                              const {
+                                contratosMaximo: _contratosMaximo,
+                                ...rest
+                              } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMaximo: Number(valor) }

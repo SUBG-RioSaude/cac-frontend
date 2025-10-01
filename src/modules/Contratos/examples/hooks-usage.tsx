@@ -40,7 +40,9 @@ const ContratosListExample = () => {
       <div className="mb-4 flex items-center justify-between">
         <h2>Contratos ({data?.totalRegistros})</h2>
         <LoadingButton
-          onClick={() => { void refetch() }}
+          onClick={() => {
+            void refetch()
+          }}
           loading={isFetching}
           loadingText="Recarregando..."
           variant="info"

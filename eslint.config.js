@@ -75,31 +75,38 @@ export default tseslint.config([
       'prefer-template': 'error',
       'prefer-arrow-callback': 'error',
       'arrow-spacing': 'error',
-      'prefer-destructuring': ['error', {
-        array: true,
-        object: true,
-      }, {
-        enforceForRenamedProperties: false,
-      }],
+      'prefer-destructuring': [
+        'error',
+        {
+          array: true,
+          object: true,
+        },
+        {
+          enforceForRenamedProperties: false,
+        },
+      ],
 
       // Style - Using Prettier for these
       'comma-dangle': 'off', // Prettier handles this
-      'semi': 'off', // Prettier handles this
-      'quotes': 'off', // Prettier handles this
-      'indent': 'off', // Prettier handles this
+      semi: 'off', // Prettier handles this
+      quotes: 'off', // Prettier handles this
+      indent: 'off', // Prettier handles this
       'no-trailing-spaces': 'off', // Prettier handles this
       'eol-last': 'off', // Prettier handles this
 
       // ===== AIRBNB REACT RULES =====
       // React Specific
       'react/jsx-key': 'error',
-      'react/jsx-no-bind': ['error', {
-        ignoreRefs: true,
-        allowArrowFunctions: true,
-        allowFunctions: false,
-        allowBind: false,
-        ignoreDOMComponents: true,
-      }],
+      'react/jsx-no-bind': [
+        'error',
+        {
+          ignoreRefs: true,
+          allowArrowFunctions: true,
+          allowFunctions: false,
+          allowBind: false,
+          ignoreDOMComponents: true,
+        },
+      ],
       'react/jsx-no-duplicate-props': 'error',
       'react/jsx-no-undef': 'error',
       'react/jsx-pascal-case': 'error',
@@ -132,20 +139,26 @@ export default tseslint.config([
       'react/jsx-props-no-multi-spaces': 'off', // Prettier handles this
       'react/jsx-sort-props': 'off',
       'react/jsx-tag-spacing': 'off', // Prettier handles this
-      'react/jsx-wrap-multilines': ['error', {
-        declaration: 'parens-new-line',
-        assignment: 'parens-new-line',
-        return: 'parens-new-line',
-        arrow: 'parens-new-line',
-        condition: 'parens-new-line',
-        logical: 'parens-new-line',
-        prop: 'parens-new-line',
-      }],
+      'react/jsx-wrap-multilines': [
+        'error',
+        {
+          declaration: 'parens-new-line',
+          assignment: 'parens-new-line',
+          return: 'parens-new-line',
+          arrow: 'parens-new-line',
+          condition: 'parens-new-line',
+          logical: 'parens-new-line',
+          prop: 'parens-new-line',
+        },
+      ],
       'react/no-array-index-key': 'warn',
-      'react/function-component-definition': ['error', {
-        namedComponents: 'arrow-function',
-        unnamedComponents: 'arrow-function',
-      }],
+      'react/function-component-definition': [
+        'error',
+        {
+          namedComponents: 'arrow-function',
+          unnamedComponents: 'arrow-function',
+        },
+      ],
 
       // ===== ACCESSIBILITY (A11Y) =====
       'jsx-a11y/alt-text': 'error',
@@ -165,53 +178,68 @@ export default tseslint.config([
       'jsx-a11y/role-supports-aria-props': 'error',
 
       // ===== IMPORT/EXPORT =====
-      'import/order': ['error', {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-        ],
-        'newlines-between': 'always',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+          ],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
         },
-      }],
+      ],
       'import/prefer-default-export': 'off',
       'import/extensions': 'off',
-      'import/no-extraneous-dependencies': ['error', {
-        devDependencies: [
-          '**/*.test.{ts,tsx}',
-          '**/__tests__/**/*',
-          '**/vite.config.*',
-          '**/vitest.config.*',
-          '**/setup-tests.ts',
-          '**/test-utils.tsx',
-        ],
-      }],
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: [
+            '**/*.test.{ts,tsx}',
+            '**/__tests__/**/*',
+            '**/vite.config.*',
+            '**/vitest.config.*',
+            '**/setup-tests.ts',
+            '**/test-utils.tsx',
+          ],
+        },
+      ],
 
       // ===== TYPESCRIPT AIRBNB STYLE =====
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      '@typescript-eslint/no-use-before-define': ['error', {
-        functions: false,
-        classes: true,
-        variables: true,
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-use-before-define': [
+        'error',
+        {
+          functions: false,
+          classes: true,
+          variables: true,
+        },
+      ],
       '@typescript-eslint/no-shadow': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/prefer-optional-chain': 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      '@typescript-eslint/consistent-type-imports': ['error', {
-        prefer: 'type-imports',
-        fixStyle: 'separate-type-imports',
-      }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
+        },
+      ],
 
       // ===== SECURITY =====
       'security/detect-eval-with-expression': 'error',
@@ -245,7 +273,12 @@ export default tseslint.config([
 
   // Configuração específica para arquivos de teste
   {
-    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}', '**/setup-tests.ts', '**/test-utils.tsx'],
+    files: [
+      '**/*.test.{ts,tsx}',
+      '**/__tests__/**/*.{ts,tsx}',
+      '**/setup-tests.ts',
+      '**/test-utils.tsx',
+    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',

@@ -33,9 +33,7 @@ function transformAlteracaoContratual(
   const tipo = tipoMap[primeiroTipo] || 'alteracao_contratual'
 
   // Usar resumoAlteracao da API se disponível, senão usar justificativa
-  const descricao =
-    alteracao.resumoAlteracao ??
-    alteracao.justificativa
+  const descricao = alteracao.resumoAlteracao ?? alteracao.justificativa
 
   return {
     id: alteracao.id,

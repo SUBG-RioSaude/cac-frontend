@@ -21,7 +21,11 @@ const Unauthorized = ({ error: propError }: UnauthorizedProps) => {
   const location = useLocation()
 
   // Buscar erro do state da navegação ou usar prop
-  const locationError = isValidLocationState(location.state) && typeof location.state.error === 'string' ? location.state.error : undefined
+  const locationError =
+    isValidLocationState(location.state) &&
+    typeof location.state.error === 'string'
+      ? location.state.error
+      : undefined
   const error = locationError ?? propError
 
   const handleLogin = () => {

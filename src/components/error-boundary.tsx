@@ -20,7 +20,10 @@ interface DefaultErrorFallbackProps {
   onRetry: () => void
 }
 
-const DefaultErrorFallback = ({ error, onRetry }: DefaultErrorFallbackProps) => {
+const DefaultErrorFallback = ({
+  error,
+  onRetry,
+}: DefaultErrorFallbackProps) => {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
@@ -122,7 +125,7 @@ export function withErrorBoundary<P extends object>(
 export const FormErrorBoundary = ({ children }: { children: ReactNode }) => {
   return (
     <ErrorBoundary
-      fallback={(
+      fallback={
         <div className="rounded-lg border border-red-200 bg-red-50 p-6">
           <div className="mb-2 flex items-center gap-2 text-red-800">
             <AlertCircle className="h-5 w-5" />
@@ -141,7 +144,7 @@ export const FormErrorBoundary = ({ children }: { children: ReactNode }) => {
             Recarregar página
           </Button>
         </div>
-      )}
+      }
     >
       {children}
     </ErrorBoundary>

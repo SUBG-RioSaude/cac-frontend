@@ -27,7 +27,10 @@ vi.mock('@/lib/axios', () => ({
 }))
 
 // Mock configuration helper
-const configureMockApiGet = (behavior: 'resolve' | 'reject', data?: unknown) => {
+const configureMockApiGet = (
+  behavior: 'resolve' | 'reject',
+  data?: unknown,
+) => {
   const mockedFunction = vi.mocked
   const mockedApi = mockedFunction(api)
   if (behavior === 'resolve') {
@@ -485,4 +488,3 @@ describe('Unidades Service', () => {
     })
   })
 })
-

@@ -428,7 +428,9 @@ interface ContratoComEmpenhos {
   unidadesVinculadas?: UnidadeComEmpenhos[]
 }
 
-export function extrairEmpenhosDoContrato(contrato: ContratoComEmpenhos): Empenho[] {
+export function extrairEmpenhosDoContrato(
+  contrato: ContratoComEmpenhos,
+): Empenho[] {
   if (!contrato.unidadesVinculadas) {
     return []
   }

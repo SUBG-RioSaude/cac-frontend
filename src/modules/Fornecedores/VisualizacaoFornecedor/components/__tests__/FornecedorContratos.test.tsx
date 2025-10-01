@@ -6,7 +6,6 @@ import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 import { FornecedorContratos } from '../FornecedorContratos'
 
-
 import type { PaginacaoParams } from '@/types/api'
 
 // Mock do TabelaContratos para verificar props

@@ -182,7 +182,13 @@ export const CadastroFuncionarioForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => { e.preventDefault(); void onSubmit(form.getValues()); }} className="space-y-6">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          void onSubmit(form.getValues())
+        }}
+        className="space-y-6"
+      >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
