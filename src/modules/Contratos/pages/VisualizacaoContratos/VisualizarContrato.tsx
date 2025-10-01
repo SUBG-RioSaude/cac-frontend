@@ -193,9 +193,12 @@ export const VisualizarContrato = () => {
                 : 'Não foi possível carregar os dados do contrato. Tente novamente.'}
             </p>
             <div className="flex justify-center gap-2">
-              <Button onClick={() => {
-                void refetch()
-              }} variant="outline">
+              <Button
+                onClick={() => {
+                  void refetch()
+                }}
+                variant="outline"
+              >
                 Tentar novamente
               </Button>
               <Button onClick={() => navigate('/contratos')}>
@@ -411,7 +414,7 @@ export const VisualizarContrato = () => {
                   >
                     <div
                       className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
-                     />
+                    />
                     <span className="text-center">{tab.label}</span>
                   </TabsTrigger>
                 ))}

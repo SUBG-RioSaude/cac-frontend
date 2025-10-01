@@ -36,10 +36,13 @@ export const useUnidadeDetalhada = ({
         logger.debug({ unidadeId: id, dados }, 'Dados recebidos da API')
         setUnidade(dados)
       } catch (error) {
-        logger.error({
-          error: error instanceof Error ? error.message : String(error),
-          unidadeId: id
-        }, 'Erro ao carregar unidade')
+        logger.error(
+          {
+            error: error instanceof Error ? error.message : String(error),
+            unidadeId: id,
+          },
+          'Erro ao carregar unidade',
+        )
         setErro('Erro ao carregar dados da unidade')
       } finally {
         setCarregando(false)
@@ -56,10 +59,13 @@ export const useUnidadeDetalhada = ({
       buscarUnidadePorId(id)
         .then(setUnidade)
         .catch((error) => {
-          logger.error({
-            error: error instanceof Error ? error.message : String(error),
-            unidadeId: id
-          }, 'Erro ao recarregar unidade')
+          logger.error(
+            {
+              error: error instanceof Error ? error.message : String(error),
+              unidadeId: id,
+            },
+            'Erro ao recarregar unidade',
+          )
           setErro('Erro ao recarregar dados da unidade')
         })
         .finally(() => setCarregando(false))

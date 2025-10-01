@@ -83,7 +83,9 @@ export function useToast() {
     // Toast de erro para mutations com handling automático
     error: (operation: string, errorResponse: unknown) => {
       const errorMessage =
-        errorResponse instanceof Error ? errorResponse.message : String(errorResponse)
+        errorResponse instanceof Error
+          ? errorResponse.message
+          : String(errorResponse)
 
       toast.error(`Erro ao ${operation.toLowerCase()}`, {
         description: errorMessage,
@@ -91,8 +93,12 @@ export function useToast() {
       })
 
       // Se for erro HTTP crítico, redireciona para página de erro
-      if (errorResponse && typeof errorResponse === 'object' && 'response' in errorResponse) {
-        const { response } = (error as { response: { status: number } })
+      if (
+        errorResponse &&
+        typeof errorResponse === 'object' &&
+        'response' in errorResponse
+      ) {
+        const { response } = error as { response: { status: number } }
         const { status } = response
         if (status && (status >= 500 || status === 401 || status === 403)) {
           handleApiError(error)
@@ -104,7 +110,10 @@ export function useToast() {
   // Toasts para queries
   const query = {
     // Toast para erro de query quando não deve redirecionar
-    error: (queryError: unknown, fallbackMessage = 'Erro ao carregar dados') => {
+    error: (
+      queryError: unknown,
+      fallbackMessage = 'Erro ao carregar dados',
+    ) => {
       const errorMessage =
         queryError instanceof Error ? queryError.message : fallbackMessage
 

@@ -60,8 +60,6 @@ import { ModalAlertaLimiteLegal } from './components/ModalAlertaLimiteLegal'
 import { TipoAlteracaoSelector } from './components/TipoAlteracaoSelector'
 import { useAlteracoesContratuais } from './hooks/useAlteracoesContratuais'
 
-
-
 interface ContractInfo {
   numeroContrato?: string
   objeto?: string
@@ -843,9 +841,7 @@ export const AlteracoesContratuais = ({
                               </span>
                               <div className="mt-1 space-y-1">
                                 {dados.blocos.fornecedores.fornecedoresVinculados.map(
-                                  (
-                                    fornecedor: FornecedorAlteracao,
-                                  ) => (
+                                  (fornecedor: FornecedorAlteracao) => (
                                     <div
                                       key={fornecedor.empresaId}
                                       className="rounded border bg-white p-2 text-xs"

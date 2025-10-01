@@ -48,11 +48,8 @@ export async function getContratos(
 
   // Normalizar resposta da API
   // Se a API retorna { "dados": [...] } sem metadados de paginação
-  if (
-    'dados' in response.data &&
-    Array.isArray(response.data.dados)
-  ) {
-    const {dados} = response.data
+  if ('dados' in response.data && Array.isArray(response.data.dados)) {
+    const { dados } = response.data
 
     // Usar metadados de paginação se existirem, senão criar defaults
     const paginatedResponse: PaginacaoResponse<Contrato> = {
@@ -85,10 +82,7 @@ export async function getContratos(
   }
 
   // Se já está no formato esperado, retornar como está
-  if (
-    'dados' in response.data &&
-    'totalRegistros' in response.data
-  ) {
+  if ('dados' in response.data && 'totalRegistros' in response.data) {
     return response.data
   }
 
@@ -412,11 +406,8 @@ export async function getContratosVencendo(
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (
-      'dados' in response.data &&
-      Array.isArray(response.data.dados)
-    ) {
-      const {dados} = response.data
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
 
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
@@ -446,10 +437,7 @@ export async function getContratosVencendo(
     }
 
     // Fallback para resposta já formatada
-    if (
-      'dados' in response.data &&
-      'totalRegistros' in response.data
-    ) {
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
       return response.data
     }
 
@@ -509,11 +497,8 @@ export async function getContratosVencidos(
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (
-      'dados' in response.data &&
-      Array.isArray(response.data.dados)
-    ) {
-      const {dados} = response.data
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
 
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
@@ -543,10 +528,7 @@ export async function getContratosVencidos(
     }
 
     // Fallback para resposta já formatada
-    if (
-      'dados' in response.data &&
-      'totalRegistros' in response.data
-    ) {
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
       return response.data
     }
 
@@ -610,11 +592,8 @@ export async function getContratosPorEmpresa(
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (
-      'dados' in response.data &&
-      Array.isArray(response.data.dados)
-    ) {
-      const {dados} = response.data
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
 
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
@@ -646,10 +625,7 @@ export async function getContratosPorEmpresa(
     }
 
     // Fallback para resposta já formatada
-    if (
-      'dados' in response.data &&
-      'totalRegistros' in response.data
-    ) {
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
       return response.data
     }
 

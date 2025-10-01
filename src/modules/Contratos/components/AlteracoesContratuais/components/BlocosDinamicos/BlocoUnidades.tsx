@@ -475,67 +475,65 @@ export const BlocoUnidades = ({
 
       {/* Contexto de Unidades Atual do Contrato */}
       {contractUnits && hasUnitsContext && (
-          <Card className="border-teal-200 bg-teal-50">
-            <CardContent className="pt-4">
-              <div className="mb-3">
-                <h4 className="flex items-center gap-2 font-medium text-teal-900">
-                  <Building2 className="h-4 w-4" />
-                  Unidades Vinculadas ao Contrato
-                </h4>
+        <Card className="border-teal-200 bg-teal-50">
+          <CardContent className="pt-4">
+            <div className="mb-3">
+              <h4 className="flex items-center gap-2 font-medium text-teal-900">
+                <Building2 className="h-4 w-4" />
+                Unidades Vinculadas ao Contrato
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+              <div>
+                <Label className="text-xs text-teal-600">
+                  Unidade Demandante
+                </Label>
+                <p className="font-medium text-teal-900">
+                  {demandingUnit ?? 'Não informado'}
+                </p>
               </div>
-              <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
-                <div>
-                  <Label className="text-xs text-teal-600">
-                    Unidade Demandante
-                  </Label>
-                  <p className="font-medium text-teal-900">
-                    {demandingUnit ?? 'Não informado'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-xs text-teal-600">
-                    Unidade Gestora
-                  </Label>
-                  <p className="font-medium text-teal-900">
-                    {managingUnit ?? 'Não informado'}
-                  </p>
-                </div>
+              <div>
+                <Label className="text-xs text-teal-600">Unidade Gestora</Label>
+                <p className="font-medium text-teal-900">
+                  {managingUnit ?? 'Não informado'}
+                </p>
               </div>
-              {linkedUnitsCount > 0 && (
-                <div className="mt-3 border-t border-teal-200 pt-3">
-                  <Label className="text-xs text-teal-600">
-                    Unidades Vinculadas Adicionais
-                  </Label>
-                  <p className="text-sm text-teal-800">
-                    {linkedUnitsCount} unidade(s)
-                    adicional(is) vinculada(s) ao contrato
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {linkedUnits
-                      .slice(0, 3)
-                      .map((unit: TransformedUnidade, index: number) => (
-                        <Badge
-                          key={unit.id}
-                          variant="outline"
-                          className="bg-teal-100 text-xs text-teal-700"
-                        >
-                          {unit.nome || `Unidade ${index + 1}`}
-                        </Badge>
-                      ))}
-                    {linkedUnitsCount > 3 && (
+            </div>
+            {linkedUnitsCount > 0 && (
+              <div className="mt-3 border-t border-teal-200 pt-3">
+                <Label className="text-xs text-teal-600">
+                  Unidades Vinculadas Adicionais
+                </Label>
+                <p className="text-sm text-teal-800">
+                  {linkedUnitsCount} unidade(s) adicional(is) vinculada(s) ao
+                  contrato
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {linkedUnits
+                    .slice(0, 3)
+                    .map((unit: TransformedUnidade, index: number) => (
                       <Badge
+                        key={unit.id}
                         variant="outline"
                         className="bg-teal-100 text-xs text-teal-700"
                       >
-                        +{linkedUnitsCount - 3} mais
+                        {unit.nome || `Unidade ${index + 1}`}
                       </Badge>
-                    )}
-                  </div>
+                    ))}
+                  {linkedUnitsCount > 3 && (
+                    <Badge
+                      variant="outline"
+                      className="bg-teal-100 text-xs text-teal-700"
+                    >
+                      +{linkedUnitsCount - 3} mais
+                    </Badge>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Unidades Já Vinculadas ao Contrato */}
       {unidadesJaVinculadas.length > 0 && (

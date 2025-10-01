@@ -1,5 +1,4 @@
-import type {
-  AxiosError} from 'axios';
+import type { AxiosError } from 'axios'
 import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,

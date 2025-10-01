@@ -103,8 +103,8 @@ export function useErrorHandler() {
             data &&
             typeof data === 'object' &&
             ('message' in data || 'error' in data)
-              ? (data as { message?: string; error?: string }).message ??
-                (data as { message?: string; error?: string }).error
+              ? ((data as { message?: string; error?: string }).message ??
+                (data as { message?: string; error?: string }).error)
               : `Erro ${status}: ${statusText}`,
           details: JSON.stringify(data, null, 2),
           timestamp: new Date(),

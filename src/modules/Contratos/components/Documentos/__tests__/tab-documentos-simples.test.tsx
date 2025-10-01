@@ -7,7 +7,6 @@ import type { DocumentoContratoDto } from '@/modules/Contratos/types/contrato'
 
 import { TabDocumentos } from '../tab-documentos'
 
-
 // Mock do sonner toast
 vi.mock('sonner', () => ({
   toast: {

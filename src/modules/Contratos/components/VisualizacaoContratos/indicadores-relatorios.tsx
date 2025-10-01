@@ -121,7 +121,8 @@ export const IndicadoresRelatorios = ({
     const mesesDecorridos = Math.max(
       0,
       Math.floor(
-        (hojeEvolucao.getTime() - dataInicioEvolucao.getTime()) / (1000 * 60 * 60 * 24 * 30.44),
+        (hojeEvolucao.getTime() - dataInicioEvolucao.getTime()) /
+          (1000 * 60 * 60 * 24 * 30.44),
       ),
     )
 
@@ -280,7 +281,7 @@ export const IndicadoresRelatorios = ({
                   <div
                     className="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
                     style={{ width: `${Math.min(progressoTemporal, 100)}%` }}
-                   />
+                  />
                 </div>
               </div>
               {gastoMedioPorDia > 0 && (
@@ -491,7 +492,10 @@ export const IndicadoresRelatorios = ({
                 let status = 'pendente'
                 if (hojePeriodos > periodoFim) {
                   status = 'concluido'
-                } else if (hojePeriodos >= periodoInicio && hojePeriodos <= periodoFim) {
+                } else if (
+                  hojePeriodos >= periodoInicio &&
+                  hojePeriodos <= periodoFim
+                ) {
                   status = 'em_andamento'
                 }
 
@@ -520,7 +524,7 @@ export const IndicadoresRelatorios = ({
                     <div
                       className="mt-1 h-3 w-3 flex-shrink-0 rounded-full sm:mt-0 sm:h-4 sm:w-4"
                       style={{ backgroundColor: statusConfig.color }}
-                     />
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                         <h4 className="text-sm font-semibold break-words sm:text-base">
@@ -580,7 +584,10 @@ export const IndicadoresRelatorios = ({
                   let status = 'pendente'
                   if (hojeTimeline > periodoFim) {
                     status = 'concluido'
-                  } else if (hojeTimeline >= periodoInicio && hojeTimeline <= periodoFim) {
+                  } else if (
+                    hojeTimeline >= periodoInicio &&
+                    hojeTimeline <= periodoFim
+                  ) {
                     status = 'em_andamento'
                   }
 
@@ -598,7 +605,7 @@ export const IndicadoresRelatorios = ({
                       className="h-full flex-1 rounded"
                       style={{ backgroundColor: statusConfig.color }}
                       title={`${periodo.descricao} - ${statusConfig.label}`}
-                     />
+                    />
                   )
                 })
               })()}

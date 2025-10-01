@@ -22,7 +22,6 @@ import { parseStatusFornecedor } from '@/types/status'
 
 import { useFornecedoresStore } from '../store/fornecedores-store'
 
-
 interface TabelaFornecedoresProps {
   fornecedores: Fornecedor[]
   paginacao: PaginacaoParamsFornecedor

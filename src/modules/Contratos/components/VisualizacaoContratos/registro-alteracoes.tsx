@@ -330,11 +330,7 @@ function renderDetalhesAlteracao(
     const dadosFuncionario = entrada.dados as DadosFuncionario | null
     if (!dadosFuncionario) return null
 
-    const {
-      funcionario,
-      acao,
-      funcionarioAnterior,
-    } = dadosFuncionario
+    const { funcionario, acao, funcionarioAnterior } = dadosFuncionario
 
     return (
       <div className="bg-muted/30 mb-3 rounded-lg p-3 text-sm">
@@ -524,7 +520,7 @@ function renderDetalhesAlteracao(
     const valorTexto = alteracao.valor.valorAjuste
       ? currencyUtils.formatar(alteracao.valor.valorAjuste)
       : ''
-    const summary = `${operacaoTexto}${valorTexto ? ` ${  valorTexto}` : ''}`
+    const summary = `${operacaoTexto}${valorTexto ? ` ${valorTexto}` : ''}`
 
     sections.push(
       <CollapsibleBlock
@@ -688,7 +684,7 @@ function renderDetalhesAlteracao(
                     const unidadeId =
                       typeof unidade === 'string'
                         ? unidade
-                        : (unidade.unidadeSaudeId || unidade.id)
+                        : unidade.unidadeSaudeId || unidade.id
 
                     // Se não conseguir extrair o ID, pular esta unidade
                     if (!unidadeId) return null
@@ -717,15 +713,13 @@ function renderDetalhesAlteracao(
             <div>
               <span className="font-medium">Desvinculadas:</span>
               <div className="mt-1 flex flex-wrap gap-1">
-                {alteracao.unidades.unidadesDesvinculadas?.map(
-                  (id: string) => (
-                    <SmartBadge
-                      key={id}
-                      result={getUnidadeNome(id)}
-                      variant="destructive"
-                    />
-                  ),
-                )}
+                {alteracao.unidades.unidadesDesvinculadas?.map((id: string) => (
+                  <SmartBadge
+                    key={id}
+                    result={getUnidadeNome(id)}
+                    variant="destructive"
+                  />
+                ))}
               </div>
             </div>
           )}
@@ -882,8 +876,8 @@ export const RegistroAlteracoes = ({
               const id =
                 typeof unidade === 'string'
                   ? unidade
-                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                  : (unidade.unidadeSaudeId ?? unidade.id)
+                  : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    (unidade.unidadeSaudeId ?? unidade.id)
               if (id) ids.push(String(id))
             },
           )
@@ -1051,16 +1045,15 @@ export const RegistroAlteracoes = ({
     const entradas: EntradaUnificada[] = []
 
     // Agrupar por funcionário e tipo para detectar padrões
-    const funcionariosPorTipo = historicoFuncionarios.reduce<Record<string, HistoricoFuncionario[]>>(
-      (acc, hist) => {
-        const key = `${hist.funcionarioId}-${hist.tipoGerencia}`
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (!acc[key]) acc[key] = []
-        acc[key].push(hist)
-        return acc
-      },
-      {},
-    )
+    const funcionariosPorTipo = historicoFuncionarios.reduce<
+      Record<string, HistoricoFuncionario[]>
+    >((acc, hist) => {
+      const key = `${hist.funcionarioId}-${hist.tipoGerencia}`
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!acc[key]) acc[key] = []
+      acc[key].push(hist)
+      return acc
+    }, {})
 
     // Para cada funcionário/tipo, criar eventos baseados nas transições
     Object.values(funcionariosPorTipo).forEach((periodos) => {

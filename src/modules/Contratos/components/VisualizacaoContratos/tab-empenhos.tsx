@@ -115,37 +115,39 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
 }
 
 // Componente para exibir nome da unidade - otimizado sem hook individual
-const NomeUnidade = React.memo(({
-  unidadeId,
-  nomesUnidades,
-  carregandoNomes,
-}: {
-  unidadeId: string
-  nomesUnidades: Record<string, string>
-  carregandoNomes: boolean
-}) => {
-  const navigate = useNavigate()
+const NomeUnidade = React.memo(
+  ({
+    unidadeId,
+    nomesUnidades,
+    carregandoNomes,
+  }: {
+    unidadeId: string
+    nomesUnidades: Record<string, string>
+    carregandoNomes: boolean
+  }) => {
+    const navigate = useNavigate()
 
-  const handleAbrirUnidade = useCallback(() => {
-    navigate(`/unidades/${unidadeId}`)
-  }, [navigate, unidadeId])
+    const handleAbrirUnidade = useCallback(() => {
+      navigate(`/unidades/${unidadeId}`)
+    }, [navigate, unidadeId])
 
-  if (carregandoNomes && !nomesUnidades[unidadeId]) {
-    return <span className="text-muted-foreground">Carregando...</span>
-  }
+    if (carregandoNomes && !nomesUnidades[unidadeId]) {
+      return <span className="text-muted-foreground">Carregando...</span>
+    }
 
-  return (
-    <Button
-      variant="link"
-      size="sm"
-      onClick={handleAbrirUnidade}
-      className="text-muted-foreground hover:text-foreground h-auto p-0"
-    >
-      <span>{nomesUnidades[unidadeId] || `Unidade ${unidadeId}`}</span>
-      <ExternalLink className="ml-1 h-3 w-3" />
-    </Button>
-  )
-})
+    return (
+      <Button
+        variant="link"
+        size="sm"
+        onClick={handleAbrirUnidade}
+        className="text-muted-foreground hover:text-foreground h-auto p-0"
+      >
+        <span>{nomesUnidades[unidadeId] || `Unidade ${unidadeId}`}</span>
+        <ExternalLink className="ml-1 h-3 w-3" />
+      </Button>
+    )
+  },
+)
 
 export const TabEmpenhos = ({
   contratoId,
@@ -889,7 +891,9 @@ export const TabEmpenhos = ({
                             <span>
                               {carregandoNomes
                                 ? 'Carregando...'
-                                : nomesUnidades[formulario.dados.unidadeSaudeId]}
+                                : nomesUnidades[
+                                    formulario.dados.unidadeSaudeId
+                                  ]}
                             </span>
                           )}
                         </SelectValue>
@@ -1022,7 +1026,9 @@ export const TabEmpenhos = ({
                     Cancelar
                   </Button>
                   <Button
-                    onClick={() => { void salvarEmpenhoHandler() }}
+                    onClick={() => {
+                      void salvarEmpenhoHandler()
+                    }}
                     disabled={!formularioValido()}
                   >
                     <Save className="mr-2 h-4 w-4" />
@@ -1069,7 +1075,12 @@ export const TabEmpenhos = ({
                   <Button variant="outline" onClick={fecharModalConfirmacao}>
                     Cancelar
                   </Button>
-                  <Button variant="destructive" onClick={() => { void confirmarExclusao() }}>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      void confirmarExclusao()
+                    }}
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Excluir
                   </Button>

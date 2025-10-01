@@ -69,9 +69,16 @@ export const UnidadeResponsavelManager = ({
 
   // Separar unidades por tipo
   const { demandantes, gestoras } = useMemo(() => {
-    const unidadesDemandantesFiltered = unidades.filter((u) => u.tipoResponsabilidade === 1)
-    const unidadesGestorasFiltered = unidades.filter((u) => u.tipoResponsabilidade === 2)
-    return { demandantes: unidadesDemandantesFiltered, gestoras: unidadesGestorasFiltered }
+    const unidadesDemandantesFiltered = unidades.filter(
+      (u) => u.tipoResponsabilidade === 1,
+    )
+    const unidadesGestorasFiltered = unidades.filter(
+      (u) => u.tipoResponsabilidade === 2,
+    )
+    return {
+      demandantes: unidadesDemandantesFiltered,
+      gestoras: unidadesGestorasFiltered,
+    }
   }, [unidades])
 
   // Buscar detalhes das unidades selecionadas para exibir nomes estáveis

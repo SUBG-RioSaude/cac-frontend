@@ -21,7 +21,12 @@ export const useFilters = (): UseFiltersResult => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY)
       if (saved) {
-        const parsed = JSON.parse(saved) as { periodo: unknown; unidades: unknown; status: unknown; tipos: unknown }
+        const parsed = JSON.parse(saved) as {
+          periodo: unknown
+          unidades: unknown
+          status: unknown
+          tipos: unknown
+        }
         // Validar estrutura básica
         if (
           parsed.periodo &&

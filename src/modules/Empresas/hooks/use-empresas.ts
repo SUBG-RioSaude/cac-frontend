@@ -635,4 +635,3 @@ export function useEmpresasByIds(
 
   return { data: map, isLoading, isFetching, error }
 }
-

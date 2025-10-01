@@ -17,8 +17,7 @@ interface ValidacaoState {
 
 export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
   const debounced = useDebounce(rawCpf.replace(/\D/g, ''), 600)
-  const isWaiting =
-    rawCpf.replace(/\D/g, '') !== debounced && rawCpf.length > 0
+  const isWaiting = rawCpf.replace(/\D/g, '') !== debounced && rawCpf.length > 0
   const isValidFormat = debounced.length === 11
 
   const { data, isLoading, isFetching, error } = useQuery({
@@ -85,8 +84,7 @@ export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
 
 export function useValidarMatriculaUnica(rawMatricula: string): ValidacaoState {
   const debounced = useDebounce(rawMatricula.trim(), 600)
-  const isWaiting =
-    rawMatricula.trim() !== debounced && rawMatricula.length > 0
+  const isWaiting = rawMatricula.trim() !== debounced && rawMatricula.length > 0
   const isValidFormat = /^[A-Za-z0-9]{3,20}$/.test(debounced)
 
   const { data, isLoading, isFetching, error } = useQuery({

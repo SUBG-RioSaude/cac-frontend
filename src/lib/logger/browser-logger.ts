@@ -1,18 +1,13 @@
 /* eslint-disable no-console */
 import pino, { type Level, type LogEvent } from 'pino'
 
-import {
-  loggerConfig,
-  performanceConfig,
-  contextDefaults,
-} from './config'
+import { loggerConfig, performanceConfig, contextDefaults } from './config'
 import type {
   StructuredLogger,
   LogContext,
   LogMetrics,
   LogLevel,
 } from './types'
-
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -128,9 +123,7 @@ class BrowserLogger implements StructuredLogger {
 
     const timestamp = new Date().toLocaleTimeString('pt-BR')
     const levelFormatted = level.toUpperCase().padEnd(5)
-    const module = logEvent.context.module
-      ? `[${logEvent.context.module}]`
-      : ''
+    const module = logEvent.context.module ? `[${logEvent.context.module}]` : ''
     const component = logEvent.context.component
       ? `[${logEvent.context.component}]`
       : ''

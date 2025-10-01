@@ -133,7 +133,9 @@ export const FiltroDocumentos = ({
         <div className="grid gap-4 sm:grid-cols-3">
           {/* Filtro por categoria */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium" htmlFor="categoria-select">Categoria</Label>
+            <Label className="text-sm font-medium" htmlFor="categoria-select">
+              Categoria
+            </Label>
             <Select
               value={filtro.categoria ?? 'todos'}
               onValueChange={(value) =>
@@ -158,7 +160,9 @@ export const FiltroDocumentos = ({
 
           {/* Filtro por status */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium" htmlFor="status-select">Status</Label>
+            <Label className="text-sm font-medium" htmlFor="status-select">
+              Status
+            </Label>
             <Select
               value={filtro.status ?? 'todos'}
               onValueChange={(value) =>
@@ -197,7 +201,9 @@ export const FiltroDocumentos = ({
 
           {/* Filtro por tipo */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium" htmlFor="tipo-select">Tipo de Documento</Label>
+            <Label className="text-sm font-medium" htmlFor="tipo-select">
+              Tipo de Documento
+            </Label>
             <Select
               value={filtro.tipo ?? 'todos'}
               onValueChange={(value) =>

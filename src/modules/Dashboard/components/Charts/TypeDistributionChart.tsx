@@ -144,7 +144,12 @@ export const TypeDistributionChart = ({
               cursor={false}
               content={({ active, payload }) => {
                 if (active && payload?.length) {
-                  const data = payload[0].payload as { tipo: string; quantidade: number; percentual: number; valor: number }
+                  const data = payload[0].payload as {
+                    tipo: string
+                    quantidade: number
+                    percentual: number
+                    valor: number
+                  }
                   return (
                     <div className="bg-background rounded-lg border p-2 shadow-sm">
                       <div className="grid gap-2">

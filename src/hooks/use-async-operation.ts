@@ -36,7 +36,8 @@ export function useAsyncOperation<T = unknown>(): UseAsyncOperationResult<T> {
         const result = await operation()
         return result
       } catch (err) {
-        const errorInstance = err instanceof Error ? err : new Error(String(err))
+        const errorInstance =
+          err instanceof Error ? err : new Error(String(err))
         setError(errorInstance)
         throw errorInstance
       } finally {
@@ -65,7 +66,10 @@ export function useFormAsyncOperation<TData = unknown, TResult = unknown>() {
   const { execute, isPending, error, clearError } = useAsyncOperation<TResult>()
 
   const submitForm = useCallback(
-    async (formData: TData, submitFunction: (data: TData) => Promise<TResult>) => {
+    async (
+      formData: TData,
+      submitFunction: (data: TData) => Promise<TResult>,
+    ) => {
       return execute(() => submitFunction(formData))
     },
     [execute],

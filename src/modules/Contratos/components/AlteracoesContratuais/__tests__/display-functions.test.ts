@@ -10,9 +10,8 @@ describe('Display Functions - Alterações Contratuais', () => {
     // Função extraída para teste (replica a lógica do componente)
     const getTipoNome = (tipo: number): string => {
       if (Object.prototype.hasOwnProperty.call(TIPOS_ALTERACAO_CONFIG, tipo)) {
-        const config = TIPOS_ALTERACAO_CONFIG[
-          tipo as keyof typeof TIPOS_ALTERACAO_CONFIG
-        ]
+        const config =
+          TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
         return config.label
       }
 
@@ -156,10 +155,11 @@ describe('Display Functions - Alterações Contratuais', () => {
   describe('Integração - Casos reais', () => {
     it('deve funcionar com dados típicos de revisão', () => {
       const getTipoNome = (tipo: number): string => {
-        if (Object.prototype.hasOwnProperty.call(TIPOS_ALTERACAO_CONFIG, tipo)) {
-          const config = TIPOS_ALTERACAO_CONFIG[
-            tipo as keyof typeof TIPOS_ALTERACAO_CONFIG
-          ]
+        if (
+          Object.prototype.hasOwnProperty.call(TIPOS_ALTERACAO_CONFIG, tipo)
+        ) {
+          const config =
+            TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
           return config.label
         }
 

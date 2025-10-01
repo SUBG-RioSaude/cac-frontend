@@ -44,8 +44,6 @@ import { BlocoUnidades } from './BlocoUnidades'
 import { BlocoValor } from './BlocoValor'
 import { BlocoVigencia } from './BlocoVigencia'
 
-
-
 interface TransformedUnidade {
   id: string
   codigo: string
@@ -191,7 +189,8 @@ export const BlocosDinamicos = ({
             dadosValor.valorAjuste !== undefined &&
               dadosValor.valorAjuste !== 0,
           ].filter(Boolean).length
-          const valor = dadosValor.valorAjuste ?? dadosValor.novoValorGlobal ?? 0
+          const valor =
+            dadosValor.valorAjuste ?? dadosValor.novoValorGlobal ?? 0
           const financials = contractContext?.financials
           const contractInfo = contractContext?.contract
           const operacao =
@@ -207,9 +206,7 @@ export const BlocosDinamicos = ({
 
           // Calcular percentual para o resumo
           const valorOriginalContrato =
-            financials?.totalValue ??
-            contractInfo?.valorTotal ??
-            0
+            financials?.totalValue ?? contractInfo?.valorTotal ?? 0
           const percentual =
             valorOriginalContrato > 0
               ? (valor / valorOriginalContrato) * 100
@@ -280,9 +277,7 @@ export const BlocosDinamicos = ({
           const unitsContext = contractContext?.units
           const linkedUnits = unitsContext?.linkedUnits ?? []
           const valorContrato =
-            financials?.totalValue ??
-            contractInfo?.valorTotal ??
-            0
+            financials?.totalValue ?? contractInfo?.valorTotal ?? 0
           let valorCompleto = true
           let resumoValor = ''
 
@@ -507,9 +502,7 @@ export const BlocosDinamicos = ({
             {...blocoProps}
             contractFinancials={financials}
             valorOriginal={
-              financials?.totalValue ??
-              contractInfo?.valorTotal ??
-              0
+              financials?.totalValue ?? contractInfo?.valorTotal ?? 0
             }
             onChange={handleValorChange}
           />
@@ -530,10 +523,7 @@ export const BlocosDinamicos = ({
           <BlocoUnidades
             {...blocoProps}
             contractUnits={contractContext?.units}
-            contractValue={
-              financials?.totalValue ??
-              contractInfo?.valorTotal
-            }
+            contractValue={financials?.totalValue ?? contractInfo?.valorTotal}
             onChange={handleUnidadesChange}
           />
         )
@@ -718,29 +708,26 @@ export const BlocosDinamicos = ({
                                   Opcional
                                 </Badge>
                               )}
-                          </div>
+                            </div>
 
-                          <div className="flex items-center gap-4">
-                            <p className="text-sm font-normal text-gray-600">
-                              {bloco.resumo}
-                            </p>
-                            {hasProgress && (
-                              <div className="flex min-w-32 items-center gap-2">
-                                <Progress
-                                  value={
-                                    (progressoAtual /
-                                      progressoTotal) *
-                                      100
-                                  }
-                                  className="h-2 flex-1"
-                                />
-                                <span className="text-xs font-medium text-gray-500">
-                                  {progressoAtual}/
-                                  {progressoTotal}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                            <div className="flex items-center gap-4">
+                              <p className="text-sm font-normal text-gray-600">
+                                {bloco.resumo}
+                              </p>
+                              {hasProgress && (
+                                <div className="flex min-w-32 items-center gap-2">
+                                  <Progress
+                                    value={
+                                      (progressoAtual / progressoTotal) * 100
+                                    }
+                                    className="h-2 flex-1"
+                                  />
+                                  <span className="text-xs font-medium text-gray-500">
+                                    {progressoAtual}/{progressoTotal}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
 

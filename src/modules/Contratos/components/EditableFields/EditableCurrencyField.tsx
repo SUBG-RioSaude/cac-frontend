@@ -134,7 +134,9 @@ export const EditableCurrencyField = ({
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => { void handleSave() }}
+          onClick={() => {
+            void handleSave()
+          }}
           disabled={isLoading || !hasChanges || !!error}
           className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
         >

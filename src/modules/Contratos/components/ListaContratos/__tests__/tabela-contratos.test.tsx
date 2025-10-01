@@ -9,7 +9,6 @@ import type {
 
 import { TabelaContratos } from '../tabela-contratos'
 
-
 // Mock props para os testes
 const mockProps = {
   contratos: [] as Contrato[],
@@ -409,11 +408,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
   it('Renderizar estado de loading com hideContratadaColumn={true}', () => {
     renderizarComRouter(
-      <TabelaContratos
-        {...mockProps}
-        isLoading
-        hideContratadaColumn
-      />,
+      <TabelaContratos {...mockProps} isLoading hideContratadaColumn />,
     )
 
     // Verifica se o header da coluna Contratada NÃO está presente durante loading

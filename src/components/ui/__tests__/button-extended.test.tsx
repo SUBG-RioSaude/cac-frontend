@@ -12,7 +12,6 @@ import {
   FloatingActionButton,
 } from '@/components/ui/button-extended'
 
-
 describe('LoadingButton', () => {
   it('renderiza botão normal quando não está carregando', () => {
     render(<LoadingButton>Salvar</LoadingButton>)

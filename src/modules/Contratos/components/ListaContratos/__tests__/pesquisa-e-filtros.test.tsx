@@ -5,7 +5,6 @@ import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 
 import { SearchAndFilters } from '../pesquisa-e-filtros'
 
-
 // Mock do hook useUnidades
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
   useUnidades: () => ({

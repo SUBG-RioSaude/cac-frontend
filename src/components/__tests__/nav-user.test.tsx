@@ -6,7 +6,6 @@ import { useAuthStore } from '@/lib/auth/auth-store'
 
 import { NavUser } from '../nav-user'
 
-
 // Mock do useAuthStore
 vi.mock('@/lib/auth/auth-store')
 const mockUseAuthStore = vi.mocked(useAuthStore)

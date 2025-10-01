@@ -113,10 +113,10 @@ export async function buscarUnidadesPorNome(
     baseURL: getApiUrl(),
   })
 
-  const {data} = response
+  const { data } = response
   if (Array.isArray(data)) return data
   if (typeof data === 'object' && 'dados' in data) {
-    return (data as {dados: UnidadeSaudeApi[]}).dados
+    return (data as { dados: UnidadeSaudeApi[] }).dados
   }
   return []
 }
@@ -145,13 +145,13 @@ export async function buscarUnidadesPorNomeOuSigla(
         baseURL: getApiUrl(),
       })
 
-      const {data} = response
+      const { data } = response
       let unidadesPorSigla: UnidadeSaudeApi[] = []
 
       if (Array.isArray(data)) {
         unidadesPorSigla = data
       } else if (typeof data === 'object' && 'dados' in data) {
-        unidadesPorSigla = (data as {dados: UnidadeSaudeApi[]}).dados
+        unidadesPorSigla = (data as { dados: UnidadeSaudeApi[] }).dados
       }
 
       // Combinar resultados e remover duplicatas

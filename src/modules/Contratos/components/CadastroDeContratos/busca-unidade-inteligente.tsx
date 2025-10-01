@@ -177,7 +177,10 @@ const BuscaUnidadeInteligente = ({
 
     return partes.map((parte) =>
       regex.test(parte) ? (
-        <mark key={`highlight-${parte}`} className="rounded bg-blue-200 px-1 text-blue-900">
+        <mark
+          key={`highlight-${parte}`}
+          className="rounded bg-blue-200 px-1 text-blue-900"
+        >
           {parte}
         </mark>
       ) : (

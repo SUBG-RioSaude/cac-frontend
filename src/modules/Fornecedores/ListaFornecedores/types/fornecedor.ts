@@ -102,4 +102,3 @@ export interface PaginacaoParamsFornecedor {
   itensPorPagina: number
   total: number
 }
-

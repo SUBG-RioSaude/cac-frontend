@@ -56,7 +56,10 @@ function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
     return {}
   }
   return (
-    Object.entries(filtros) as [keyof FiltrosUnidadesApi, FiltrosUnidadesApi[keyof FiltrosUnidadesApi]][]
+    Object.entries(filtros) as [
+      keyof FiltrosUnidadesApi,
+      FiltrosUnidadesApi[keyof FiltrosUnidadesApi],
+    ][]
   ).reduce<FiltrosUnidadesApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc

@@ -694,7 +694,10 @@ const ContratoForm = ({
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error('Erro ao calcular prazo a partir da vigência final:', error)
+        console.error(
+          'Erro ao calcular prazo a partir da vigência final:',
+          error,
+        )
       }
       return { meses: 0, dias: 0 }
     }
@@ -1140,7 +1143,10 @@ const ContratoForm = ({
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {processosSelecionados.map((processo, index) => (
-                  <div key={`${processo.tipo}-${processo.numero}`} className="space-y-3 rounded-lg border p-4">
+                  <div
+                    key={`${processo.tipo}-${processo.numero}`}
+                    className="space-y-3 rounded-lg border p-4"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-gray-500 uppercase">
                         {processo.tipo === 'sei'

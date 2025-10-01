@@ -193,7 +193,9 @@ export const CurrencyMetricCard = (props: Omit<MetricCardProps, 'format'>) => {
 }
 
 // Card para percentuais
-export const PercentageMetricCard = (props: Omit<MetricCardProps, 'format'>) => {
+export const PercentageMetricCard = (
+  props: Omit<MetricCardProps, 'format'>,
+) => {
   return <MetricCard {...props} format="percentage" />
 }
 

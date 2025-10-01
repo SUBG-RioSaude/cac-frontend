@@ -256,7 +256,9 @@ describe('Progress', () => {
     it('deve renderizar progresso de upload', () => {
       render(
         <div>
-          <label htmlFor="upload-progress" id="upload-label">Upload de arquivo</label>
+          <label htmlFor="upload-progress" id="upload-label">
+            Upload de arquivo
+          </label>
           <Progress
             id="upload-progress"
             value={75}

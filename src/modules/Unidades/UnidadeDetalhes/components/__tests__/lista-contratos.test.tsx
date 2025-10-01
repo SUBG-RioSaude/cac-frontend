@@ -7,7 +7,6 @@ import type { ContratoVinculado } from '@/modules/Unidades/ListaUnidades/types/u
 
 import { ListaContratos } from '../lista-contratos'
 
-
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
   motion: {

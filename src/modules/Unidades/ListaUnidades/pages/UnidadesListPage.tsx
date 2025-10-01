@@ -107,11 +107,17 @@ const UnidadesListPage = () => {
         await deleteUnidadeMutation.mutateAsync(unidade.id.toString())
       } catch (deleteError) {
         // Error handling is done in the mutation hook
-        logger.error({
-          operation: 'excluir_unidade',
-          unidadeId: unidade.id,
-          error: deleteError instanceof Error ? deleteError.message : String(deleteError)
-        }, 'Erro ao excluir unidade')
+        logger.error(
+          {
+            operation: 'excluir_unidade',
+            unidadeId: unidade.id,
+            error:
+              deleteError instanceof Error
+                ? deleteError.message
+                : String(deleteError),
+          },
+          'Erro ao excluir unidade',
+        )
       }
     }
   }
@@ -256,7 +262,7 @@ const UnidadesListPage = () => {
                 ...prev,
                 ...novosFiltros,
                 pagina: jaPossuiPaginacao
-                  ? novosFiltros.pagina ?? prev.pagina
+                  ? (novosFiltros.pagina ?? prev.pagina)
                   : 1,
                 tamanhoPagina: novosFiltros.tamanhoPagina ?? prev.tamanhoPagina,
                 ordenarPor: prev.ordenarPor,
@@ -280,8 +286,7 @@ const UnidadesListPage = () => {
           ordenacao={ordenacao}
           onOrdenacao={handleOrdenacao}
           isLoading={
-            updateUnidadeMutation.isPending ||
-            deleteUnidadeMutation.isPending
+            updateUnidadeMutation.isPending || deleteUnidadeMutation.isPending
           }
         />
       </div>

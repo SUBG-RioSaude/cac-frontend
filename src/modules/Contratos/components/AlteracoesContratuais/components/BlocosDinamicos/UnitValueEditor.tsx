@@ -118,7 +118,7 @@ export const UnitValueEditor = ({
       const decimalPart = parts[parts.length - 1] // última parte é decimal
       const integerPart = parts.slice(0, -1).join('').replace(/\./g, '') // remove pontos dos milhares
 
-      const finalString = `${integerPart  }.${  decimalPart}`
+      const finalString = `${integerPart}.${decimalPart}`
       return parseFloat(finalString) || 0
     },
     [],

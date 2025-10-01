@@ -99,7 +99,7 @@ export function useDeleteDocumento() {
       return deleteDocumento(data.documentoId)
     },
     onMutate: async (data) => {
-      const {contratoId} = data
+      const { contratoId } = data
 
       const loadingToast = mutation.loading('Excluindo documento...')
 
@@ -167,7 +167,7 @@ export function useUpdateDocumento() {
       return updateDocumento(data.documentoId, data.payload)
     },
     onMutate: async (data) => {
-      const {contratoId} = data
+      const { contratoId } = data
 
       const loadingToast = mutation.loading('Atualizando documento...')
       await queryClient.cancelQueries({
@@ -229,7 +229,7 @@ export function useCreateDocumento() {
       return createDocumento(data.payload)
     },
     onMutate: async (data) => {
-      const {contratoId} = data
+      const { contratoId } = data
 
       const loadingToast = mutation.loading('Registrando documento...')
       await queryClient.cancelQueries({
@@ -290,7 +290,7 @@ export function useUpdateDocumentosMultiplos() {
       return saveDocumentosMultiplos(data.contratoId, data.payload)
     },
     onMutate: async (data) => {
-      const {contratoId} = data
+      const { contratoId } = data
       const loadingToast = mutation.loading('Salvando documentos...')
 
       await queryClient.cancelQueries({
@@ -343,7 +343,7 @@ export function useUpdateDocumentoStatus() {
       return saveDocumentoStatus(data.contratoId, data.documento)
     },
     onMutate: async (data) => {
-      const {contratoId} = data
+      const { contratoId } = data
 
       await queryClient.cancelQueries({
         queryKey: contratoKeys.documentos(contratoId),

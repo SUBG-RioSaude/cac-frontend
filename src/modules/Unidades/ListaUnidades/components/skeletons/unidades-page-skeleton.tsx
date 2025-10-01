@@ -98,14 +98,17 @@ export const UnidadesPageSkeleton = () => {
                     </div>
 
                     <div className="mb-3 space-y-2">
-                      {Array.from({ length: 5 }, (_unusedMobileField, fieldIndex) => (
-                        <div key={fieldIndex}>
-                          <Skeleton className="mb-1 h-3 w-8" />
-                          <Skeleton
-                            className={`h-4 ${fieldIndex === 4 ? 'w-full' : 'w-20'}`}
-                          />
-                        </div>
-                      ))}
+                      {Array.from(
+                        { length: 5 },
+                        (_unusedMobileField, fieldIndex) => (
+                          <div key={fieldIndex}>
+                            <Skeleton className="mb-1 h-3 w-8" />
+                            <Skeleton
+                              className={`h-4 ${fieldIndex === 4 ? 'w-full' : 'w-20'}`}
+                            />
+                          </div>
+                        ),
+                      )}
                     </div>
 
                     <div className="flex items-center justify-end gap-1">

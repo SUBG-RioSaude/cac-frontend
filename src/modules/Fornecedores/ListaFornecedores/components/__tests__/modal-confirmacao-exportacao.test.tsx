@@ -53,10 +53,7 @@ describe('ModalConfirmacaoExportacao', () => {
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
       const text = element.textContent
-      return Boolean(
-        text?.includes('250') &&
-          text.includes('fornecedores'),
-      )
+      return Boolean(text?.includes('250') && text.includes('fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
   })
@@ -67,10 +64,7 @@ describe('ModalConfirmacaoExportacao', () => {
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
       const text = element.textContent
-      return Boolean(
-        text?.includes('1') &&
-          text.includes('fornecedor'),
-      )
+      return Boolean(text?.includes('1') && text.includes('fornecedor'))
     })
     expect(elementos.length).toBeGreaterThan(0)
   })
@@ -81,10 +75,7 @@ describe('ModalConfirmacaoExportacao', () => {
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
       const text = element.textContent
-      return Boolean(
-        text?.includes('5') &&
-          text.includes('fornecedores'),
-      )
+      return Boolean(text?.includes('5') && text.includes('fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
   })

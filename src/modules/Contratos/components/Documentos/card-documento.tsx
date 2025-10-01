@@ -121,8 +121,7 @@ export const CardDocumento = ({
 
   const statusInfo = getStatusInfo(documento.status)
   const tipoIconeKey = documento.tipo.icone as keyof typeof tipoIcons
-  const IconeTipo =
-    tipoIconeKey in tipoIcons ? tipoIcons[tipoIconeKey] : File
+  const IconeTipo = tipoIconeKey in tipoIcons ? tipoIcons[tipoIconeKey] : File
 
   const handleToggleConferido = (checked: boolean) => {
     if (checked) {

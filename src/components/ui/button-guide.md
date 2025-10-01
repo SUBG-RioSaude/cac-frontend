@@ -83,7 +83,6 @@ Botão com estado de carregamento integrado.
 
 ```tsx
 import { LoadingButton } from '@/components/ui/button-extended'
-
 ;<LoadingButton
   loading={isSubmitting}
   loadingText="Salvando..."
@@ -99,7 +98,6 @@ Botão para ações rápidas em tabelas/cards.
 
 ```tsx
 import { ActionButton } from '@/components/ui/button-extended'
-
 ;<ActionButton
   icon={<Edit className="h-4 w-4" />}
   tooltip="Editar item"
@@ -113,7 +111,6 @@ Botão apenas com ícone e aria-label obrigatório.
 
 ```tsx
 import { IconButton } from '@/components/ui/button-extended'
-
 ;<IconButton
   icon={<Settings className="h-4 w-4" />}
   aria-label="Configurações"
@@ -127,7 +124,6 @@ Botão que expande para confirmação inline.
 
 ```tsx
 import { ConfirmationButton } from '@/components/ui/button-extended'
-
 ;<ConfirmationButton
   variant="destructive"
   onConfirm={handleDelete}
@@ -144,7 +140,6 @@ Agrupamento de botões relacionados.
 
 ```tsx
 import { ButtonGroup } from '@/components/ui/button-extended'
-
 ;<ButtonGroup>
   <Button variant="outline">Anterior</Button>
   <Button variant="outline">Próximo</Button>
@@ -157,7 +152,6 @@ Botão otimizado para listas e dropdowns.
 
 ```tsx
 import { ListButton } from '@/components/ui/button-extended'
-
 ;<ListButton
   title="João Silva"
   description="Desenvolvedor Frontend"
@@ -173,7 +167,6 @@ Botão flutuante para ação principal.
 
 ```tsx
 import { FloatingActionButton } from '@/components/ui/button-extended'
-
 ;<FloatingActionButton
   icon={<Plus className="h-6 w-6" />}
   position="bottom-right"

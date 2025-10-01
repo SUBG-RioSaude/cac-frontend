@@ -151,7 +151,7 @@ export async function getFuncionarioByCpf(
     logger.error(
       {
         operation: 'buscar_funcionario_cpf',
-        cpf: `${cpf.substring(0, 3)  }***`, // Mascarar CPF por segurança
+        cpf: `${cpf.substring(0, 3)}***`, // Mascarar CPF por segurança
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       },
@@ -200,7 +200,7 @@ export async function getLotacoes(
     'dados' in response.data &&
     Array.isArray(response.data.dados)
   ) {
-    const {dados} = response.data
+    const { dados } = response.data
 
     // Se tem metadados de paginação, usar eles
     if ('totalRegistros' in response.data) {

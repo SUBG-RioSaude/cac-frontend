@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // Ler versão do package.json
 const packageJson = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+  fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
 )
 
 // Obter informações de build do ambiente ou git
@@ -30,9 +30,7 @@ const getBuildNumber = (): string => {
 
 const getBuildTimestamp = (): string => {
   return (
-    process.env.VITE_BUILD_TIME ||
-    new Date().toISOString().split('T')[0] ||
-    ''
+    process.env.VITE_BUILD_TIME || new Date().toISOString().split('T')[0] || ''
   )
 }
 

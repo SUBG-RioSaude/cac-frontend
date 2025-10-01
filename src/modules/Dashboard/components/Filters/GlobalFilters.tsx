@@ -45,7 +45,6 @@ import { fetchUnidadesForFilters } from '../../services/dashboard-service'
 import type { DashboardFilters, UseFiltersResult } from '../../types/dashboard'
 import { generatePeriodOptions } from '../../utils/dashboard-utils'
 
-
 interface GlobalFiltersProps {
   filters: DashboardFilters
   onFiltersChange: UseFiltersResult['updateFilter']

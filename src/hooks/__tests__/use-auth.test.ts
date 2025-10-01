@@ -6,7 +6,6 @@ import { useAuthStore } from '@/lib/auth/auth-store'
 
 import { useAuth } from '../use-auth'
 
-
 // Mock react-router-dom
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', () => ({

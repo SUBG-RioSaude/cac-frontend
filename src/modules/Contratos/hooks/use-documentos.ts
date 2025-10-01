@@ -5,7 +5,6 @@ import { useErrorHandler } from '@/hooks/use-error-handler'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { getDocumentos } from '@/modules/Contratos/services/documentos-service'
 
-
 /**
  * Hook para buscar a lista de documentos de um contrato.
  * @param contratoId - O ID do contrato.

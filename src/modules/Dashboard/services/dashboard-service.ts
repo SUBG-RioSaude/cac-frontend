@@ -576,7 +576,13 @@ export const fetchRecentActivities = async (): Promise<DashboardActivity[]> => {
 
     // Simular atividades baseadas nos contratos
     const activities: DashboardActivity[] = contracts.map((contract, index) => {
-      const tipos: ('cadastrado' | 'aprovado' | 'atualizado' | 'cancelado' | 'renovado')[] = ['cadastrado', 'aprovado', 'atualizado']
+      const tipos: (
+        | 'cadastrado'
+        | 'aprovado'
+        | 'atualizado'
+        | 'cancelado'
+        | 'renovado'
+      )[] = ['cadastrado', 'aprovado', 'atualizado']
       const tipo = tipos[index % tipos.length]
 
       return {

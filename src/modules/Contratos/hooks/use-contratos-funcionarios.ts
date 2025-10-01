@@ -99,7 +99,11 @@ export function useAdicionarFuncionarioContrato() {
 
   return useMutation({
     mutationFn: async (payload: AdicionarFuncionarioPayloadCompleto) => {
-      const { contratoId, funcionarioNome: _funcionarioNome, ...dados } = payload
+      const {
+        contratoId,
+        funcionarioNome: _funcionarioNome,
+        ...dados
+      } = payload
       return await adicionarFuncionarioContrato(contratoId, dados)
     },
 
@@ -377,7 +381,8 @@ export function useContratoFuncionarios(
       const safeString = (value: unknown): string | null => {
         if (value === null || value === undefined) return null
         if (typeof value === 'string') return value
-        if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+        if (typeof value === 'number' || typeof value === 'boolean')
+          return String(value)
         return null // For objects, return null instead of '[object Object]'
       }
 

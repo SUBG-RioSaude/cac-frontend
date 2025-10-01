@@ -17,16 +17,18 @@ function isValidLocationState(state: unknown): state is LocationState {
   return typeof state === 'object' && state !== null
 }
 
-const ServiceUnavailable = ({
-  error: propError,
-}: ServiceUnavailableProps) => {
+const ServiceUnavailable = ({ error: propError }: ServiceUnavailableProps) => {
   const navigate = useNavigate()
   const location = useLocation()
   const [isRetrying, setIsRetrying] = useState(false)
   const [countdown, setCountdown] = useState(30)
 
   // Buscar erro do state da navegação ou usar prop
-  const locationError = isValidLocationState(location.state) && typeof location.state.error === 'string' ? location.state.error : undefined
+  const locationError =
+    isValidLocationState(location.state) &&
+    typeof location.state.error === 'string'
+      ? location.state.error
+      : undefined
   const error = locationError ?? propError
 
   useEffect(() => {

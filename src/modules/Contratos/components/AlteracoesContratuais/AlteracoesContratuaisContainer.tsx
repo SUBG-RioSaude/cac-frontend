@@ -343,7 +343,7 @@ export const AlteracoesContratuaisContainer = ({
                   ? 'bg-blue-500'
                   : 'bg-gray-400',
               )}
-             />
+            />
             <span className="text-center">Nova Alteração</span>
           </TabsTrigger>
 
@@ -356,7 +356,7 @@ export const AlteracoesContratuaisContainer = ({
                 'h-2 w-2 rounded-full sm:h-3 sm:w-3',
                 subabaAtiva === 'historico' ? 'bg-green-500' : 'bg-gray-400',
               )}
-             />
+            />
             <span className="text-center">Histórico</span>
             {alteracoes.length > 0 && (
               <Badge variant="secondary" className="text-xs">

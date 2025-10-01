@@ -37,7 +37,6 @@ import { parseStatusContrato } from '@/types/status'
 import { ModalUnidadesResponsaveis } from './ModalUnidadesResponsaveis'
 import { VigenciaDisplay } from './VigenciaDisplay'
 
-
 interface TabelaContratosProps {
   contratos: Contrato[]
   isLoading: boolean
@@ -356,38 +355,37 @@ export const TabelaContratos = ({
                     {isLoading
                       ? tableSkeletonRowIds.map((skeletonId) => (
                           <TableRow key={skeletonId}>
+                            <TableCell>
+                              <Skeleton className="h-4 w-4" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-28" />
+                            </TableCell>
+                            {!hideContratadaColumn && (
                               <TableCell>
-                                <Skeleton className="h-4 w-4" />
+                                <Skeleton className="h-4 w-32" />
                               </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-28" />
-                              </TableCell>
-                              {!hideContratadaColumn && (
-                                <TableCell>
-                                  <Skeleton className="h-4 w-32" />
-                                </TableCell>
-                              )}
-                              <TableCell>
-                                <Skeleton className="h-4 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-20" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-16" />
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Skeleton className="ml-auto h-8 w-12" />
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        )
+                            )}
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-16" />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Skeleton className="ml-auto h-8 w-12" />
+                            </TableCell>
+                          </TableRow>
+                        ))
                       : contratos.map((contrato, index) => (
                           <motion.tr
                             key={contrato.id}
@@ -549,38 +547,37 @@ export const TabelaContratos = ({
                     {isLoading
                       ? tableSkeletonRowIds.map((skeletonId) => (
                           <TableRow key={skeletonId}>
+                            <TableCell>
+                              <Skeleton className="h-4 w-4" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-28" />
+                            </TableCell>
+                            {!hideContratadaColumn && (
                               <TableCell>
-                                <Skeleton className="h-4 w-4" />
+                                <Skeleton className="h-4 w-32" />
                               </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-28" />
-                              </TableCell>
-                              {!hideContratadaColumn && (
-                                <TableCell>
-                                  <Skeleton className="h-4 w-32" />
-                                </TableCell>
-                              )}
-                              <TableCell>
-                                <Skeleton className="h-4 w-20" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-20" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-24" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-20" />
-                              </TableCell>
-                              <TableCell>
-                                <Skeleton className="h-4 w-16" />
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Skeleton className="ml-auto h-8 w-12" />
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        )
+                            )}
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-16" />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Skeleton className="ml-auto h-8 w-12" />
+                            </TableCell>
+                          </TableRow>
+                        ))
                       : contratos.map((contrato, index) => (
                           <motion.tr
                             key={contrato.id}
@@ -702,20 +699,19 @@ export const TabelaContratos = ({
               {isLoading
                 ? mobileSkeletonCardIds.map((skeletonId) => (
                     <Card key={skeletonId} className="mb-4">
-                        <CardContent className="p-4">
-                          <div className="space-y-3">
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-3 w-1/2" />
-                            <div className="grid grid-cols-2 gap-3">
-                              <Skeleton className="h-3 w-full" />
-                              <Skeleton className="h-3 w-full" />
-                            </div>
-                            <Skeleton className="ml-auto h-8 w-16" />
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                          <div className="grid grid-cols-2 gap-3">
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-full" />
                           </div>
-                        </CardContent>
-                      </Card>
-                    ),
-                  )
+                          <Skeleton className="ml-auto h-8 w-16" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
                 : contratos.map((contrato, index) => (
                     <MobileContractCard
                       key={contrato.id}

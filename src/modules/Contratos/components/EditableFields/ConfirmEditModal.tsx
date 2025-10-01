@@ -13,7 +13,6 @@ import {
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
-
 interface ConfirmEditModalProps {
   isOpen: boolean
   onClose: () => void
@@ -117,7 +116,9 @@ export const ConfirmEditModal = ({
             Cancelar
           </Button>
           <Button
-            onClick={() => { void handleConfirm() }}
+            onClick={() => {
+              void handleConfirm()
+            }}
             disabled={isLoading || (isCritical && !justification.trim())}
             className="min-w-[100px]"
           >

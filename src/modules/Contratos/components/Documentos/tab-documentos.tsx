@@ -33,7 +33,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
 import type { DocumentoMultiplo } from '../../types/contrato'
 
-
 interface TabDocumentosProps {
   contratoId: string
 }
