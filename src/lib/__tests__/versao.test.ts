@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import {
   obterVersaoBase,
   obterCommitSha,
@@ -14,15 +15,15 @@ import {
 
 // Mock das variáveis globais injetadas pelo Vite
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __APP_VERSION__: string
-  // eslint-disable-next-line no-var
+   
   var __COMMIT_SHA__: string
-  // eslint-disable-next-line no-var
+   
   var __BUILD_NUMBER__: string
-  // eslint-disable-next-line no-var
+   
   var __BUILD_TIMESTAMP__: string
-  // eslint-disable-next-line no-var
+   
   var __APP_ENVIRONMENT__: string
 }
 
