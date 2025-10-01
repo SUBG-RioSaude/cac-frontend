@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import pino, { type Level, type LogEvent } from 'pino'
 
 import {
@@ -21,11 +22,21 @@ const normalizeMessage = (value: unknown): string => {
   if (typeof value === 'string') return value
   if (value instanceof Error) return value.message
   if (value === undefined) return ''
-  try {
-    return JSON.stringify(value)
-  } catch {
-    return String(value)
+  if (value === null) return 'null'
+
+  // Verifica se é um objeto simples para evitar [object Object]
+  if (typeof value === 'object') {
+    try {
+      // Serializa objeto para JSON
+      return JSON.stringify(value, null, 0)
+    } catch {
+      return '[Object]'
+    }
   }
+
+  // Converte primitivos para string (boolean, number, symbol, bigint)
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  return String(value)
 }
 
 class BrowserLogger implements StructuredLogger {
@@ -87,7 +98,8 @@ class BrowserLogger implements StructuredLogger {
   }
 
   private createLogMetrics(level: Level, logEvent: LogEvent): LogMetrics {
-    const messages = [...logEvent.messages]
+    // Cria cópia tipada das mensagens
+    const messages = Array.from(logEvent.messages) as unknown[]
 
     let context: LogContext = {}
     if (messages.length > 0 && isPlainObject(messages[0])) {
@@ -116,24 +128,22 @@ class BrowserLogger implements StructuredLogger {
 
     const timestamp = new Date().toLocaleTimeString('pt-BR')
     const levelFormatted = level.toUpperCase().padEnd(5)
-    const module = logEvent.context?.module
+    const module = logEvent.context.module
       ? `[${logEvent.context.module}]`
       : ''
-    const component = logEvent.context?.component
+    const component = logEvent.context.component
       ? `[${logEvent.context.component}]`
       : ''
 
     let message = `${timestamp} ${levelFormatted} ${module}${component} ${logEvent.message}`
 
     // Adicionar contexto relevante
-    if (logEvent.context) {
-      const relevantContext = { ...logEvent.context }
-      delete relevantContext.module
-      delete relevantContext.component
+    const relevantContext = { ...logEvent.context }
+    delete relevantContext.module
+    delete relevantContext.component
 
-      if (Object.keys(relevantContext).length > 0) {
-        message += ` | ${JSON.stringify(relevantContext)}`
-      }
+    if (Object.keys(relevantContext).length > 0) {
+      message += ` | ${JSON.stringify(relevantContext)}`
     }
 
     if (logEvent.extra && logEvent.extra.length > 0) {

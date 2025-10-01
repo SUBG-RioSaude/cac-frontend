@@ -20,8 +20,8 @@ const queryClient = new QueryClient({
       retry: (failureCount, error: unknown) => {
         // Não retry para erros 4xx (client errors)
         if (error && typeof error === 'object' && 'response' in error) {
-          const status = (error as { response: { status: number } }).response
-            ?.status
+          const { response } = error as { response: { status: number } }
+          const { status } = response
           if (status >= 400 && status < 500) {
             return false
           }

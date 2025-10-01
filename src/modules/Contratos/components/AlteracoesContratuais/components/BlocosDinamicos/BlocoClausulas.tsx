@@ -247,7 +247,7 @@ export const BlocoClausulas = ({
                 <div className="flex flex-wrap gap-2">
                   {templates.excluidas.map((template, index) => (
                     <Button
-                      key={index}
+                      key={`excluida-${template}`}
                       variant="outline"
                       size="sm"
                       onClick={() =>
@@ -311,7 +311,7 @@ export const BlocoClausulas = ({
                 <div className="flex flex-wrap gap-2">
                   {templates.incluidas.map((template, index) => (
                     <Button
-                      key={index}
+                      key={`incluida-${template}`}
                       variant="outline"
                       size="sm"
                       onClick={() =>
@@ -376,7 +376,7 @@ export const BlocoClausulas = ({
                 <div className="flex flex-wrap gap-2">
                   {templates.alteradas.map((template, index) => (
                     <Button
-                      key={index}
+                      key={`alterada-${template}`}
                       variant="outline"
                       size="sm"
                       onClick={() =>

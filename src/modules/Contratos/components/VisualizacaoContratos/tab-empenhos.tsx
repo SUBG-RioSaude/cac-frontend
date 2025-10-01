@@ -213,10 +213,13 @@ export const TabEmpenhos = ({
   // Obter nome da unidade selecionada no filtro
   const nomeUnidadeFiltro = useMemo(() => {
     if (!filtroUnidade || filtroUnidade === 'todas') return ''
+    const nome = nomesUnidades[filtroUnidade]
+    if (nome) return nome
+
     const unidade = unidadesVinculadas.find(
       (u) => u.unidadeSaudeId === filtroUnidade,
     )
-    return nomesUnidades[filtroUnidade] ?? unidade?.nomeUnidade ?? `Unidade ${filtroUnidade}`
+    return unidade?.nomeUnidade ?? `Unidade ${filtroUnidade}`
   }, [filtroUnidade, unidadesVinculadas, nomesUnidades])
 
   const [formulario, setFormulario] = useState<EstadoFormulario>({
@@ -725,9 +728,7 @@ export const TabEmpenhos = ({
                       >
                         {carregandoNomes
                           ? 'Carregando...'
-                          : nomesUnidades[unidade.unidadeSaudeId] ??
-                            unidade.nomeUnidade ??
-                            `Unidade ${unidade.unidadeSaudeId}`}
+                          : nomesUnidades[unidade.unidadeSaudeId]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -888,13 +889,7 @@ export const TabEmpenhos = ({
                             <span>
                               {carregandoNomes
                                 ? 'Carregando...'
-                                : nomesUnidades[formulario.dados.unidadeSaudeId] ??
-                                  unidadesVinculadas.find(
-                                    (u) =>
-                                      u.unidadeSaudeId ===
-                                      formulario.dados.unidadeSaudeId,
-                                  )?.nomeUnidade ??
-                                  `Unidade ${formulario.dados.unidadeSaudeId}`}
+                                : nomesUnidades[formulario.dados.unidadeSaudeId]}
                             </span>
                           )}
                         </SelectValue>
@@ -912,9 +907,7 @@ export const TabEmpenhos = ({
                             >
                               {carregandoNomes
                                 ? 'Carregando...'
-                                : nomesUnidades[unidade.unidadeSaudeId] ??
-                                  unidade.nomeUnidade ??
-                                  `Unidade ${unidade.unidadeSaudeId}`}
+                                : nomesUnidades[unidade.unidadeSaudeId]}
                             </SelectItem>
                           ))
                         )}

@@ -553,24 +553,24 @@ const FornecedorForm = ({
     const empresaIdAtual = formValues.empresaId ?? empresaEncontrada?.id
 
     const dados: Partial<DadosFornecedor> = {
-      cnpj: formValues.cnpj ?? '',
-      razaoSocial: formValues.razaoSocial ?? '',
-      estadoIE: formValues.estadoIE ?? '',
-      inscricaoEstadual: formValues.inscricaoEstadual ?? '',
-      inscricaoMunicipal: formValues.inscricaoMunicipal ?? '',
-      endereco: formValues.endereco ?? '',
-      numero: formValues.numero ?? '',
-      complemento: formValues.complemento ?? '',
-      bairro: formValues.bairro ?? '',
-      cidade: formValues.cidade ?? '',
-      estado: formValues.estado ?? '',
-      cep: formValues.cep ?? '',
-      ativo: formValues.ativo ?? false,
+      cnpj: formValues.cnpj,
+      razaoSocial: formValues.razaoSocial,
+      estadoIE: formValues.estadoIE,
+      inscricaoEstadual: formValues.inscricaoEstadual,
+      inscricaoMunicipal: formValues.inscricaoMunicipal,
+      endereco: formValues.endereco,
+      numero: formValues.numero,
+      complemento: formValues.complemento,
+      bairro: formValues.bairro,
+      cidade: formValues.cidade,
+      estado: formValues.estado,
+      cep: formValues.cep,
+      ativo: formValues.ativo,
       empresaId: empresaIdAtual,
-      contatos: (formValues.contatos ?? []).map((contato) => ({
+      contatos: formValues.contatos.map((contato) => ({
         id: contato.id,
-        nome: contato.nome ?? '',
-        valor: contato.valor ?? '',
+        nome: contato.nome,
+        valor: contato.valor,
         tipo: contato.tipo,
         ativo: contato.ativo,
       })),
@@ -597,7 +597,7 @@ const FornecedorForm = ({
     } as DadosFornecedor
 
     // Validações adicionais com feedback ao usuário
-    if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
+    if (dadosFornecedor.contatos.length === 0) {
       toast.error('Pelo menos um contato é obrigatório', {
         description: 'Adicione pelo menos um contato antes de continuar.',
       })
@@ -605,7 +605,7 @@ const FornecedorForm = ({
     }
 
     const contatosValidos = dadosFornecedor.contatos.filter(
-      (contato) => contato.nome && contato.valor && contato.tipo,
+      (contato) => Boolean(contato.nome) && Boolean(contato.valor) && Boolean(contato.tipo),
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
@@ -624,8 +624,8 @@ const FornecedorForm = ({
         const empresaRequest = {
           cnpj: dadosFornecedor.cnpj,
           razaoSocial: dadosFornecedor.razaoSocial,
-          inscricaoEstadual: dadosFornecedor.inscricaoEstadual ?? '',
-          inscricaoMunicipal: dadosFornecedor.inscricaoMunicipal ?? '',
+          inscricaoEstadual: dadosFornecedor.inscricaoEstadual || '',
+          inscricaoMunicipal: dadosFornecedor.inscricaoMunicipal || '',
           endereco: dadosFornecedor.endereco,
           bairro: dadosFornecedor.bairro,
           cidade: dadosFornecedor.cidade,
@@ -642,16 +642,10 @@ const FornecedorForm = ({
         const empresaCriada = await cadastrarEmpresaAsync(empresaRequest)
 
         // Validação robusta da empresa criada
-        if (!empresaCriada) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!empresaCriada?.id) {
           toast.error('Erro no cadastro da empresa', {
-            description: 'Resposta vazia do servidor',
-          })
-          return
-        }
-
-        if (!empresaCriada.id) {
-          toast.error('Erro no cadastro da empresa', {
-            description: 'ID da empresa não foi retornado',
+            description: 'Resposta inválida do servidor',
           })
           return
         }
@@ -708,7 +702,7 @@ const FornecedorForm = ({
           ...dadosFornecedor,
           empresaId: empresaIdFinal,
         }
-        await onAdvanceRequest(dadosCompletos)
+        void onAdvanceRequest(dadosCompletos)
       } else {
         // Incluir o empresaId nos dados se disponível
         const dadosCompletos = {
@@ -808,7 +802,9 @@ const FornecedorForm = ({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={(e) => {
+          void form.handleSubmit(handleFormSubmit)(e)
+        }}
         className="space-y-8"
       >
         {/* Informações Básicas */}
@@ -1485,7 +1481,7 @@ const FornecedorForm = ({
                                     type={
                                       tipoContato === 'Email' ? 'email' : 'tel'
                                     }
-                                    value={valorField.value ?? ''}
+                                    value={valorField.value || ''}
                                     disabled={!!empresaEncontrada}
                                     className={cn(
                                       !!empresaEncontrada &&
@@ -1516,7 +1512,8 @@ const FornecedorForm = ({
                                           validarFormatoTelefoneFixo(
                                             valorProcessado,
                                           )
-                                        } else if (tipoContato === 'Celular') {
+                                        } else {
+                                          // Celular
                                           validarFormatoCelular(valorProcessado)
                                         }
                                       }

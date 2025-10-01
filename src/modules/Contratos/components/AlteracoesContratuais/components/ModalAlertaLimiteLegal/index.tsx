@@ -139,8 +139,8 @@ export const ModalAlertaLimiteLegal = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {alerta.limites.map((limite: LimiteLegal, index: number) => (
-                <div key={index} className="space-y-2">
+              {alerta.limites.map((limite: LimiteLegal) => (
+                <div key={`${limite.tipo}-${limite.valorAtual}`} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {getIconForTipo(limite.tipo)}
@@ -269,14 +269,14 @@ export const ModalAlertaLimiteLegal = ({
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
-              onClick={handleCancelar}
+              onClick={() => void handleCancelar()}
               disabled={confirmando}
               className="order-2 sm:order-1"
             >
               Cancelar Alteração
             </Button>
             <Button
-              onClick={handleConfirmar}
+              onClick={() => void handleConfirmar()}
               disabled={confirmando || justificativaAdicional.length < 50}
               className="order-1 sm:order-2"
             >

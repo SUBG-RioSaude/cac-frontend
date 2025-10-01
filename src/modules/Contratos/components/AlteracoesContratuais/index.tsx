@@ -90,8 +90,8 @@ interface AlteracoesContratuaisProps {
   vigenciaFinal?: string // Data final do contrato para travar campo de publicação
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
-  onSaved?: (alteracao: AlteracaoContratualResponse) => void
-  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
   onCancelled?: () => void
   className?: string
 }
@@ -227,7 +227,7 @@ export const AlteracoesContratuais = ({
         ) {
           podeAvancar = false
         }
-        if (!dados.dataEfeito || dados.dataEfeito === '') {
+        if (!dados.dataEfeito) {
           podeAvancar = false
         }
         break
@@ -306,7 +306,10 @@ export const AlteracoesContratuais = ({
       // Callback de sucesso ao submeter (se disponível)
       // Note: onSubmitted será chamado pelo hook quando a operação for bem-sucedida
     } catch (error) {
-      console.error('❌ Erro ao submeter alteração:', error)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('❌ Erro ao submeter alteração:', error)
+      }
       setModalErro({
         open: true,
         mensagem:
@@ -366,12 +369,13 @@ export const AlteracoesContratuais = ({
       ) {
         return contractSuppliers.mainSupplier.razaoSocial || empresaId
       }
-      const fromList = contractSuppliers.suppliers?.find(
+      const fromList = contractSuppliers.suppliers.find(
         (s) => s.id === empresaId,
       )
-      if (fromList) return fromList.razaoSocial || empresaId
-      const fetched = empresasLookup.data?.[empresaId]
-      if (fetched) return fetched.razaoSocial || empresaId
+      if (fromList?.razaoSocial) return fromList.razaoSocial
+      const fetched = empresasLookup.data[empresaId]
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (fetched?.razaoSocial) return fetched.razaoSocial
       return empresaId
     },
     [
@@ -567,14 +571,15 @@ export const AlteracoesContratuais = ({
         const getTipoNome = (tipo: number): string => {
           const config =
             TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
-          return config?.label || `Tipo ${tipo}`
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          return config ? config.label : `Tipo ${tipo}`
         }
 
-        const getUnitName = (unitId: string) => {
+        const getUnitName = (unitId: string): string => {
           // Check in linked units (array of objects with id property)
-          const unit = contractUnits.linkedUnits?.find((u) => u.id === unitId)
-          if (unit) {
-            return unit.nome || unitId
+          const unit = contractUnits.linkedUnits.find((u) => u.id === unitId)
+          if (unit?.nome) {
+            return unit.nome
           }
           // Check if it's the demanding unit (stored as string)
           if (contractUnits.demandingUnit === unitId) {
@@ -840,10 +845,9 @@ export const AlteracoesContratuais = ({
                                 {dados.blocos.fornecedores.fornecedoresVinculados.map(
                                   (
                                     fornecedor: FornecedorAlteracao,
-                                    index: number,
                                   ) => (
                                     <div
-                                      key={index}
+                                      key={fornecedor.empresaId}
                                       className="rounded border bg-white p-2 text-xs"
                                     >
                                       <span className="font-medium">
@@ -873,9 +877,9 @@ export const AlteracoesContratuais = ({
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {dados.blocos.fornecedores.fornecedoresDesvinculados.map(
-                                  (id: string, index: number) => (
+                                  (id: string) => (
                                     <Badge
-                                      key={index}
+                                      key={id}
                                       variant="destructive"
                                       className="text-xs"
                                     >
@@ -922,9 +926,9 @@ export const AlteracoesContratuais = ({
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {dados.blocos.unidades.unidadesVinculadas.map(
-                                  (unidade, index: number) => (
+                                  (unidade) => (
                                     <Badge
-                                      key={index}
+                                      key={unidade.unidadeSaudeId}
                                       variant="default"
                                       className="text-xs"
                                     >
@@ -944,9 +948,9 @@ export const AlteracoesContratuais = ({
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {dados.blocos.unidades.unidadesDesvinculadas.map(
-                                  (id: string, index: number) => (
+                                  (id: string) => (
                                     <Badge
-                                      key={index}
+                                      key={id}
                                       variant="destructive"
                                       className="text-xs"
                                     >
@@ -1059,7 +1063,7 @@ export const AlteracoesContratuais = ({
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center">
                   <Button
-                    onClick={handleSubmeter}
+                    onClick={() => void handleSubmeter()}
                     disabled={!podeSubmeter || isLoading}
                     className="flex items-center gap-2"
                     variant="default"
@@ -1260,8 +1264,8 @@ export const AlteracoesContratuais = ({
               <ul className="mt-1 space-y-1 text-xs text-red-700">
                 {Object.values(errors)
                   .slice(0, 5)
-                  .map((error, index) => (
-                    <li key={index}>• {error}</li>
+                  .map((error) => (
+                    <li key={`error-${error}`}>• {error}</li>
                   ))}
                 {Object.keys(errors).length > 5 && (
                   <li>• E mais {Object.keys(errors).length - 5} erro(s)...</li>

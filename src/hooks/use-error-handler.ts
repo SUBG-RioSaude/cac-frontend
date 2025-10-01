@@ -21,8 +21,9 @@ export function useErrorHandler() {
       if (typeof error === 'string') {
         errorInfo.message = error
       } else if (error instanceof Error) {
-        errorInfo.message = error.message
-        errorInfo.details = error.stack
+        const { message, stack } = error
+        errorInfo.message = message
+        errorInfo.details = stack
       } else if (typeof error === 'object') {
         errorInfo = { ...error }
         code = code ?? error.code
@@ -129,12 +130,23 @@ export function useErrorHandler() {
   }
 }
 
+// Interface para o state do history
+interface HistoryStateError {
+  error?: string | null
+  fullError?: unknown
+}
+
+interface HistoryStateWrapper {
+  usr?: HistoryStateError
+}
+
 // Hook para acessar informações de erro na página de erro
 export function useErrorInfo() {
   const navigate = useNavigate()
 
   // Tentar recuperar erro do state da navegação
-  const state = history.state?.usr ?? {}
+  const historyState = history.state as HistoryStateWrapper | null
+  const state = historyState?.usr ?? ({} as HistoryStateError)
   const error = state.error ?? null
   const fullError = state.fullError ?? null
 

@@ -16,7 +16,7 @@ import type {
   VerificarAcessoResponse,
 } from '@/types/auth'
 
-const API_URL = import.meta.env.VITE_API_URL_AUTH
+const API_URL = import.meta.env.VITE_API_URL_AUTH as string
 
 // Interface para erros da API
 interface ApiError {
@@ -43,7 +43,7 @@ export const authService = {
     const payload: LoginRequest = {
       email,
       senha,
-      sistemaId: import.meta.env.SYSTEM_ID,
+      sistemaId: import.meta.env.SYSTEM_ID as string,
     }
 
     try {

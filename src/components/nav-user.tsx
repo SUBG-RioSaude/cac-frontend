@@ -221,7 +221,9 @@ export const NavUser = () => {
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
             <DropdownMenuItem
               className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground"
-              onClick={handleLogout}
+              onClick={() => {
+                void handleLogout()
+              }}
               disabled={fazendoLogout}
             >
               <LogOut className={fazendoLogout ? 'animate-spin' : ''} />

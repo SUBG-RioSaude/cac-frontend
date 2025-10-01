@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { logError } from '@/lib/logger'
 import { cn } from '@/lib/utils'
 
 import type { HistoricoAlteracaoValor } from '../../../../types/alteracoes-contratuais'
@@ -118,15 +119,15 @@ export const UnitValueHistory = ({
 }: UnitValueHistoryProps) => {
   const [restoringValue, setRestoringValue] = useState<number | null>(null)
 
-  const handleRestore = async (valorAnterior: number) => {
+  const handleRestore = (valorAnterior: number) => {
     if (!onRestore || disabled) return
 
     setRestoringValue(valorAnterior)
     try {
-      await onRestore(valorAnterior)
+      onRestore(valorAnterior)
       onClose()
     } catch (error) {
-      console.error('Erro ao restaurar valor:', error)
+      logError(error as Error, { scope: 'UnitValueHistory' }, 'Erro ao restaurar valor')
     } finally {
       setRestoringValue(null)
     }
@@ -195,7 +196,10 @@ export const UnitValueHistory = ({
                   const isLast = index === historicoOrdenado.length - 1
 
                   return (
-                    <div key={index} className="relative">
+                    <div
+                      key={`${entrada.timestamp}-${entrada.operacao}`}
+                      className="relative"
+                    >
                       <div
                         className={cn(
                           'flex items-start gap-3 rounded-lg border p-3',
@@ -275,24 +279,22 @@ export const UnitValueHistory = ({
                             )}
 
                             {/* Botão de restaurar */}
-                            {!isFirst &&
-                              onRestore &&
-                              entrada.valorAnterior !== undefined && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() =>
-                                    handleRestore(entrada.valorNovo)
-                                  }
-                                  disabled={disabled || restoringValue !== null}
-                                  className="mt-2 text-xs"
-                                >
-                                  <RotateCcw className="mr-1 h-3 w-3" />
-                                  {restoringValue === entrada.valorNovo
-                                    ? 'Restaurando...'
-                                    : 'Restaurar este valor'}
-                                </Button>
-                              )}
+                            {!isFirst && onRestore && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  handleRestore(entrada.valorNovo)
+                                }
+                                disabled={disabled || restoringValue !== null}
+                                className="mt-2 text-xs"
+                              >
+                                <RotateCcw className="mr-1 h-3 w-3" />
+                                {restoringValue === entrada.valorNovo
+                                  ? 'Restaurando...'
+                                  : 'Restaurar este valor'}
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>

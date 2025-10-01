@@ -114,7 +114,7 @@ export const AuthFlowGuard = () => {
   }
 
   // Se está autenticado mas precisa trocar senha
-  if (estaAutenticado && usuario?.precisaTrocarSenha) {
+  if (usuario?.precisaTrocarSenha) {
     // Se não estiver na rota de troca de senha, redireciona
     if (location.pathname !== '/trocar-senha') {
       return <Navigate to="/trocar-senha" replace />

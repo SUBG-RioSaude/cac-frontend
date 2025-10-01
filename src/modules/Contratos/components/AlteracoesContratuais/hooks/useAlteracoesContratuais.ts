@@ -9,6 +9,7 @@ import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,
   AlertaLimiteLegal,
+  BlocoValor,
 } from '../../../types/alteracoes-contratuais'
 import {
   StatusAlteracao,
@@ -23,9 +24,18 @@ interface UseAlteracoesContratuaisProps {
   valorOriginal?: number
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
-  onSaved?: (alteracao: AlteracaoContratualResponse) => void
-  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
   onLimiteLegalAlert?: (alerta: AlertaLimiteLegal, alteracaoId: string) => void
+}
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'then' in value &&
+    typeof (value as { then?: unknown }).then === 'function'
+  )
 }
 
 export function useAlteracoesContratuais({
@@ -67,14 +77,22 @@ export function useAlteracoesContratuais({
         onLimiteLegalAlert?.(result.alertaLimiteLegal, result.alteracao.id)
       } else {
         // Sucesso normal
-        onSaved?.(result.alteracao)
+        const callbackResult = onSaved?.(result.alteracao)
+        if (isPromiseLike(callbackResult)) {
+          // Ignora erros do callback - já tratados pelo componente pai
+          callbackResult.catch(() => undefined)
+        }
       }
     },
   })
 
   const atualizarMutation = useAtualizarAlteracaoContratual({
     onSuccess: (alteracao) => {
-      onSaved?.(alteracao)
+      const callbackResult = onSaved?.(alteracao)
+      if (isPromiseLike(callbackResult)) {
+        // Ignora erros do callback - já tratados pelo componente pai
+        callbackResult.catch(() => undefined)
+      }
     },
   })
 
@@ -163,13 +181,11 @@ export function useAlteracoesContratuais({
             'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
           const {vigencia} = dados.blocos
-          if (vigencia.operacao === undefined) {
+          if (typeof vigencia.operacao !== 'number') {
             novosErrors['blocos.vigencia.operacao'] =
               'Operação de vigência é obrigatória'
-          }
-
-          // Validações específicas por operação
-          if (vigencia.operacao !== undefined) {
+          } else {
+            // Validações específicas por operação
             const {operacao} = vigencia
 
             if (operacao === OperacaoVigencia.Substituir) {
@@ -187,13 +203,12 @@ export function useAlteracoesContratuais({
                 novosErrors['blocos.vigencia.valorTempo'] =
                   'Quantidade de tempo é obrigatória'
               }
-              if (vigencia.tipoUnidade === undefined) {
+              if (typeof vigencia.tipoUnidade !== 'number') {
                 novosErrors['blocos.vigencia.tipoUnidade'] =
                   'Unidade de tempo deve ser selecionada'
               }
-            } else if (operacao === OperacaoVigencia.SuspenderIndeterminado) {
-              // Para suspensão indeterminada, não precisa validar tempo
             }
+            // Para suspensão indeterminada, não precisa validar tempo
           }
         }
       }
@@ -206,13 +221,11 @@ export function useAlteracoesContratuais({
         } else {
           const {valor} = dados.blocos
 
-          if (valor.operacao === undefined) {
+          if (typeof valor.operacao !== 'number') {
             novosErrors['blocos.valor.operacao'] =
               'Operação de valor é obrigatória'
-          }
-
-          // Validações específicas por operação
-          if (valor.operacao !== undefined) {
+          } else {
+            // Validações específicas por operação
             const {operacao} = valor
 
             if (operacao === OperacaoValor.Substituir) {
@@ -349,13 +362,11 @@ export function useAlteracoesContratuais({
             'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
           const {vigencia} = dados.blocos
-          if (vigencia.operacao === undefined) {
+          if (typeof vigencia.operacao !== 'number') {
             novosErrors['blocos.vigencia.operacao'] =
               'Operação de vigência é obrigatória'
-          }
-
-          // Validações específicas por operação
-          if (vigencia.operacao !== undefined) {
+          } else {
+            // Validações específicas por operação
             const {operacao} = vigencia
 
             if (operacao === OperacaoVigencia.Substituir) {
@@ -373,13 +384,12 @@ export function useAlteracoesContratuais({
                 novosErrors['blocos.vigencia.valorTempo'] =
                   'Quantidade de tempo é obrigatória'
               }
-              if (vigencia.tipoUnidade === undefined) {
+              if (typeof vigencia.tipoUnidade !== 'number') {
                 novosErrors['blocos.vigencia.tipoUnidade'] =
                   'Unidade de tempo deve ser selecionada'
               }
-            } else if (operacao === OperacaoVigencia.SuspenderIndeterminado) {
-              // Para suspensão indeterminada, não precisa validar tempo
             }
+            // Para suspensão indeterminada, não precisa validar tempo
           }
         }
       }
@@ -390,28 +400,25 @@ export function useAlteracoesContratuais({
           novosErrors['blocos.valor.operacao'] =
             'Bloco Valor é obrigatório para os tipos selecionados'
         } else {
-          const {valor} = dados.blocos
+          const valor = dados.blocos.valor as Partial<BlocoValor>
+          const {operacao} = valor
 
-          if (valor.operacao === undefined) {
+          if (operacao === undefined) {
             novosErrors['blocos.valor.operacao'] =
               'Operação de valor é obrigatória'
+          } else if (operacao === OperacaoValor.Substituir) {
+            if (!valor.novoValorGlobal || valor.novoValorGlobal <= 0) {
+              novosErrors['blocos.valor.novoValorGlobal'] =
+                'Novo valor global é obrigatório e deve ser maior que zero'
+            }
           } else {
-            const {operacao} = valor
+            const temValorAjuste = valor.valorAjuste && valor.valorAjuste > 0
+            const temPercentual =
+              valor.percentualAjuste && valor.percentualAjuste > 0
 
-            if (operacao === OperacaoValor.Substituir) {
-              if (!valor.novoValorGlobal || valor.novoValorGlobal <= 0) {
-                novosErrors['blocos.valor.novoValorGlobal'] =
-                  'Novo valor global é obrigatório e deve ser maior que zero'
-              }
-            } else {
-              const temValorAjuste = valor.valorAjuste && valor.valorAjuste > 0
-              const temPercentual =
-                valor.percentualAjuste && valor.percentualAjuste > 0
-
-              if (!temValorAjuste && !temPercentual) {
-                novosErrors['blocos.valor.valorAjuste'] =
-                  'Informe o valor de ajuste ou percentual'
-              }
+            if (!temValorAjuste && !temPercentual) {
+              novosErrors['blocos.valor.valorAjuste'] =
+                'Informe o valor de ajuste ou percentual'
             }
           }
         }
@@ -539,7 +546,11 @@ export function useAlteracoesContratuais({
         id: alteracaoId,
         dados: dadosCompletos,
       })
-      onSubmitted?.(alteracaoAtualizada)
+      const callbackResult = onSubmitted?.(alteracaoAtualizada)
+      if (isPromiseLike(callbackResult)) {
+        // Ignora erros do callback - já tratados pelo componente pai
+        callbackResult.catch(() => undefined)
+      }
     } else {
       // Criar e submeter novo
       const result = await criarMutation.mutateAsync({
@@ -548,7 +559,11 @@ export function useAlteracoesContratuais({
       })
 
       if (result.status === 201) {
-        onSubmitted?.(result.alteracao)
+        const callbackResult = onSubmitted?.(result.alteracao)
+        if (isPromiseLike(callbackResult)) {
+          // Ignora erros do callback - já tratados pelo componente pai
+          callbackResult.catch(() => undefined)
+        }
       }
       // Se for 202, o alerta será tratado pelo callback onLimiteLegalAlert
     }

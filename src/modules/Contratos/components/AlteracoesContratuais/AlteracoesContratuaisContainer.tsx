@@ -29,12 +29,21 @@ interface AlteracoesContratuaisContainerProps {
   vigenciaFinal?: string // Mantido para compatibilidade
   alteracoes: AlteracaoContrato[]
   entradasTimeline?: TimelineEntry[]
-  onSaved?: (alteracao: AlteracaoContratualResponse) => void
-  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
   className?: string
 }
 
 type SubAbaAtiva = 'nova-alteracao' | 'historico'
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'then' in value &&
+    typeof (value as { then?: unknown }).then === 'function'
+  )
+}
 
 export const AlteracoesContratuaisContainer = ({
   contratoId,
@@ -52,8 +61,19 @@ export const AlteracoesContratuaisContainer = ({
 
   // Handler para quando uma alteração é salva/submetida - move para histórico
   const handleAlteracaoSalva = useCallback(
-    async (alteracao: AlteracaoContratualResponse) => {
-      await onSaved?.(alteracao)
+    (alteracao: AlteracaoContratualResponse) => {
+      const resultado = onSaved?.(alteracao)
+
+      if (isPromiseLike(resultado)) {
+        resultado
+          .catch(() => {
+            // Evita rejeições não tratadas sem interferir na UX
+          })
+          .finally(() => {
+            setSubabaAtiva('historico')
+          })
+        return
+      }
 
       // Após salvar, navegar para o histórico para ver a alteração criada
       setSubabaAtiva('historico')
@@ -62,8 +82,19 @@ export const AlteracoesContratuaisContainer = ({
   )
 
   const handleAlteracaoSubmetida = useCallback(
-    async (alteracao: AlteracaoContratualResponse) => {
-      await onSubmitted?.(alteracao)
+    (alteracao: AlteracaoContratualResponse) => {
+      const resultado = onSubmitted?.(alteracao)
+
+      if (isPromiseLike(resultado)) {
+        resultado
+          .catch(() => {
+            // Evita rejeições não tratadas sem interferir na UX
+          })
+          .finally(() => {
+            setSubabaAtiva('historico')
+          })
+        return
+      }
 
       // Após submeter, navegar para o histórico
       setSubabaAtiva('historico')

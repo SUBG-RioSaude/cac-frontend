@@ -278,31 +278,6 @@ const createSchemaContrato = (isNumeroUnique: boolean | null) =>
         path: ['vigenciaFinal'],
       },
     )
-    .refine(
-      (data) => {
-        // Validação de campos obrigatórios
-        if (!data.tipoContratacao) {
-          return false
-        }
-        if (!data.tipoContrato) {
-          return false
-        }
-        if (!data.contratacao) {
-          return false
-        }
-        if (!data.formaPagamento) {
-          return false
-        }
-        if (!data.tipoTermoReferencia) {
-          return false
-        }
-        return true
-      },
-      {
-        message: 'Todos os campos são obrigatórios',
-        path: ['tipoContratacao'],
-      },
-    )
 
 // Schema base para inferir o tipo
 const baseSchemaContrato = createSchemaContrato(null)
@@ -397,7 +372,10 @@ const ContratoForm = ({
         try {
           onDataChange(dados)
         } catch (error) {
-          console.error('❌ [DEBUG] Erro ao chamar onDataChange:', error)
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('❌ [DEBUG] Erro ao chamar onDataChange:', error)
+          }
         }
       }
     },
@@ -411,10 +389,13 @@ const ContratoForm = ({
         try {
           onValorContratoChange(valor)
         } catch (error) {
-          console.error(
-            '❌ [DEBUG] Erro ao chamar onValorContratoChange:',
-            error,
-          )
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error(
+              '❌ [DEBUG] Erro ao chamar onValorContratoChange:',
+              error,
+            )
+          }
         }
       }
     },
@@ -423,30 +404,30 @@ const ContratoForm = ({
 
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {
-    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
+    if (Object.keys(dadosIniciais).length > 0) {
       form.reset({
-        numeroContrato: dadosIniciais?.numeroContrato ?? '',
-        processos: dadosIniciais?.processos ?? [],
-        categoriaObjeto: dadosIniciais?.categoriaObjeto ?? '',
-        descricaoObjeto: dadosIniciais?.descricaoObjeto ?? '',
-        tipoContratacao: dadosIniciais?.tipoContratacao ?? undefined,
-        tipoContrato: dadosIniciais?.tipoContrato ?? undefined,
-        unidadesResponsaveis: dadosIniciais?.unidadesResponsaveis ?? [],
-        contratacao: dadosIniciais?.contratacao ?? undefined,
-        vigenciaInicial: dadosIniciais?.vigenciaInicial ?? '',
-        vigenciaFinal: dadosIniciais?.vigenciaFinal ?? '',
-        prazoInicialMeses: dadosIniciais?.prazoInicialMeses ?? 12,
-        prazoInicialDias: dadosIniciais?.prazoInicialDias ?? 0,
-        valorGlobal: dadosIniciais?.valorGlobal
+        numeroContrato: dadosIniciais.numeroContrato ?? '',
+        processos: dadosIniciais.processos ?? [],
+        categoriaObjeto: dadosIniciais.categoriaObjeto ?? '',
+        descricaoObjeto: dadosIniciais.descricaoObjeto ?? '',
+        tipoContratacao: dadosIniciais.tipoContratacao,
+        tipoContrato: dadosIniciais.tipoContrato,
+        unidadesResponsaveis: dadosIniciais.unidadesResponsaveis ?? [],
+        contratacao: dadosIniciais.contratacao,
+        vigenciaInicial: dadosIniciais.vigenciaInicial ?? '',
+        vigenciaFinal: dadosIniciais.vigenciaFinal ?? '',
+        prazoInicialMeses: dadosIniciais.prazoInicialMeses ?? 12,
+        prazoInicialDias: dadosIniciais.prazoInicialDias ?? 0,
+        valorGlobal: dadosIniciais.valorGlobal
           ? currencyUtils.aplicarMascara(dadosIniciais.valorGlobal)
           : '',
-        formaPagamento: dadosIniciais?.formaPagamento ?? undefined,
+        formaPagamento: dadosIniciais.formaPagamento,
         formaPagamentoComplemento:
-          dadosIniciais?.formaPagamentoComplemento ?? '',
+          dadosIniciais.formaPagamentoComplemento ?? '',
         tipoTermoReferencia:
-          dadosIniciais?.tipoTermoReferencia ?? 'processo_rio',
-        termoReferencia: dadosIniciais?.termoReferencia ?? '',
-        vinculacaoPCA: dadosIniciais?.vinculacaoPCA ?? '',
+          dadosIniciais.tipoTermoReferencia ?? 'processo_rio',
+        termoReferencia: dadosIniciais.termoReferencia ?? '',
+        vinculacaoPCA: dadosIniciais.vinculacaoPCA ?? '',
       })
     }
   }, [dadosIniciais, form])
@@ -485,34 +466,31 @@ const ContratoForm = ({
       const todosOsValores = form.getValues()
 
       // Transformar unidades para garantir que principal seja sempre boolean
-      const unidadesResponsaveisTransformadas = (
-        todosOsValores.unidadesResponsaveis || []
-      ).map((unidade) => ({
-        ...unidade,
-        principal: unidade.principal ?? false,
-      }))
+      const unidadesResponsaveisTransformadas =
+        todosOsValores.unidadesResponsaveis.map((unidade) => ({
+          ...unidade,
+          principal: unidade.principal ?? false,
+        }))
 
       const dados = {
-        numeroContrato: todosOsValores.numeroContrato || '',
-        processos: todosOsValores.processos || [],
-        categoriaObjeto: todosOsValores.categoriaObjeto || '',
-        descricaoObjeto: todosOsValores.descricaoObjeto || '',
-        tipoContratacao: todosOsValores.tipoContratacao || '',
-        tipoContrato: todosOsValores.tipoContrato || '',
+        numeroContrato: todosOsValores.numeroContrato,
+        processos: todosOsValores.processos,
+        categoriaObjeto: todosOsValores.categoriaObjeto,
+        descricaoObjeto: todosOsValores.descricaoObjeto,
+        tipoContratacao: todosOsValores.tipoContratacao,
+        tipoContrato: todosOsValores.tipoContrato,
         unidadesResponsaveis: unidadesResponsaveisTransformadas,
-        contratacao: todosOsValores.contratacao || 'Centralizada',
-        vigenciaInicial: todosOsValores.vigenciaInicial || '',
-        vigenciaFinal: todosOsValores.vigenciaFinal || '',
-        prazoInicialMeses: todosOsValores.prazoInicialMeses || 0,
-        prazoInicialDias: todosOsValores.prazoInicialDias || 0,
-        valorGlobal: todosOsValores.valorGlobal ?? '',
-        formaPagamento: todosOsValores.formaPagamento ?? 'Mensal',
-        formaPagamentoComplemento:
-          todosOsValores.formaPagamentoComplemento ?? '',
-        tipoTermoReferencia:
-          todosOsValores.tipoTermoReferencia ?? 'processo_rio',
-        termoReferencia: todosOsValores.termoReferencia ?? '',
-        vinculacaoPCA: todosOsValores.vinculacaoPCA ?? '',
+        contratacao: todosOsValores.contratacao,
+        vigenciaInicial: todosOsValores.vigenciaInicial,
+        vigenciaFinal: todosOsValores.vigenciaFinal,
+        prazoInicialMeses: todosOsValores.prazoInicialMeses,
+        prazoInicialDias: todosOsValores.prazoInicialDias,
+        valorGlobal: todosOsValores.valorGlobal,
+        formaPagamento: todosOsValores.formaPagamento,
+        formaPagamentoComplemento: todosOsValores.formaPagamentoComplemento,
+        tipoTermoReferencia: todosOsValores.tipoTermoReferencia,
+        termoReferencia: todosOsValores.termoReferencia,
+        vinculacaoPCA: todosOsValores.vinculacaoPCA,
       }
 
       const currentDataString = JSON.stringify(dados)
@@ -525,8 +503,7 @@ const ContratoForm = ({
 
   const handleFormSubmit = (dados: FormDataContrato) => {
     // Transformar unidades para garantir que principal seja sempre boolean
-    const unidadesResponsaveis = dados.unidadesResponsaveis || []
-    const unidadesComPrincipalDefinido = unidadesResponsaveis.map(
+    const unidadesComPrincipalDefinido = dados.unidadesResponsaveis.map(
       (unidade) => ({
         ...unidade,
         principal: unidade.principal ?? false,
@@ -549,16 +526,12 @@ const ContratoForm = ({
       unidadesResponsaveis: unidadesComPrincipalDefinido,
     }
 
-    const submitOperation = async () => {
-      if (onAdvanceRequest) {
-        await onAdvanceRequest(dadosContrato)
-      } else {
-        await onSubmit?.(dadosContrato)
-      }
+    // Chamada direta - funções são síncronas
+    if (onAdvanceRequest) {
+      onAdvanceRequest(dadosContrato)
+    } else {
+      onSubmit(dadosContrato)
     }
-
-    // Chamada direta para evitar atrasos em ambientes de teste
-    void submitOperation()
   }
 
   // Função helper para mapear dados do formulário para API
@@ -586,17 +559,23 @@ const ContratoForm = ({
 
       // Verifica se a data resultante é válida
       if (isNaN(data.getTime())) {
-        console.error('Data inválida calculada:', {
-          vigenciaInicial,
-          prazoMeses,
-          prazoDias,
-        })
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Data inválida calculada:', {
+            vigenciaInicial,
+            prazoMeses,
+            prazoDias,
+          })
+        }
         return ''
       }
 
       return data.toISOString().split('T')[0]
     } catch (error) {
-      console.error('Erro ao calcular vigência final:', error)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Erro ao calcular vigência final:', error)
+      }
       return ''
     }
   }
@@ -713,7 +692,10 @@ const ContratoForm = ({
 
       return { meses: mesesTotais, dias }
     } catch (error) {
-      console.error('Erro ao calcular prazo a partir da vigência final:', error)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Erro ao calcular prazo a partir da vigência final:', error)
+      }
       return { meses: 0, dias: 0 }
     }
   }
@@ -926,7 +908,9 @@ const ContratoForm = ({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={(e) => {
+          void form.handleSubmit(handleFormSubmit)(e)
+        }}
         className="space-y-8"
       >
         {/* Informações Básicas */}
@@ -1156,7 +1140,7 @@ const ContratoForm = ({
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {processosSelecionados.map((processo, index) => (
-                  <div key={index} className="space-y-3 rounded-lg border p-4">
+                  <div key={`${processo.tipo}-${processo.numero}`} className="space-y-3 rounded-lg border p-4">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-gray-500 uppercase">
                         {processo.tipo === 'sei'
@@ -1465,7 +1449,7 @@ const ContratoForm = ({
               control={form.control}
               name="descricaoObjeto"
               render={({ field }) => {
-                const caracteresRestantes = 1000 - (field.value?.length || 0)
+                const caracteresRestantes = 1000 - (field.value.length || 0)
                 const isLimiteAtingido = caracteresRestantes <= 0
 
                 return (
@@ -1505,7 +1489,7 @@ const ContratoForm = ({
                               isLimiteAtingido && 'text-red-400',
                             )}
                           >
-                            {field.value?.length || 0}/1000
+                            {field.value.length || 0}/1000
                           </span>
                         </div>
                       </div>
@@ -1524,7 +1508,7 @@ const ContratoForm = ({
             render={({ field }) => (
               <FormItem>
                 <UnidadeResponsavelManager
-                  unidades={(field.value || []).map((unidade) => ({
+                  unidades={field.value.map((unidade) => ({
                     ...unidade,
                     principal: unidade.principal ?? false,
                   }))}
@@ -1666,7 +1650,7 @@ const ContratoForm = ({
                               type="text"
                               inputMode="numeric"
                               pattern="[0-9]*"
-                              value={field.value?.toString() || ''}
+                              value={field.value.toString() || ''}
                               onChange={(e) => {
                                 const valorDigitado = e.target.value
 
@@ -1753,7 +1737,7 @@ const ContratoForm = ({
                               pattern="[0-9]*"
                               maxLength={4}
                               value={
-                                form.watch('prazoInicialDias')?.toString() || ''
+                                form.watch('prazoInicialDias').toString() || ''
                               }
                               onChange={(e) => {
                                 const valorDigitado = e.target.value
