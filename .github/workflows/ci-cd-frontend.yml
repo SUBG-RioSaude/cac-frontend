@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "🔍 Running ESLint..."
           pnpm lint --fix
-          echo "✅ ESLint passed!"
+          echo "✅ ESLint check completed!"
 
       - name: 🎨 Format Check
         run: |

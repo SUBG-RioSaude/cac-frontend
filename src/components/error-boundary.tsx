@@ -31,7 +31,7 @@ const DefaultErrorFallback = ({
         Algo deu errado
       </h2>
       <p className="mb-4 max-w-md text-gray-600">
-        {error?.message || 'Ocorreu um erro inesperado. Tente novamente.'}
+        {error?.message ?? 'Ocorreu um erro inesperado. Tente novamente.'}
       </p>
       <Button
         onClick={onRetry}
@@ -125,7 +125,7 @@ export function withErrorBoundary<P extends object>(
 export const FormErrorBoundary = ({ children }: { children: ReactNode }) => {
   return (
     <ErrorBoundary
-      fallback={
+      fallback={(
         <div className="rounded-lg border border-red-200 bg-red-50 p-6">
           <div className="mb-2 flex items-center gap-2 text-red-800">
             <AlertCircle className="h-5 w-5" />
@@ -144,7 +144,7 @@ export const FormErrorBoundary = ({ children }: { children: ReactNode }) => {
             Recarregar página
           </Button>
         </div>
-      }
+      )}
     >
       {children}
     </ErrorBoundary>
