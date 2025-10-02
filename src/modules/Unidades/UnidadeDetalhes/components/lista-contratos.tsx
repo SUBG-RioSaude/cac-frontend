@@ -22,7 +22,7 @@ export const ListaContratos = ({ contratos }: ListaContratosProps) => {
     navigate(`/contratos/${contratoId}`)
   }
 
-  if (contratos.length === 0) {
+  if (!contratos || contratos.length === 0) {
     return (
       <Card className="h-fit">
         <CardContent className="p-6">

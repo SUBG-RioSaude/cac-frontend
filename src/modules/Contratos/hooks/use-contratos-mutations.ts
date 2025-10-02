@@ -188,7 +188,7 @@ export function useCriarContrato() {
         status?: number
       },
     ) => {
-      logger.error('❌ [HOOK] Erro ao criar contrato:', error)
+      logger.error('❌ [HOOK] Erro ao criar contrato:', error.message)
 
       // Extrair mensagem específica do erro
       let errorMessage = 'Erro ao criar contrato. Tente novamente.'
@@ -255,7 +255,7 @@ export function useUpdateContrato() {
 
     onSuccess: (data, _variables, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context.loadingToast && typeof context.loadingToast === 'string') {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
       }
 
@@ -271,12 +271,12 @@ export function useUpdateContrato() {
 
     onError: (error, _variables, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context.loadingToast && typeof context.loadingToast === 'string') {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.error call
       }
 
       // Rollback optimistic update
-      if (context.previousContrato) {
+      if (context?.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_variables.id),
           context.previousContrato,
@@ -318,7 +318,7 @@ export function useDeleteContrato() {
 
     onSuccess: (_data, id, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context.loadingToast && typeof context.loadingToast === 'string') {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
       }
 
@@ -337,7 +337,7 @@ export function useDeleteContrato() {
 
     onError: (error, _id, context) => {
       // Dismiss loading toast - loadingToast is now just the toast ID
-      if (context.loadingToast && typeof context.loadingToast === 'string') {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.error call
       }
 
@@ -382,7 +382,7 @@ export function useSuspendContrato() {
     },
 
     onSuccess: (_data, _id, context) => {
-      if (context.loadingToast && typeof context.loadingToast === 'string') {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.success call
       }
 
@@ -393,12 +393,12 @@ export function useSuspendContrato() {
     },
 
     onError: (error, _id, context) => {
-      if (context.loadingToast && typeof context.loadingToast === 'string') {
+      if (context?.loadingToast && typeof context.loadingToast === 'string') {
         // Toast is automatically dismissed by the mutation.error call
       }
 
       // Rollback
-      if (context.previousContrato) {
+      if (context?.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_id),
           context.previousContrato,
@@ -445,7 +445,7 @@ export function useReactivateContrato() {
     },
 
     onSuccess: (_data, _id, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
@@ -454,11 +454,11 @@ export function useReactivateContrato() {
     },
 
     onError: (error, _id, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
-      if (context.previousContrato) {
+      if (context?.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_id),
           context.previousContrato,
@@ -505,7 +505,7 @@ export function useEncerrarContrato() {
     },
 
     onSuccess: (_data, _id, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
@@ -514,11 +514,11 @@ export function useEncerrarContrato() {
     },
 
     onError: (error, _id, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         // Toast is automatically dismissed by mutation success/error calls
       }
 
-      if (context.previousContrato) {
+      if (context?.previousContrato) {
         queryClient.setQueryData(
           contratoKeys.detail(_id),
           context.previousContrato,

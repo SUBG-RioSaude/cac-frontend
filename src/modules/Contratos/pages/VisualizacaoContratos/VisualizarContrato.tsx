@@ -506,7 +506,7 @@ export const VisualizarContrato = () => {
                       contratoId={contrato.id}
                       valorTotalContrato={contrato.valorTotal}
                       unidadesVinculadas={contrato.unidadesVinculadas ?? []}
-                      empenhosIniciais={extrairEmpenhosDoContrato(contrato)}
+                      empenhosIniciais={extrairEmpenhosDoContrato(contrato as never)}
                     />
                   </TabsContent>
                 )}

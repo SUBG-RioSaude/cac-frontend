@@ -115,7 +115,7 @@ export function useAdicionarFuncionarioContrato() {
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.success(
           `${getTipoGerenciaLabel(variables.tipoGerencia)} adicionado com sucesso`,
           {
@@ -150,7 +150,7 @@ export function useAdicionarFuncionarioContrato() {
     },
 
     onError: (error, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         createErrorToast(
           error,
           variables.tipoGerencia,
@@ -186,7 +186,7 @@ export function useRemoverFuncionarioContrato() {
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.success(
           `${getTipoGerenciaLabel(variables.tipoGerencia)} removido com sucesso`,
           {
@@ -220,7 +220,7 @@ export function useRemoverFuncionarioContrato() {
     },
 
     onError: (error, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         createErrorToast(
           error,
           variables.tipoGerencia,
@@ -280,7 +280,7 @@ export function useSubstituirFuncionarioContrato() {
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.success(
           `${getTipoGerenciaLabel(variables.tipoGerencia)} substituído com sucesso`,
           {
@@ -314,7 +314,7 @@ export function useSubstituirFuncionarioContrato() {
     },
 
     onError: (error, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         createErrorToast(
           error,
           variables.tipoGerencia,

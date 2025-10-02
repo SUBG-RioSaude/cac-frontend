@@ -217,7 +217,7 @@ export function useContratoDetalhado(
         const resultado = await getContratoDetalhado(id)
         return resultado
       } catch (error) {
-        logger.error('🎯 Hook: Erro capturado:', error)
+        logger.error('🎯 Hook: Erro capturado:', error as string)
         throw error
       }
     },

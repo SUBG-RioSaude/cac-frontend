@@ -98,7 +98,7 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
         nomes[u.unidadeSaudeId] = u.nomeUnidade
       } else if (u.unidadeSaudeId in unidadesData) {
         // Usar nome buscado da API
-        nomes[u.unidadeSaudeId] = unidadesData[u.unidadeSaudeId].nome
+        nomes[u.unidadeSaudeId] = unidadesData[u.unidadeSaudeId]?.nome ?? `Unidade ${u.unidadeSaudeId}`
       } else {
         // Fallback para ID
         nomes[u.unidadeSaudeId] = `Unidade ${u.unidadeSaudeId}`
@@ -324,7 +324,7 @@ export const TabEmpenhos = ({
         await excluirEmpenho(modalConfirmacao.empenhoId)
         fecharModalConfirmacao()
       } catch (error) {
-        logger.error('Erro ao excluir empenho:', error)
+        logger.error('Erro ao excluir empenho:', error as string)
         // O erro já é tratado pelo hook, mas mantemos log para debug
       }
     }
@@ -508,7 +508,7 @@ export const TabEmpenhos = ({
 
       fecharFormulario()
     } catch (error) {
-      logger.error('Erro ao salvar empenho:', error)
+      logger.error('Erro ao salvar empenho:', error as string)
       // O erro já é tratado pelo hook, mas mantemos log para debug
     }
   }, [

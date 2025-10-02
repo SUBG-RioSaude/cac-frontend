@@ -156,7 +156,7 @@ export function useCadastrarEmpresa() {
     onSuccess: (data, variables, context) => {
       // Validação robusta do ID
       if (!data.id) {
-        if (context.loadingToast) {
+        if (context?.loadingToast) {
           toast.error('Erro no cadastro da empresa', {
             id: context.loadingToast,
             description: 'ID da empresa não foi retornado pela API',
@@ -171,7 +171,7 @@ export function useCadastrarEmpresa() {
         return
       }
 
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.success('Empresa cadastrada com sucesso', {
           id: context.loadingToast,
           description: `ID: ${data.id}`,
@@ -193,7 +193,7 @@ export function useCadastrarEmpresa() {
     },
 
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         const errorMessage =
           error instanceof Error ? error.message : String(error)
         toast.error('Erro ao cadastrar empresa', {
@@ -335,7 +335,7 @@ export function useUpdateEmpresa() {
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
         } catch {
@@ -352,7 +352,7 @@ export function useUpdateEmpresa() {
     },
 
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
         } catch {
@@ -383,7 +383,7 @@ export function useDeleteEmpresa() {
     },
 
     onSuccess: (_data, variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
         } catch {
@@ -400,7 +400,7 @@ export function useDeleteEmpresa() {
     },
 
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         try {
           toast.dismiss(context.loadingToast)
         } catch {

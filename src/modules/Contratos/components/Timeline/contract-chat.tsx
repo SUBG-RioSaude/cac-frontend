@@ -92,7 +92,7 @@ export const ContractChat = ({
       setMensagens((prev) => [...prev, mensagem])
       setNovaMensagem('')
     } catch (error) {
-      logger.error('Erro ao enviar mensagem:', error)
+      logger.error('Erro ao enviar mensagem:', error as string)
     } finally {
       setIsLoading(false)
     }

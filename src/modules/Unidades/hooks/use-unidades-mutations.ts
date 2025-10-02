@@ -42,7 +42,7 @@ export function useCreateUnidade() {
 
     onSuccess: (data, _variables, context) => {
       // Dismiss loading toast
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
 
@@ -63,7 +63,7 @@ export function useCreateUnidade() {
 
     onError: (error, _variables, context) => {
       // Dismiss loading toast
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
 
@@ -118,7 +118,7 @@ export function useUpdateUnidade() {
 
     onSuccess: (data, _variables, context) => {
       // Dismiss loading toast
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
 
@@ -136,12 +136,12 @@ export function useUpdateUnidade() {
 
     onError: (error, variables, context) => {
       // Dismiss loading toast
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
 
       // Rollback optimistic update
-      if (context.previousUnidade) {
+      if (context?.previousUnidade) {
         queryClient.setQueryData(
           unidadeKeys.detail(variables.id),
           context.previousUnidade,
@@ -193,7 +193,7 @@ export function useDeleteUnidade() {
 
     onSuccess: (_data, id, context) => {
       // Dismiss loading toast
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
 
@@ -212,7 +212,7 @@ export function useDeleteUnidade() {
 
     onError: (error, _id, context) => {
       // Dismiss loading toast
-      if (context.loadingToast) {
+      if (context?.loadingToast) {
         toast.dismiss(context.loadingToast)
       }
 
