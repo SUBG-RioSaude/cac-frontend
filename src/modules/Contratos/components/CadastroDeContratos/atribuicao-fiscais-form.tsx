@@ -63,9 +63,8 @@ const AtribuicaoFiscaisForm = ({
   // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
   useEffect(() => {
     const usuarios = dadosIniciais?.usuariosAtribuidos
-     
+
     if (usuarios && usuarios.length > 0) {
-       
       setUsuariosAtribuidos(usuarios)
     }
   }, [dadosIniciais])

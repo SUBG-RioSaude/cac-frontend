@@ -367,11 +367,16 @@ jobs:
           if [ $INVALID_COMMITS -gt 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "💡 **Como corrigir:**" >> $GITHUB_STEP_SUMMARY
-            echo "- Use \`pnpm commit\` para commits guiados" >> $GITHUB_STEP_SUMMARY
-            echo "- Formato: \`tipo(escopo): descrição\`" >> $GITHUB_STEP_SUMMARY
-            echo "- Tipos válidos: feat, fix, docs, style, refactor, test, chore" >> $GITHUB_STEP_SUMMARY
+            echo "- Formato obrigatório: \`tipo(escopo): descrição\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Tipos válidos: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, hotfix, wip" >> $GITHUB_STEP_SUMMARY
+            echo "- Exemplos:" >> $GITHUB_STEP_SUMMARY
+            echo "  - \`feat(auth): adicionar autenticação 2FA\`" >> $GITHUB_STEP_SUMMARY
+            echo "  - \`fix(api): corrigir timeout em requisições\`" >> $GITHUB_STEP_SUMMARY
+            echo "  - \`refactor(components): simplificar lógica do formulário\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "::warning::Alguns commits não seguem o padrão Conventional Commits"
+            echo "❌ **Este PR não pode ser mergeado até que todos os commits sigam o padrão Conventional Commits**" >> $GITHUB_STEP_SUMMARY
+            echo "::error::Commits inválidos encontrados. Todos os commits devem seguir o padrão Conventional Commits."
+            exit 1
           else
             echo "✅ Todos os commits seguem o padrão Conventional Commits!" >> $GITHUB_STEP_SUMMARY
           fi
