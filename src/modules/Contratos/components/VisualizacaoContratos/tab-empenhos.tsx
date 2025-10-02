@@ -98,7 +98,8 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
         nomes[u.unidadeSaudeId] = u.nomeUnidade
       } else if (u.unidadeSaudeId in unidadesData) {
         // Usar nome buscado da API
-        nomes[u.unidadeSaudeId] = unidadesData[u.unidadeSaudeId]?.nome ?? `Unidade ${u.unidadeSaudeId}`
+        nomes[u.unidadeSaudeId] =
+          unidadesData[u.unidadeSaudeId]?.nome ?? `Unidade ${u.unidadeSaudeId}`
       } else {
         // Fallback para ID
         nomes[u.unidadeSaudeId] = `Unidade ${u.unidadeSaudeId}`
