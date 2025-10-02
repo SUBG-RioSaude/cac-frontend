@@ -104,8 +104,9 @@ describe('ErrorBoundary', () => {
 
   it('deve mostrar mensagem de erro padrão quando erro não tem message', () => {
     const ThrowErrorWithoutMessage = () => {
+      // @ts-expect-error - Forçando message como undefined para testar fallback
       const error = new Error()
-      error.message = ''
+      error.message = undefined
       throw error
     }
 
