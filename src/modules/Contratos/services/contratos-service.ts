@@ -46,6 +46,11 @@ export async function getContratos(
     params: filtros as Record<string, unknown>,
   })
 
+  // Verificar se response.data existe
+  if (!response.data) {
+    throw new Error('Formato de resposta da API não reconhecido')
+  }
+
   // Normalizar resposta da API
   // Se a API retorna { "dados": [...] } sem metadados de paginação
   if ('dados' in response.data && Array.isArray(response.data.dados)) {
@@ -145,6 +150,11 @@ export async function getContratoDetalhado(
     method: 'get',
     url: `/contratos/${id}`,
   })
+
+  // Verificar se response.data existe
+  if (!response.data) {
+    throw new Error('Dados não recebidos da API')
+  }
 
   // TEMPORÁRIO: bypass do mapeamento complexo para debug
   // executeWithFallback garante que response.data existe

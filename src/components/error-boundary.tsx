@@ -31,7 +31,7 @@ const DefaultErrorFallback = ({
         Algo deu errado
       </h2>
       <p className="mb-4 max-w-md text-gray-600">
-        {error?.message ?? 'Ocorreu um erro inesperado. Tente novamente.'}
+        {error?.message || 'Ocorreu um erro inesperado. Tente novamente.'}
       </p>
       <Button
         onClick={onRetry}
