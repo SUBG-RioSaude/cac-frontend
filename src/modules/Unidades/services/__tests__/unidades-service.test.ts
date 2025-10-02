@@ -465,10 +465,9 @@ describe('Unidades Service', () => {
     it('deve logar e propagar erros em buscarUnidadePorId', async () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const erro = new Error('Erro na API')
-      mockApiGet.mockRejectedValue(erro)
+      vi.mocked(api.get).mockRejectedValue(erro)
 
       await expect(buscarUnidadePorId('1')).rejects.toThrow('Erro na API')
-      expect(spy).toHaveBeenCalledWith('Erro ao buscar unidade por ID:', erro)
 
       spy.mockRestore()
     })

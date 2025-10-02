@@ -110,7 +110,9 @@ describe('ModalConfirmacaoExportacao', () => {
   it('deve chamar onClose ao clicar no botão X', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} />)
 
-    const botaoX = screen.getByLabelText('Fechar modal')
+    const buttons = screen.getAllByRole('button', { name: 'Fechar modal' })
+    const botaoX = buttons.find((btn) => btn.tagName === 'BUTTON')
+    if (!botaoX) throw new Error('Close button not found')
     fireEvent.click(botaoX)
 
     expect(mockProps.onClose).toHaveBeenCalledTimes(1)
@@ -192,7 +194,9 @@ describe('ModalConfirmacaoExportacao', () => {
   it('deve ter acessibilidade adequada', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} />)
 
-    expect(screen.getByLabelText('Fechar modal')).toBeInTheDocument()
+    const buttons = screen.getAllByRole('button', { name: 'Fechar modal' })
+    const botaoFechar = buttons.find((btn) => btn.tagName === 'BUTTON')
+    expect(botaoFechar).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 

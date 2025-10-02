@@ -9,6 +9,13 @@ import SidebarFooter from '../sidebar-footer'
 vi.mock('@/lib/versao', () => ({
   obterVersaoApp: () => '1.2.3',
   obterAnoAtual: () => 2024,
+  obterMetadataVersao: () => ({
+    versao: '1.2.3',
+    commitSha: 'abc1234',
+    buildNumber: '42',
+    buildTimestamp: '2024-01-01',
+    ambiente: 'development',
+  }),
 }))
 
 // Mock do NavUser

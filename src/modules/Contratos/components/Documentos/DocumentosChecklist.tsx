@@ -28,7 +28,7 @@ export const DocumentosChecklist = ({
     checked: boolean,
   ) => {
     // Log para testes e debug
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
       // eslint-disable-next-line no-console
       console.log(
         `Documento ${documentoKey} (contrato ${contratoId}) alterado para: ${checked}`,

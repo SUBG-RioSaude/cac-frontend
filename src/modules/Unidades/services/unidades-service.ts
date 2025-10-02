@@ -115,7 +115,7 @@ export async function buscarUnidadesPorNome(
 
   const { data } = response
   if (Array.isArray(data)) return data
-  if (typeof data === 'object' && 'dados' in data) {
+  if (data && typeof data === 'object' && 'dados' in data) {
     return (data as { dados: UnidadeSaudeApi[] }).dados
   }
   return []

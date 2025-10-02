@@ -50,7 +50,8 @@ export const useUnidadeDetalhada = ({
     }
 
     void carregarUnidade()
-  }, [id, enabled, logger])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, enabled])
 
   const recarregar = () => {
     if (enabled && id) {
