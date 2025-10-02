@@ -40,17 +40,14 @@ const configureMockApiGet = (
   }
 }
 
+// Mock do import.meta.env antes do describe
+vi.stubEnv('VITE_API_URL', 'https://api.teste.com')
+
 describe('Unidades Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Mock do import.meta.env
-    vi.stubGlobal('import', {
-      meta: {
-        env: {
-          VITE_API_URL: 'https://api.teste.com',
-        },
-      },
-    })
+    // Garantir que a variável de ambiente está definida
+    vi.stubEnv('VITE_API_URL', 'https://api.teste.com')
   })
 
   describe('Opera��es Principais - Unidades', () => {
