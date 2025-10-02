@@ -43,7 +43,7 @@ export async function adicionarFuncionarioContrato(
     observacoes: payload.observacoes,
   }
   const response = await api.post(`/contratos/${contratoId}/funcionarios`, body)
-  return response.data as unknown
+  return response.data as AdicionarFuncionarioResponse
 }
 
 /**

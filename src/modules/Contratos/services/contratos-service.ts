@@ -43,7 +43,7 @@ export async function getContratos(
   >({
     method: 'get',
     url: '/contratos',
-    params: filtros,
+    params: filtros as Record<string, unknown>,
   })
 
   // Normalizar resposta da API
@@ -588,7 +588,7 @@ export async function getContratosPorEmpresa(
     >({
       method: 'get',
       url: `/contratos/empresa/${empresaId}`,
-      params: parametros,
+      params: parametros as Record<string, unknown>,
     })
 
     // Usar mesma lógica de normalização do getContratos

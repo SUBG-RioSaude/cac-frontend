@@ -98,10 +98,10 @@ export function useToast() {
         typeof errorResponse === 'object' &&
         'response' in errorResponse
       ) {
-        const { response } = error as { response: { status: number } }
+        const { response } = errorResponse as { response: { status: number } }
         const { status } = response
         if (status && (status >= 500 || status === 401 || status === 403)) {
-          handleApiError(error)
+          handleApiError(errorResponse)
         }
       }
     },

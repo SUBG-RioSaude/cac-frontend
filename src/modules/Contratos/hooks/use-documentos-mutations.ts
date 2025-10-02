@@ -68,8 +68,8 @@ export function useUploadDocumento() {
       return { loadingToast }
     },
     onSuccess: (_data, variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento enviado com sucesso!')
 
@@ -79,8 +79,8 @@ export function useUploadDocumento() {
       })
     },
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       mutation.error('Falha ao enviar documento', error)
     },
@@ -127,8 +127,8 @@ export function useDeleteDocumento() {
       return { previousDocumentos, loadingToast, contratoId }
     },
     onSuccess: (_data, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento excluído com sucesso!')
 
@@ -138,11 +138,11 @@ export function useDeleteDocumento() {
       })
     },
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       // Rollback em caso de erro
-      if (context.previousDocumentos) {
+      if (context?.previousDocumentos) {
         queryClient.setQueryData(
           contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
@@ -192,8 +192,8 @@ export function useUpdateDocumento() {
       return { previousDocumentos, loadingToast, contratoId }
     },
     onSuccess: (_data, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento atualizado com sucesso!')
       void queryClient.invalidateQueries({
@@ -201,10 +201,10 @@ export function useUpdateDocumento() {
       })
     },
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
-      if (context.previousDocumentos) {
+      if (context?.previousDocumentos) {
         queryClient.setQueryData(
           contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
@@ -250,8 +250,8 @@ export function useCreateDocumento() {
       return { previousDocumentos, loadingToast, contratoId }
     },
     onSuccess: (_data, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento registrado com sucesso!')
 
@@ -261,11 +261,11 @@ export function useCreateDocumento() {
       })
     },
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       // Rollback in case of error (if optimistic update was performed)
-      if (context.previousDocumentos) {
+      if (context?.previousDocumentos) {
         queryClient.setQueryData(
           contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
@@ -304,8 +304,8 @@ export function useUpdateDocumentosMultiplos() {
       return { previousDocumentos, loadingToast, contratoId }
     },
     onSuccess: (_data, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documentos salvos com sucesso!')
 
@@ -315,10 +315,10 @@ export function useUpdateDocumentosMultiplos() {
       })
     },
     onError: (error, _variables, context) => {
-      if (context.loadingToast) {
-        toast.dismiss(context.loadingToast)
+      if (context?.loadingToast) {
+        toast.dismiss(context?.loadingToast)
       }
-      if (context.previousDocumentos) {
+      if (context?.previousDocumentos) {
         queryClient.setQueryData(
           contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
@@ -364,7 +364,7 @@ export function useUpdateDocumentoStatus() {
       })
     },
     onError: (error, _variables, context) => {
-      if (context.previousDocumentos) {
+      if (context?.previousDocumentos) {
         queryClient.setQueryData(
           contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,

@@ -70,13 +70,7 @@ export function useEmpenhosWithRetry(
           }
 
           logger.warn(
-            `[RETRY] ⚠️ ${operacaoNome} - Tentativa ${tentativa} falhou:`,
-            {
-              status: axiosError.response?.status,
-              message: axiosError.message,
-              data: axiosError.response?.data,
-              tentativasRestantes: MAX_RETRIES - tentativa,
-            },
+            `[RETRY] ⚠️ ${operacaoNome} - Tentativa ${tentativa} falhou: ${axiosError.message}`,
           )
 
           // Verificar se é erro do servidor (5xx) ou rede
@@ -132,7 +126,7 @@ export function useEmpenhosWithRetry(
 
       setEmpenhos(dados)
     } catch (error) {
-      logger.error('Erro ao carregar empenhos:', error)
+      logger.error('Erro ao carregar empenhos:', error as string)
 
       // Extrair informações específicas do erro
       const axiosError = error as {
@@ -180,7 +174,7 @@ export function useEmpenhosWithRetry(
         toast.success('Empenho criado com sucesso')
         await carregarEmpenhos() // Recarrega a lista
       } catch (error) {
-        logger.error('Erro ao salvar empenho:', error)
+        logger.error('Erro ao salvar empenho:', error as string)
 
         // Extrair informações específicas do erro
         const axiosError = error as {
@@ -234,7 +228,7 @@ export function useEmpenhosWithRetry(
         toast.success('Empenho atualizado com sucesso')
         await carregarEmpenhos() // Recarrega a lista
       } catch (error) {
-        logger.error('Erro ao atualizar empenho:', error)
+        logger.error('Erro ao atualizar empenho:', error as string)
 
         // Extrair informações específicas do erro
         const axiosError = error as {
@@ -285,7 +279,7 @@ export function useEmpenhosWithRetry(
         toast.success('Empenho excluído com sucesso')
         await carregarEmpenhos() // Recarrega a lista
       } catch (error) {
-        logger.error('Erro ao excluir empenho:', error)
+        logger.error('Erro ao excluir empenho:', error as string)
 
         // Extrair informações específicas do erro
         const axiosError = error as {
@@ -351,7 +345,7 @@ export function useEmpenhosWithRetry(
 
         setEmpenhos(dados)
       } catch (error) {
-        logger.error('Erro ao carregar empenhos:', error)
+        logger.error('Erro ao carregar empenhos:', error as string)
 
         const axiosError = error as {
           response?: { status?: number; data?: unknown }

@@ -1104,9 +1104,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     ) : contrato.fornecedor.contatos.length > 0 ? (
                       contrato.fornecedor.contatos.map((contato) => (
                         <div
-                          key={String(
-                            contato.id ?? `${contato.tipo}-${contato.valor}`,
-                          )}
+                          key={`${contato.tipo}-${contato.valor}`}
                           className="flex items-center gap-3 rounded-lg border p-3"
                         >
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
@@ -1509,10 +1507,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                       ) : contrato.unidades.vinculadas.length > 0 ? (
                         contrato.unidades.vinculadas.map((unidade) => (
                           <div
-                            key={String(
-                              unidade.id ??
-                                `${unidade.nome}-${unidade.percentualValor}`,
-                            )}
+                            key={`${unidade.nome}-${unidade.percentualValor}`}
                             className="rounded-lg border p-4"
                           >
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

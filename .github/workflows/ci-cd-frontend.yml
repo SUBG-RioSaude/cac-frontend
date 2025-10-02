@@ -46,6 +46,7 @@ jobs:
       - name: 🎨 Format Check
         run: |
           echo "🎨 Checking code formatting..."
+          pnpm format 
           pnpm format:check
           echo "✅ Code formatting is correct!"
 
