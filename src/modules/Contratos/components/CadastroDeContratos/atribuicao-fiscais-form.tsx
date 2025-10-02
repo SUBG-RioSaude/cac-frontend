@@ -63,9 +63,9 @@ const AtribuicaoFiscaisForm = ({
   // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
   useEffect(() => {
     const usuarios = dadosIniciais?.usuariosAtribuidos
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+     
     if (usuarios && usuarios.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       setUsuariosAtribuidos(usuarios)
     }
   }, [dadosIniciais])
