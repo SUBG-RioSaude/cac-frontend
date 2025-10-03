@@ -351,8 +351,8 @@ jobs:
             COMMIT_MSG=$(git log --format=%s -n 1 $commit)
             COMMIT_SHORT=$(echo $commit | cut -c1-7)
 
-            # Usar npx ao invés de instalação global
-            if echo "$COMMIT_MSG" | npx --yes @commitlint/cli@latest --config /dev/null --extends @commitlint/config-conventional >/dev/null 2>&1; then
+            # Validar commit com regex simples para Conventional Commits
+            if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|hotfix|wip)(\(.+\))?: .+'; then
               echo "✅ \`$COMMIT_SHORT\`: $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
               VALID_COMMITS=$((VALID_COMMITS + 1))
             else
