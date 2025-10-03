@@ -13,6 +13,7 @@ import {
   Trash2,
   DollarSign,
   AlertTriangle,
+  Star,
 } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
@@ -27,6 +28,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command'
 import {
   Form,
@@ -298,6 +300,9 @@ interface ProcessoInstrutivo {
   sufixos: string[]
 }
 
+// Modalidades favoritas que devem aparecer no topo da lista
+const MODALIDADES_FAVORITAS = ['SMS-PRO']
+
 const ContratoForm = ({
   onSubmit,
   onCancel,
@@ -323,11 +328,41 @@ const ContratoForm = ({
   >([])
   const [etapasPagamento, setEtapasPagamento] = useState<EtapaPagamento[]>([])
   const [quantidadeEtapas, setQuantidadeEtapas] = useState<number>(0)
+  const [isCarregandoModalidades, setIsCarregandoModalidades] = useState(false)
 
   // Inicializar dados do processo instrutivo
   useEffect(() => {
     setProcessoInstrutivo(processoInstrutivoData)
   }, [])
+
+  // Pré-computar todas as modalidades possíveis apenas uma vez
+  const todasModalidades = useMemo(() => {
+    if (!processoInstrutivo) return []
+
+    const opcoes: string[] = []
+    processoInstrutivo.prefixos.forEach((prefixo) => {
+      processoInstrutivo.sufixos.forEach((sufixo) => {
+        opcoes.push(`${prefixo}-${sufixo}`)
+      })
+    })
+
+    return opcoes.sort()
+  }, [processoInstrutivo])
+
+  // Gerenciar estado de loading quando o popover abre
+  useEffect(() => {
+    if (openProcesso && !pesquisaProcesso) {
+      // Quando abre sem pesquisa, mostrar loading brevemente
+      setIsCarregandoModalidades(true)
+      const timer = setTimeout(() => {
+        setIsCarregandoModalidades(false)
+      }, 100) // Delay mínimo para feedback visual
+
+      return () => clearTimeout(timer)
+    } else {
+      setIsCarregandoModalidades(false)
+    }
+  }, [openProcesso, pesquisaProcesso])
 
   const form = useForm<FormDataContrato>({
     resolver: zodResolver(baseSchemaContrato),
@@ -846,26 +881,52 @@ const ContratoForm = ({
     }
   }
 
+  // Constante para limitar opções iniciais (sem pesquisa)
+  const LIMITE_OPCOES_INICIAIS = 50
+
   // Função para filtrar opções baseado na pesquisa
   const filtrarOpcoesProcesso = useCallback(
     (pesquisa: string) => {
-      if (!processoInstrutivo || !pesquisa.trim()) return []
+      if (todasModalidades.length === 0) {
+        return { favoritas: [], demais: [], total: 0 }
+      }
 
       const pesquisaLower = pesquisa.toLowerCase().trim()
-      const opcoes: string[] = []
 
-      processoInstrutivo.prefixos.forEach((prefixo) => {
-        processoInstrutivo.sufixos.forEach((sufixo) => {
-          const opcao = `${prefixo}-${sufixo}`
-          if (opcao.toLowerCase().includes(pesquisaLower)) {
-            opcoes.push(opcao)
-          }
-        })
-      })
+      // Se não houver pesquisa, retornar favoritas e APENAS primeiras 50 demais
+      if (!pesquisa.trim()) {
+        const favoritas = MODALIDADES_FAVORITAS.filter((fav) =>
+          todasModalidades.includes(fav),
+        )
+        const demaisCompletas = todasModalidades.filter(
+          (opcao) => !MODALIDADES_FAVORITAS.includes(opcao),
+        )
+        const demais = demaisCompletas.slice(0, LIMITE_OPCOES_INICIAIS)
 
-      return opcoes.sort()
+        return {
+          favoritas,
+          demais,
+          total: todasModalidades.length,
+        }
+      }
+
+      // Se houver pesquisa, filtrar e retornar TODAS as correspondências
+      const opcoesFiltradas = todasModalidades.filter((opcao) =>
+        opcao.toLowerCase().includes(pesquisaLower),
+      )
+
+      const favoritas = MODALIDADES_FAVORITAS.filter(
+        (fav) =>
+          opcoesFiltradas.includes(fav) &&
+          fav.toLowerCase().includes(pesquisaLower),
+      )
+      const demais = opcoesFiltradas.filter(
+        (opcao) => !MODALIDADES_FAVORITAS.includes(opcao),
+      )
+
+      return { favoritas, demais, total: opcoesFiltradas.length }
     },
-    [processoInstrutivo],
+    [todasModalidades],
   )
 
   // Função para obter o prefixo-sufixo selecionado
@@ -889,7 +950,11 @@ const ContratoForm = ({
   }, [])
 
   // Memoizar as opções filtradas para evitar recálculos desnecessários
-  const opcoesFiltradas = useMemo(() => {
+  const {
+    favoritas: modalidadesFavoritas,
+    demais: demaisModalidades,
+    total: totalModalidades,
+  } = useMemo(() => {
     return filtrarOpcoesProcesso(pesquisaProcesso)
   }, [pesquisaProcesso, filtrarOpcoesProcesso])
 
@@ -1214,42 +1279,129 @@ const ContratoForm = ({
                                 />
                                 <CommandList>
                                   <CommandEmpty>
-                                    Digite para buscar um processo...
+                                    {isCarregandoModalidades
+                                      ? 'Carregando modalidades...'
+                                      : 'Digite para buscar um processo...'}
                                   </CommandEmpty>
-                                  <CommandGroup>
-                                    {opcoesFiltradas.map((opcao) => (
-                                      <CommandItem
-                                        key={opcao}
-                                        value={opcao}
-                                        onSelect={(currentValue) => {
-                                          const anoNumero = obterAnoNumero(
-                                            processo.valor,
-                                          )
-                                          const processoCompleto = anoNumero
-                                            ? `${currentValue}-${anoNumero}`
-                                            : currentValue
-                                          atualizarProcesso(
-                                            index,
-                                            processoCompleto,
-                                          )
-                                          setOpenProcesso(false)
-                                          setPesquisaProcesso('')
-                                        }}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            'mr-2 h-4 w-4',
-                                            obterPrefixoSufixo(
+
+                                  {/* Loading State */}
+                                  {isCarregandoModalidades && (
+                                    <div className="p-4 text-center text-sm text-gray-500">
+                                      <div className="flex items-center justify-center space-x-2">
+                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+                                        <span>Carregando...</span>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Mensagem informativa quando não há pesquisa */}
+                                  {!isCarregandoModalidades &&
+                                    !pesquisaProcesso &&
+                                    totalModalidades > 0 && (
+                                      <div className="border-b border-gray-200 bg-blue-50 p-3 text-xs text-blue-700">
+                                        <p className="font-medium">
+                                          💡 Dica: Mostrando{' '}
+                                          {modalidadesFavoritas.length +
+                                            demaisModalidades.length}{' '}
+                                          de {totalModalidades} modalidades
+                                        </p>
+                                        <p className="mt-1 text-blue-600">
+                                          Digite para pesquisar entre todas as
+                                          opções
+                                        </p>
+                                      </div>
+                                    )}
+
+                                  {/* Modalidades Favoritas */}
+                                  {!isCarregandoModalidades &&
+                                    modalidadesFavoritas.length > 0 && (
+                                    <>
+                                      <CommandGroup heading="Modalidade Favorita">
+                                        {modalidadesFavoritas.map((opcao) => (
+                                          <CommandItem
+                                            key={opcao}
+                                            value={opcao}
+                                            onSelect={(currentValue) => {
+                                              const anoNumero = obterAnoNumero(
+                                                processo.valor,
+                                              )
+                                              const processoCompleto = anoNumero
+                                                ? `${currentValue}-${anoNumero}`
+                                                : currentValue
+                                              atualizarProcesso(
+                                                index,
+                                                processoCompleto,
+                                              )
+                                              setOpenProcesso(false)
+                                              setPesquisaProcesso('')
+                                            }}
+                                            className="font-medium"
+                                          >
+                                            <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                            <Check
+                                              className={cn(
+                                                'mr-2 h-4 w-4',
+                                                obterPrefixoSufixo(
+                                                  processo.valor,
+                                                ) === opcao
+                                                  ? 'opacity-100'
+                                                  : 'opacity-0',
+                                              )}
+                                            />
+                                            {opcao}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                      {demaisModalidades.length > 0 && (
+                                        <CommandSeparator />
+                                      )}
+                                    </>
+                                  )}
+
+                                  {/* Demais Modalidades */}
+                                  {!isCarregandoModalidades &&
+                                    demaisModalidades.length > 0 && (
+                                      <CommandGroup
+                                      heading={
+                                        modalidadesFavoritas.length > 0
+                                          ? 'Todas as Modalidades'
+                                          : undefined
+                                      }
+                                    >
+                                      {demaisModalidades.map((opcao) => (
+                                        <CommandItem
+                                          key={opcao}
+                                          value={opcao}
+                                          onSelect={(currentValue) => {
+                                            const anoNumero = obterAnoNumero(
                                               processo.valor,
-                                            ) === opcao
-                                              ? 'opacity-100'
-                                              : 'opacity-0',
-                                          )}
-                                        />
-                                        {opcao}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
+                                            )
+                                            const processoCompleto = anoNumero
+                                              ? `${currentValue}-${anoNumero}`
+                                              : currentValue
+                                            atualizarProcesso(
+                                              index,
+                                              processoCompleto,
+                                            )
+                                            setOpenProcesso(false)
+                                            setPesquisaProcesso('')
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'mr-2 h-4 w-4',
+                                              obterPrefixoSufixo(
+                                                processo.valor,
+                                              ) === opcao
+                                                ? 'opacity-100'
+                                                : 'opacity-0',
+                                            )}
+                                          />
+                                          {opcao}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  )}
                                 </CommandList>
                               </Command>
                             </PopoverContent>
