@@ -1,7 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useUnidadeDetalhada } from '../use-unidade-detalhada'
+
 import { buscarUnidadePorId } from '../../services/unidades-service'
+import { useUnidadeDetalhada } from '../use-unidade-detalhada'
 
 // Mock do serviço
 vi.mock('../../services/unidades-service')

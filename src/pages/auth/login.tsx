@@ -1,17 +1,17 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import type React from 'react'
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/lib/auth/auth-store'
 
-export default function LoginForm() {
+const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -24,22 +24,22 @@ export default function LoginForm() {
   // Redireciona se já estiver autenticado
   useEffect(() => {
     if (estaAutenticado) {
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
       navigate(redirectPath, { replace: true })
     }
   }, [estaAutenticado, navigate])
 
-  const validarEmail = (email: string): boolean => {
+  const validarEmail = (emailValue: string): boolean => {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regexEmail.test(email)
+    return regexEmail.test(emailValue)
   }
 
-  const validarSenha = (senha: string): boolean => {
-    return senha.length >= 6
+  const validarSenha = (senhaValue: string): boolean => {
+    return senhaValue.length >= 6
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitAsync = async (e: React.FormEvent) => {
     e.preventDefault()
     limparErro()
 
@@ -59,6 +59,10 @@ export default function LoginForm() {
       // Redireciona para verificação 2FA
       navigate('/auth/verificar-codigo', { replace: true })
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    void handleSubmitAsync(e)
   }
 
   const containerVariants = {
@@ -315,3 +319,5 @@ export default function LoginForm() {
     </div>
   )
 }
+
+export default LoginForm

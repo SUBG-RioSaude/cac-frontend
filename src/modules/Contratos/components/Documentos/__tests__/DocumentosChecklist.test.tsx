@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { DocumentosChecklist } from '../DocumentosChecklist'
+
 import type { ChecklistData } from '@/modules/Contratos/types/contrato'
+
+import { DocumentosChecklist } from '../DocumentosChecklist'
 
 // Mock console.log para capturar os logs do componente
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})

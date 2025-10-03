@@ -1,8 +1,15 @@
 import { useState, useCallback, useMemo } from 'react'
+
+import {
+  useCriarAlteracaoContratual,
+  useAtualizarAlteracaoContratual,
+  // useResumoAlteracao - DESABILITADO: endpoint não implementado na API
+} from '../../../hooks/useAlteracoesContratuaisApi'
 import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,
   AlertaLimiteLegal,
+  BlocoValor,
 } from '../../../types/alteracoes-contratuais'
 import {
   StatusAlteracao,
@@ -11,20 +18,24 @@ import {
   getBlocosObrigatorios,
   getLimiteLegal,
 } from '../../../types/alteracoes-contratuais'
-import {
-  useCriarAlteracaoContratual,
-  useAtualizarAlteracaoContratual,
-  // useResumoAlteracao - DESABILITADO: endpoint não implementado na API
-} from '../../../hooks/useAlteracoesContratuaisApi'
 
 interface UseAlteracoesContratuaisProps {
   contratoId: string
   valorOriginal?: number
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
-  onSaved?: (alteracao: AlteracaoContratualResponse) => void
-  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
   onLimiteLegalAlert?: (alerta: AlertaLimiteLegal, alteracaoId: string) => void
+}
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'then' in value &&
+    typeof (value as { then?: unknown }).then === 'function'
+  )
 }
 
 export function useAlteracoesContratuais({
@@ -66,14 +77,22 @@ export function useAlteracoesContratuais({
         onLimiteLegalAlert?.(result.alertaLimiteLegal, result.alteracao.id)
       } else {
         // Sucesso normal
-        onSaved?.(result.alteracao)
+        const callbackResult = onSaved?.(result.alteracao)
+        if (isPromiseLike(callbackResult)) {
+          // Ignora erros do callback - já tratados pelo componente pai
+          callbackResult.catch(() => undefined)
+        }
       }
     },
   })
 
   const atualizarMutation = useAtualizarAlteracaoContratual({
     onSuccess: (alteracao) => {
-      onSaved?.(alteracao)
+      const callbackResult = onSaved?.(alteracao)
+      if (isPromiseLike(callbackResult)) {
+        // Ignora erros do callback - já tratados pelo componente pai
+        callbackResult.catch(() => undefined)
+      }
     },
   })
 
@@ -98,12 +117,12 @@ export function useAlteracoesContratuais({
 
   // Blocos obrigatórios baseados nos tipos selecionados
   const blocosObrigatorios = useMemo(() => {
-    return getBlocosObrigatorios(dados.tiposAlteracao || [])
+    return getBlocosObrigatorios(dados.tiposAlteracao ?? [])
   }, [dados.tiposAlteracao])
 
   // Limite legal aplicável
   const limiteLegal = useMemo(() => {
-    return getLimiteLegal(dados.tiposAlteracao || [])
+    return getLimiteLegal(dados.tiposAlteracao ?? [])
   }, [dados.tiposAlteracao])
 
   // Atualizar dados
@@ -148,28 +167,28 @@ export function useAlteracoesContratuais({
     }
 
     if (!dados.dataEfeito || dados.dataEfeito === '') {
-      novosErrors['dataEfeito'] = 'Data de efeito é obrigatória'
+      novosErrors.dataEfeito = 'Data de efeito é obrigatória'
     }
 
     // Validar blocos obrigatórios
     if (dados.tiposAlteracao && dados.tiposAlteracao.length > 0) {
-      const blocosObrigatorios = getBlocosObrigatorios(dados.tiposAlteracao)
+      const blocosObrigatoriosValidacao = getBlocosObrigatorios(
+        dados.tiposAlteracao,
+      )
 
       // Validar bloco vigência
-      if (blocosObrigatorios.has('vigencia')) {
+      if (blocosObrigatoriosValidacao.has('vigencia')) {
         if (!dados.blocos?.vigencia) {
           novosErrors['blocos.vigencia.operacao'] =
             'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
-          const vigencia = dados.blocos.vigencia
-          if (vigencia.operacao === undefined) {
+          const { vigencia } = dados.blocos
+          if (typeof vigencia.operacao !== 'number') {
             novosErrors['blocos.vigencia.operacao'] =
               'Operação de vigência é obrigatória'
-          }
-
-          // Validações específicas por operação
-          if (vigencia.operacao !== undefined) {
-            const operacao = vigencia.operacao
+          } else {
+            // Validações específicas por operação
+            const { operacao } = vigencia
 
             if (operacao === OperacaoVigencia.Substituir) {
               if (!vigencia.novaDataFinal) {
@@ -186,33 +205,30 @@ export function useAlteracoesContratuais({
                 novosErrors['blocos.vigencia.valorTempo'] =
                   'Quantidade de tempo é obrigatória'
               }
-              if (vigencia.tipoUnidade === undefined) {
+              if (typeof vigencia.tipoUnidade !== 'number') {
                 novosErrors['blocos.vigencia.tipoUnidade'] =
                   'Unidade de tempo deve ser selecionada'
               }
-            } else if (operacao === OperacaoVigencia.SuspenderIndeterminado) {
-              // Para suspensão indeterminada, não precisa validar tempo
             }
+            // Para suspensão indeterminada, não precisa validar tempo
           }
         }
       }
 
       // Validar bloco valor
-      if (blocosObrigatorios.has('valor')) {
+      if (blocosObrigatoriosValidacao.has('valor')) {
         if (!dados.blocos?.valor) {
           novosErrors['blocos.valor.operacao'] =
             'Bloco Valor é obrigatório para os tipos selecionados'
         } else {
-          const valor = dados.blocos.valor
+          const { valor } = dados.blocos
 
-          if (valor.operacao === undefined) {
+          if (typeof valor.operacao !== 'number') {
             novosErrors['blocos.valor.operacao'] =
               'Operação de valor é obrigatória'
-          }
-
-          // Validações específicas por operação
-          if (valor.operacao !== undefined) {
-            const operacao = valor.operacao
+          } else {
+            // Validações específicas por operação
+            const { operacao } = valor
 
             if (operacao === OperacaoValor.Substituir) {
               // Para substituir, precisa do novo valor global
@@ -236,12 +252,12 @@ export function useAlteracoesContratuais({
       }
 
       // Validar bloco fornecedores
-      if (blocosObrigatorios.has('fornecedores')) {
+      if (blocosObrigatoriosValidacao.has('fornecedores')) {
         if (!dados.blocos?.fornecedores) {
           novosErrors['blocos.fornecedores'] =
             'Bloco Fornecedores é obrigatório para os tipos selecionados'
         } else {
-          const fornecedores = dados.blocos.fornecedores
+          const { fornecedores } = dados.blocos
           // Check if we have any fornecedor operations
           const hasVinculados =
             fornecedores.fornecedoresVinculados &&
@@ -261,12 +277,12 @@ export function useAlteracoesContratuais({
       }
 
       // Validar bloco unidades
-      if (blocosObrigatorios.has('unidades')) {
+      if (blocosObrigatoriosValidacao.has('unidades')) {
         if (!dados.blocos?.unidades) {
           novosErrors['blocos.unidades'] =
             'Bloco Unidades é obrigatório para os tipos selecionados'
         } else {
-          const unidades = dados.blocos.unidades
+          const { unidades } = dados.blocos
 
           // Check if we have any unidades operations
           const hasVinculadas =
@@ -284,12 +300,12 @@ export function useAlteracoesContratuais({
       }
 
       // Validar bloco cláusulas
-      if (blocosObrigatorios.has('clausulas')) {
+      if (blocosObrigatoriosValidacao.has('clausulas')) {
         if (!dados.blocos?.clausulas) {
           novosErrors['blocos.clausulas.clausulasAlteradas'] =
             'Bloco Cláusulas é obrigatório para os tipos selecionados'
         } else {
-          const clausulas = dados.blocos.clausulas
+          const { clausulas } = dados.blocos
           if (
             !clausulas.clausulasAlteradas ||
             clausulas.clausulasAlteradas.length === 0
@@ -334,28 +350,28 @@ export function useAlteracoesContratuais({
     }
 
     if (!dados.dataEfeito || dados.dataEfeito === '') {
-      novosErrors['dataEfeito'] = 'Data de efeito é obrigatória'
+      novosErrors.dataEfeito = 'Data de efeito é obrigatória'
     }
 
     // Validar blocos obrigatórios
     if (dados.tiposAlteracao && dados.tiposAlteracao.length > 0) {
-      const blocosObrigatorios = getBlocosObrigatorios(dados.tiposAlteracao)
+      const blocosObrigatoriosValidacao = getBlocosObrigatorios(
+        dados.tiposAlteracao,
+      )
 
       // Validar bloco vigência
-      if (blocosObrigatorios.has('vigencia')) {
+      if (blocosObrigatoriosValidacao.has('vigencia')) {
         if (!dados.blocos?.vigencia) {
           novosErrors['blocos.vigencia.operacao'] =
             'Bloco Vigência é obrigatório para os tipos selecionados'
         } else {
-          const vigencia = dados.blocos.vigencia
-          if (vigencia.operacao === undefined) {
+          const { vigencia } = dados.blocos
+          if (typeof vigencia.operacao !== 'number') {
             novosErrors['blocos.vigencia.operacao'] =
               'Operação de vigência é obrigatória'
-          }
-
-          // Validações específicas por operação
-          if (vigencia.operacao !== undefined) {
-            const operacao = vigencia.operacao
+          } else {
+            // Validações específicas por operação
+            const { operacao } = vigencia
 
             if (operacao === OperacaoVigencia.Substituir) {
               if (!vigencia.novaDataFinal) {
@@ -372,57 +388,53 @@ export function useAlteracoesContratuais({
                 novosErrors['blocos.vigencia.valorTempo'] =
                   'Quantidade de tempo é obrigatória'
               }
-              if (vigencia.tipoUnidade === undefined) {
+              if (typeof vigencia.tipoUnidade !== 'number') {
                 novosErrors['blocos.vigencia.tipoUnidade'] =
                   'Unidade de tempo deve ser selecionada'
               }
-            } else if (operacao === OperacaoVigencia.SuspenderIndeterminado) {
-              // Para suspensão indeterminada, não precisa validar tempo
             }
+            // Para suspensão indeterminada, não precisa validar tempo
           }
         }
       }
 
       // Validar bloco valor
-      if (blocosObrigatorios.has('valor')) {
+      if (blocosObrigatoriosValidacao.has('valor')) {
         if (!dados.blocos?.valor) {
           novosErrors['blocos.valor.operacao'] =
             'Bloco Valor é obrigatório para os tipos selecionados'
         } else {
-          const valor = dados.blocos.valor
+          const valor = dados.blocos.valor as Partial<BlocoValor>
+          const { operacao } = valor
 
-          if (valor.operacao === undefined) {
+          if (operacao === undefined) {
             novosErrors['blocos.valor.operacao'] =
               'Operação de valor é obrigatória'
+          } else if (operacao === OperacaoValor.Substituir) {
+            if (!valor.novoValorGlobal || valor.novoValorGlobal <= 0) {
+              novosErrors['blocos.valor.novoValorGlobal'] =
+                'Novo valor global é obrigatório e deve ser maior que zero'
+            }
           } else {
-            const operacao = valor.operacao
+            const temValorAjuste = valor.valorAjuste && valor.valorAjuste > 0
+            const temPercentual =
+              valor.percentualAjuste && valor.percentualAjuste > 0
 
-            if (operacao === OperacaoValor.Substituir) {
-              if (!valor.novoValorGlobal || valor.novoValorGlobal <= 0) {
-                novosErrors['blocos.valor.novoValorGlobal'] =
-                  'Novo valor global é obrigatório e deve ser maior que zero'
-              }
-            } else {
-              const temValorAjuste = valor.valorAjuste && valor.valorAjuste > 0
-              const temPercentual =
-                valor.percentualAjuste && valor.percentualAjuste > 0
-
-              if (!temValorAjuste && !temPercentual) {
-                novosErrors['blocos.valor.valorAjuste'] =
-                  'Informe o valor de ajuste ou percentual'
-              }
+            if (!temValorAjuste && !temPercentual) {
+              novosErrors['blocos.valor.valorAjuste'] =
+                'Informe o valor de ajuste ou percentual'
             }
           }
         }
       }
 
       // Validar bloco fornecedores
-      if (blocosObrigatorios.has('fornecedores')) {
+      if (blocosObrigatoriosValidacao.has('fornecedores')) {
         if (!dados.blocos?.fornecedores) {
           novosErrors['blocos.fornecedores'] =
             'Bloco Fornecedores é obrigatório para os tipos selecionados'
         } else {
-          const fornecedores = dados.blocos.fornecedores
+          const { fornecedores } = dados.blocos
           // Check if we have any fornecedor operations
           const hasVinculados =
             fornecedores.fornecedoresVinculados &&
@@ -442,12 +454,12 @@ export function useAlteracoesContratuais({
       }
 
       // Validar bloco unidades
-      if (blocosObrigatorios.has('unidades')) {
+      if (blocosObrigatoriosValidacao.has('unidades')) {
         if (!dados.blocos?.unidades) {
           novosErrors['blocos.unidades'] =
             'Bloco Unidades é obrigatório para os tipos selecionados'
         } else {
-          const unidades = dados.blocos.unidades
+          const { unidades } = dados.blocos
 
           // Check if we have any unidades operations
           const hasVinculadas =
@@ -465,12 +477,12 @@ export function useAlteracoesContratuais({
       }
 
       // Validar bloco cláusulas
-      if (blocosObrigatorios.has('clausulas')) {
+      if (blocosObrigatoriosValidacao.has('clausulas')) {
         if (!dados.blocos?.clausulas) {
           novosErrors['blocos.clausulas.clausulasAlteradas'] =
             'Bloco Cláusulas é obrigatório para os tipos selecionados'
         } else {
-          const clausulas = dados.blocos.clausulas
+          const { clausulas } = dados.blocos
           if (
             !clausulas.clausulasAlteradas ||
             clausulas.clausulasAlteradas.length === 0
@@ -538,7 +550,11 @@ export function useAlteracoesContratuais({
         id: alteracaoId,
         dados: dadosCompletos,
       })
-      onSubmitted?.(alteracaoAtualizada)
+      const callbackResult = onSubmitted?.(alteracaoAtualizada)
+      if (isPromiseLike(callbackResult)) {
+        // Ignora erros do callback - já tratados pelo componente pai
+        callbackResult.catch(() => undefined)
+      }
     } else {
       // Criar e submeter novo
       const result = await criarMutation.mutateAsync({
@@ -547,7 +563,11 @@ export function useAlteracoesContratuais({
       })
 
       if (result.status === 201) {
-        onSubmitted?.(result.alteracao)
+        const callbackResult = onSubmitted?.(result.alteracao)
+        if (isPromiseLike(callbackResult)) {
+          // Ignora erros do callback - já tratados pelo componente pai
+          callbackResult.catch(() => undefined)
+        }
       }
       // Se for 202, o alerta será tratado pelo callback onLimiteLegalAlert
     }

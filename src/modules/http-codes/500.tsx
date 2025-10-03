@@ -1,22 +1,36 @@
+import { AlertTriangle, RefreshCw, Home, Mail } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, RefreshCw, Home, Mail } from 'lucide-react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useState } from 'react'
 
 interface ServerErrorProps {
   error?: string
 }
 
-export default function ServerError({ error: propError }: ServerErrorProps) {
+interface LocationState {
+  error?: string
+}
+
+function isValidLocationState(state: unknown): state is LocationState {
+  return typeof state === 'object' && state !== null
+}
+
+const ServerError = ({ error: propError }: ServerErrorProps) => {
   const navigate = useNavigate()
   const location = useLocation()
   const [isRetrying, setIsRetrying] = useState(false)
 
   // Buscar erro do state da navegação ou usar prop
-  const error = location.state?.error || propError
+  const locationError =
+    isValidLocationState(location.state) &&
+    typeof location.state.error === 'string'
+      ? location.state.error
+      : undefined
+  const error = locationError ?? propError
 
-  const handleRetry = async () => {
+  const handleRetry = () => {
     setIsRetrying(true)
     setTimeout(() => {
       window.location.reload()
@@ -26,7 +40,7 @@ export default function ServerError({ error: propError }: ServerErrorProps) {
   const handleContactAdmin = () => {
     const subject = encodeURIComponent('Erro 500 - Sistema CAC Frontend')
     const body = encodeURIComponent(
-      `Detalhes do erro:\n\nHorário: ${new Date().toLocaleString()}\nURL: ${window.location.href}\nErro técnico: ${error || 'Não especificado'}`,
+      `Detalhes do erro:\n\nHorário: ${new Date().toLocaleString()}\nURL: ${window.location.href}\nErro técnico: ${error ?? 'Não especificado'}`,
     )
     window.location.href = `mailto:admin@sistema.com?subject=${subject}&body=${body}`
   }
@@ -101,3 +115,5 @@ export default function ServerError({ error: propError }: ServerErrorProps) {
     </div>
   )
 }
+
+export default ServerError

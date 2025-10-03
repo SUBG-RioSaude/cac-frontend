@@ -1,9 +1,4 @@
 import { motion } from 'framer-motion'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import {
   Users,
   Settings,
@@ -13,6 +8,10 @@ import {
   Phone,
   Video,
 } from 'lucide-react'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 import type { ChatParticipante } from '@/modules/Contratos/types/timeline'
 
 interface ChatHeaderProps {
@@ -32,7 +33,7 @@ interface ChatHeaderProps {
   className?: string
 }
 
-export function ChatHeader({
+export const ChatHeader = ({
   numeroContrato,
   participantes,
   mensagensNaoLidas,
@@ -40,7 +41,7 @@ export function ChatHeader({
   onConfiguracoes,
   onMostrarParticipantes,
   className,
-}: ChatHeaderProps) {
+}: ChatHeaderProps) => {
   const participantesOnline = participantes.filter((p) => p.status === 'online')
   const participantesAtivos = participantes.slice(0, 3) // Mostrar apenas os 3 primeiros
 

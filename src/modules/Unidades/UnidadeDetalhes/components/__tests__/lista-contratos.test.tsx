@@ -1,9 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { ListaContratos } from '../lista-contratos'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { ContratoVinculado } from '@/modules/Unidades/ListaUnidades/types/unidade'
+
+import { ListaContratos } from '../lista-contratos'
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({

@@ -5,15 +5,17 @@
  * Funções auxiliares para cálculos e formatações
  */
 
+import { parseISO, format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+
+import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
+
 import type {
   DashboardMetric,
   RiskLevel,
   ActivityType,
   DashboardFilters,
 } from '../types/dashboard'
-import type { ContratoDetalhado } from '@/modules/Contratos/types/contrato'
-import { parseISO, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 // ========== CÁLCULOS DE MÉTRICAS ==========
 
@@ -233,13 +235,13 @@ export const hasActiveFilters = (filters: DashboardFilters): boolean => {
  */
 export const formatLargeNumber = (num: number): string => {
   if (num >= 1000000000) {
-    return (num / 1000000000).toFixed(1) + 'B'
+    return `${(num / 1000000000).toFixed(1)}B`
   }
   if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M'
+    return `${(num / 1000000).toFixed(1)}M`
   }
   if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K'
+    return `${(num / 1000).toFixed(1)}K`
   }
   return num.toString()
 }
@@ -281,7 +283,13 @@ export const getActivityConfig = (type: ActivityType) => {
     },
   }
 
-  return configs[type] || configs.atualizado
+  return (
+    configs[type] || {
+      icon: 'Edit',
+      color: 'text-yellow-600',
+      bg: 'bg-yellow-100',
+    }
+  )
 }
 
 /**

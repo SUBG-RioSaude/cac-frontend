@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import type {
+  DocumentoApiResponse,
+  SaveDocumentosMultiplosPayload,
+  DocumentoMultiplo,
+} from '@/modules/Contratos/types/contrato'
+
 import {
   getDocumentos,
   saveDocumentosMultiplos,
@@ -8,11 +15,6 @@ import {
   updateDocumento,
   createDocumento,
 } from '../documentos-service'
-import type {
-  DocumentoApiResponse,
-  SaveDocumentosMultiplosPayload,
-  DocumentoMultiplo,
-} from '@/modules/Contratos/types/contrato'
 
 // Mock do axios
 const mockExecuteWithFallback = vi.fn()

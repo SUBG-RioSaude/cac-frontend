@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
 import React from 'react'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock simples para verificar se os componentes podem ser importados
 vi.mock('../hooks/useAlteracoesContratuais', () => ({

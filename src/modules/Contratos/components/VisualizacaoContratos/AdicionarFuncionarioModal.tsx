@@ -5,21 +5,7 @@
  * Modal para adicionar novo funcionário (fiscal ou gestor) ao contrato
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { DatePicker } from '@/components/ui/date-picker'
 import {
   User,
   Plus,
@@ -31,11 +17,28 @@ import {
   Phone,
   CheckCircle,
 } from 'lucide-react'
-import { BuscaFuncionarioField } from './BuscaFuncionarioField'
+import { useState } from 'react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
+
 import { useAdicionarFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
 import { getTipoGerenciaLabel } from '../../services/contratos-funcionarios-service'
-import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
-import { cn } from '@/lib/utils'
+
+import { BuscaFuncionarioField } from './BuscaFuncionarioField'
 
 // ========== INTERFACES ==========
 
@@ -49,13 +52,13 @@ interface AdicionarFuncionarioModalProps {
 
 // ========== COMPONENTE ==========
 
-export function AdicionarFuncionarioModal({
+export const AdicionarFuncionarioModal = ({
   aberto,
   onFechar,
   contratoId,
   tipoGerencia,
   funcionariosExistentes = [],
-}: AdicionarFuncionarioModalProps) {
+}: AdicionarFuncionarioModalProps) => {
   const [funcionarioSelecionado, setFuncionarioSelecionado] =
     useState<FuncionarioApi | null>(null)
   const [observacoes, setObservacoes] = useState('')
@@ -231,7 +234,7 @@ export function AdicionarFuncionarioModal({
                 </Label>
                 <DatePicker
                   date={dataInicio}
-                  onDateChange={(date) => setDataInicio(date || new Date())}
+                  onDateChange={(date) => setDataInicio(date ?? new Date())}
                   placeholder="Selecionar data de início"
                   className="w-full"
                 />

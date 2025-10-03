@@ -3,13 +3,14 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+
+import { useErrorHandler } from '@/hooks/use-error-handler'
+import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   getContratosPorEmpresa,
   type ContratoParametros,
 } from '@/modules/Contratos/services/contratos-service'
-import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
-import { useErrorHandler } from '@/hooks/use-error-handler'
 
 // Hook para buscar contratos de uma empresa específica
 export function useContratosPorEmpresa(
@@ -34,8 +35,7 @@ export function useContratosPorEmpresa(
 
     retry: (failureCount, error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
         // Não retry para erros de cliente (4xx)
         if (status >= 400 && status < 500) {
           return false
@@ -46,8 +46,7 @@ export function useContratosPorEmpresa(
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response
-          ?.status
+        const { status } = (error as { response: { status: number } }).response
 
         if (status === 404) {
           // Para 404, não mostrar toast (empresa pode não ter contratos)

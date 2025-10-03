@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import { NavUser } from '../nav-user'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { useAuthStore } from '@/lib/auth/auth-store'
+
+import { NavUser } from '../nav-user'
 
 // Mock do useAuthStore
 vi.mock('@/lib/auth/auth-store')

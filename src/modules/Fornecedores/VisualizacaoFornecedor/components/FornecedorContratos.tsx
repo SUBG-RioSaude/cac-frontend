@@ -5,11 +5,13 @@
  * Lista completa de contratos de um fornecedor com filtros e busca
  */
 
+import { Search, Filter, FileText } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -17,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, Filter, FileText } from 'lucide-react'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
@@ -38,30 +39,36 @@ type Ordenacao =
   | 'valor_asc'
   | 'numero_asc'
 
-export function FornecedorContratos({
+export const FornecedorContratos = ({
   contratos,
   isLoading,
   empresa,
-}: FornecedorContratosProps) {
+}: FornecedorContratosProps) => {
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('todos')
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('data_desc')
 
   const contratosFiltrados = useMemo(() => {
-    if (!contratos) return []
+    if (contratos.length === 0) return []
 
     let resultado = [...contratos]
 
     // Aplicar busca
     if (busca.trim()) {
       const termoBusca = busca.toLowerCase().trim()
-      resultado = resultado.filter(
-        (contrato) =>
-          contrato.numeroContrato?.toLowerCase().includes(termoBusca) ||
-          contrato.descricaoObjeto?.toLowerCase().includes(termoBusca) ||
-          contrato.processoSei?.toLowerCase().includes(termoBusca) ||
-          contrato.processoRio?.toLowerCase().includes(termoBusca),
-      )
+      resultado = resultado.filter((contrato) => {
+        const numeroContrato = contrato.numeroContrato?.toLowerCase() ?? ''
+        const descricaoObjeto = contrato.descricaoObjeto?.toLowerCase() ?? ''
+        const processoSei = contrato.processoSei?.toLowerCase() ?? ''
+        const processoRio = contrato.processoRio?.toLowerCase() ?? ''
+
+        return (
+          numeroContrato.includes(termoBusca) ||
+          descricaoObjeto.includes(termoBusca) ||
+          processoSei.includes(termoBusca) ||
+          processoRio.includes(termoBusca)
+        )
+      })
     }
 
     // Aplicar filtro de status
@@ -102,20 +109,20 @@ export function FornecedorContratos({
       switch (ordenacao) {
         case 'data_desc':
           return (
-            new Date(b.vigenciaInicial || '').getTime() -
-            new Date(a.vigenciaInicial || '').getTime()
+            new Date(b.vigenciaInicial).getTime() -
+            new Date(a.vigenciaInicial).getTime()
           )
         case 'data_asc':
           return (
-            new Date(a.vigenciaInicial || '').getTime() -
-            new Date(b.vigenciaInicial || '').getTime()
+            new Date(a.vigenciaInicial).getTime() -
+            new Date(b.vigenciaInicial).getTime()
           )
         case 'valor_desc':
-          return (b.valorGlobal || 0) - (a.valorGlobal || 0)
+          return b.valorGlobal - a.valorGlobal
         case 'valor_asc':
-          return (a.valorGlobal || 0) - (b.valorGlobal || 0)
+          return a.valorGlobal - b.valorGlobal
         case 'numero_asc':
-          return (a.numeroContrato || '').localeCompare(b.numeroContrato || '')
+          return (a.numeroContrato ?? '').localeCompare(b.numeroContrato ?? '')
         default:
           return 0
       }
@@ -125,7 +132,7 @@ export function FornecedorContratos({
   }, [contratos, busca, filtroStatus, ordenacao])
 
   const contarPorStatus = useMemo(() => {
-    if (!contratos)
+    if (contratos.length === 0)
       return { todos: 0, ativo: 0, vencendo: 0, vencido: 0, suspenso: 0 }
 
     const agora = new Date()
@@ -179,8 +186,11 @@ export function FornecedorContratos({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-lg border p-4">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div
+                key={`contratos-skeleton-${index}`}
+                className="rounded-lg border p-4"
+              >
                 <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
                 <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
               </div>
@@ -330,16 +340,22 @@ export function FornecedorContratos({
             contratos={contratosFiltrados}
             isLoading={false}
             contratosSelecionados={[]}
-            onSelecionarContrato={() => {}}
-            onSelecionarTodos={() => {}}
+            onSelecionarContrato={() => {
+              // Funcionalidade de seleção será implementada futuramente
+            }}
+            onSelecionarTodos={() => {
+              // Funcionalidade de seleção será implementada futuramente
+            }}
             paginacao={{
               pagina: 1,
               itensPorPagina: contratosFiltrados.length,
               total: contratosFiltrados.length,
             }}
-            onPaginacaoChange={() => {}}
+            onPaginacaoChange={() => {
+              // Funcionalidade de paginação será implementada futuramente
+            }}
             totalContratos={contratosFiltrados.length}
-            hideContratadaColumn={true}
+            hideContratadaColumn
           />
         )}
       </CardContent>

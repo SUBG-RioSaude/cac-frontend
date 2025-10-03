@@ -1,6 +1,6 @@
 import { UnidadeDetalhesPage } from '@/modules/Unidades/pages/UnidadeDetalhesPage'
 
-function UnidadeDetailPage() {
+const UnidadeDetailPage = () => {
   return <UnidadeDetalhesPage />
 }
 

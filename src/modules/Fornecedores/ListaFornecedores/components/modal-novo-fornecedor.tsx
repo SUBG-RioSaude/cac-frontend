@@ -1,20 +1,4 @@
-import type React from 'react'
-
-import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Plus,
   X,
@@ -25,9 +9,25 @@ import {
   UserPlus,
   Check,
 } from 'lucide-react'
-import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
+import type React from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { useCEP } from '@/hooks/use-cep'
+import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
 
 interface Contato {
   id: string
@@ -180,38 +180,12 @@ interface ModalNovoFornecedorProps {
   children: React.ReactNode
 }
 
-export function ModalNovoFornecedor({
+export const ModalNovoFornecedor = ({
   onSalvar,
   children,
-}: ModalNovoFornecedorProps) {
+}: ModalNovoFornecedorProps) => {
   const [open, setOpen] = useState(false)
   const [cepPreenchido, setCepPreenchido] = useState(false)
-
-  // Hook para busca de CEP
-  const {
-    buscarCEP,
-    isLoading: isLoadingCEP,
-    error: cepError,
-  } = useCEP({
-    onSuccess: (endereco) => {
-      // Preenche os campos automaticamente
-      setDados((prev) => ({
-        ...prev,
-        endereco: endereco.logradouro || '',
-        bairro: endereco.bairro || '',
-        cidade: endereco.localidade || '',
-        estado: endereco.uf || '',
-      }))
-
-      setCepPreenchido(true)
-      toast.success('Endereço preenchido automaticamente!')
-    },
-    onError: (error) => {
-      toast.error(error)
-      // Habilita campos mesmo com erro para permitir edição manual
-      setCepPreenchido(true)
-    },
-  })
 
   const [dados, setDados] = useState<NovoFornecedorData>({
     cnpj: '',
@@ -228,6 +202,32 @@ export function ModalNovoFornecedor({
     estado: '',
     ativo: true,
     contatos: [],
+  })
+
+  // Hook para busca de CEP
+  const {
+    buscarCEP,
+    isLoading: isLoadingCEP,
+    error: cepError,
+  } = useCEP({
+    onSuccess: (endereco) => {
+      // Preenche os campos automaticamente
+      setDados((prev) => ({
+        ...prev,
+        endereco: endereco.logradouro,
+        bairro: endereco.bairro,
+        cidade: endereco.localidade,
+        estado: endereco.uf,
+      }))
+
+      setCepPreenchido(true)
+      toast.success('Endereço preenchido automaticamente!')
+    },
+    onError: (error) => {
+      toast.error(error)
+      // Habilita campos mesmo com erro para permitir edição manual
+      setCepPreenchido(true)
+    },
   })
 
   // Validações em tempo real
@@ -383,7 +383,7 @@ export function ModalNovoFornecedor({
     }
 
     const contatosValidos = dados.contatos.filter(
-      (contato) => contato.nome.trim() && contato.valor.trim() && contato.tipo,
+      (contato) => contato.nome.trim() && contato.valor.trim(),
     )
 
     if (contatosValidos.length !== dados.contatos.length) {
@@ -458,11 +458,26 @@ export function ModalNovoFornecedor({
 
   const getPlaceholderPorTipo = (tipo: string) => {
     const tipoEncontrado = tiposContato.find((t) => t.value === tipo)
-    return tipoEncontrado?.placeholder || ''
+    return tipoEncontrado?.placeholder ?? ''
   }
 
   if (!open) {
-    return <div onClick={() => setOpen(true)}>{children}</div>
+    return (
+      <div
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Abrir modal de novo fornecedor"
+      >
+        {children}
+      </div>
+    )
   }
 
   return (
@@ -472,6 +487,14 @@ export function ModalNovoFornecedor({
         data-testid="modal-overlay"
         className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
         onClick={() => setOpen(false)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setOpen(false)
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Fechar modal"
       />
 
       {/* Modal */}
@@ -719,7 +742,7 @@ export function ModalNovoFornecedor({
                             valorMascarado &&
                             validarFormatoCEP(valorMascarado)
                           ) {
-                            buscarCEP(valorMascarado)
+                            void buscarCEP(valorMascarado)
                           }
                         }}
                         className={cn(
@@ -732,7 +755,7 @@ export function ModalNovoFornecedor({
                       />
                       {isLoadingCEP && (
                         <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
+                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
                         </div>
                       )}
                     </div>
@@ -958,7 +981,7 @@ export function ModalNovoFornecedor({
                         <div className="space-y-4">
                           <Label htmlFor={`valor-contato-${contato.id}`}>
                             {tiposContato.find((t) => t.value === contato.tipo)
-                              ?.label || 'Valor'}{' '}
+                              ?.label ?? 'Valor'}{' '}
                             *
                           </Label>
                           <Input

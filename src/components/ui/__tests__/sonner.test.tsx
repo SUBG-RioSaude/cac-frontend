@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import '@testing-library/jest-dom'
 import React from 'react'
+import '@testing-library/jest-dom'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock do next-themes
 vi.mock('next-themes', () => ({
@@ -28,7 +28,7 @@ vi.mock('sonner', () => ({
       <div
         data-testid="sonner-toaster"
         data-theme={theme}
-        className={className || 'toaster group'}
+        className={className ?? 'toaster group'}
         style={
           {
             '--normal-bg': 'var(--popover)',

@@ -1,22 +1,3 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   FileText,
   ExternalLink,
@@ -27,10 +8,30 @@ import {
   Loader2,
   RotateCcw,
 } from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 
 import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
 import type { DocumentoMultiplo } from '../../types/contrato'
-import { DateDisplay } from '@/components/ui/formatters'
 
 interface TabDocumentosProps {
   contratoId: string
@@ -84,7 +85,7 @@ interface DocumentoLocal {
   dataEntrega?: string
 }
 
-export function TabDocumentos({ contratoId }: TabDocumentosProps) {
+export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
   const {
     data: documentosApi = [],
     isLoading,
@@ -128,8 +129,8 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                 docApi.linkExterno && docApi.linkExterno !== 'sem url'
                   ? docApi.linkExterno
                   : '',
-              observacoes: docApi.observacoes || '',
-              dataEntrega: docApi.dataAtualizacao || undefined,
+              observacoes: docApi.observacoes ?? '',
+              dataEntrega: docApi.dataAtualizacao ?? undefined,
             }
           }
           return local
@@ -183,8 +184,8 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
           ({
             tipoDocumento: doc.tipo,
             urlDocumento: doc.urlDocumento || 'sem url',
-            dataEntrega: doc.dataEntrega || new Date().toISOString(),
-            observacoes: doc.observacoes || '',
+            dataEntrega: doc.dataEntrega ?? new Date().toISOString(),
+            observacoes: doc.observacoes,
             selecionado: doc.selecionado,
           }) as DocumentoMultiplo,
       ),
@@ -217,8 +218,8 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                 docApi.linkExterno && docApi.linkExterno !== 'sem url'
                   ? docApi.linkExterno
                   : '',
-              observacoes: docApi.observacoes || '',
-              dataEntrega: docApi.dataAtualizacao || undefined,
+              observacoes: docApi.observacoes ?? '',
+              dataEntrega: docApi.dataAtualizacao ?? undefined,
             }
           }
           // Para documentos que não existem na API, resetar para vazio

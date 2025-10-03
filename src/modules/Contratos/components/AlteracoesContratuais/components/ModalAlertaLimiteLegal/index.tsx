@@ -3,9 +3,12 @@
  * Exibido quando a API retorna HTTP 202 indicando que a alteração excede limites legais
  */
 
-import { useState } from 'react'
 import { AlertTriangle, FileText, Calculator, Clock, Users } from 'lucide-react'
+import { useState } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -13,16 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-
-import type { AlertaLimiteLegal } from '@/modules/Contratos/types/alteracoes-contratuais'
+import { Textarea } from '@/components/ui/textarea'
 import { useConfirmarLimiteLegal } from '@/modules/Contratos/hooks/useAlteracoesContratuaisApi'
+import type { AlertaLimiteLegal } from '@/modules/Contratos/types/alteracoes-contratuais'
 
-type LimiteLegal = {
+interface LimiteLegal {
   tipo: 'acrescimo' | 'prazo' | 'objeto'
   limiteLegal: number
   valorAtual: number
@@ -50,14 +49,14 @@ const severidadeColors = {
   critico: 'bg-red-100 text-red-800 border-red-200',
 } as const
 
-export function ModalAlertaLimiteLegal({
+export const ModalAlertaLimiteLegal = ({
   open,
   onOpenChange,
   alteracaoId,
   alerta,
   onConfirmed,
   onCancelled,
-}: ModalAlertaLimiteLegalProps) {
+}: ModalAlertaLimiteLegalProps) => {
   const [justificativaAdicional, setJustificativaAdicional] = useState('')
   const [confirmando, setConfirmando] = useState(false)
 
@@ -140,8 +139,11 @@ export function ModalAlertaLimiteLegal({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {alerta.limites.map((limite: LimiteLegal, index: number) => (
-                <div key={index} className="space-y-2">
+              {alerta.limites.map((limite: LimiteLegal) => (
+                <div
+                  key={`${limite.tipo}-${limite.valorAtual}`}
+                  className="space-y-2"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {getIconForTipo(limite.tipo)}
@@ -270,14 +272,14 @@ export function ModalAlertaLimiteLegal({
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
-              onClick={handleCancelar}
+              onClick={() => void handleCancelar()}
               disabled={confirmando}
               className="order-2 sm:order-1"
             >
               Cancelar Alteração
             </Button>
             <Button
-              onClick={handleConfirmar}
+              onClick={() => void handleConfirmar()}
               disabled={confirmando || justificativaAdicional.length < 50}
               className="order-1 sm:order-2"
             >

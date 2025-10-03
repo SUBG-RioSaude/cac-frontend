@@ -1,15 +1,13 @@
+/* eslint-disable no-console */
 import pino, { type Level, type LogEvent } from 'pino'
+
+import { loggerConfig, performanceConfig, contextDefaults } from './config'
 import type {
   StructuredLogger,
   LogContext,
   LogMetrics,
   LogLevel,
 } from './types'
-import {
-  loggerConfig,
-  performanceConfig,
-  contextDefaults,
-} from './config'
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -19,17 +17,27 @@ const normalizeMessage = (value: unknown): string => {
   if (typeof value === 'string') return value
   if (value instanceof Error) return value.message
   if (value === undefined) return ''
-  try {
-    return JSON.stringify(value)
-  } catch (error) {
-    return String(value)
+  if (value === null) return 'null'
+
+  // Verifica se é um objeto simples para evitar [object Object]
+  if (typeof value === 'object') {
+    try {
+      // Serializa objeto para JSON
+      return JSON.stringify(value, null, 0)
+    } catch {
+      return '[Object]'
+    }
   }
+
+  // Converte primitivos para string (boolean, number, symbol, bigint)
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  return String(value)
 }
 
 class BrowserLogger implements StructuredLogger {
   readonly raw: pino.Logger
   private context: LogContext = {}
-  private timers: Map<string, number> = new Map()
+  private timers = new Map<string, number>()
 
   constructor() {
     this.raw = pino({
@@ -85,7 +93,8 @@ class BrowserLogger implements StructuredLogger {
   }
 
   private createLogMetrics(level: Level, logEvent: LogEvent): LogMetrics {
-    const messages = [...logEvent.messages]
+    // Cria cópia tipada das mensagens
+    const messages = Array.from(logEvent.messages) as unknown[]
 
     let context: LogContext = {}
     if (messages.length > 0 && isPlainObject(messages[0])) {
@@ -96,7 +105,7 @@ class BrowserLogger implements StructuredLogger {
 
     return {
       timestamp: logEvent.ts,
-      level: level as LogLevel,
+      level,
       message,
       context: {
         ...contextDefaults,
@@ -114,24 +123,20 @@ class BrowserLogger implements StructuredLogger {
 
     const timestamp = new Date().toLocaleTimeString('pt-BR')
     const levelFormatted = level.toUpperCase().padEnd(5)
-    const module = logEvent.context?.module
-      ? `[${logEvent.context.module}]`
-      : ''
-    const component = logEvent.context?.component
+    const module = logEvent.context.module ? `[${logEvent.context.module}]` : ''
+    const component = logEvent.context.component
       ? `[${logEvent.context.component}]`
       : ''
 
     let message = `${timestamp} ${levelFormatted} ${module}${component} ${logEvent.message}`
 
     // Adicionar contexto relevante
-    if (logEvent.context) {
-      const relevantContext = { ...logEvent.context }
-      delete relevantContext.module
-      delete relevantContext.component
+    const relevantContext = { ...logEvent.context }
+    delete relevantContext.module
+    delete relevantContext.component
 
-      if (Object.keys(relevantContext).length > 0) {
-        message += ` | ${JSON.stringify(relevantContext)}`
-      }
+    if (Object.keys(relevantContext).length > 0) {
+      message += ` | ${JSON.stringify(relevantContext)}`
     }
 
     if (logEvent.extra && logEvent.extra.length > 0) {
@@ -154,7 +159,7 @@ class BrowserLogger implements StructuredLogger {
     ...args: unknown[]
   ) {
     let context: LogContext = {}
-    let message: string = ''
+    let message = ''
 
     if (typeof contextOrMessage === 'string') {
       message = contextOrMessage
@@ -164,10 +169,10 @@ class BrowserLogger implements StructuredLogger {
         stack: contextOrMessage.stack,
         name: contextOrMessage.name,
       }
-      message = msg || contextOrMessage.message
+      message = msg ?? contextOrMessage.message
     } else {
       context = contextOrMessage
-      message = msg || 'Log entry'
+      message = msg ?? 'Log entry'
     }
 
     const finalContext = { ...this.context, ...context }
@@ -248,7 +253,11 @@ class BrowserLogger implements StructuredLogger {
   // Performance tracking
   performance = {
     time: (label: string, context: LogContext = {}) => {
-      if (!performanceConfig.enabled) return () => {}
+      if (!performanceConfig.enabled) {
+        return () => {
+          // Performance tracking is disabled
+        }
+      }
 
       const startTime = performance.now()
       this.timers.set(label, startTime)

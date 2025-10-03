@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useToast } from './useToast'
+
+import { createServiceLogger } from '@/lib/logger'
+
 import {
   listarEmpenhosPorContrato,
   criarEmpenho,
@@ -11,6 +13,10 @@ import type {
   CriarEmpenhoPayload,
   AtualizarEmpenhoPayload,
 } from '../types/contrato'
+
+import { useToast } from './useToast'
+
+const logger = createServiceLogger('use-empenhos-with-retry')
 
 // Interfaces para os dados do contrato
 interface UseEmpenhosWithRetryReturn {
@@ -63,14 +69,8 @@ export function useEmpenhosWithRetry(
             message?: string
           }
 
-          console.warn(
-            `[RETRY] ⚠️ ${operacaoNome} - Tentativa ${tentativa} falhou:`,
-            {
-              status: axiosError.response?.status,
-              message: axiosError.message,
-              data: axiosError.response?.data,
-              tentativasRestantes: MAX_RETRIES - tentativa,
-            },
+          logger.warn(
+            `[RETRY] ⚠️ ${operacaoNome} - Tentativa ${tentativa} falhou: ${axiosError.message}`,
           )
 
           // Verificar se é erro do servidor (5xx) ou rede
@@ -126,7 +126,7 @@ export function useEmpenhosWithRetry(
 
       setEmpenhos(dados)
     } catch (error) {
-      console.error('Erro ao carregar empenhos:', error)
+      logger.error('Erro ao carregar empenhos:', error as string)
 
       // Extrair informações específicas do erro
       const axiosError = error as {
@@ -139,8 +139,8 @@ export function useEmpenhosWithRetry(
           | { message?: string; error?: string }
           | undefined
         const errorMsg =
-          errorData?.message ||
-          errorData?.error ||
+          errorData?.message ??
+          errorData?.error ??
           'Dados inválidos enviados para o servidor'
         setErro(`Erro 400: ${errorMsg}`)
         toast.error(`Erro de validação: ${errorMsg}`)
@@ -155,7 +155,7 @@ export function useEmpenhosWithRetry(
           | { message?: string }
           | undefined
         const msgErro =
-          errorData?.message || 'Não foi possível carregar os empenhos'
+          errorData?.message ?? 'Não foi possível carregar os empenhos'
         setErro(msgErro)
         toast.error(msgErro)
       }
@@ -174,7 +174,7 @@ export function useEmpenhosWithRetry(
         toast.success('Empenho criado com sucesso')
         await carregarEmpenhos() // Recarrega a lista
       } catch (error) {
-        console.error('Erro ao salvar empenho:', error)
+        logger.error('Erro ao salvar empenho:', error as string)
 
         // Extrair informações específicas do erro
         const axiosError = error as {
@@ -187,8 +187,8 @@ export function useEmpenhosWithRetry(
             | { message?: string; error?: string }
             | undefined
           const errorMsg =
-            errorData?.message ||
-            errorData?.error ||
+            errorData?.message ??
+            errorData?.error ??
             'Dados do empenho são inválidos'
           setErro(`Erro 400: ${errorMsg}`)
           toast.error(`Erro de validação: ${errorMsg}`)
@@ -205,7 +205,7 @@ export function useEmpenhosWithRetry(
             | { message?: string }
             | undefined
           const msgErro =
-            errorData?.message || 'Não foi possível salvar o empenho'
+            errorData?.message ?? 'Não foi possível salvar o empenho'
           setErro(msgErro)
           toast.error(msgErro)
         }
@@ -228,7 +228,7 @@ export function useEmpenhosWithRetry(
         toast.success('Empenho atualizado com sucesso')
         await carregarEmpenhos() // Recarrega a lista
       } catch (error) {
-        console.error('Erro ao atualizar empenho:', error)
+        logger.error('Erro ao atualizar empenho:', error as string)
 
         // Extrair informações específicas do erro
         const axiosError = error as {
@@ -241,8 +241,8 @@ export function useEmpenhosWithRetry(
             | { message?: string; error?: string }
             | undefined
           const errorMsg =
-            errorData?.message ||
-            errorData?.error ||
+            errorData?.message ??
+            errorData?.error ??
             'Dados do empenho são inválidos'
           setErro(`Erro 400: ${errorMsg}`)
           toast.error(`Erro de validação: ${errorMsg}`)
@@ -259,7 +259,7 @@ export function useEmpenhosWithRetry(
             | { message?: string }
             | undefined
           const msgErro =
-            errorData?.message || 'Não foi possível atualizar o empenho'
+            errorData?.message ?? 'Não foi possível atualizar o empenho'
           setErro(msgErro)
           toast.error(msgErro)
         }
@@ -279,7 +279,7 @@ export function useEmpenhosWithRetry(
         toast.success('Empenho excluído com sucesso')
         await carregarEmpenhos() // Recarrega a lista
       } catch (error) {
-        console.error('Erro ao excluir empenho:', error)
+        logger.error('Erro ao excluir empenho:', error as string)
 
         // Extrair informações específicas do erro
         const axiosError = error as {
@@ -292,8 +292,8 @@ export function useEmpenhosWithRetry(
             | { message?: string; error?: string }
             | undefined
           const errorMsg =
-            errorData?.message ||
-            errorData?.error ||
+            errorData?.message ??
+            errorData?.error ??
             'Não foi possível excluir o empenho'
           setErro(`Erro 400: ${errorMsg}`)
           toast.error(`Erro de validação: ${errorMsg}`)
@@ -310,7 +310,7 @@ export function useEmpenhosWithRetry(
             | { message?: string }
             | undefined
           const msgErro =
-            errorData?.message || 'Não foi possível excluir o empenho'
+            errorData?.message ?? 'Não foi possível excluir o empenho'
           setErro(msgErro)
           toast.error(msgErro)
         }
@@ -345,7 +345,7 @@ export function useEmpenhosWithRetry(
 
         setEmpenhos(dados)
       } catch (error) {
-        console.error('Erro ao carregar empenhos:', error)
+        logger.error('Erro ao carregar empenhos:', error as string)
 
         const axiosError = error as {
           response?: { status?: number; data?: unknown }
@@ -357,8 +357,8 @@ export function useEmpenhosWithRetry(
             | { message?: string; error?: string }
             | undefined
           const errorMsg =
-            errorData?.message ||
-            errorData?.error ||
+            errorData?.message ??
+            errorData?.error ??
             'Dados inválidos enviados para o servidor'
           setErro(`Erro 400: ${errorMsg}`)
           toast.error(`Erro de validação: ${errorMsg}`)
@@ -375,7 +375,7 @@ export function useEmpenhosWithRetry(
             | { message?: string }
             | undefined
           const msgErro =
-            errorData?.message || 'Não foi possível carregar os empenhos'
+            errorData?.message ?? 'Não foi possível carregar os empenhos'
           setErro(msgErro)
           toast.error(msgErro)
         }
@@ -384,7 +384,7 @@ export function useEmpenhosWithRetry(
       }
     }
 
-    carregarDados()
+    void carregarDados()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contratoId]) // Ignorar outras dependências intencionalmente para evitar loop
 
@@ -402,16 +402,38 @@ export function useEmpenhosWithRetry(
 
 // Função utilitária para extrair empenhos dos dados do contrato
 
-export function extrairEmpenhosDoContrato(contrato: any): Empenho[] {
-  if (!contrato?.unidadesVinculadas) {
+// Interface para unidade com empenhos (estrutura interna)
+interface UnidadeComEmpenhos {
+  unidadeSaudeId: string
+  empenhos?: {
+    id: string
+    numeroEmpenho: string
+    valor: number
+    dataEmpenho: string
+    observacao?: string
+    ativo: boolean
+    dataCadastro: string
+    dataAtualizacao: string
+  }[]
+}
+
+interface ContratoComEmpenhos {
+  id: string
+  unidadesVinculadas?: UnidadeComEmpenhos[]
+}
+
+export function extrairEmpenhosDoContrato(
+  contrato: ContratoComEmpenhos,
+): Empenho[] {
+  if (!contrato.unidadesVinculadas) {
     return []
   }
 
   const empenhos: Empenho[] = []
 
-  contrato.unidadesVinculadas.forEach((unidade: any) => {
+  contrato.unidadesVinculadas.forEach((unidade) => {
     if (unidade.empenhos && Array.isArray(unidade.empenhos)) {
-      unidade.empenhos.forEach((empenho: any) => {
+      unidade.empenhos.forEach((empenho) => {
         empenhos.push({
           id: empenho.id,
           contratoId: contrato.id,

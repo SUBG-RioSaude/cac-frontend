@@ -1,5 +1,6 @@
 import React from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+
 import { useAuthStore } from '@/lib/auth/auth-store'
 
 interface ProtectedRouteProps {
@@ -11,13 +12,13 @@ interface ProtectedRouteProps {
 }
 
 // Componente para rotas que requerem autenticação completa
-export function ProtectedRoute({
+export const ProtectedRoute = ({
   requireAuth = true,
   requireGuest = false,
   requirePasswordChange = false,
   require2FA = false,
   children,
-}: ProtectedRouteProps) {
+}: ProtectedRouteProps) => {
   const { usuario, estaAutenticado, carregando } = useAuthStore()
   const location = useLocation()
 
@@ -26,7 +27,7 @@ export function ProtectedRoute({
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-teal-600"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-teal-600" />
           <p className="text-gray-600">Verificando autenticação...</p>
         </div>
       </div>
@@ -36,7 +37,7 @@ export function ProtectedRoute({
   // Rota que requer usuário não autenticado (login, registro, etc.)
   if (requireGuest && estaAutenticado) {
     // Se já está autenticado, redireciona para a página principal
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
     sessionStorage.removeItem('redirectAfterLogin')
     return <Navigate to={redirectPath} replace />
   }
@@ -68,12 +69,12 @@ export function ProtectedRoute({
 }
 
 // Componente para verificação de autenticação ao montar componentes
-export function AuthGuard() {
+export const AuthGuard = () => {
   const { estaAutenticado, verificarAutenticacao } = useAuthStore()
 
   // Verifica autenticação ao montar o componente
   React.useEffect(() => {
-    verificarAutenticacao()
+    void verificarAutenticacao()
   }, [verificarAutenticacao])
 
   if (!estaAutenticado) {
@@ -84,12 +85,12 @@ export function AuthGuard() {
 }
 
 // Componente para rotas de autenticação (fluxo de login)
-export function AuthFlowRoute() {
+export const AuthFlowRoute = () => {
   const { estaAutenticado, usuario } = useAuthStore()
 
   // Se já está autenticado e não precisa trocar senha, redireciona
   if (estaAutenticado && !usuario?.precisaTrocarSenha) {
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
     sessionStorage.removeItem('redirectAfterLogin')
     return <Navigate to={redirectPath} replace />
   }
@@ -103,7 +104,7 @@ export function AuthFlowRoute() {
 }
 
 // Componente para verificação de fluxo de autenticação
-export function AuthFlowGuard() {
+export const AuthFlowGuard = () => {
   const { estaAutenticado, usuario } = useAuthStore()
   const location = useLocation()
 
@@ -113,7 +114,7 @@ export function AuthFlowGuard() {
   }
 
   // Se está autenticado mas precisa trocar senha
-  if (estaAutenticado && usuario?.precisaTrocarSenha) {
+  if (usuario?.precisaTrocarSenha) {
     // Se não estiver na rota de troca de senha, redireciona
     if (location.pathname !== '/trocar-senha') {
       return <Navigate to="/trocar-senha" replace />
@@ -122,7 +123,7 @@ export function AuthFlowGuard() {
   }
 
   // Se está autenticado e não precisa trocar senha, redireciona para principal
-  const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+  const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
   sessionStorage.removeItem('redirectAfterLogin')
   return <Navigate to={redirectPath} replace />
 }

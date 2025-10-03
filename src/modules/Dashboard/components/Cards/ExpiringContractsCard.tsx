@@ -5,19 +5,21 @@
  */
 
 import { AlertCircle } from 'lucide-react'
-import { StatusMetricCard } from './MetricCard'
+
 import { useDashboardMetrics } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
+
+import { StatusMetricCard } from './MetricCard'
 
 interface ExpiringContractsCardProps {
   filters: DashboardFilters
   className?: string
 }
 
-export function ExpiringContractsCard({
+export const ExpiringContractsCard = ({
   filters,
   className,
-}: ExpiringContractsCardProps) {
+}: ExpiringContractsCardProps) => {
   const { metrics, isLoading, error } = useDashboardMetrics(filters)
 
   const metric = metrics?.contratosVencendo
@@ -26,8 +28,8 @@ export function ExpiringContractsCard({
   return (
     <StatusMetricCard
       title="Contratos a Vencer"
-      value={metric?.atual || 0}
-      metric={metric || undefined}
+      value={metric?.atual ?? 0}
+      metric={metric ?? undefined}
       icon={AlertCircle}
       isLoading={isLoading}
       error={error}

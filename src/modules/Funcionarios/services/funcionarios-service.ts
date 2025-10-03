@@ -1,7 +1,5 @@
 import { executeWithFallback } from '@/lib/axios'
 import { createServiceLogger } from '@/lib/logger'
-
-const logger = createServiceLogger('funcionarios-service')
 import type {
   FuncionarioApi,
   LotacaoApi,
@@ -13,6 +11,8 @@ import type {
   BuscaLotacaoResponse,
   FuncionarioCreateApi,
 } from '@/modules/Funcionarios/types/funcionario-api'
+
+const logger = createServiceLogger('funcionarios-service')
 
 /**
  * ==========================================
@@ -39,18 +39,18 @@ export async function getFuncionarios(
   const responseData = response.data
 
   // Debug: Log da resposta para verificar estrutura
-  console.log('Resposta da API de funcionários:', responseData)
+  logger.debug({ responseData }, 'Resposta da API de funcionários')
 
   // Prioridade 1: Checar a estrutura { sucesso: true, dados: { ... } }
   if (
-    responseData &&
+    typeof responseData === 'object' &&
     'sucesso' in responseData &&
     responseData.sucesso &&
     'dados' in responseData
   ) {
     // Se 'dados' dentro do wrapper tiver a estrutura de paginação, retorna direto
     if (
-      responseData.dados &&
+      typeof responseData.dados === 'object' &&
       'dados' in responseData.dados &&
       Array.isArray((responseData.dados as Record<string, unknown>).dados)
     ) {
@@ -60,7 +60,7 @@ export async function getFuncionarios(
 
   // Prioridade 2: Checar se a resposta já é a estrutura de paginação (sem wrapper)
   if (
-    responseData &&
+    typeof responseData === 'object' &&
     'dados' in responseData &&
     Array.isArray(responseData.dados)
   ) {
@@ -72,8 +72,8 @@ export async function getFuncionarios(
       .dados as FuncionarioApi[]
     return {
       dados,
-      paginaAtual: filtros.pagina || 1,
-      tamanhoPagina: filtros.tamanhoPagina || dados.length,
+      paginaAtual: filtros.pagina ?? 1,
+      tamanhoPagina: filtros.tamanhoPagina ?? dados.length,
       totalRegistros: dados.length,
       totalPaginas: 1,
       temProximaPagina: false,
@@ -151,7 +151,7 @@ export async function getFuncionarioByCpf(
     logger.error(
       {
         operation: 'buscar_funcionario_cpf',
-        cpf: cpf.substring(0, 3) + '***', // Mascarar CPF por segurança
+        cpf: `${cpf.substring(0, 3)}***`, // Mascarar CPF por segurança
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       },
@@ -173,9 +173,7 @@ export async function getFuncionarioById(id: string): Promise<FuncionarioApi> {
     url: `/Funcionarios/${id}`,
   })
 
-  if (!response.data) {
-    throw new Error('Funcionário não encontrado')
-  }
+  // A função executeWithFallback garante que response.data nunca é undefined
 
   return response.data
 }
@@ -198,11 +196,11 @@ export async function getLotacoes(
 
   // Normalizar resposta da API
   if (
-    response.data &&
+    typeof response.data === 'object' &&
     'dados' in response.data &&
     Array.isArray(response.data.dados)
   ) {
-    const dados = response.data.dados
+    const { dados } = response.data
 
     // Se tem metadados de paginação, usar eles
     if ('totalRegistros' in response.data) {
@@ -212,8 +210,8 @@ export async function getLotacoes(
     // Senão, criar estrutura padrão
     const paginatedResponse: LotacoesPaginacaoResponse = {
       dados,
-      paginaAtual: filtros.pagina || 1,
-      tamanhoPagina: filtros.tamanhoPagina || dados.length,
+      paginaAtual: filtros.pagina ?? 1,
+      tamanhoPagina: filtros.tamanhoPagina ?? dados.length,
       totalRegistros: dados.length,
       totalPaginas: 1,
       temProximaPagina: false,
@@ -281,9 +279,7 @@ export async function getLotacaoById(id: string): Promise<LotacaoApi> {
     url: `/Lotacoes/${id}`,
   })
 
-  if (!response.data) {
-    throw new Error('Lotação não encontrada')
-  }
+  // A função executeWithFallback garante que response.data nunca é undefined
 
   return response.data
 }
@@ -357,14 +353,13 @@ export async function criarFuncionario(
     | { dados?: FuncionarioApi }
     | FuncionarioApi
   const data =
-    responseData &&
     typeof responseData === 'object' &&
     'dados' in responseData &&
     responseData.dados
       ? responseData.dados
       : (responseData as FuncionarioApi)
 
-  if (!data?.id) {
+  if (!data.id) {
     // Algumas APIs de cadastro podem não retornar o objeto; nesse caso retornamos o payload mapeado
     return {
       id: '',

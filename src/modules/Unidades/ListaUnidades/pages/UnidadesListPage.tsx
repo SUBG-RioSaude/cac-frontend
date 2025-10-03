@@ -1,23 +1,27 @@
+import { motion } from 'framer-motion'
+import { Plus, FileDown } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+
 import { Button } from '@/components/ui/button'
-import { Plus, FileDown } from 'lucide-react'
-import { SearchAndFiltersUnidades } from '@/modules/Unidades/ListaUnidades/components/search-and-filters-unidades'
-import { TabelaUnidades } from '@/modules/Unidades/ListaUnidades/components/tabela-unidades'
-import { UnidadesPageSkeleton } from '@/modules/Unidades/ListaUnidades/components/skeletons/unidades-page-skeleton'
+import { createServiceLogger } from '@/lib/logger'
 import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
 import {
   useUpdateUnidade,
   useDeleteUnidade,
 } from '@/modules/Unidades/hooks/use-unidades-mutations'
-import { mapearUnidadeApi } from '@/modules/Unidades/types/unidade-api'
+import { SearchAndFiltersUnidades } from '@/modules/Unidades/ListaUnidades/components/search-and-filters-unidades'
+import { UnidadesPageSkeleton } from '@/modules/Unidades/ListaUnidades/components/skeletons/unidades-page-skeleton'
+import { TabelaUnidades } from '@/modules/Unidades/ListaUnidades/components/tabela-unidades'
 import type {
   Unidade,
   OrdenacaoParams,
   ColunaOrdenacao,
 } from '@/modules/Unidades/ListaUnidades/types/unidade'
+import { mapearUnidadeApi } from '@/modules/Unidades/types/unidade-api'
 import type { FiltrosUnidadesApi } from '@/modules/Unidades/types/unidade-api'
+
+const logger = createServiceLogger('unidades-list-page')
 
 const UnidadesListPage = () => {
   const navigate = useNavigate()
@@ -101,11 +105,26 @@ const UnidadesListPage = () => {
     ) {
       try {
         await deleteUnidadeMutation.mutateAsync(unidade.id.toString())
-      } catch (error) {
+      } catch (deleteError) {
         // Error handling is done in the mutation hook
-        console.error('Erro ao excluir unidade:', error)
+        logger.error(
+          {
+            operation: 'excluir_unidade',
+            unidadeId: unidade.id,
+            error:
+              deleteError instanceof Error
+                ? deleteError.message
+                : String(deleteError),
+          },
+          'Erro ao excluir unidade',
+        )
       }
     }
+  }
+
+  // Wrapper para evitar warning no-misused-promises
+  const handleExcluirUnidadeWrapper = (unidade: Unidade) => {
+    void handleExcluirUnidade(unidade)
   }
 
   const handleOrdenacao = (coluna: ColunaOrdenacao) => {
@@ -130,7 +149,7 @@ const UnidadesListPage = () => {
         u.UO,
         u.UG,
         u.endereco,
-        u.status || 'ativo',
+        u.status ?? 'ativo',
       ]),
     ]
       .map((row) => row.join(','))
@@ -147,7 +166,7 @@ const UnidadesListPage = () => {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
   }
 
   const textoExportar =
@@ -156,7 +175,7 @@ const UnidadesListPage = () => {
       : 'Exportar Todas'
 
   // Show loading skeleton while data is loading
-  if (isLoading && !responseData) {
+  if (isLoading) {
     return <UnidadesPageSkeleton />
   }
 
@@ -243,9 +262,9 @@ const UnidadesListPage = () => {
                 ...prev,
                 ...novosFiltros,
                 pagina: jaPossuiPaginacao
-                  ? novosFiltros.pagina || prev.pagina
+                  ? (novosFiltros.pagina ?? prev.pagina)
                   : 1,
-                tamanhoPagina: novosFiltros.tamanhoPagina || prev.tamanhoPagina,
+                tamanhoPagina: novosFiltros.tamanhoPagina ?? prev.tamanhoPagina,
                 ordenarPor: prev.ordenarPor,
                 direcaoOrdenacao: prev.direcaoOrdenacao,
               }))
@@ -263,13 +282,11 @@ const UnidadesListPage = () => {
           onPaginacaoChange={setPaginacao}
           onVisualizarUnidade={handleVisualizarUnidade}
           onEditarUnidade={handleEditarUnidade}
-          onExcluirUnidade={handleExcluirUnidade}
+          onExcluirUnidade={handleExcluirUnidadeWrapper}
           ordenacao={ordenacao}
           onOrdenacao={handleOrdenacao}
           isLoading={
-            isLoading ||
-            updateUnidadeMutation.isPending ||
-            deleteUnidadeMutation.isPending
+            updateUnidadeMutation.isPending || deleteUnidadeMutation.isPending
           }
         />
       </div>

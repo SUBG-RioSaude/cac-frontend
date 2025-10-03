@@ -1,9 +1,10 @@
-import { useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import { Building2, X, MapPin, Unlink, AlertCircle } from 'lucide-react'
+import { useCallback } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface TransformedUnidade {
   id: string
@@ -30,13 +31,13 @@ const CORES_TIPO: Record<string, string> = {
   Unidade: 'bg-gray-100 text-gray-700',
 }
 
-export function UnlinkedUnitsManager({
+export const UnlinkedUnitsManager = ({
   unidadesDesvinculadas = [],
   onChange,
   getUnitDetails,
   disabled = false,
   errors = {},
-}: UnlinkedUnitsManagerProps) {
+}: UnlinkedUnitsManagerProps) => {
   const handleRemoveUnit = useCallback(
     (unitId: string) => {
       const updatedUnits = unidadesDesvinculadas.filter((id) => id !== unitId)

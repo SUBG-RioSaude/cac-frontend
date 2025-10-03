@@ -5,8 +5,6 @@
 
 import { executeWithFallback, api } from '@/lib/axios'
 import { createServiceLogger } from '@/lib/logger'
-
-const logger = createServiceLogger('unidades-service')
 import type {
   UnidadeSaudeApi,
   UnidadeSaudeCreateApi,
@@ -19,6 +17,17 @@ import type {
   UnidadeDetalhada,
 } from '@/modules/Unidades/types/unidade-api'
 
+// Helper para acessar variável de ambiente de forma tipada
+const getApiUrl = (): string => {
+  const url = import.meta.env.VITE_API_URL as string
+  if (!url) {
+    throw new Error('VITE_API_URL não está configurada')
+  }
+  return url
+}
+
+const logger = createServiceLogger('unidades-service')
+
 // ========== OPERAÇÕES PRINCIPAIS - UNIDADES ==========
 
 export async function getUnidades(
@@ -28,8 +37,8 @@ export async function getUnidades(
     method: 'get',
     url: '/unidades',
     params: {
-      pagina: filtros?.pagina || 1,
-      tamanhoPagina: filtros?.tamanhoPagina || 10,
+      pagina: filtros?.pagina ?? 1,
+      tamanhoPagina: filtros?.tamanhoPagina ?? 10,
       ordenarPor: filtros?.ordenarPor,
       direcaoOrdenacao: filtros?.direcaoOrdenacao,
       nome: filtros?.nome,
@@ -38,7 +47,7 @@ export async function getUnidades(
       bairro: filtros?.bairro,
       ativo: filtros?.ativo ?? true, // Por padrão, buscar apenas unidades ativas
     },
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -48,7 +57,7 @@ export async function getUnidadeById(id: string): Promise<UnidadeSaudeApi> {
   const response = await executeWithFallback<UnidadeSaudeApi>({
     method: 'get',
     url: `/unidades/${id}`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -61,7 +70,7 @@ export async function createUnidade(
     method: 'post',
     url: '/unidades',
     data,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -76,7 +85,7 @@ export async function updateUnidade(
     method: 'put',
     url: `/unidades/${id}`,
     data: updateData,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -86,7 +95,7 @@ export async function deleteUnidade(id: string): Promise<void> {
   await executeWithFallback({
     method: 'delete',
     url: `/unidades/${id}`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 }
 
@@ -101,12 +110,14 @@ export async function buscarUnidadesPorNome(
     method: 'get',
     url: '/unidades',
     params: { nome },
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
-  const data = response.data
+  const { data } = response
   if (Array.isArray(data)) return data
-  if (data && Array.isArray(data.dados)) return data.dados
+  if (data && typeof data === 'object' && 'dados' in data) {
+    return (data as { dados: UnidadeSaudeApi[] }).dados
+  }
   return []
 }
 
@@ -131,16 +142,16 @@ export async function buscarUnidadesPorNomeOuSigla(
         method: 'get',
         url: '/unidades',
         params: { sigla: termo },
-        baseURL: import.meta.env.VITE_API_URL,
+        baseURL: getApiUrl(),
       })
 
-      const data = response.data
+      const { data } = response
       let unidadesPorSigla: UnidadeSaudeApi[] = []
 
       if (Array.isArray(data)) {
         unidadesPorSigla = data
-      } else if (data && Array.isArray(data.dados)) {
-        unidadesPorSigla = data.dados
+      } else if (typeof data === 'object' && 'dados' in data) {
+        unidadesPorSigla = (data as { dados: UnidadeSaudeApi[] }).dados
       }
 
       // Combinar resultados e remover duplicatas
@@ -151,7 +162,7 @@ export async function buscarUnidadesPorNomeOuSigla(
       )
 
       return unidadesUnicas
-    } catch (error) {
+    } catch {
       // Se a busca por sigla falhar, retorna apenas os resultados por nome
       return unidadesPorNome
     }
@@ -186,7 +197,7 @@ export async function getCaps(): Promise<CapApi[]> {
   const response = await executeWithFallback<CapApi[]>({
     method: 'get',
     url: '/caps',
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -196,7 +207,7 @@ export async function getCapById(id: string): Promise<CapApi> {
   const response = await executeWithFallback<CapApi>({
     method: 'get',
     url: `/caps/${id}`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -207,7 +218,7 @@ export async function buscarCapsPorNome(nome: string): Promise<CapApi[]> {
     method: 'get',
     url: '/caps/buscar',
     params: { nome },
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -219,7 +230,7 @@ export async function getTiposUnidade(): Promise<TipoUnidadeApi[]> {
   const response = await executeWithFallback<TipoUnidadeApi[]>({
     method: 'get',
     url: '/TipoUnidade',
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data
@@ -229,7 +240,7 @@ export async function getTiposAdministracao(): Promise<TipoAdministracaoApi[]> {
   const response = await executeWithFallback<TipoAdministracaoApi[]>({
     method: 'get',
     url: '/TipoAdministracao',
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: getApiUrl(),
   })
 
   return response.data

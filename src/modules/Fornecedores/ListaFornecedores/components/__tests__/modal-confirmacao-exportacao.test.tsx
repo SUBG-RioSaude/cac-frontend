@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { ModalConfirmacaoExportacao } from '../modal-confirmacao-exportacao'
 
 // Mock do framer-motion
@@ -51,10 +52,8 @@ describe('ModalConfirmacaoExportacao', () => {
 
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
-      return Boolean(
-        element?.textContent?.includes('250') &&
-          element?.textContent?.includes('fornecedores'),
-      )
+      const text = element.textContent
+      return Boolean(text?.includes('250') && text.includes('fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
   })
@@ -64,10 +63,8 @@ describe('ModalConfirmacaoExportacao', () => {
 
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
-      return Boolean(
-        element?.textContent?.includes('1') &&
-          element?.textContent?.includes('fornecedor'),
-      )
+      const text = element.textContent
+      return Boolean(text?.includes('1') && text.includes('fornecedor'))
     })
     expect(elementos.length).toBeGreaterThan(0)
   })
@@ -77,10 +74,8 @@ describe('ModalConfirmacaoExportacao', () => {
 
     // Verifica se existe algum elemento que contenha o texto esperado
     const elementos = screen.getAllByText((_, element) => {
-      return Boolean(
-        element?.textContent?.includes('5') &&
-          element?.textContent?.includes('fornecedores'),
-      )
+      const text = element.textContent
+      return Boolean(text?.includes('5') && text.includes('fornecedores'))
     })
     expect(elementos.length).toBeGreaterThan(0)
   })
@@ -115,7 +110,9 @@ describe('ModalConfirmacaoExportacao', () => {
   it('deve chamar onClose ao clicar no botão X', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} />)
 
-    const botaoX = screen.getByLabelText('Fechar modal')
+    const buttons = screen.getAllByRole('button', { name: 'Fechar modal' })
+    const botaoX = buttons.find((btn) => btn.tagName === 'BUTTON')
+    if (!botaoX) throw new Error('Close button not found')
     fireEvent.click(botaoX)
 
     expect(mockProps.onClose).toHaveBeenCalledTimes(1)
@@ -197,7 +194,9 @@ describe('ModalConfirmacaoExportacao', () => {
   it('deve ter acessibilidade adequada', () => {
     render(<ModalConfirmacaoExportacao {...mockProps} />)
 
-    expect(screen.getByLabelText('Fechar modal')).toBeInTheDocument()
+    const buttons = screen.getAllByRole('button', { name: 'Fechar modal' })
+    const botaoFechar = buttons.find((btn) => btn.tagName === 'BUTTON')
+    expect(botaoFechar).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 

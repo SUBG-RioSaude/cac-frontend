@@ -1,10 +1,11 @@
-import { useRef, useCallback, type KeyboardEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
 import { Send, Smile, AlertCircle, X } from 'lucide-react'
+import { useRef, useCallback, type KeyboardEvent } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 interface ChatInputProps {
   valor: string
@@ -22,7 +23,7 @@ interface ChatInputProps {
   className?: string
 }
 
-export function ChatInput({
+export const ChatInput = ({
   valor,
   onChange,
   onEnviar,
@@ -32,7 +33,7 @@ export function ChatInput({
   mensagemRespondendo,
   onCancelarResposta,
   className,
-}: ChatInputProps) {
+}: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleKeyDown = useCallback(

@@ -1,13 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MapPin, Navigation } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
 
 interface EnderecoUnidadeProps {
   unidade: UnidadeSaudeApi
 }
 
-export function EnderecoUnidade({ unidade }: EnderecoUnidadeProps) {
-  const temEndereco = unidade.endereco || unidade.bairro
+export const EnderecoUnidade = ({ unidade }: EnderecoUnidadeProps) => {
+  const temEndereco = unidade.endereco ?? unidade.bairro
   const temCoordenadas =
     unidade.latitude &&
     unidade.longitude &&
@@ -28,16 +29,16 @@ export function EnderecoUnidade({ unidade }: EnderecoUnidadeProps) {
           {temEndereco ? (
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-sm font-medium">
                   Endereço
-                </label>
-                <p className="font-medium">{unidade.endereco || 'N/A'}</p>
+                </span>
+                <p className="font-medium">{unidade.endereco ?? 'N/A'}</p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-sm font-medium">
                   Bairro
-                </label>
-                <p className="font-medium">{unidade.bairro || 'N/A'}</p>
+                </span>
+                <p className="font-medium">{unidade.bairro ?? 'N/A'}</p>
               </div>
             </div>
           ) : (
@@ -65,15 +66,15 @@ export function EnderecoUnidade({ unidade }: EnderecoUnidadeProps) {
           {temCoordenadas ? (
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-sm font-medium">
                   Latitude
-                </label>
+                </span>
                 <p className="font-mono text-sm">{unidade.latitude}</p>
               </div>
               <div>
-                <label className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-sm font-medium">
                   Longitude
-                </label>
+                </span>
                 <p className="font-mono text-sm">{unidade.longitude}</p>
               </div>
             </div>

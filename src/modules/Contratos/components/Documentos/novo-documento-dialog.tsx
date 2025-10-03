@@ -1,39 +1,5 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { motion } from 'framer-motion'
-import { toast } from 'sonner'
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Badge } from '@/components/ui/badge'
-// import { cn } from '@/lib/utils' // Não usado no momento
 import {
   Plus,
   FileText,
@@ -48,7 +14,39 @@ import {
   File,
   Loader2,
 } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import type {
   DocumentoContrato,
   TipoDocumento,
@@ -101,11 +99,11 @@ interface NovoDocumentoDialogProps {
   children: React.ReactNode
 }
 
-export function NovoDocumentoDialog({
+export const NovoDocumentoDialog = ({
   onAdicionarDocumento,
   usuarioAtual = 'Usuário Atual',
   children,
-}: NovoDocumentoDialogProps) {
+}: NovoDocumentoDialogProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -122,6 +120,7 @@ export function NovoDocumentoDialog({
 
   const tipoSelecionado = form.watch('tipoId')
   const tipoDocumento = TIPOS_DOCUMENTO.find((t) => t.id === tipoSelecionado)
+  const categoriaSelecionada = form.watch('categoria')
 
   const handleSubmit = async (data: NovoDocumentoForm) => {
     try {
@@ -142,12 +141,12 @@ export function NovoDocumentoDialog({
         tipo,
         categoria: data.categoria,
         status: 'pendente',
-        linkExterno: data.linkExterno || undefined,
+        linkExterno: data.linkExterno ?? undefined,
         responsavel: usuarioAtual,
         observacoes: undefined,
       }
 
-      onAdicionarDocumento(novoDocumento)
+      await Promise.resolve(onAdicionarDocumento(novoDocumento))
 
       toast.success(`Documento "${data.nome}" foi adicionado com sucesso`, {
         description: `Status inicial: Pendente • Categoria: ${data.categoria === 'obrigatorio' ? 'Obrigatório' : 'Opcional'}`,
@@ -155,8 +154,7 @@ export function NovoDocumentoDialog({
 
       form.reset()
       setIsOpen(false)
-    } catch (error) {
-      console.error('Erro ao adicionar documento:', error)
+    } catch {
       toast.error('Erro ao adicionar documento', {
         description: 'Tente novamente ou contate o suporte',
       })
@@ -167,8 +165,11 @@ export function NovoDocumentoDialog({
 
   const getTipoIcon = (tipo?: TipoDocumento) => {
     if (!tipo) return File
-    return tipoIcons[tipo.icone as keyof typeof tipoIcons] || File
+    const iconKey = tipo.icone as keyof typeof tipoIcons
+    return iconKey in tipoIcons ? tipoIcons[iconKey] : File
   }
+
+  const submitForm = form.handleSubmit(handleSubmit)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -184,7 +185,9 @@ export function NovoDocumentoDialog({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleSubmit)}
+            onSubmit={(event) => {
+              void submitForm(event)
+            }}
             className="space-y-6"
           >
             {/* Preview do tipo selecionado */}
@@ -272,9 +275,9 @@ export function NovoDocumentoDialog({
                     </FormControl>
                     <SelectContent>
                       {TIPOS_DOCUMENTO.map((tipo) => {
+                        const iconKey = tipo.icone as keyof typeof tipoIcons
                         const IconComponent =
-                          tipoIcons[tipo.icone as keyof typeof tipoIcons] ||
-                          File
+                          iconKey in tipoIcons ? tipoIcons[iconKey] : File
                         return (
                           <SelectItem key={tipo.id} value={tipo.id}>
                             <div className="flex items-center gap-2">
@@ -350,13 +353,13 @@ export function NovoDocumentoDialog({
               <span className="text-muted-foreground text-sm">Categoria:</span>
               <Badge
                 variant={
-                  form.watch('categoria') === 'obrigatorio'
+                  categoriaSelecionada === 'obrigatorio'
                     ? 'destructive'
                     : 'outline'
                 }
                 className="text-xs"
               >
-                {form.watch('categoria') === 'obrigatorio'
+                {categoriaSelecionada === 'obrigatorio'
                   ? 'Obrigatório'
                   : 'Opcional'}
               </Badge>

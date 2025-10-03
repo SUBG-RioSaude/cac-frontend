@@ -5,25 +5,7 @@
  * Componente de filtros persistentes que afetam todos os dados
  */
 
-import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Separator } from '@/components/ui/separator'
+import { useQuery } from '@tanstack/react-query'
 import {
   Filter,
   X,
@@ -33,15 +15,35 @@ import {
   Tag,
   RotateCcw,
 } from 'lucide-react'
+import { useState } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import type { DashboardFilters, UseFiltersResult } from '../../types/dashboard'
 import type {
   ContratoStatus,
   TipoContrato,
 } from '@/modules/Contratos/types/contrato'
-import { generatePeriodOptions } from '../../utils/dashboard-utils'
+
 import { fetchUnidadesForFilters } from '../../services/dashboard-service'
-import { useQuery } from '@tanstack/react-query'
+import type { DashboardFilters, UseFiltersResult } from '../../types/dashboard'
+import { generatePeriodOptions } from '../../utils/dashboard-utils'
 
 interface GlobalFiltersProps {
   filters: DashboardFilters
@@ -70,13 +72,13 @@ const tipoOptions: { value: TipoContrato; label: string }[] = [
   { value: 'concessao', label: 'Concessão' },
 ]
 
-export function GlobalFilters({
+export const GlobalFilters = ({
   filters,
   onFiltersChange,
   onReset,
   hasActiveFilters,
   className,
-}: GlobalFiltersProps) {
+}: GlobalFiltersProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   // Buscar unidades para o filtro usando React Query
@@ -356,7 +358,7 @@ export function GlobalFilters({
             {/* Status selecionados */}
             {filters.status.map((status) => {
               const statusLabel =
-                statusOptions.find((opt) => opt.value === status)?.label ||
+                statusOptions.find((opt) => opt.value === status)?.label ??
                 status
               return (
                 <Badge key={status} variant="secondary" className="gap-1">
@@ -374,7 +376,7 @@ export function GlobalFilters({
             {/* Tipos selecionados */}
             {filters.tipos.map((tipo) => {
               const tipoLabel =
-                tipoOptions.find((opt) => opt.value === tipo)?.label || tipo
+                tipoOptions.find((opt) => opt.value === tipo)?.label ?? tipo
               return (
                 <Badge key={tipo} variant="secondary" className="gap-1">
                   {tipoLabel}
@@ -393,7 +395,7 @@ export function GlobalFilters({
               const unidade = Array.isArray(unidades)
                 ? unidades.find((u) => u.id === unidadeId)
                 : null
-              const unidadeNome = unidade?.nome || unidadeId
+              const unidadeNome = unidade?.nome ?? unidadeId
               return (
                 <Badge key={unidadeId} variant="secondary" className="gap-1">
                   {unidadeNome}

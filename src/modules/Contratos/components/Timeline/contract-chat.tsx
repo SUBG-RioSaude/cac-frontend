@@ -1,12 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
 import {
   Send,
   Bookmark,
@@ -17,15 +9,26 @@ import {
   CheckCircle2,
   MessageSquare,
 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
-import type {
-  ChatMessage,
-  ChatParticipante,
-} from '@/modules/Contratos/types/timeline'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Textarea } from '@/components/ui/textarea'
+import { createServiceLogger } from '@/lib/logger'
+import { cn } from '@/lib/utils'
 import {
   MENSAGENS_MOCK,
   PARTICIPANTES_MOCK,
 } from '@/modules/Contratos/data/chat-mock'
+import type {
+  ChatMessage,
+  ChatParticipante,
+} from '@/modules/Contratos/types/timeline'
+
+const logger = createServiceLogger('contract-chat')
 
 interface ContractChatProps {
   contratoId: string
@@ -34,12 +37,12 @@ interface ContractChatProps {
   className?: string
 }
 
-export function ContractChat({
+export const ContractChat = ({
   contratoId,
   numeroContrato,
   onMarcarComoAlteracao,
   className,
-}: ContractChatProps) {
+}: ContractChatProps) => {
   const [mensagens, setMensagens] = useState<ChatMessage[]>(MENSAGENS_MOCK)
   const [participantes] = useState<ChatParticipante[]>(PARTICIPANTES_MOCK)
   const [novaMensagem, setNovaMensagem] = useState('')
@@ -62,7 +65,7 @@ export function ContractChat({
     }
   }, [mensagens])
 
-  const handleEnviarMensagem = useCallback(async () => {
+  const handleEnviarMensagem = useCallback(() => {
     if (!novaMensagem.trim() || isLoading) return
 
     setIsLoading(true)
@@ -76,9 +79,9 @@ export function ContractChat({
         contratoId,
         remetente: {
           id: currentUserId,
-          nome: usuarioAtual?.nome || 'Usuário',
+          nome: usuarioAtual?.nome ?? 'Usuário',
           avatar: usuarioAtual?.avatar,
-          tipo: usuarioAtual?.tipo || 'usuario',
+          tipo: usuarioAtual?.tipo ?? 'usuario',
         },
         conteudo: novaMensagem.trim(),
         tipo: 'texto',
@@ -89,7 +92,7 @@ export function ContractChat({
       setMensagens((prev) => [...prev, mensagem])
       setNovaMensagem('')
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error)
+      logger.error('Erro ao enviar mensagem:', error as string)
     } finally {
       setIsLoading(false)
     }
@@ -118,9 +121,12 @@ export function ContractChat({
       usuario: <MessageSquare className="h-3 w-3" />,
       sistema: <CheckCircle2 className="h-3 w-3" />,
     }
-    return (
-      icons[tipo as keyof typeof icons] || <MessageSquare className="h-3 w-3" />
-    )
+
+    if (Object.prototype.hasOwnProperty.call(icons, tipo)) {
+      return icons[tipo as keyof typeof icons]
+    }
+
+    return <MessageSquare className="h-3 w-3" />
   }
 
   return (
@@ -300,7 +306,7 @@ export function ContractChat({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
-                    handleEnviarMensagem()
+                    void handleEnviarMensagem()
                   }
                 }}
               />
@@ -318,7 +324,9 @@ export function ContractChat({
                 </p>
 
                 <Button
-                  onClick={handleEnviarMensagem}
+                  onClick={() => {
+                    void handleEnviarMensagem()
+                  }}
                   disabled={!novaMensagem.trim() || isLoading}
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700"

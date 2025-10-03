@@ -1,6 +1,7 @@
 'use client'
 
 import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -19,10 +20,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/lib/auth/auth-store'
-import { useState, useRef, useEffect } from 'react'
 import { createComponentLogger } from '@/lib/logger'
 
-export function NavUser() {
+export const NavUser = () => {
   const logger = createComponentLogger('NavUser', 'navigation')
   const { isMobile } = useSidebar()
   const { usuario, logoutTodasSessoes } = useAuthStore()
@@ -95,7 +95,7 @@ export function NavUser() {
       )
 
       // Mesmo com erro, força o logout local para garantir segurança
-      logoutTodasSessoes()
+      void logoutTodasSessoes()
     } finally {
       // Só atualiza estado se componente ainda está montado
       if (isMountedRef.current) {
@@ -114,13 +114,13 @@ export function NavUser() {
               className="group/user relative mt-5 mb-3 h-15 overflow-hidden bg-gray-600 py-4 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01]"
             >
               {/* Efeito de brilho animado */}
-              <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full"></div>
+              <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full" />
 
               {/* Efeito de luz ambiente suave */}
-              <div className="from-sidebar-primary/5 to-sidebar-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div>
+              <div className="from-sidebar-primary/5 to-sidebar-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100" />
 
               {/* Efeito de pulsação no estado ativo */}
-              <div className="absolute inset-0 bg-gradient-to-br opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-br opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse" />
 
               <div className="relative z-10 flex items-center gap-3">
                 <div className="relative">
@@ -144,13 +144,13 @@ export function NavUser() {
                   <div className="absolute -right-0.5 -bottom-0.5">
                     <div className="relative">
                       {/* Anel externo pulsante */}
-                      <div className="absolute inset-0 h-3 w-3 animate-ping rounded-full bg-green-400/40 group-data-[state=open]:bg-green-300/60"></div>
+                      <div className="absolute inset-0 h-3 w-3 animate-ping rounded-full bg-green-400/40 group-data-[state=open]:bg-green-300/60" />
                       {/* Anel médio */}
-                      <div className="absolute inset-0.5 h-2 w-2 animate-pulse rounded-full bg-green-400/70"></div>
+                      <div className="absolute inset-0.5 h-2 w-2 animate-pulse rounded-full bg-green-400/70" />
                       {/* Núcleo sólido */}
-                      <div className="border-sidebar relative h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40"></div>
+                      <div className="border-sidebar relative h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40" />
                       {/* Brilho interno */}
-                      <div className="absolute inset-0.5 h-1.5 w-1.5 rounded-full bg-green-200/90"></div>
+                      <div className="absolute inset-0.5 h-1.5 w-1.5 rounded-full bg-green-200/90" />
                     </div>
                   </div>
                 </div>
@@ -195,8 +195,8 @@ export function NavUser() {
                   </Avatar>
                   <div className="absolute -right-0.5 -bottom-0.5">
                     <div className="relative">
-                      <div className="border-sidebar h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-md"></div>
-                      <div className="absolute inset-0.5 h-2 w-2 rounded-full bg-green-200/90"></div>
+                      <div className="border-sidebar h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-md" />
+                      <div className="absolute inset-0.5 h-2 w-2 rounded-full bg-green-200/90" />
                     </div>
                   </div>
                 </div>
@@ -221,7 +221,9 @@ export function NavUser() {
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
             <DropdownMenuItem
               className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground"
-              onClick={handleLogout}
+              onClick={() => {
+                void handleLogout()
+              }}
               disabled={fazendoLogout}
             >
               <LogOut className={fazendoLogout ? 'animate-spin' : ''} />

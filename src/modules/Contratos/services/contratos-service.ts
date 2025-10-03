@@ -1,4 +1,5 @@
 import { executeWithFallback } from '@/lib/axios'
+import { createServiceLogger } from '@/lib/logger'
 import type {
   Contrato,
   ContratoDetalhado,
@@ -6,11 +7,10 @@ import type {
   CriarContratoPayloadLegado,
 } from '@/modules/Contratos/types/contrato'
 import { transformLegacyPayloadToNew } from '@/modules/Contratos/types/contrato'
-import { createServiceLogger } from '@/lib/logger'
 
 const logger = createServiceLogger('contratos-service')
 
-export type ContratoParametros = {
+export interface ContratoParametros {
   pagina?: number
   tamanhoPagina?: number
   filtroStatus?: string // ex: "ativo,vencendo"
@@ -43,54 +43,51 @@ export async function getContratos(
   >({
     method: 'get',
     url: '/contratos',
-    params: filtros,
+    params: filtros as Record<string, unknown>,
   })
+
+  // Verificar se response.data existe
+  if (!response.data) {
+    throw new Error('Formato de resposta da API não reconhecido')
+  }
 
   // Normalizar resposta da API
   // Se a API retorna { "dados": [...] } sem metadados de paginação
-  if (
-    response.data &&
-    'dados' in response.data &&
-    Array.isArray(response.data.dados)
-  ) {
-    const dados = response.data.dados
+  if ('dados' in response.data && Array.isArray(response.data.dados)) {
+    const { dados } = response.data
 
     // Usar metadados de paginação se existirem, senão criar defaults
     const paginatedResponse: PaginacaoResponse<Contrato> = {
       dados,
       paginaAtual:
-        ('paginaAtual' in response.data
+        'paginaAtual' in response.data
           ? response.data.paginaAtual
-          : filtros.pagina) || 1,
+          : (filtros.pagina ?? 1),
       tamanhoPagina:
-        ('tamanhoPagina' in response.data
+        'tamanhoPagina' in response.data
           ? response.data.tamanhoPagina
-          : filtros.tamanhoPagina) || dados.length,
+          : (filtros.tamanhoPagina ?? dados.length),
       totalRegistros:
-        ('totalRegistros' in response.data
+        'totalRegistros' in response.data
           ? response.data.totalRegistros
-          : dados.length) || dados.length,
+          : dados.length,
       totalPaginas:
-        ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
+        'totalPaginas' in response.data ? response.data.totalPaginas : 1,
       temProximaPagina:
-        ('temProximaPagina' in response.data
+        'temProximaPagina' in response.data
           ? response.data.temProximaPagina
-          : false) || false,
+          : false,
       temPaginaAnterior:
-        ('temPaginaAnterior' in response.data
+        'temPaginaAnterior' in response.data
           ? response.data.temPaginaAnterior
-          : false) || false,
+          : false,
     }
 
     return paginatedResponse
   }
 
   // Se já está no formato esperado, retornar como está
-  if (
-    response.data &&
-    'dados' in response.data &&
-    'totalRegistros' in response.data
-  ) {
+  if ('dados' in response.data && 'totalRegistros' in response.data) {
     return response.data
   }
 
@@ -122,7 +119,7 @@ export async function getContratoByNumero(
     const response = await executeWithFallback<Contrato>({
       method: 'get',
       url: `/contratos/numero/${numeroContrato}`,
-      baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
+      baseURL: import.meta.env.VITE_API_URL_CONTRATOS as string,
     })
 
     return response.data
@@ -154,41 +151,37 @@ export async function getContratoDetalhado(
     url: `/contratos/${id}`,
   })
 
-  // TEMPORÁRIO: bypass do mapeamento complexo para debug
+  // Verificar se response.data existe
   if (!response.data) {
-    logger.error(
-      {
-        responseStatus: response.status,
-        responseHeaders: response.headers,
-        operation: 'buscar_contratos',
-      },
-      'Response.data é null/undefined na busca de contratos',
-    )
     throw new Error('Dados não recebidos da API')
   }
+
+  // TEMPORÁRIO: bypass do mapeamento complexo para debug
+  // executeWithFallback garante que response.data existe
 
   // Mapeamento simplificado temporário
   const contratoSimples: Record<string, unknown> = {
     ...response.data,
     numeroContrato:
-      response.data.numeroContrato || response.data.id || 'Sem número',
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      response.data.numeroContrato ?? response.data.id ?? 'Sem número',
     objeto:
-      response.data.descricaoObjeto || response.data.objeto || 'Sem descrição',
+      response.data.descricaoObjeto ?? response.data.objeto ?? 'Sem descrição',
     dataInicio: response.data.vigenciaInicial,
     dataTermino: response.data.vigenciaFinal,
     valorTotal: response.data.valorGlobal,
     empresaId:
       (response.data as { empresaId?: string; contratada?: { id: string } })
-        .empresaId ||
+        .empresaId ??
       (response.data as { empresaId?: string; contratada?: { id: string } })
-        ?.contratada?.id ||
+        .contratada?.id ??
       '',
     // Mapeamento dos novos campos da API
     processoSei: response.data.processoSei,
     processoRio: response.data.processoRio,
     processoLegado: response.data.processoLegado,
     numeroProcesso: response.data.numeroProcesso,
-    valorGlobalOriginal: response.data.valorGlobalOriginal || 0,
+    valorGlobalOriginal: response.data.valorGlobalOriginal ?? 0,
     vigenciaOriginalInicial: response.data.vigenciaOriginalInicial,
     vigenciaOriginalFinal: response.data.vigenciaOriginalFinal,
     prazoOriginalMeses: response.data.prazoOriginalMeses,
@@ -199,8 +192,8 @@ export async function getContratoDetalhado(
       gestores: [],
     },
     fornecedor: {
-      razaoSocial: response.data.contratada?.razaoSocial || 'Não informado',
-      cnpj: response.data.contratada?.cnpj || '',
+      razaoSocial: response.data.contratada?.razaoSocial ?? 'Não informado',
+      cnpj: response.data.contratada?.cnpj ?? '',
       contatos: [],
       endereco: {
         logradouro: '',
@@ -213,18 +206,18 @@ export async function getContratoDetalhado(
     },
     // Preservar IDs das unidades para busca posterior de nomes
     unidadeDemandanteId:
-      (response.data as { unidadeDemandanteId?: string }).unidadeDemandanteId ||
+      (response.data as { unidadeDemandanteId?: string }).unidadeDemandanteId ??
       response.data.unidadeDemandante,
     unidadeGestoraId:
-      (response.data as { unidadeGestoraId?: string }).unidadeGestoraId ||
+      (response.data as { unidadeGestoraId?: string }).unidadeGestoraId ??
       response.data.unidadeGestora,
     unidades: {
-      demandante: response.data.unidadeDemandante || null, // Será resolvido pelo hook
-      gestora: response.data.unidadeGestora || null, // Será resolvido pelo hook
+      demandante: response.data.unidadeDemandante ?? null, // Será resolvido pelo hook
+      gestora: response.data.unidadeGestora ?? null, // Será resolvido pelo hook
       vinculadas: [],
     },
     // Preservar unidadesResponsaveis da API (nova estrutura)
-    unidadesResponsaveis: response.data.unidadesResponsaveis || [],
+    unidadesResponsaveis: response.data.unidadesResponsaveis ?? [],
     alteracoes: [],
     documentos: [],
     documentosChecklist: {
@@ -242,7 +235,7 @@ export async function getContratoDetalhado(
       cronogramaVigencia: [],
     },
     // Preservar unidadesVinculadas da API
-    unidadesVinculadas: response.data.unidadesVinculadas || [],
+    unidadesVinculadas: response.data.unidadesVinculadas ?? [],
   }
 
   return contratoSimples as unknown as ContratoDetalhado
@@ -267,13 +260,13 @@ export async function criarContrato(
       {
         operation: 'criar_contrato',
         payloadType: typeof payload,
-        status: (error as { response?: { status?: number } })?.response?.status,
-        statusText: (error as { response?: { statusText?: string } })?.response
+        status: (error as { response?: { status?: number } }).response?.status,
+        statusText: (error as { response?: { statusText?: string } }).response
           ?.statusText,
-        responseData: (error as { response?: { data?: unknown } })?.response
+        responseData: (error as { response?: { data?: unknown } }).response
           ?.data,
-        errorMessage: (error as { message?: string })?.message,
-        stack: (error as Error)?.stack,
+        errorMessage: (error as { message?: string }).message,
+        stack: (error as Error).stack,
       },
       'Erro ao criar contrato',
     )
@@ -293,26 +286,26 @@ export async function criarContrato(
       }
     }
 
-    if (errorResponse?.response?.data?.message) {
+    if (errorResponse.response?.data?.message) {
       errorMessage = errorResponse.response.data.message
     } else if (
-      errorResponse?.response?.data?.erros &&
+      errorResponse.response?.data?.erros &&
       Array.isArray(errorResponse.response.data.erros)
     ) {
       errorMessage = errorResponse.response.data.erros.join(', ')
     } else if (
-      errorResponse?.response?.data?.errors &&
+      errorResponse.response?.data?.errors &&
       Array.isArray(errorResponse.response.data.errors)
     ) {
       errorMessage = errorResponse.response.data.errors.join(', ')
-    } else if (errorResponse?.response?.data?.title) {
+    } else if (errorResponse.response?.data?.title) {
       errorMessage = errorResponse.response.data.title
-    } else if (errorResponse?.response?.status === 409) {
+    } else if (errorResponse.response?.status === 409) {
       errorMessage = 'Já existe um contrato com este número ou dados duplicados'
-    } else if (errorResponse?.response?.status === 400) {
+    } else if (errorResponse.response?.status === 400) {
       errorMessage =
         'Dados inválidos fornecidos. Verifique se todos os campos obrigatórios estão preenchidos corretamente.'
-    } else if (errorResponse?.response?.status === 422) {
+    } else if (errorResponse.response?.status === 422) {
       errorMessage = 'Dados não processáveis. Verifique a validação dos campos.'
     }
 
@@ -320,7 +313,7 @@ export async function criarContrato(
     const customError = new Error(errorMessage)
     customError.name = 'ContratoCreationError'
     ;(customError as unknown as Record<string, unknown>).status =
-      errorResponse?.response?.status
+      errorResponse.response?.status
     ;(customError as unknown as Record<string, unknown>).originalError = error
 
     throw customError
@@ -402,7 +395,7 @@ export function gerarNumeroContratoUnico(): string {
  * Buscar contratos vencendo (endpoint específico)
  */
 export async function getContratosVencendo(
-  diasAntecipados: number = 30,
+  diasAntecipados = 30,
   filtros?: Omit<
     ContratoParametros,
     'filtroStatus' | 'tamanhoPagina' | 'pagina'
@@ -423,47 +416,38 @@ export async function getContratosVencendo(
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (
-      response.data &&
-      'dados' in response.data &&
-      Array.isArray(response.data.dados)
-    ) {
-      const dados = response.data.dados
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
 
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
         paginaAtual:
-          ('paginaAtual' in response.data ? response.data.paginaAtual : 1) || 1,
+          'paginaAtual' in response.data ? response.data.paginaAtual : 1,
         tamanhoPagina:
-          ('tamanhoPagina' in response.data
+          'tamanhoPagina' in response.data
             ? response.data.tamanhoPagina
-            : dados.length) || dados.length,
+            : dados.length,
         totalRegistros:
-          ('totalRegistros' in response.data
+          'totalRegistros' in response.data
             ? response.data.totalRegistros
-            : dados.length) || dados.length,
+            : dados.length,
         totalPaginas:
-          ('totalPaginas' in response.data ? response.data.totalPaginas : 1) ||
-          1,
+          'totalPaginas' in response.data ? response.data.totalPaginas : 1,
         temProximaPagina:
-          ('temProximaPagina' in response.data
+          'temProximaPagina' in response.data
             ? response.data.temProximaPagina
-            : false) || false,
+            : false,
         temPaginaAnterior:
-          ('temPaginaAnterior' in response.data
+          'temPaginaAnterior' in response.data
             ? response.data.temPaginaAnterior
-            : false) || false,
+            : false,
       }
 
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
-    if (
-      response.data &&
-      'dados' in response.data &&
-      'totalRegistros' in response.data
-    ) {
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
       return response.data
     }
 
@@ -523,47 +507,38 @@ export async function getContratosVencidos(
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (
-      response.data &&
-      'dados' in response.data &&
-      Array.isArray(response.data.dados)
-    ) {
-      const dados = response.data.dados
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
 
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
         paginaAtual:
-          ('paginaAtual' in response.data ? response.data.paginaAtual : 1) || 1,
+          'paginaAtual' in response.data ? response.data.paginaAtual : 1,
         tamanhoPagina:
-          ('tamanhoPagina' in response.data
+          'tamanhoPagina' in response.data
             ? response.data.tamanhoPagina
-            : dados.length) || dados.length,
+            : dados.length,
         totalRegistros:
-          ('totalRegistros' in response.data
+          'totalRegistros' in response.data
             ? response.data.totalRegistros
-            : dados.length) || dados.length,
+            : dados.length,
         totalPaginas:
-          ('totalPaginas' in response.data ? response.data.totalPaginas : 1) ||
-          1,
+          'totalPaginas' in response.data ? response.data.totalPaginas : 1,
         temProximaPagina:
-          ('temProximaPagina' in response.data
+          'temProximaPagina' in response.data
             ? response.data.temProximaPagina
-            : false) || false,
+            : false,
         temPaginaAnterior:
-          ('temPaginaAnterior' in response.data
+          'temPaginaAnterior' in response.data
             ? response.data.temPaginaAnterior
-            : false) || false,
+            : false,
       }
 
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
-    if (
-      response.data &&
-      'dados' in response.data &&
-      'totalRegistros' in response.data
-    ) {
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
       return response.data
     }
 
@@ -613,8 +588,8 @@ export async function getContratosPorEmpresa(
   const parametros: ContratoParametros = {
     ...filtros,
     empresaId,
-    tamanhoPagina: filtros?.tamanhoPagina || 20,
-    pagina: filtros?.pagina || 1,
+    tamanhoPagina: filtros?.tamanhoPagina ?? 20,
+    pagina: filtros?.pagina ?? 1,
   }
 
   try {
@@ -623,53 +598,44 @@ export async function getContratosPorEmpresa(
     >({
       method: 'get',
       url: `/contratos/empresa/${empresaId}`,
-      params: parametros,
+      params: parametros as Record<string, unknown>,
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (
-      response.data &&
-      'dados' in response.data &&
-      Array.isArray(response.data.dados)
-    ) {
-      const dados = response.data.dados
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
 
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
         paginaAtual:
-          ('paginaAtual' in response.data
+          'paginaAtual' in response.data
             ? response.data.paginaAtual
-            : parametros.pagina) || 1,
+            : (parametros.pagina ?? 1),
         tamanhoPagina:
-          ('tamanhoPagina' in response.data
+          'tamanhoPagina' in response.data
             ? response.data.tamanhoPagina
-            : parametros.tamanhoPagina) || dados.length,
+            : (parametros.tamanhoPagina ?? dados.length),
         totalRegistros:
-          ('totalRegistros' in response.data
+          'totalRegistros' in response.data
             ? response.data.totalRegistros
-            : dados.length) || dados.length,
+            : dados.length,
         totalPaginas:
-          ('totalPaginas' in response.data ? response.data.totalPaginas : 1) ||
-          1,
+          'totalPaginas' in response.data ? response.data.totalPaginas : 1,
         temProximaPagina:
-          ('temProximaPagina' in response.data
+          'temProximaPagina' in response.data
             ? response.data.temProximaPagina
-            : false) || false,
+            : false,
         temPaginaAnterior:
-          ('temPaginaAnterior' in response.data
+          'temPaginaAnterior' in response.data
             ? response.data.temPaginaAnterior
-            : false) || false,
+            : false,
       }
 
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
-    if (
-      response.data &&
-      'dados' in response.data &&
-      'totalRegistros' in response.data
-    ) {
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
       return response.data
     }
 
@@ -690,7 +656,7 @@ export async function getContratosPorEmpresa(
     return {
       dados: [],
       paginaAtual: 1,
-      tamanhoPagina: parametros.tamanhoPagina || 20,
+      tamanhoPagina: parametros.tamanhoPagina ?? 20,
       totalRegistros: 0,
       totalPaginas: 0,
       temProximaPagina: false,

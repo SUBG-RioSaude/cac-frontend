@@ -11,6 +11,11 @@ import {
   useQueries,
   type UseQueryOptions,
 } from '@tanstack/react-query'
+
+import {
+  funcionarioKeys,
+  lotacaoKeys,
+} from '@/modules/Funcionarios/lib/query-keys'
 import {
   getFuncionarios,
   getFuncionarioById,
@@ -23,10 +28,6 @@ import {
   getLotacaoByCodigo,
   buscarLotacoesPorNome,
 } from '@/modules/Funcionarios/services/funcionarios-service'
-import {
-  funcionarioKeys,
-  lotacaoKeys,
-} from '@/modules/Funcionarios/lib/query-keys'
 import type {
   FuncionarioApi,
   LotacaoApi,
@@ -327,7 +328,7 @@ export function useFuncionariosParaAtribuicao(
     queryFn: async () => {
       const params: FuncionarioParametros = {
         ativo: true,
-        tamanhoPagina: filtros?.limit || 50,
+        tamanhoPagina: filtros?.limit ?? 50,
       }
 
       if (filtros?.nome) params.nome = filtros.nome

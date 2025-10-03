@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -11,22 +10,24 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useMemo, useState } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
   SheetContent,
@@ -34,10 +35,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
-import { Skeleton } from '@/components/ui/skeleton'
 
 interface SearchAndFiltersProps {
   termoPesquisa: string
@@ -47,19 +48,24 @@ interface SearchAndFiltersProps {
   onLimparFiltros: () => void
 }
 
-export function SearchAndFilters({
+export const SearchAndFilters = ({
   termoPesquisa,
   filtros,
   onTermoPesquisaChange,
   onFiltrosChange,
   onLimparFiltros,
-}: SearchAndFiltersProps) {
+}: SearchAndFiltersProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [periodoExpanded, setPeriodoExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [unidadeExpanded, setUnidadeExpanded] = useState(false)
+
+  const unidadeSkeletonIds = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => `unidade-skeleton-${index}`),
+    [],
+  )
 
   // Hook para carregar unidades da API
   const {
@@ -109,7 +115,7 @@ export function SearchAndFilters({
   ]
 
   const handleStatusChange = (status: string, checked: boolean) => {
-    const currentStatus = filtros.status || []
+    const currentStatus = filtros.status ?? []
     const newStatus = checked
       ? [...currentStatus, status]
       : currentStatus.filter((s) => s !== status)
@@ -118,7 +124,7 @@ export function SearchAndFilters({
   }
 
   const handleUnidadeChange = (unidadeId: string, checked: boolean) => {
-    const currentUnidades = filtros.unidade || []
+    const currentUnidades = filtros.unidade ?? []
     const newUnidades = checked
       ? [...currentUnidades, unidadeId]
       : currentUnidades.filter((u) => u !== unidadeId)
@@ -180,7 +186,7 @@ export function SearchAndFilters({
             <div key={option.value} className="flex items-center space-x-2">
               <Checkbox
                 id={`status-${option.value}-${isMobile ? 'mobile' : 'desktop'}`}
-                checked={filtros.status?.includes(option.value) || false}
+                checked={filtros.status?.includes(option.value) ?? false}
                 onCheckedChange={(checked) =>
                   handleStatusChange(option.value, checked as boolean)
                 }
@@ -212,9 +218,9 @@ export function SearchAndFilters({
             <div className="flex items-center gap-2">
               <Calendar className="text-muted-foreground h-4 w-4" />
               <span className="text-sm font-medium">Período de Vigência</span>
-              {(filtros.dataInicialDe ||
-                filtros.dataInicialAte ||
-                filtros.dataFinalDe ||
+              {(filtros.dataInicialDe ??
+                filtros.dataInicialAte ??
+                filtros.dataFinalDe ??
                 filtros.dataFinalAte) && (
                 <Badge variant="secondary" className="h-5 text-xs">
                   Ativo
@@ -240,7 +246,7 @@ export function SearchAndFilters({
               <Input
                 id={`data-inicial-de-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
-                value={filtros.dataInicialDe || ''}
+                value={filtros.dataInicialDe ?? ''}
                 onChange={(e) =>
                   onFiltrosChange({ ...filtros, dataInicialDe: e.target.value })
                 }
@@ -257,7 +263,7 @@ export function SearchAndFilters({
               <Input
                 id={`data-inicial-ate-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
-                value={filtros.dataInicialAte || ''}
+                value={filtros.dataInicialAte ?? ''}
                 onChange={(e) =>
                   onFiltrosChange({
                     ...filtros,
@@ -277,7 +283,7 @@ export function SearchAndFilters({
               <Input
                 id={`data-final-de-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
-                value={filtros.dataFinalDe || ''}
+                value={filtros.dataFinalDe ?? ''}
                 onChange={(e) =>
                   onFiltrosChange({ ...filtros, dataFinalDe: e.target.value })
                 }
@@ -294,7 +300,7 @@ export function SearchAndFilters({
               <Input
                 id={`data-final-ate-${isMobile ? 'mobile' : 'desktop'}`}
                 type="date"
-                value={filtros.dataFinalAte || ''}
+                value={filtros.dataFinalAte ?? ''}
                 onChange={(e) =>
                   onFiltrosChange({ ...filtros, dataFinalAte: e.target.value })
                 }
@@ -317,7 +323,7 @@ export function SearchAndFilters({
             <div className="flex items-center gap-2">
               <DollarSign className="text-muted-foreground h-4 w-4" />
               <span className="text-sm font-medium">Valor do Contrato</span>
-              {(filtros.valorMinimo || filtros.valorMaximo) && (
+              {(filtros.valorMinimo ?? filtros.valorMaximo) && (
                 <Badge variant="secondary" className="h-5 text-xs">
                   Ativo
                 </Badge>
@@ -343,7 +349,7 @@ export function SearchAndFilters({
                 id={`valor-minimo-${isMobile ? 'mobile' : 'desktop'}`}
                 type="number"
                 placeholder="0,00"
-                value={filtros.valorMinimo || ''}
+                value={filtros.valorMinimo ?? ''}
                 onChange={(e) =>
                   onFiltrosChange({
                     ...filtros,
@@ -366,7 +372,7 @@ export function SearchAndFilters({
                 id={`valor-maximo-${isMobile ? 'mobile' : 'desktop'}`}
                 type="number"
                 placeholder="0,00"
-                value={filtros.valorMaximo || ''}
+                value={filtros.valorMaximo ?? ''}
                 onChange={(e) =>
                   onFiltrosChange({
                     ...filtros,
@@ -410,9 +416,9 @@ export function SearchAndFilters({
         <CollapsibleContent className="mt-2 ml-6 space-y-2">
           <div className="max-h-32 space-y-2 overflow-y-auto">
             {unidadesLoading ? (
-              Array.from({ length: 6 }).map((_, index) => (
+              unidadeSkeletonIds.map((placeholderId) => (
                 <div
-                  key={`skeleton-${index}`}
+                  key={placeholderId}
                   className="flex items-center space-x-2"
                 >
                   <Skeleton className="h-4 w-4" />
@@ -428,7 +434,7 @@ export function SearchAndFilters({
                 <div key={unidade.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`unidade-${unidade.id}-${isMobile ? 'mobile' : 'desktop'}`}
-                    checked={filtros.unidade?.includes(unidade.id) || false}
+                    checked={filtros.unidade?.includes(unidade.id) ?? false}
                     onCheckedChange={(checked) =>
                       handleUnidadeChange(unidade.id, checked as boolean)
                     }

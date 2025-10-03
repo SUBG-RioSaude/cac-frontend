@@ -1,10 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { TabelaFornecedores } from '../tabela-fornecedores'
+
 import type {
   Fornecedor,
   PaginacaoParamsFornecedor,
 } from '../../types/fornecedor'
+import { TabelaFornecedores } from '../tabela-fornecedores'
 
 // Mock do store
 vi.mock('../../store/fornecedores-store', () => ({
@@ -51,7 +52,18 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
     children: React.ReactNode
     onClick?: () => void
   }) => (
-    <div onClick={onClick} role="menuitem">
+    <div
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+      role="menuitem"
+      tabIndex={0}
+    >
       {children}
     </div>
   ),

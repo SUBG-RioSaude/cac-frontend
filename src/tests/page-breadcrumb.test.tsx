@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, vi } from 'vitest'
+
 import PageBreadcrumb from '@/components/page-breadcrumb'
 import { SidebarProvider } from '@/components/ui/sidebar'
 

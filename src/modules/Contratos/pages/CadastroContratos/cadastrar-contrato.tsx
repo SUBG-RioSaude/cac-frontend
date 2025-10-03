@@ -1,31 +1,32 @@
 'use client'
 
-import LayoutPagina from '@/components/layout-pagina'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Steps } from '@/components/ui/steps'
+import { Building2, FileText, Store, UserCheck } from 'lucide-react'
 import { useState, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+
 import { FormErrorBoundary } from '@/components/error-boundary'
+import LayoutPagina from '@/components/layout-pagina'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FormLoadingFallback } from '@/components/ui/loading'
-import { Building2, FileText, Store, UserCheck } from 'lucide-react'
-import FornecedorForm, {
-  type DadosFornecedor,
-} from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
-import ContratoForm, {
-  type DadosContrato,
-} from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
-import UnidadesFormMelhorado from '@/modules/Contratos/components/CadastroDeContratos/unidades-form'
-import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
+import { Steps } from '@/components/ui/steps'
+import { cnpjUtils } from '@/lib/utils'
 import AtribuicaoFiscaisForm, {
   type DadosAtribuicao,
 } from '@/modules/Contratos/components/CadastroDeContratos/atribuicao-fiscais-form'
 import ConfirmarAvancoModal from '@/modules/Contratos/components/CadastroDeContratos/confirmar-avanco'
+import ContratoForm, {
+  type DadosContrato,
+} from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
+import FornecedorForm, {
+  type DadosFornecedor,
+} from '@/modules/Contratos/components/CadastroDeContratos/fornecedor-form'
+import UnidadesFormMelhorado from '@/modules/Contratos/components/CadastroDeContratos/unidades-form'
 import {
   useCriarContrato,
   type CriarContratoData,
 } from '@/modules/Contratos/hooks/use-contratos-mutations'
-import { toast } from 'sonner'
-import { cnpjUtils } from '@/lib/utils'
+import type { DadosUnidades } from '@/modules/Contratos/types/unidades'
 
 interface DadosCompletos {
   fornecedor?: DadosFornecedor
@@ -34,7 +35,7 @@ interface DadosCompletos {
   atribuicao?: DadosAtribuicao
 }
 
-export default function CadastrarContrato() {
+const CadastrarContrato = () => {
   const navigate = useNavigate()
   const [passoAtual, setPassoAtual] = useState(1)
   const [dadosCompletos, setDadosCompletos] = useState<DadosCompletos>({})
@@ -53,6 +54,126 @@ export default function CadastrarContrato() {
   } | null>(null)
   // React Query mutation hook
   const createContratoMutation = useCriarContrato()
+
+  // Mapear dados do formulário para API
+  const mapearDadosParaAPI = (
+    dadosFormulario: DadosCompletos,
+  ): CriarContratoData => {
+    const { fornecedor, contrato, unidades, atribuicao } = dadosFormulario
+
+    if (!fornecedor || !contrato || !unidades) {
+      throw new Error('Dados incompletos para criação do contrato')
+    }
+
+    // Exigir pelo menos um funcionário com cargo definido (Fiscal ou Gestor)
+    const atribuicoes = atribuicao?.usuariosAtribuidos ?? []
+    const comTipo = atribuicoes.filter(
+      (u) => u.tipo === 'fiscal' || u.tipo === 'gestor',
+    )
+    if (comTipo.length === 0) {
+      throw new Error(
+        'Atribua pelo menos um Fiscal ou Gestor ao contrato antes de finalizar.',
+      )
+    }
+    // Validar: todos os usuários atribuídos devem ter tipo definido (fiscal/gestor)
+    const usuariosAtribuidos = atribuicao?.usuariosAtribuidos ?? []
+    const usuariosSemTipo = usuariosAtribuidos.filter(
+      (u) => u.tipo !== 'fiscal' && u.tipo !== 'gestor',
+    )
+    if (usuariosSemTipo.length > 0) {
+      throw new Error(
+        'Defina o cargo (Fiscal ou Gestor) para todos os usuários atribuídos antes de continuar.',
+      )
+    }
+    // Validação de campos obrigatórios
+    if (!fornecedor.empresaId) {
+      throw new Error(
+        'ID da empresa não encontrado. Verifique se a empresa foi cadastrada corretamente.',
+      )
+    }
+
+    // Converter valor global para número
+    const valorGlobal = (() => {
+      const valor = contrato.valorGlobal
+      if (!valor) return 0
+
+      // Se for string formatada (R$ 1.234,56), converter para número
+      if (typeof valor === 'string' && valor.includes('R$')) {
+        const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
+        const valorNum = parseFloat(valorLimpo)
+        return isNaN(valorNum) ? 0 : valorNum
+      }
+
+      // Se for string numérica, converter para número
+      if (typeof valor === 'string') {
+        const valorNum = parseFloat(valor)
+        return isNaN(valorNum) ? 0 : valorNum
+      }
+
+      // Se já for número, retornar como está
+      return typeof valor === 'number' ? valor : 0
+    })()
+
+    // Extrair processos do array
+    const processoSei = contrato.processos.find((p) => p.tipo === 'sei')?.valor
+    const processoRio = contrato.processos.find((p) => p.tipo === 'rio')?.valor
+    const processoLegado = contrato.processos.find(
+      (p) => p.tipo === 'fisico',
+    )?.valor
+
+    const payload: CriarContratoData = {
+      numeroContrato: contrato.numeroContrato,
+      processoSei,
+      processoRio,
+      processoLegado,
+      categoriaObjeto: contrato.categoriaObjeto,
+      descricaoObjeto: contrato.descricaoObjeto,
+      tipoContratacao: contrato.tipoContratacao,
+      tipoContrato: contrato.tipoContrato,
+      unidadesResponsaveis: contrato.unidadesResponsaveis,
+      contratacao: contrato.contratacao,
+      vigenciaInicial: contrato.vigenciaInicial,
+      vigenciaFinal: contrato.vigenciaFinal,
+      prazoInicialMeses: contrato.prazoInicialMeses,
+      valorGlobal,
+      formaPagamento:
+        contrato.formaPagamento === 'Outro'
+          ? (contrato.formaPagamentoComplemento ?? contrato.formaPagamento)
+          : contrato.formaPagamento,
+      tipoTermoReferencia: contrato.tipoTermoReferencia,
+      termoReferencia: contrato.termoReferencia,
+      vinculacaoPCA: contrato.vinculacaoPCA,
+      empresaId: fornecedor.empresaId || '', // Usar ID (UUID) da empresa
+      // Nova estrutura de unidades vinculadas
+      unidadesVinculadas: unidades.unidades.map((unidade) => ({
+        unidadeSaudeId: unidade.unidadeHospitalar.id,
+        valorAtribuido: (() => {
+          const valor = unidade.valorAlocado
+          if (typeof valor === 'string' && valor.includes('R$')) {
+            const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
+            return parseFloat(valorLimpo) || 0
+          }
+          return parseFloat(valor ? valor.toString() : '0') || 0
+        })(),
+        vigenciaInicialUnidade: contrato.vigenciaInicial, // Usar vigência do contrato
+        vigenciaFinalUnidade: contrato.vigenciaFinal, // Usar vigência do contrato
+        observacoes: unidade.observacoes ?? unidades.observacoes,
+      })),
+      // Nova estrutura de documentos (vazia por enquanto)
+      documentos: [],
+      // Nova estrutura de funcionários
+      funcionarios:
+        atribuicao?.usuariosAtribuidos
+          .filter((usuario) => usuario.tipo !== null) // Só incluir usuários com tipo definido
+          .map((usuario) => ({
+            funcionarioId: usuario.id,
+            tipoGerencia: usuario.tipo === 'fiscal' ? 2 : 1, // 1=Gestor, 2=Fiscal
+            observacoes: usuario.observacoes,
+          })) ?? [],
+    }
+
+    return payload
+  }
 
   const passos = [
     { title: 'Dados do Fornecedor' },
@@ -90,7 +211,7 @@ export default function CadastrarContrato() {
         await createContratoMutation.mutateAsync(dadosAPI)
 
         // Sucesso será tratado pelo toast no hook
-      } catch (error) {
+      } catch {
         // Erro será tratado pelo toast no hook
       }
     } else if (proximoPassoPendente && dadosPendentes) {
@@ -199,127 +320,6 @@ export default function CadastrarContrato() {
     setPassoAtual(4)
   }
 
-  // Mapear dados do formulário para API
-  const mapearDadosParaAPI = (
-    dadosCompletos: DadosCompletos,
-  ): CriarContratoData => {
-    const { fornecedor, contrato, unidades, atribuicao } = dadosCompletos
-
-    if (!fornecedor || !contrato || !unidades) {
-      throw new Error('Dados incompletos para criação do contrato')
-    }
-
-    // Exigir pelo menos um funcion�rio com cargo definido (Fiscal ou Gestor)
-    const atribuicoes = atribuicao?.usuariosAtribuidos || []
-    const comTipo = atribuicoes.filter(
-      (u) => u.tipo === 'fiscal' || u.tipo === 'gestor',
-    )
-    if (comTipo.length === 0) {
-      throw new Error(
-        'Atribua pelo menos um Fiscal ou Gestor ao contrato antes de finalizar.',
-      )
-    }
-    // Validar: todos os usu�rios atribu�dos devem ter tipo definido (fiscal/gestor)
-    const usuariosAtribuidos = atribuicao?.usuariosAtribuidos || []
-    const usuariosSemTipo = usuariosAtribuidos.filter(
-      (u) => u.tipo !== 'fiscal' && u.tipo !== 'gestor',
-    )
-    if (usuariosSemTipo.length > 0) {
-      throw new Error(
-        'Defina o cargo (Fiscal ou Gestor) para todos os usu�rios atribu�dos antes de continuar.',
-      )
-    }
-    // Valida��oção de campos obrigatórios
-    if (!fornecedor.empresaId) {
-      throw new Error(
-        'ID da empresa não encontrado. Verifique se a empresa foi cadastrada corretamente.',
-      )
-    }
-
-    // Converter valor global para número
-    const valorGlobal = (() => {
-      const valor = contrato.valorGlobal
-      if (!valor) return 0
-
-      // Se for string formatada (R$ 1.234,56), converter para número
-      if (typeof valor === 'string' && valor.includes('R$')) {
-        const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
-        const valorNum = parseFloat(valorLimpo)
-        return isNaN(valorNum) ? 0 : valorNum
-      }
-
-      // Se for string numérica, converter para número
-      if (typeof valor === 'string') {
-        const valorNum = parseFloat(valor)
-        return isNaN(valorNum) ? 0 : valorNum
-      }
-
-      // Se já for número, retornar como está
-      return typeof valor === 'number' ? valor : 0
-    })()
-
-    // Extrair processos do array
-    const processoSei = contrato.processos?.find((p) => p.tipo === 'sei')?.valor
-    const processoRio = contrato.processos?.find((p) => p.tipo === 'rio')?.valor
-    const processoLegado = contrato.processos?.find(
-      (p) => p.tipo === 'fisico',
-    )?.valor
-
-    const payload: CriarContratoData = {
-      numeroContrato: contrato.numeroContrato || undefined,
-      processoSei: processoSei || undefined,
-      processoRio: processoRio || undefined,
-      processoLegado: processoLegado || undefined,
-      categoriaObjeto: contrato.categoriaObjeto || undefined,
-      descricaoObjeto: contrato.descricaoObjeto || undefined,
-      tipoContratacao: contrato.tipoContratacao || undefined,
-      tipoContrato: contrato.tipoContrato || undefined,
-      unidadesResponsaveis: contrato.unidadesResponsaveis || [],
-      contratacao: contrato.contratacao || undefined,
-      vigenciaInicial: contrato.vigenciaInicial || '',
-      vigenciaFinal: contrato.vigenciaFinal || '',
-      prazoInicialMeses: contrato.prazoInicialMeses || 0,
-      valorGlobal: valorGlobal,
-      formaPagamento:
-        contrato.formaPagamento === 'Outro'
-          ? contrato.formaPagamentoComplemento || contrato.formaPagamento
-          : contrato.formaPagamento || undefined,
-      tipoTermoReferencia: contrato.tipoTermoReferencia || undefined,
-      termoReferencia: contrato.termoReferencia || undefined,
-      vinculacaoPCA: contrato.vinculacaoPCA || undefined,
-      empresaId: fornecedor.empresaId || '', // Usar ID (UUID) da empresa
-      // Nova estrutura de unidades vinculadas
-      unidadesVinculadas:
-        unidades.unidades?.map((unidade) => ({
-          unidadeSaudeId: unidade.unidadeHospitalar.id,
-          valorAtribuido: (() => {
-            const valor = unidade.valorAlocado
-            if (typeof valor === 'string' && valor.includes('R$')) {
-              const valorLimpo = valor.replace(/[^\d,]/g, '').replace(',', '.')
-              return parseFloat(valorLimpo) || 0
-            }
-            return parseFloat(valor?.toString() || '0') || 0
-          })(),
-          vigenciaInicialUnidade: contrato.vigenciaInicial || '', // Usar vigência do contrato
-          vigenciaFinalUnidade: contrato.vigenciaFinal || '', // Usar vigência do contrato
-          observacoes: unidade.observacoes || unidades.observacoes || undefined,
-        })) || [],
-      // Nova estrutura de documentos (vazia por enquanto)
-      documentos: [],
-      // Nova estrutura de funcionários
-      funcionarios:
-        atribuicao?.usuariosAtribuidos
-          ?.filter((usuario) => usuario.tipo !== null) // Só incluir usuários com tipo definido
-          ?.map((usuario) => ({
-            funcionarioId: usuario.id,
-            tipoGerencia: usuario.tipo === 'fiscal' ? 2 : 1, // 1=Gestor, 2=Fiscal
-            observacoes: usuario.observacoes || undefined,
-          })) || [],
-    }
-
-    return payload
-  }
-
   const handleAtribuicaoSubmit = async (dados: DadosAtribuicao) => {
     setDadosCompletos((prev) => ({ ...prev, atribuicao: dados }))
 
@@ -337,9 +337,8 @@ export default function CadastrarContrato() {
       await createContratoMutation.mutateAsync(dadosAPI)
 
       // Sucesso será tratado pelo toast no hook
-    } catch (error) {
+    } catch {
       // Erro será tratado pelo toast no hook
-      console.error('Erro ao criar contrato:', error)
     }
   }
 
@@ -460,7 +459,9 @@ export default function CadastrarContrato() {
       case 4:
         return (
           <AtribuicaoFiscaisForm
-            onSubmit={handleAtribuicaoSubmit}
+            onSubmit={(dados) => {
+              void handleAtribuicaoSubmit(dados)
+            }}
             onFinishRequest={handleFinishRequest}
             onPrevious={() => setPassoAtual(3)}
             dadosIniciais={dadosCompletos.atribuicao}
@@ -515,7 +516,9 @@ export default function CadastrarContrato() {
 
       <ConfirmarAvancoModal
         aberto={modalAberto}
-        onConfirmar={handleConfirmarAvanco}
+        onConfirmar={() => {
+          void handleConfirmarAvanco()
+        }}
         onCancelar={handleCancelarAvanco}
         titulo={
           isFinishing
@@ -532,3 +535,5 @@ export default function CadastrarContrato() {
     </LayoutPagina>
   )
 }
+
+export default CadastrarContrato

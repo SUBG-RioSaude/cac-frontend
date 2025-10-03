@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+
 import {
   TIPOS_ALTERACAO_CONFIG,
   TipoAlteracao,
@@ -8,9 +9,13 @@ describe('Display Functions - Alterações Contratuais', () => {
   describe('getTipoNome', () => {
     // Função extraída para teste (replica a lógica do componente)
     const getTipoNome = (tipo: number): string => {
-      const config =
-        TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
-      return config?.label || `Tipo ${tipo}`
+      if (Object.prototype.hasOwnProperty.call(TIPOS_ALTERACAO_CONFIG, tipo)) {
+        const config =
+          TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
+        return config.label
+      }
+
+      return `Tipo ${tipo}`
     }
 
     it('deve retornar nome correto para AditivoPrazo', () => {
@@ -71,7 +76,7 @@ describe('Display Functions - Alterações Contratuais', () => {
     // Função extraída para teste (replica a lógica do componente)
     const getUnitName = (unitId: string) => {
       // Check in linked units (array of objects with id property)
-      const unit = mockContractUnits.linkedUnits?.find((u) => u.id === unitId)
+      const unit = mockContractUnits.linkedUnits.find((u) => u.id === unitId)
       if (unit) {
         return unit.nome || unitId
       }
@@ -150,9 +155,15 @@ describe('Display Functions - Alterações Contratuais', () => {
   describe('Integração - Casos reais', () => {
     it('deve funcionar com dados típicos de revisão', () => {
       const getTipoNome = (tipo: number): string => {
-        const config =
-          TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
-        return config?.label || `Tipo ${tipo}`
+        if (
+          Object.prototype.hasOwnProperty.call(TIPOS_ALTERACAO_CONFIG, tipo)
+        ) {
+          const config =
+            TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
+          return config.label
+        }
+
+        return `Tipo ${tipo}`
       }
 
       // Simular dados que vem da API

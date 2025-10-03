@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
-import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useUnidadeDetalhada } from '../../hooks/use-unidade-detalhada'
+import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
 
 // Mock do hook
 vi.mock('../../hooks/use-unidade-detalhada')

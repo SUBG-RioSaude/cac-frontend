@@ -1,8 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import { FornecedorContratos } from '../FornecedorContratos'
+import { describe, it, expect, vi } from 'vitest'
+
 import type { Contrato } from '@/modules/Contratos/types/contrato'
+
+import { FornecedorContratos } from '../FornecedorContratos'
+
 import type { PaginacaoParams } from '@/types/api'
 
 // Mock do TabelaContratos para verificar props
@@ -150,7 +153,7 @@ describe('FornecedorContratos', () => {
   })
 
   it('deve exibir estado de loading', () => {
-    renderWithRouter(<FornecedorContratos {...defaultProps} isLoading={true} />)
+    renderWithRouter(<FornecedorContratos {...defaultProps} isLoading />)
 
     // Verifica se o skeleton loading está sendo mostrado
     expect(screen.queryByTestId('tabela-contratos')).not.toBeInTheDocument()

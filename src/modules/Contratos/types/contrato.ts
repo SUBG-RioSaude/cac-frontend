@@ -838,7 +838,7 @@ export function getLegacyUnidadeDemandante(
 
   // Buscar na nova estrutura
   const unidadePrincipal = getUnidadeDemandantePrincipal(contrato)
-  return unidadePrincipal?.unidadeSaudeNome || ''
+  return unidadePrincipal?.unidadeSaudeNome ?? ''
 }
 
 /**
@@ -856,7 +856,7 @@ export function getLegacyUnidadeGestora(
 
   // Buscar na nova estrutura
   const unidadePrincipal = getUnidadeGestoraPrincipal(contrato)
-  return unidadePrincipal?.unidadeSaudeNome || ''
+  return unidadePrincipal?.unidadeSaudeNome ?? ''
 }
 
 // ========== TRANSFORMERS PARA CONVERSÃƒO BIDIRECIONAL ==========

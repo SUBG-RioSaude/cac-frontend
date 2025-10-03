@@ -1,9 +1,11 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import AtribuicaoFiscaisForm from '../atribuicao-fiscais-form'
+
 import { usuariosMock } from '@/modules/Contratos/data/usuarios-mock'
+
+import AtribuicaoFiscaisForm from '../atribuicao-fiscais-form'
 
 const mockFuncionarios = usuariosMock.map((usuario) => ({
   id: usuario.id,

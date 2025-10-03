@@ -1,10 +1,11 @@
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, X, Loader2, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { z } from 'zod'
+
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -14,15 +15,13 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form'
-import { LotacaoSelect } from './LotacaoSelect'
-import { ModalSucessoCadastro } from './ModalSucessoCadastro'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { useCreateFuncionario } from '@/modules/Funcionarios'
 import {
   useValidarCpfUnico,
   useValidarMatriculaUnica,
 } from '@/modules/Funcionarios/hooks/use-validar-funcionario'
-import { cn } from '@/lib/utils'
-import { Check, X, Loader2, Plus } from 'lucide-react'
 import type {
   FuncionarioCreateApi,
   FuncionarioApi,
@@ -32,6 +31,9 @@ import {
   validarCpfCompleto,
 } from '@/modules/Funcionarios/utils/funcionario-utils'
 import { limparMatricula } from '@/modules/Funcionarios/utils/matricula-utils'
+
+import { LotacaoSelect } from './LotacaoSelect'
+import { ModalSucessoCadastro } from './ModalSucessoCadastro'
 
 const schema = z.object({
   nomeCompleto: z.string().min(3, 'Informe o nome completo'),
@@ -83,7 +85,7 @@ const vinculos = [
   { value: '5', label: 'Temporário' },
 ]
 
-export function CadastroFuncionarioForm() {
+export const CadastroFuncionarioForm = () => {
   const navigate = useNavigate()
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [createdFuncionario, setCreatedFuncionario] =
@@ -134,9 +136,8 @@ export function CadastroFuncionarioForm() {
       setCreatedFuncionario(funcionarioCriado)
       setShowSuccessModal(true)
       form.reset()
-    } catch (error) {
+    } catch {
       // Error handling é feito pelo hook useCreateFuncionario
-      console.error('Erro no onSubmit:', error)
     }
   }
 
@@ -181,7 +182,13 @@ export function CadastroFuncionarioForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          void onSubmit(form.getValues())
+        }}
+        className="space-y-6"
+      >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
             control={form.control}

@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { ChevronDown, Filter, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { ChevronDown, Filter, X } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
 import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
-import { Skeleton } from '@/components/ui/skeleton'
 
 interface FiltrosContratosProps {
   filtros: FiltrosContrato
@@ -20,11 +21,11 @@ interface FiltrosContratosProps {
   onLimparFiltros: () => void
 }
 
-export function FiltrosContratos({
+export const FiltrosContratos = ({
   filtros,
   onFiltrosChange,
   onLimparFiltros,
-}: FiltrosContratosProps) {
+}: FiltrosContratosProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const {
@@ -45,7 +46,7 @@ export function FiltrosContratos({
   ]
 
   const handleStatusChange = (status: string, checked: boolean) => {
-    const currentStatus = filtros.status || []
+    const currentStatus = filtros.status ?? []
     const newStatus = checked
       ? [...currentStatus, status]
       : currentStatus.filter((s) => s !== status)
@@ -54,7 +55,7 @@ export function FiltrosContratos({
   }
 
   const handleUnidadeChange = (unidadeId: string, checked: boolean) => {
-    const currentUnidades = filtros.unidade || []
+    const currentUnidades = filtros.unidade ?? []
     const newUnidades = checked
       ? [...currentUnidades, unidadeId]
       : currentUnidades.filter((u) => u !== unidadeId)
@@ -66,6 +67,11 @@ export function FiltrosContratos({
     Array.isArray(value)
       ? value.length > 0
       : value !== undefined && value !== '',
+  )
+
+  const unidadeSkeletonIds = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => `skeleton-unidades-${index}`),
+    [],
   )
 
   return (
@@ -103,7 +109,7 @@ export function FiltrosContratos({
                   >
                     <Checkbox
                       id={`status-${option.value}`}
-                      checked={filtros.status?.includes(option.value) || false}
+                      checked={filtros.status?.includes(option.value) ?? false}
                       onCheckedChange={(checked) =>
                         handleStatusChange(option.value, checked as boolean)
                       }
@@ -133,7 +139,7 @@ export function FiltrosContratos({
                   <Input
                     id="data-inicial-de"
                     type="date"
-                    value={filtros.dataInicialDe || ''}
+                    value={filtros.dataInicialDe ?? ''}
                     onChange={(e) =>
                       onFiltrosChange({
                         ...filtros,
@@ -152,7 +158,7 @@ export function FiltrosContratos({
                   <Input
                     id="data-inicial-ate"
                     type="date"
-                    value={filtros.dataInicialAte || ''}
+                    value={filtros.dataInicialAte ?? ''}
                     onChange={(e) =>
                       onFiltrosChange({
                         ...filtros,
@@ -171,7 +177,7 @@ export function FiltrosContratos({
                   <Input
                     id="data-final-de"
                     type="date"
-                    value={filtros.dataFinalDe || ''}
+                    value={filtros.dataFinalDe ?? ''}
                     onChange={(e) =>
                       onFiltrosChange({
                         ...filtros,
@@ -190,7 +196,7 @@ export function FiltrosContratos({
                   <Input
                     id="data-final-ate"
                     type="date"
-                    value={filtros.dataFinalAte || ''}
+                    value={filtros.dataFinalAte ?? ''}
                     onChange={(e) =>
                       onFiltrosChange({
                         ...filtros,
@@ -217,7 +223,7 @@ export function FiltrosContratos({
                     id="valor-minimo"
                     type="number"
                     placeholder="0,00"
-                    value={filtros.valorMinimo || ''}
+                    value={filtros.valorMinimo ?? ''}
                     onChange={(e) =>
                       onFiltrosChange({
                         ...filtros,
@@ -239,7 +245,7 @@ export function FiltrosContratos({
                     id="valor-maximo"
                     type="number"
                     placeholder="0,00"
-                    value={filtros.valorMaximo || ''}
+                    value={filtros.valorMaximo ?? ''}
                     onChange={(e) =>
                       onFiltrosChange({
                         ...filtros,
@@ -258,9 +264,9 @@ export function FiltrosContratos({
               <Label className="text-sm font-medium">Unidades</Label>
               <div className="grid max-h-40 grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2">
                 {unidadesLoading ? (
-                  Array.from({ length: 6 }).map((_, index) => (
+                  unidadeSkeletonIds.map((placeholderId) => (
                     <div
-                      key={`skeleton-${index}`}
+                      key={placeholderId}
                       className="flex items-center space-x-2"
                     >
                       <Skeleton className="h-4 w-4" />
@@ -279,7 +285,7 @@ export function FiltrosContratos({
                     >
                       <Checkbox
                         id={`unidade-${unidade.id}`}
-                        checked={filtros.unidade?.includes(unidade.id) || false}
+                        checked={filtros.unidade?.includes(unidade.id) ?? false}
                         onCheckedChange={(checked) =>
                           handleUnidadeChange(unidade.id, checked as boolean)
                         }

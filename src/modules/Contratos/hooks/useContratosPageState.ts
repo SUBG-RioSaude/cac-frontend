@@ -4,12 +4,14 @@
  */
 
 import { useState, useCallback, useMemo } from 'react'
-import { useDebounce } from './useDebounce'
+
+import type { ContratoParametros } from '@/modules/Contratos/services/contratos-service'
 import type {
   FiltrosContrato,
   PaginacaoParams,
 } from '@/modules/Contratos/types/contrato'
-import type { ContratoParametros } from '@/modules/Contratos/services/contratos-service'
+
+import { useDebounce } from './useDebounce'
 
 export interface ContratosPageState {
   // Estados da UI
@@ -84,7 +86,8 @@ function mapearFiltrosParaAPI(
   if (filtros.unidade && filtros.unidade.length > 0) {
     // Para agora, vamos usar o primeiro valor da unidade como string de busca
     // TODO: Implementar mapeamento correto de nomes para IDs quando disponível
-    params.unidadeSaudeId = filtros.unidade[0]
+    const [primeiraUnidade] = filtros.unidade
+    params.unidadeSaudeId = primeiraUnidade
   }
 
   return params

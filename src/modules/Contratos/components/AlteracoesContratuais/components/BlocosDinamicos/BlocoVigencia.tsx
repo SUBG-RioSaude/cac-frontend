@@ -1,20 +1,3 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
-import { DateDisplay } from '@/components/ui/formatters'
 import {
   Clock,
   Calendar,
@@ -26,6 +9,24 @@ import {
   Calculator,
   Info,
 } from 'lucide-react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import type { BlocoVigencia as IBlocoVigencia } from '../../../../types/alteracoes-contratuais'
 import {
@@ -102,7 +103,7 @@ const UNIDADES_TEMPO_CONFIG = {
   [TipoUnidadeTempo.Anos]: { label: 'Anos', singular: 'ano' },
 }
 
-export function BlocoVigencia({
+export const BlocoVigencia = ({
   dados = {},
   onChange,
   contractTerms,
@@ -110,7 +111,7 @@ export function BlocoVigencia({
   disabled = false,
   required = false,
   vigenciaOriginal,
-}: BlocoVigenciaProps) {
+}: BlocoVigenciaProps) => {
   const [calculoAutomatico, setCalculoAutomatico] = useState(true)
   const [novaDataCalculada, setNovaDataCalculada] = useState<string>('')
 
@@ -225,6 +226,11 @@ export function BlocoVigencia({
   const operacaoSelecionada =
     dados.operacao !== undefined ? OPERACOES_CONFIG[dados.operacao] : null
 
+  const startDate = contractTerms?.startDate ?? null
+  const endDate = contractTerms?.endDate ?? null
+  const isContractActive = contractTerms?.isActive ?? false
+  const hasContractDates = contractTerms ? Boolean(startDate ?? endDate) : false
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -245,7 +251,7 @@ export function BlocoVigencia({
       </div>
 
       {/* Contexto de Vigência Atual do Contrato */}
-      {contractTerms && (contractTerms.startDate || contractTerms.endDate) && (
+      {contractTerms && hasContractDates && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-4">
             <div className="mb-3">
@@ -258,8 +264,8 @@ export function BlocoVigencia({
               <div>
                 <Label className="text-xs text-green-600">Data de Início</Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.startDate ? (
-                    <DateDisplay value={contractTerms.startDate} />
+                  {startDate ? (
+                    <DateDisplay value={startDate} />
                   ) : (
                     'Não informado'
                   )}
@@ -270,20 +276,16 @@ export function BlocoVigencia({
                   Data de Término
                 </Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.endDate ? (
-                    <DateDisplay value={contractTerms.endDate} />
-                  ) : (
-                    'Não informado'
-                  )}
+                  {endDate ? <DateDisplay value={endDate} /> : 'Não informado'}
                 </p>
               </div>
               <div>
                 <Label className="text-xs text-green-600">Duração Total</Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.startDate && contractTerms.endDate
+                  {startDate && endDate
                     ? (() => {
-                        const inicio = new Date(contractTerms.startDate)
-                        const fim = new Date(contractTerms.endDate)
+                        const inicio = new Date(startDate)
+                        const fim = new Date(endDate)
                         const diffTime = fim.getTime() - inicio.getTime()
                         const diffDays = Math.ceil(
                           diffTime / (1000 * 60 * 60 * 24),
@@ -299,26 +301,26 @@ export function BlocoVigencia({
                 <p
                   className={cn(
                     'flex items-center gap-1 font-medium',
-                    contractTerms.isActive ? 'text-green-700' : 'text-red-700',
+                    isContractActive ? 'text-green-700' : 'text-red-700',
                   )}
                 >
                   <div
                     className={cn(
                       'h-2 w-2 rounded-full',
-                      contractTerms.isActive ? 'bg-green-500' : 'bg-red-500',
+                      isContractActive ? 'bg-green-500' : 'bg-red-500',
                     )}
                   />
-                  {contractTerms.isActive ? 'Ativo' : 'Vencido'}
+                  {isContractActive ? 'Ativo' : 'Vencido'}
                 </p>
               </div>
             </div>
-            {contractTerms.endDate && (
+            {endDate && (
               <div className="mt-3 border-t border-green-200 pt-3">
                 <Label className="text-xs text-green-600">Tempo Restante</Label>
                 <p className="font-medium text-green-900">
                   {(() => {
                     const hoje = new Date()
-                    const fim = new Date(contractTerms.endDate)
+                    const fim = new Date(endDate)
                     const diffTime = fim.getTime() - hoje.getTime()
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
@@ -355,11 +357,7 @@ export function BlocoVigencia({
                     Data de Término Atual
                   </Label>
                   <p className="text-lg font-medium text-gray-900">
-                    {contractTerms.endDate ? (
-                      <DateDisplay value={contractTerms.endDate} />
-                    ) : (
-                      'N/A'
-                    )}
+                    {endDate ? <DateDisplay value={endDate} /> : 'N/A'}
                   </p>
                 </div>
                 <div>
@@ -386,7 +384,7 @@ export function BlocoVigencia({
                     dados.novaDataFinal ? (
                       <DateDisplay value={dados.novaDataFinal} />
                     ) : dados.valorTempo && dados.tipoUnidade !== undefined ? (
-                      `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade]?.label?.toLowerCase()}`
+                      `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade].label.toLowerCase()}`
                     ) : (
                       'N/A'
                     )}
@@ -430,7 +428,7 @@ export function BlocoVigencia({
           <div className="space-y-2">
             <Label>Operação de vigência *</Label>
             <Select
-              value={dados.operacao?.toString() || ''}
+              value={dados.operacao?.toString() ?? ''}
               onValueChange={(value) =>
                 handleFieldChange(
                   'operacao',
@@ -504,7 +502,7 @@ export function BlocoVigencia({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="indeterminado"
-                    checked={dados.isIndeterminado || false}
+                    checked={dados.isIndeterminado ?? false}
                     onCheckedChange={(checked) =>
                       handleFieldChange('isIndeterminado', checked)
                     }
@@ -533,7 +531,7 @@ export function BlocoVigencia({
                   <Input
                     id="nova-data-final"
                     type="date"
-                    value={dados.novaDataFinal || ''}
+                    value={dados.novaDataFinal ?? ''}
                     onChange={(e) =>
                       handleFieldChange('novaDataFinal', e.target.value)
                     }
@@ -571,7 +569,7 @@ export function BlocoVigencia({
                       id="valor-tempo"
                       type="number"
                       min="1"
-                      value={dados.valorTempo || ''}
+                      value={dados.valorTempo ?? ''}
                       onChange={(e) =>
                         handleFieldChange(
                           'valorTempo',
@@ -593,7 +591,7 @@ export function BlocoVigencia({
                   <div className="space-y-2">
                     <Label>Unidade de tempo *</Label>
                     <Select
-                      value={dados.tipoUnidade?.toString() || ''}
+                      value={dados.tipoUnidade?.toString() ?? ''}
                       onValueChange={(value) =>
                         handleFieldChange(
                           'tipoUnidade',
@@ -662,7 +660,7 @@ export function BlocoVigencia({
                           value={
                             calculoAutomatico
                               ? novaDataCalculada
-                              : dados.novaDataFinal || ''
+                              : (dados.novaDataFinal ?? '')
                           }
                           onChange={(e) =>
                             handleFieldChange('novaDataFinal', e.target.value)
@@ -674,8 +672,7 @@ export function BlocoVigencia({
                           )}
                         />
 
-                        {vigenciaOriginal &&
-                          dados.valorTempo &&
+                        {dados.valorTempo !== undefined &&
                           dados.tipoUnidade !== undefined && (
                             <div className="rounded-md bg-blue-50 p-3 text-sm">
                               <div className="space-y-1 text-blue-800">
@@ -724,7 +721,7 @@ export function BlocoVigencia({
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea
                 id="observacoes"
-                value={dados.observacoes || ''}
+                value={dados.observacoes ?? ''}
                 onChange={(e) =>
                   handleFieldChange('observacoes', e.target.value)
                 }

@@ -2,6 +2,7 @@
  * Service para operações de empenhos
  */
 import { executeWithFallback } from '@/lib/axios'
+
 import type {
   Empenho,
   CriarEmpenhoPayload,
@@ -18,7 +19,7 @@ export async function listarEmpenhosPorContrato(
     method: 'get',
     url: `/empenhos/contratos/${contratoId}`,
   })
-  return response.data || []
+  return response.data
 }
 
 /**
@@ -88,7 +89,7 @@ export function validarNumeroEmpenho(numeroEmpenho: string): {
   const numeroLimpo = numeroEmpenho.trim()
 
   // Extrair ano (primeiros 4 dígitos encontrados)
-  const anoMatch = numeroLimpo.match(/\d{4}/)
+  const anoMatch = /\d{4}/.exec(numeroLimpo)
 
   if (!anoMatch) {
     return {

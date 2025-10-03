@@ -1,20 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import {
   Plus,
   Trash2,
@@ -29,10 +13,30 @@ import {
   RefreshCw,
   ExternalLink,
 } from 'lucide-react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { createServiceLogger } from '@/lib/logger'
 import { dateUtils } from '@/lib/utils'
-import { useEmpenhosWithRetry } from '../../hooks/use-empenhos-with-retry'
+import { currencyUtils } from '@/lib/utils'
 import { useUnidadesBatch } from '@/modules/Unidades/hooks/use-unidades-batch'
+
+import { useEmpenhosWithRetry } from '../../hooks/use-empenhos-with-retry'
 import {
   validarNumeroEmpenho,
   validarValor,
@@ -41,7 +45,6 @@ import {
   validarNumeroEmpenhoUnico,
   calcularEstatisticas,
 } from '../../services/empenhos-service'
-import { currencyUtils } from '@/lib/utils'
 import type {
   Empenho,
   EmpenhoForm,
@@ -49,6 +52,8 @@ import type {
   ContratoUnidadeSaudeDto,
   CriarEmpenhoPayload,
 } from '../../types/contrato'
+
+const logger = createServiceLogger('tab-empenhos')
 
 interface TabEmpenhosProps {
   contratoId: string
@@ -91,9 +96,10 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
       if (u.nomeUnidade) {
         // Usar nome já disponível
         nomes[u.unidadeSaudeId] = u.nomeUnidade
-      } else if (unidadesData[u.unidadeSaudeId]) {
+      } else if (u.unidadeSaudeId in unidadesData) {
         // Usar nome buscado da API
-        nomes[u.unidadeSaudeId] = unidadesData[u.unidadeSaudeId].nome
+        nomes[u.unidadeSaudeId] =
+          unidadesData[u.unidadeSaudeId]?.nome ?? `Unidade ${u.unidadeSaudeId}`
       } else {
         // Fallback para ID
         nomes[u.unidadeSaudeId] = `Unidade ${u.unidadeSaudeId}`
@@ -110,44 +116,46 @@ function useUnidadesNomes(unidadesVinculadas: ContratoUnidadeSaudeDto[]) {
 }
 
 // Componente para exibir nome da unidade - otimizado sem hook individual
-const NomeUnidade = React.memo(function NomeUnidade({
-  unidadeId,
-  nomesUnidades,
-  carregandoNomes,
-}: {
-  unidadeId: string
-  nomesUnidades: Record<string, string>
-  carregandoNomes: boolean
-}) {
-  const navigate = useNavigate()
+const NomeUnidade = React.memo(
+  ({
+    unidadeId,
+    nomesUnidades,
+    carregandoNomes,
+  }: {
+    unidadeId: string
+    nomesUnidades: Record<string, string>
+    carregandoNomes: boolean
+  }) => {
+    const navigate = useNavigate()
 
-  const handleAbrirUnidade = useCallback(() => {
-    navigate(`/unidades/${unidadeId}`)
-  }, [navigate, unidadeId])
+    const handleAbrirUnidade = useCallback(() => {
+      navigate(`/unidades/${unidadeId}`)
+    }, [navigate, unidadeId])
 
-  if (carregandoNomes && !nomesUnidades[unidadeId]) {
-    return <span className="text-muted-foreground">Carregando...</span>
-  }
+    if (carregandoNomes && !nomesUnidades[unidadeId]) {
+      return <span className="text-muted-foreground">Carregando...</span>
+    }
 
-  return (
-    <Button
-      variant="link"
-      size="sm"
-      onClick={handleAbrirUnidade}
-      className="text-muted-foreground hover:text-foreground h-auto p-0"
-    >
-      <span>{nomesUnidades[unidadeId] || `Unidade ${unidadeId}`}</span>
-      <ExternalLink className="ml-1 h-3 w-3" />
-    </Button>
-  )
-})
+    return (
+      <Button
+        variant="link"
+        size="sm"
+        onClick={handleAbrirUnidade}
+        className="text-muted-foreground hover:text-foreground h-auto p-0"
+      >
+        <span>{nomesUnidades[unidadeId] || `Unidade ${unidadeId}`}</span>
+        <ExternalLink className="ml-1 h-3 w-3" />
+      </Button>
+    )
+  },
+)
 
-export function TabEmpenhos({
+export const TabEmpenhos = ({
   contratoId,
   valorTotalContrato,
   unidadesVinculadas = [],
   empenhosIniciais = [],
-}: TabEmpenhosProps) {
+}: TabEmpenhosProps) => {
   const navigate = useNavigate()
 
   // Memoizar para evitar recalculos desnecessários
@@ -208,14 +216,13 @@ export function TabEmpenhos({
   // Obter nome da unidade selecionada no filtro
   const nomeUnidadeFiltro = useMemo(() => {
     if (!filtroUnidade || filtroUnidade === 'todas') return ''
+    const nome = nomesUnidades[filtroUnidade]
+    if (nome) return nome
+
     const unidade = unidadesVinculadas.find(
       (u) => u.unidadeSaudeId === filtroUnidade,
     )
-    return (
-      nomesUnidades[filtroUnidade] ||
-      unidade?.nomeUnidade ||
-      `Unidade ${filtroUnidade}`
-    )
+    return unidade?.nomeUnidade ?? `Unidade ${filtroUnidade}`
   }, [filtroUnidade, unidadesVinculadas, nomesUnidades])
 
   const [formulario, setFormulario] = useState<EstadoFormulario>({
@@ -318,7 +325,7 @@ export function TabEmpenhos({
         await excluirEmpenho(modalConfirmacao.empenhoId)
         fecharModalConfirmacao()
       } catch (error) {
-        console.error('Erro ao excluir empenho:', error)
+        logger.error('Erro ao excluir empenho:', error as string)
         // O erro já é tratado pelo hook, mas mantemos log para debug
       }
     }
@@ -502,7 +509,7 @@ export function TabEmpenhos({
 
       fecharFormulario()
     } catch (error) {
-      console.error('Erro ao salvar empenho:', error)
+      logger.error('Erro ao salvar empenho:', error as string)
       // O erro já é tratado pelo hook, mas mantemos log para debug
     }
   }, [
@@ -532,22 +539,22 @@ export function TabEmpenhos({
 
   const tentarNovamente = useCallback(() => {
     limparErro()
-    carregarEmpenhos()
+    void carregarEmpenhos()
   }, [limparErro, carregarEmpenhos])
 
   if (carregando && !temEmpenhosIniciais) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-32 rounded-lg bg-gray-200"></div>
-          <div className="h-64 rounded-lg bg-gray-200"></div>
+          <div className="h-32 rounded-lg bg-gray-200" />
+          <div className="h-64 rounded-lg bg-gray-200" />
         </div>
       </div>
     )
   }
 
   // Exibir erro 500 se houver
-  if (erro && erro.includes('Erro 500')) {
+  if (erro?.includes('Erro 500')) {
     return (
       <div className="space-y-6">
         <Card className="border-red-200 bg-red-50">
@@ -724,9 +731,7 @@ export function TabEmpenhos({
                       >
                         {carregandoNomes
                           ? 'Carregando...'
-                          : nomesUnidades[unidade.unidadeSaudeId] ||
-                            unidade.nomeUnidade ||
-                            `Unidade ${unidade.unidadeSaudeId}`}
+                          : nomesUnidades[unidade.unidadeSaudeId]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -889,13 +894,7 @@ export function TabEmpenhos({
                                 ? 'Carregando...'
                                 : nomesUnidades[
                                     formulario.dados.unidadeSaudeId
-                                  ] ||
-                                  unidadesVinculadas.find(
-                                    (u) =>
-                                      u.unidadeSaudeId ===
-                                      formulario.dados.unidadeSaudeId,
-                                  )?.nomeUnidade ||
-                                  `Unidade ${formulario.dados.unidadeSaudeId}`}
+                                  ]}
                             </span>
                           )}
                         </SelectValue>
@@ -913,9 +912,7 @@ export function TabEmpenhos({
                             >
                               {carregandoNomes
                                 ? 'Carregando...'
-                                : nomesUnidades[unidade.unidadeSaudeId] ||
-                                  unidade.nomeUnidade ||
-                                  `Unidade ${unidade.unidadeSaudeId}`}
+                                : nomesUnidades[unidade.unidadeSaudeId]}
                             </SelectItem>
                           ))
                         )}
@@ -1030,7 +1027,9 @@ export function TabEmpenhos({
                     Cancelar
                   </Button>
                   <Button
-                    onClick={salvarEmpenhoHandler}
+                    onClick={() => {
+                      void salvarEmpenhoHandler()
+                    }}
                     disabled={!formularioValido()}
                   >
                     <Save className="mr-2 h-4 w-4" />
@@ -1077,7 +1076,12 @@ export function TabEmpenhos({
                   <Button variant="outline" onClick={fecharModalConfirmacao}>
                     Cancelar
                   </Button>
-                  <Button variant="destructive" onClick={confirmarExclusao}>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      void confirmarExclusao()
+                    }}
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Excluir
                   </Button>

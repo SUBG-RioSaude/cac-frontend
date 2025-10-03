@@ -10,7 +10,7 @@ interface EnderecoFornecedorProps {
   cep: string
 }
 
-export function EnderecoFornecedor(props: EnderecoFornecedorProps) {
+export const EnderecoFornecedor = (props: EnderecoFornecedorProps) => {
   return (
     <Card className="flex-1">
       <CardHeader>

@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react'
+
 import type { DashboardFilters, UseFiltersResult } from '../types/dashboard'
 import { defaultFilters, hasActiveFilters } from '../utils/dashboard-utils'
 
@@ -20,7 +21,12 @@ export const useFilters = (): UseFiltersResult => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY)
       if (saved) {
-        const parsed = JSON.parse(saved)
+        const parsed = JSON.parse(saved) as {
+          periodo: unknown
+          unidades: unknown
+          status: unknown
+          tipos: unknown
+        }
         // Validar estrutura básica
         if (
           parsed.periodo &&
@@ -28,11 +34,11 @@ export const useFilters = (): UseFiltersResult => {
           parsed.status &&
           parsed.tipos
         ) {
-          return parsed
+          return parsed as DashboardFilters
         }
       }
-    } catch (error) {
-      console.warn('Erro ao carregar filtros salvos:', error)
+    } catch {
+      // Error loading saved filters
     }
 
     return defaultFilters
@@ -42,8 +48,8 @@ export const useFilters = (): UseFiltersResult => {
   useEffect(() => {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
-    } catch (error) {
-      console.warn('Erro ao salvar filtros:', error)
+    } catch {
+      // Error saving filters
     }
   }, [filters])
 

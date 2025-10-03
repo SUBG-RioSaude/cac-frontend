@@ -1,13 +1,14 @@
+import { Building, Hash, Users } from 'lucide-react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { UnidadeStatusBadge } from '@/components/ui/status-badge'
-import { Building, Hash, Users } from 'lucide-react'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
 
 interface VisaoGeralUnidadeProps {
   unidade: UnidadeSaudeApi
 }
 
-export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
+export const VisaoGeralUnidade = ({ unidade }: VisaoGeralUnidadeProps) => {
   return (
     <div className="space-y-6">
       {/* Informações Básicas */}
@@ -21,23 +22,23 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 Nome
-              </label>
+              </span>
               <p className="font-medium">{unidade.nome}</p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 Sigla
-              </label>
-              <p className="font-mono text-sm">{unidade.sigla || 'N/A'}</p>
+              </span>
+              <p className="font-mono text-sm">{unidade.sigla ?? 'N/A'}</p>
             </div>
           </div>
           <div className="space-y-2">
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 Status
-              </label>
+              </span>
               <div className="mt-1">
                 <UnidadeStatusBadge
                   status={unidade.ativo ? 'ativo' : 'inativo'}
@@ -45,9 +46,9 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
               </div>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 ID
-              </label>
+              </span>
               <p className="text-muted-foreground font-mono text-xs">
                 {unidade.id}
               </p>
@@ -67,15 +68,15 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 Nome do CAP
-              </label>
+              </span>
               <p className="font-medium">{unidade.cap.nome}</p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 ID do CAP
-              </label>
+              </span>
               <p className="text-muted-foreground font-mono text-xs">
                 {unidade.cap.id}
               </p>
@@ -83,15 +84,15 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
           </div>
           <div className="space-y-2">
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 UO do CAP
-              </label>
+              </span>
               <p className="font-mono text-sm">{unidade.cap.uo}</p>
             </div>
             <div>
-              <label className="text-muted-foreground text-sm font-medium">
+              <span className="text-muted-foreground text-sm font-medium">
                 Status do CAP
-              </label>
+              </span>
               <div className="mt-1">
                 <UnidadeStatusBadge
                   status={unidade.cap.ativo ? 'ativo' : 'inativo'}
@@ -112,41 +113,41 @@ export function VisaoGeralUnidade({ unidade }: VisaoGeralUnidadeProps) {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               UA
-            </label>
-            <p className="font-mono text-sm">{unidade.ua || 'N/A'}</p>
+            </span>
+            <p className="font-mono text-sm">{unidade.ua ?? 'N/A'}</p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               UO
-            </label>
-            <p className="font-mono text-sm">{unidade.uo || 'N/A'}</p>
+            </span>
+            <p className="font-mono text-sm">{unidade.uo ?? 'N/A'}</p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               UG
-            </label>
-            <p className="font-mono text-sm">{unidade.ug || 'N/A'}</p>
+            </span>
+            <p className="font-mono text-sm">{unidade.ug ?? 'N/A'}</p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               CNES
-            </label>
-            <p className="font-mono text-sm">{unidade.cnes || 'N/A'}</p>
+            </span>
+            <p className="font-mono text-sm">{unidade.cnes ?? 'N/A'}</p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               AP
-            </label>
-            <p className="font-mono text-sm">{unidade.ap || 'N/A'}</p>
+            </span>
+            <p className="font-mono text-sm">{unidade.ap ?? 'N/A'}</p>
           </div>
           <div>
-            <label className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-sm font-medium">
               Subsecretaria
-            </label>
+            </span>
             <p className="font-mono text-sm">
-              {unidade.subsecretaria || 'N/A'}
+              {unidade.subsecretaria ?? 'N/A'}
             </p>
           </div>
         </CardContent>

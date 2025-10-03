@@ -1,9 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,
   Building,
@@ -13,14 +8,21 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { useUnidadeDetalhada } from '../hooks/use-unidade-detalhada'
 
-export function UnidadeDetalhesPage() {
+export const UnidadeDetalhesPage = () => {
   const { unidadeId } = useParams<{ unidadeId: string }>()
   const navigate = useNavigate()
 
   const { unidade, carregando, erro, recarregar } = useUnidadeDetalhada({
-    id: unidadeId || '',
+    id: unidadeId ?? '',
     enabled: !!unidadeId,
   })
 
@@ -32,8 +34,8 @@ export function UnidadeDetalhesPage() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-1/4 rounded bg-gray-200"></div>
-          <div className="h-64 rounded bg-gray-200"></div>
+          <div className="h-8 w-1/4 rounded bg-gray-200" />
+          <div className="h-64 rounded bg-gray-200" />
         </div>
       </div>
     )
@@ -51,7 +53,7 @@ export function UnidadeDetalhesPage() {
               </h3>
             </div>
             <p className="mb-4 text-red-700">
-              {erro || 'Não foi possível carregar os dados da unidade'}
+              {erro ?? 'Não foi possível carregar os dados da unidade'}
             </p>
             <div className="flex gap-3">
               <Button
@@ -143,15 +145,15 @@ export function UnidadeDetalhesPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-muted-foreground text-sm font-medium">
+                  <span className="text-muted-foreground text-sm font-medium">
                     Nome
-                  </label>
+                  </span>
                   <p className="text-lg font-semibold">{unidade.nome}</p>
                 </div>
                 <div>
-                  <label className="text-muted-foreground text-sm font-medium">
+                  <span className="text-muted-foreground text-sm font-medium">
                     Sigla
-                  </label>
+                  </span>
                   <p className="font-mono text-lg">{unidade.sigla}</p>
                 </div>
               </div>
@@ -162,15 +164,15 @@ export function UnidadeDetalhesPage() {
                 </h4>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       Nome do CAP
-                    </label>
+                    </span>
                     <p className="font-medium">{unidade.cap.nome}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       UO
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.cap.uo}</p>
                   </div>
                 </div>
@@ -182,27 +184,27 @@ export function UnidadeDetalhesPage() {
                 </h4>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       UA
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.ua}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       UO
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.uo}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       UG
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.ug}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       CNES
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.cnes}</p>
                   </div>
                 </div>
@@ -222,15 +224,15 @@ export function UnidadeDetalhesPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-muted-foreground text-sm font-medium">
+                  <span className="text-muted-foreground text-sm font-medium">
                     Endereço
-                  </label>
+                  </span>
                   <p className="font-medium">{unidade.endereco}</p>
                 </div>
                 <div>
-                  <label className="text-muted-foreground text-sm font-medium">
+                  <span className="text-muted-foreground text-sm font-medium">
                     Bairro
-                  </label>
+                  </span>
                   <p className="font-medium">{unidade.bairro}</p>
                 </div>
               </div>
@@ -241,15 +243,15 @@ export function UnidadeDetalhesPage() {
                 </h4>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       Latitude
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.latitude}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       Longitude
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.longitude}</p>
                   </div>
                 </div>
@@ -261,15 +263,15 @@ export function UnidadeDetalhesPage() {
                 </h4>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       Subsecretaria
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.subsecretaria}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground text-sm font-medium">
+                    <span className="text-muted-foreground text-sm font-medium">
                       AP
-                    </label>
+                    </span>
                     <p className="font-mono">{unidade.ap}</p>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import LayoutPagina from '@/components/layout-pagina'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-function HomePage() {
+const HomePage = () => {
   return (
     <LayoutPagina
       titulo="Painel de Controle"

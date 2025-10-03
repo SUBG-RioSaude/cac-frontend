@@ -1,13 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { TabelaUnidades } from '../tabela-unidades'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type {
   Unidade,
   PaginacaoParamsUnidade,
   OrdenacaoParams,
 } from '@/modules/Unidades/ListaUnidades/types/unidade'
+
+import { TabelaUnidades } from '../tabela-unidades'
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({

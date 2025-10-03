@@ -44,9 +44,7 @@ export const cookieUtils = {
       cookieString += '; Secure'
     }
 
-    if (sameSite) {
-      cookieString += `; SameSite=${sameSite}`
-    }
+    cookieString += `; SameSite=${sameSite}`
 
     document.cookie = cookieString
   },
@@ -56,12 +54,12 @@ export const cookieUtils = {
     const nameEQ = `${encodeURIComponent(name)}=`
     const cookies = document.cookie.split(';')
 
-    for (let i = 0; i < cookies.length; i++) {
-      let cookie = cookies[i]
-      while (cookie.charAt(0) === ' ') {
+    for (const cookieItem of cookies) {
+      let cookie = cookieItem
+      while (cookie.startsWith(' ')) {
         cookie = cookie.substring(1, cookie.length)
       }
-      if (cookie.indexOf(nameEQ) === 0) {
+      if (cookie.startsWith(nameEQ)) {
         return decodeURIComponent(
           cookie.substring(nameEQ.length, cookie.length),
         )
@@ -95,12 +93,12 @@ export const cookieUtils = {
     const cookies: Record<string, string> = {}
     const cookieArray = document.cookie.split(';')
 
-    cookieArray.forEach((cookie) => {
-      const [name, value] = cookie.trim().split('=')
+    for (const rawCookie of cookieArray) {
+      const [name, value] = rawCookie.trim().split('=')
       if (name && value) {
         cookies[decodeURIComponent(name)] = decodeURIComponent(value)
       }
-    })
+    }
 
     return cookies
   },

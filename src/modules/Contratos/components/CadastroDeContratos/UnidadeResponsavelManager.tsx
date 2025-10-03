@@ -1,6 +1,8 @@
-﻿import { useState, useCallback, useMemo } from 'react'
-import { Button } from '@/components/ui/button'
+﻿import { Plus, Building, Users } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -14,14 +16,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Plus, Building, Users } from 'lucide-react'
 import { cn, normalizeText } from '@/lib/utils'
+import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
 import {
   useBuscarUnidades,
   useUnidadesByIds,
 } from '@/modules/Unidades/hooks/use-unidades'
+
 import { UnidadeResponsavelItem } from './UnidadeResponsavelItem'
-import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
 
 interface UnidadeResponsavelManagerProps {
   unidades: CriarUnidadeResponsavelPayload[]
@@ -33,11 +35,11 @@ type UnidadeComNome = CriarUnidadeResponsavelPayload & {
   unidadeSaudeNome: string
 }
 
-export function UnidadeResponsavelManager({
+export const UnidadeResponsavelManager = ({
   unidades,
   onChange,
   className,
-}: UnidadeResponsavelManagerProps) {
+}: UnidadeResponsavelManagerProps) => {
   const [openDemandante, setOpenDemandante] = useState(false)
   const [openGestora, setOpenGestora] = useState(false)
 
@@ -67,9 +69,16 @@ export function UnidadeResponsavelManager({
 
   // Separar unidades por tipo
   const { demandantes, gestoras } = useMemo(() => {
-    const demandantes = unidades.filter((u) => u.tipoResponsabilidade === 1)
-    const gestoras = unidades.filter((u) => u.tipoResponsabilidade === 2)
-    return { demandantes, gestoras }
+    const unidadesDemandantesFiltered = unidades.filter(
+      (u) => u.tipoResponsabilidade === 1,
+    )
+    const unidadesGestorasFiltered = unidades.filter(
+      (u) => u.tipoResponsabilidade === 2,
+    )
+    return {
+      demandantes: unidadesDemandantesFiltered,
+      gestoras: unidadesGestorasFiltered,
+    }
   }, [unidades])
 
   // Buscar detalhes das unidades selecionadas para exibir nomes estáveis
@@ -83,7 +92,7 @@ export function UnidadeResponsavelManager({
 
   // Obter nomes das unidades (usando todas as unidades de ambas as buscas)
   const todasUnidadesEncontradas = useMemo(() => {
-    const todas = [...(unidadesDemandantes || []), ...(unidadesGestoras || [])]
+    const todas = [...(unidadesDemandantes ?? []), ...(unidadesGestoras ?? [])]
     // Remover duplicatas pelo ID
     return todas.filter(
       (unidade, index, self) =>
@@ -94,12 +103,12 @@ export function UnidadeResponsavelManager({
   const unidadesComNome: UnidadeComNome[] = useMemo(() => {
     return unidades.map((unidade) => {
       const unidadeData =
-        unidadesSelecionadasMap?.[unidade.unidadeSaudeId] ||
+        unidadesSelecionadasMap[unidade.unidadeSaudeId] ??
         todasUnidadesEncontradas.find((u) => u.id === unidade.unidadeSaudeId)
       return {
         ...unidade,
         unidadeSaudeNome:
-          unidadeData?.nome ||
+          unidadeData?.nome ??
           `Unidade ${unidade.unidadeSaudeId.slice(0, 8)}...`,
       }
     })
@@ -180,9 +189,9 @@ export function UnidadeResponsavelManager({
     <div className={cn('space-y-6', className)}>
       {/* Header */}
       <div className="space-y-2">
-        <label className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        <div className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
           Unidades Responsáveis *
-        </label>
+        </div>
         <p className="text-muted-foreground text-xs">
           Selecione as unidades demandantes e gestoras do contrato.
           {!temDemandante &&

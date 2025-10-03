@@ -1,12 +1,13 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useAlteracoesContratuais } from '../useAlteracoesContratuais'
+
 import {
   TipoAlteracao,
   StatusAlteracao,
   OperacaoVigencia,
   TipoUnidadeTempo,
 } from '../../../../types/alteracoes-contratuais'
+import { useAlteracoesContratuais } from '../useAlteracoesContratuais'
 
 // Mocks simples das mutations da API
 vi.mock('../../../../hooks/useAlteracoesContratuaisApi', () => ({

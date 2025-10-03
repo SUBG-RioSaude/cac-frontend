@@ -1,12 +1,13 @@
+import { Search, Building2, MapPin, Check, X, Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Search, Building2, MapPin, Check, X, Loader2 } from 'lucide-react'
-import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
 import {
   useUnidades,
   useBuscarUnidades,
@@ -20,12 +21,12 @@ function mapearUnidadeSaudeParaHospitalar(
   return {
     id: unidade.id,
     nome: unidade.nome,
-    codigo: `${unidade.sigla || 'UNK'}-${unidade.id.slice(-3)}`,
-    ug: unidade.uo?.toString() || '',
-    sigla: unidade.sigla || '',
-    cnpj: unidade.cnes || '', // CNES como aproximação
+    codigo: `${unidade.sigla ?? 'UNK'}-${unidade.id.slice(-3)}`,
+    ug: unidade.uo?.toString() ?? '',
+    sigla: unidade.sigla ?? '',
+    cnpj: unidade.cnes ?? '', // CNES como aproximação
     cep: '', // Não disponível na API atual
-    endereco: unidade.endereco || '',
+    endereco: unidade.endereco ?? '',
     cidade: '', // Não disponível na API atual
     estado: '', // Não disponível na API atual
     responsavel: '', // Não disponível na API atual
@@ -41,11 +42,11 @@ interface BuscaUnidadeInteligenteProps {
   onLimpar?: () => void
 }
 
-export default function BuscaUnidadeInteligente({
+const BuscaUnidadeInteligente = ({
   onUnidadeSelecionada,
   unidadeSelecionada,
   onLimpar,
-}: BuscaUnidadeInteligenteProps) {
+}: BuscaUnidadeInteligenteProps) => {
   const [termoBusca, setTermoBusca] = useState('')
   const [debouncedTermoBusca, setDebouncedTermoBusca] = useState('')
   const [resultados, setResultados] = useState<UnidadeHospitalar[]>([])
@@ -77,7 +78,7 @@ export default function BuscaUnidadeInteligente({
     isSearching ||
     carregandoBusca ||
     (carregandoUnidades && debouncedTermoBusca.length === 0)
-  const erro = erroUnidades || erroBusca
+  const erro = erroUnidades ?? erroBusca
 
   // Debounce do termo de busca para evitar spam de requests
   useEffect(() => {
@@ -168,12 +169,18 @@ export default function BuscaUnidadeInteligente({
   const destacarTexto = (texto: string, termo: string) => {
     if (!termo) return texto
 
-    const regex = new RegExp(`(${termo})`, 'gi')
+    // Escapar caracteres especiais do regex
+    const termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex = new RegExp(`(${termoEscapado})`, 'gi')
     const partes = texto.split(regex)
 
-    return partes.map((parte, index) =>
+    return partes.map((parte) =>
       regex.test(parte) ? (
-        <mark key={index} className="rounded bg-blue-200 px-1 text-blue-900">
+        <mark
+          key={`highlight-${parte}`}
+          className="rounded bg-blue-200 px-1 text-blue-900"
+        >
           {parte}
         </mark>
       ) : (
@@ -383,3 +390,5 @@ export default function BuscaUnidadeInteligente({
     </div>
   )
 }
+
+export default BuscaUnidadeInteligente

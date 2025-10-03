@@ -6,12 +6,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+
+import { createHookLogger } from '@/lib/logger'
+import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
 import {
   createUnidade,
   updateUnidade,
   deleteUnidade,
 } from '@/modules/Unidades/services/unidades-service'
-import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
 import type {
   UnidadeSaudeApi,
   UnidadeSaudeCreateApi,
@@ -23,6 +25,7 @@ import type {
 export function useCreateUnidade() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const logger = createHookLogger('useCreateUnidade', 'Unidades')
 
   return useMutation({
     mutationFn: async (
@@ -31,7 +34,7 @@ export function useCreateUnidade() {
       return await createUnidade(data)
     },
 
-    onMutate: async () => {
+    onMutate: () => {
       // Toast de loading
       const loadingToast = toast.loading('Criando unidade de saúde...')
       return { loadingToast }
@@ -51,7 +54,7 @@ export function useCreateUnidade() {
       // Invalidar caches relevantes
       const invalidateKeys = unidadeKeys.invalidateOnCreate()
       invalidateKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key })
+        void queryClient.invalidateQueries({ queryKey: key })
       })
 
       // Redirecionar para a página da unidade criada
@@ -64,8 +67,11 @@ export function useCreateUnidade() {
         toast.dismiss(context.loadingToast)
       }
 
-      // Toast de erro
-      console.error('Erro ao criar unidade:', error)
+      // Log de erro
+      logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Erro ao criar unidade',
+      )
       toast.error('Erro ao criar unidade de saúde', {
         description:
           error instanceof Error
@@ -80,6 +86,7 @@ export function useCreateUnidade() {
 
 export function useUpdateUnidade() {
   const queryClient = useQueryClient()
+  const logger = createHookLogger('useUpdateUnidade', 'Unidades')
 
   return useMutation({
     mutationFn: async (
@@ -123,7 +130,7 @@ export function useUpdateUnidade() {
       // Invalidar caches relevantes
       const invalidateKeys = unidadeKeys.invalidateOnUpdate(data.id)
       invalidateKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key })
+        void queryClient.invalidateQueries({ queryKey: key })
       })
     },
 
@@ -141,8 +148,14 @@ export function useUpdateUnidade() {
         )
       }
 
-      // Toast de erro
-      console.error('Erro ao atualizar unidade:', error)
+      // Log de erro
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          unidadeId: variables.id,
+        },
+        'Erro ao atualizar unidade',
+      )
       toast.error('Erro ao atualizar unidade de saúde', {
         description:
           error instanceof Error
@@ -158,6 +171,7 @@ export function useUpdateUnidade() {
 export function useDeleteUnidade() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const logger = createHookLogger('useDeleteUnidade', 'Unidades')
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
@@ -189,7 +203,7 @@ export function useDeleteUnidade() {
       // Invalidar caches
       const invalidateKeys = unidadeKeys.invalidateOnDelete(id)
       invalidateKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key })
+        void queryClient.invalidateQueries({ queryKey: key })
       })
 
       // Redirecionar para lista de unidades
@@ -202,8 +216,11 @@ export function useDeleteUnidade() {
         toast.dismiss(context.loadingToast)
       }
 
-      // Toast de erro
-      console.error('Erro ao deletar unidade:', error)
+      // Log de erro
+      logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Erro ao deletar unidade',
+      )
       toast.error('Erro ao remover unidade de saúde', {
         description:
           error instanceof Error

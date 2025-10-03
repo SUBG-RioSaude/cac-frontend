@@ -36,21 +36,19 @@ export interface FornecedorApi {
 }
 
 // Interface para dados resumidos da API que podem ter estrutura similar
-export interface FornecedorResumoApi
-  extends Pick<
-    FornecedorApi,
-    | 'id'
-    | 'razaoSocial'
-    | 'cnpj'
-    | 'contratosAtivos'
-    | 'status'
-    | 'valorTotal'
-    | 'cidade'
-    | 'estado'
-  > {
+export type FornecedorResumoApi = Pick<
+  FornecedorApi,
+  | 'id'
+  | 'razaoSocial'
+  | 'cnpj'
+  | 'contratosAtivos'
+  | 'status'
+  | 'valorTotal'
+  | 'cidade'
+  | 'estado'
+> &
   // Permite propriedades adicionais que podem vir da API
-  [key: string]: unknown
-}
+  Record<string, unknown>
 
 export interface FiltrosFornecedor {
   status?: string[]

@@ -1,4 +1,10 @@
+import { useQuery } from '@tanstack/react-query'
 import React from 'react'
+import { useLocation, Link } from 'react-router-dom'
+
+import { executeWithFallback } from '@/lib/axios'
+import { createComponentLogger } from '@/lib/logger'
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,17 +14,13 @@ import {
   BreadcrumbSeparator,
 } from './ui/breadcrumb'
 import { SidebarTrigger } from './ui/sidebar'
-import { createComponentLogger } from '@/lib/logger'
-import { useLocation, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { executeWithFallback } from '@/lib/axios'
 
-export default function PageBreadcrumb() {
+const PageBreadcrumb = () => {
   const logger = createComponentLogger('PageBreadcrumb', 'navigation')
   const location = useLocation()
 
   // Extrair ID do contrato manualmente da URL
-  const contratoId = location.pathname.match(/\/contratos\/([^/]+)/)?.[1]
+  const contratoId = /\/contratos\/([^/]+)/.exec(location.pathname)?.[1]
   const isContratoRoute = !!contratoId
 
   logger.debug(
@@ -95,7 +97,7 @@ export default function PageBreadcrumb() {
         crumbs.push({ label, href: currentPath })
       } else if (
         currentPath.includes('/fornecedores/') &&
-        segment.match(/^[a-f0-9-]{36}$/)
+        /^[a-f0-9-]{36}$/.exec(segment)
       ) {
         // Handle fornecedores route
         crumbs.push({ label: `Fornecedor ${segment}`, href: currentPath })
@@ -149,3 +151,5 @@ export default function PageBreadcrumb() {
     </div>
   )
 }
+
+export default PageBreadcrumb

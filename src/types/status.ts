@@ -27,7 +27,7 @@ export type Status = StatusContrato | StatusFornecedor | StatusUnidade
 
 // Mapeamento para converter string genérica para status específico
 export function parseStatusContrato(status?: string | null): StatusContrato {
-  const normalizedStatus = status?.toLowerCase() || 'indefinido'
+  const normalizedStatus = status?.toLowerCase() ?? 'indefinido'
   const validStatuses: StatusContrato[] = [
     'ativo',
     'vencendo',
@@ -44,7 +44,7 @@ export function parseStatusContrato(status?: string | null): StatusContrato {
 export function parseStatusFornecedor(
   status?: string | null,
 ): StatusFornecedor {
-  const normalizedStatus = status?.toLowerCase() || 'ativo'
+  const normalizedStatus = status?.toLowerCase() ?? 'ativo'
   const validStatuses: StatusFornecedor[] = ['ativo', 'inativo', 'suspenso']
   return validStatuses.includes(normalizedStatus as StatusFornecedor)
     ? (normalizedStatus as StatusFornecedor)
@@ -52,7 +52,7 @@ export function parseStatusFornecedor(
 }
 
 export function parseStatusUnidade(status?: string | null): StatusUnidade {
-  const normalizedStatus = status?.toLowerCase() || 'ativo'
+  const normalizedStatus = status?.toLowerCase() ?? 'ativo'
   const validStatuses: StatusUnidade[] = ['ativo', 'inativo']
   return validStatuses.includes(normalizedStatus as StatusUnidade)
     ? (normalizedStatus as StatusUnidade)

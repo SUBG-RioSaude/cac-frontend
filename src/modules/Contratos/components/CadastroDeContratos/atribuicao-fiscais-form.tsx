@@ -1,16 +1,4 @@
-﻿import { useState, useMemo, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import {
+﻿import {
   Search,
   UserPlus,
   X,
@@ -20,7 +8,20 @@ import {
   Loader2,
   Link,
 } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   useFuncionariosParaAtribuicao,
   useGetLotacoesAtivas,
@@ -48,23 +49,25 @@ interface AtribuicaoFiscaisFormProps {
   dadosIniciais?: DadosAtribuicao
 }
 
-export default function AtribuicaoFiscaisForm({
+const AtribuicaoFiscaisForm = ({
   onFinishRequest,
   onPrevious,
   dadosIniciais,
-}: AtribuicaoFiscaisFormProps) {
+}: AtribuicaoFiscaisFormProps) => {
   const [busca, setBusca] = useState('')
   const [lotacaoSelecionada, setLotacaoSelecionada] = useState<string>('')
   const [usuariosAtribuidos, setUsuariosAtribuidos] = useState<
     UsuarioAtribuido[]
-  >(dadosIniciais?.usuariosAtribuidos || [])
+  >(dadosIniciais?.usuariosAtribuidos ?? [])
 
   // Sincronizar com dadosIniciais quando mudarem (para suporte ao debug)
   useEffect(() => {
-    if (dadosIniciais?.usuariosAtribuidos) {
-      setUsuariosAtribuidos(dadosIniciais.usuariosAtribuidos)
+    const usuarios = dadosIniciais?.usuariosAtribuidos
+
+    if (usuarios && usuarios.length > 0) {
+      setUsuariosAtribuidos(usuarios)
     }
-  }, [dadosIniciais?.usuariosAtribuidos])
+  }, [dadosIniciais])
 
   // Buscar funcionários da API
   const {
@@ -106,7 +109,7 @@ export default function AtribuicaoFiscaisForm({
 
   // Lista de lotações para o select (filtrando valores vazios)
   const lotacoes = useMemo(() => {
-    const todasLotacoes = lotacoesResponse?.dados || []
+    const todasLotacoes = lotacoesResponse?.dados ?? []
     return todasLotacoes.filter(
       (lotacao) => lotacao.nome && lotacao.nome.trim().length > 0,
     )
@@ -253,6 +256,7 @@ export default function AtribuicaoFiscaisForm({
               )}
 
               {/* Error state */}
+              {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
               {erroFuncionarios && !carregandoFuncionarios && (
                 <div className="py-8 text-center text-red-500">
                   <X className="mx-auto mb-3 h-12 w-12 text-red-300" />
@@ -358,7 +362,7 @@ export default function AtribuicaoFiscaisForm({
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <Select
-                          value={usuario.tipo || ''}
+                          value={usuario.tipo ?? ''}
                           onValueChange={(value) =>
                             handleTipoChange(
                               usuario.id,
@@ -387,7 +391,7 @@ export default function AtribuicaoFiscaisForm({
                         <Input
                           type="text"
                           placeholder="Observações (opcional)..."
-                          value={usuario.observacoes || ''}
+                          value={usuario.observacoes ?? ''}
                           onChange={(e) =>
                             handleObservacoesChange(usuario.id, e.target.value)
                           }
@@ -403,7 +407,7 @@ export default function AtribuicaoFiscaisForm({
                             <Input
                               type="url"
                               placeholder="URL da nomeação *"
-                              value={usuario.urlNomeacao || ''}
+                              value={usuario.urlNomeacao ?? ''}
                               onChange={(e) =>
                                 handleUrlNomeacaoChange(
                                   usuario.id,
@@ -456,3 +460,5 @@ export default function AtribuicaoFiscaisForm({
     </div>
   )
 }
+
+export default AtribuicaoFiscaisForm

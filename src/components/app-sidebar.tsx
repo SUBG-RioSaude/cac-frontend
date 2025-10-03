@@ -6,7 +6,10 @@ import {
   Truck,
   Users,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
+import { NavMain } from '@/components/nav-main'
+import SidebarFooterCustom from '@/components/sidebar-footer'
 import {
   Sidebar,
   SidebarContent,
@@ -16,11 +19,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-import { NavMain } from '@/components/nav-main'
-
-import SidebarFooterCustom from '@/components/sidebar-footer'
 import { Separator } from './ui/separator'
-import { Link } from 'react-router-dom'
 
 const data = {
   user: {
@@ -96,7 +95,9 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export const AppSidebar = ({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) => {
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="h-svh" {...props}>
       <SidebarHeader>
@@ -133,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       CAC
                     </span>
                     {/* Efeito de brilho animado */}
-                    <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/cac:translate-x-full"></div>
+                    <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/cac:translate-x-full" />
                   </div>
                 </div>
               </div>

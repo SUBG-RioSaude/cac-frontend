@@ -5,15 +5,17 @@
  * Sistema de navegação por abas da página do fornecedor
  */
 
+import { BarChart3, FileText } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, FileText } from 'lucide-react'
-import { FornecedorVisaoGeral } from './FornecedorVisaoGeral'
-import { FornecedorContratos } from './FornecedorContratos'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
+
+import { FornecedorContratos } from './FornecedorContratos'
+import { FornecedorVisaoGeral } from './FornecedorVisaoGeral'
 
 interface FornecedorTabsProps {
   fornecedor: EmpresaResponse
@@ -23,18 +25,18 @@ interface FornecedorTabsProps {
 
 type TabValue = 'visao-geral' | 'contratos'
 
-export function FornecedorTabs({
+export const FornecedorTabs = ({
   fornecedor,
   contratos,
   isLoadingContratos,
-}: FornecedorTabsProps) {
+}: FornecedorTabsProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<TabValue>('visao-geral')
 
   // Sincronizar com URL
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab') as TabValue
-    if (tabFromUrl && ['visao-geral', 'contratos'].includes(tabFromUrl)) {
+    if (['visao-geral', 'contratos'].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl)
     }
   }, [searchParams])
@@ -66,7 +68,7 @@ export function FornecedorTabs({
           <FileText className="h-4 w-4" />
           <span className="hidden sm:inline">Contratos</span>
           <span className="sm:hidden">Contratos</span>
-          {contratos && contratos.length > 0 && (
+          {contratos.length > 0 && (
             <Badge variant="secondary" className="ml-1 text-xs">
               {contratos.length}
             </Badge>
@@ -78,14 +80,14 @@ export function FornecedorTabs({
         <TabsContent value="visao-geral" className="space-y-6">
           <FornecedorVisaoGeral
             fornecedor={fornecedor}
-            contratos={contratos || []}
+            contratos={contratos}
             isLoading={isLoadingContratos}
           />
         </TabsContent>
 
         <TabsContent value="contratos" className="space-y-6">
           <FornecedorContratos
-            contratos={contratos || []}
+            contratos={contratos}
             isLoading={isLoadingContratos}
             empresa={{
               id: fornecedor.id,

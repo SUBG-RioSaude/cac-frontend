@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
 import { cookieUtils, authCookieConfig } from '../cookie-utils'
 
 // Mock do document.cookie

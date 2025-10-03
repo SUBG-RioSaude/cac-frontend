@@ -1,19 +1,19 @@
 'use client'
 
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Loader2, Mail, Check } from 'lucide-react'
 import type React from 'react'
-
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, Loader2, Mail, Check } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/lib/auth/auth-store'
 
-export default function VerifyForm() {
+const VerifyForm = () => {
   const [codigo, setCodigo] = useState(['', '', '', '', '', ''])
   const [email, setEmail] = useState('')
   const [tempoRestante, setTempoRestante] = useState(300) // 5 minutos = 300 segundos
@@ -32,10 +32,11 @@ export default function VerifyForm() {
 
   useEffect(() => {
     const emailArmazenado = sessionStorage.getItem('auth_email')
+    const contextoAuthRaw = sessionStorage.getItem('auth_context')
     const contextoAuth =
-      (sessionStorage.getItem('auth_context') as
-        | 'login'
-        | 'password_recovery') || 'login'
+      contextoAuthRaw === 'login' || contextoAuthRaw === 'password_recovery'
+        ? contextoAuthRaw
+        : 'login'
 
     if (!emailArmazenado) {
       navigate('/login')
@@ -46,7 +47,7 @@ export default function VerifyForm() {
 
     // Redireciona se já estiver autenticado
     if (estaAutenticado) {
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
       navigate(redirectPath, { replace: true })
       return
@@ -134,7 +135,7 @@ export default function VerifyForm() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitAsync = async (e: React.FormEvent) => {
     e.preventDefault()
     const codigoString = codigo.join('')
 
@@ -160,7 +161,7 @@ export default function VerifyForm() {
 
       if (sucesso) {
         // Login bem-sucedido, redireciona para a página principal
-        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
         sessionStorage.removeItem('redirectAfterLogin')
         navigate(redirectPath, { replace: true })
       }
@@ -169,7 +170,11 @@ export default function VerifyForm() {
     }
   }
 
-  const handleResendCode = async () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    void handleSubmitAsync(e)
+  }
+
+  const handleResendCodeAsync = async () => {
     // Reenvia código através do esqueci senha
     const { esqueciSenha } = useAuthStore.getState()
 
@@ -202,7 +207,13 @@ export default function VerifyForm() {
           return prev - 1
         })
       }, 1000)
-    } catch (erro) {}
+    } catch {
+      // Erro já tratado pelo store
+    }
+  }
+
+  const handleResendCode = () => {
+    void handleResendCodeAsync()
   }
 
   const containerVariants = {
@@ -327,44 +338,57 @@ export default function VerifyForm() {
                       className="flex justify-center space-x-2"
                       variants={containerVariants}
                     >
-                      {codigo.map((digito, index) => (
-                        <motion.div key={index} custom={index}>
+                      {codigo.map((digito, index) => {
+                        const positions = [
+                          'first',
+                          'second',
+                          'third',
+                          'fourth',
+                          'fifth',
+                          'sixth',
+                        ]
+                        return (
                           <motion.div
-                            variants={codeInputVariants}
-                            animate={
-                              indiceFocado === index
-                                ? 'focused'
-                                : digito
-                                  ? 'filled'
-                                  : 'idle'
-                            }
-                            whileHover={{ scale: codigoExpirado ? 1 : 1.02 }}
-                            transition={{ duration: 0.2 }}
+                            key={`codigo-${positions[index]}`}
+                            custom={index}
                           >
-                            <Input
-                              ref={(el) => {
-                                inputRefs.current[index] = el
-                              }}
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={1}
-                              value={digito}
-                              onChange={(e) =>
-                                handleCodeChange(index, e.target.value)
+                            <motion.div
+                              variants={codeInputVariants}
+                              animate={
+                                indiceFocado === index
+                                  ? 'focused'
+                                  : digito
+                                    ? 'filled'
+                                    : 'idle'
                               }
-                              onKeyDown={(e) => handleKeyDown(index, e)}
-                              onFocus={() => setIndiceFocado(index)}
-                              onBlur={() => setIndiceFocado(null)}
-                              disabled={codigoExpirado}
-                              className={`h-12 w-12 border-2 text-center text-lg font-bold transition-all duration-200 ${
-                                codigoExpirado
-                                  ? 'cursor-not-allowed opacity-50'
-                                  : ''
-                              }`}
-                            />
+                              whileHover={{ scale: codigoExpirado ? 1 : 1.02 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Input
+                                ref={(el) => {
+                                  inputRefs.current[index] = el
+                                }}
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={1}
+                                value={digito}
+                                onChange={(e) =>
+                                  handleCodeChange(index, e.target.value)
+                                }
+                                onKeyDown={(e) => handleKeyDown(index, e)}
+                                onFocus={() => setIndiceFocado(index)}
+                                onBlur={() => setIndiceFocado(null)}
+                                disabled={codigoExpirado}
+                                className={`h-12 w-12 border-2 text-center text-lg font-bold transition-all duration-200 ${
+                                  codigoExpirado
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : ''
+                                }`}
+                              />
+                            </motion.div>
                           </motion.div>
-                        </motion.div>
-                      ))}
+                        )
+                      })}
                     </motion.div>
                   </div>
 
@@ -488,3 +512,5 @@ export default function VerifyForm() {
     </div>
   )
 }
+
+export default VerifyForm

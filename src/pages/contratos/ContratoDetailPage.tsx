@@ -1,16 +1,17 @@
+import { AlertCircle } from 'lucide-react'
 import { useParams } from 'react-router-dom'
+
 import LayoutPagina from '@/components/layout-pagina'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useContratoDetalhado } from '@/modules/Contratos/hooks/use-contratos'
-import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos'
-import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ListaDocumentosContrato } from '@/modules/Contratos/components/Documentos/ListaDocumentosContrato'
+import { TabDocumentos } from '@/modules/Contratos/components/Documentos/tab-documentos'
 import { DetalhesContrato } from '@/modules/Contratos/components/VisualizacaoContratos/detalhes-contrato'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { useContratoDetalhado } from '@/modules/Contratos/hooks/use-contratos'
 
-function ContratoDetailPage() {
+const ContratoDetailPage = () => {
   const { contratoId } = useParams<{ contratoId: string }>()
 
   // Usando o hook real para buscar dados do contrato

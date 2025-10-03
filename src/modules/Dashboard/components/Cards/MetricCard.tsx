@@ -5,10 +5,12 @@
  * Card reutilizável para exibir métricas com comparativo
  */
 
+import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react'
+
 import type { DashboardMetric } from '../../types/dashboard'
 import {
   formatPercentage,
@@ -28,7 +30,7 @@ interface MetricCardProps {
   description?: string
 }
 
-export function MetricCard({
+export const MetricCard = ({
   title,
   value,
   metric,
@@ -40,7 +42,7 @@ export function MetricCard({
   suffix,
   description,
   ...props
-}: MetricCardProps) {
+}: MetricCardProps) => {
   // Formatação do valor principal
   const formatValue = (val: number | string): string => {
     if (typeof val === 'string') return val
@@ -164,17 +166,17 @@ interface LoadingMetricCardProps
   isLoading: boolean
 }
 
-export function LoadingMetricCard({
+export const LoadingMetricCard = ({
   metric,
   isLoading,
   format = 'number',
   ...props
-}: LoadingMetricCardProps) {
+}: LoadingMetricCardProps) => {
   return (
     <MetricCard
       {...props}
-      value={metric?.atual || 0}
-      metric={metric || undefined}
+      value={metric?.atual ?? 0}
+      metric={metric ?? undefined}
       isLoading={isLoading}
       format={format}
     />
@@ -186,12 +188,14 @@ export function LoadingMetricCard({
  */
 
 // Card para valores monetários
-export function CurrencyMetricCard(props: Omit<MetricCardProps, 'format'>) {
+export const CurrencyMetricCard = (props: Omit<MetricCardProps, 'format'>) => {
   return <MetricCard {...props} format="currency" />
 }
 
 // Card para percentuais
-export function PercentageMetricCard(props: Omit<MetricCardProps, 'format'>) {
+export const PercentageMetricCard = (
+  props: Omit<MetricCardProps, 'format'>,
+) => {
   return <MetricCard {...props} format="percentage" />
 }
 
@@ -200,11 +204,11 @@ interface StatusMetricCardProps extends MetricCardProps {
   status: 'success' | 'warning' | 'danger' | 'info'
 }
 
-export function StatusMetricCard({
+export const StatusMetricCard = ({
   status,
   className,
   ...props
-}: StatusMetricCardProps) {
+}: StatusMetricCardProps) => {
   const statusClasses = {
     success: 'border-green-200 bg-green-50/50',
     warning: 'border-yellow-200 bg-yellow-50/50',

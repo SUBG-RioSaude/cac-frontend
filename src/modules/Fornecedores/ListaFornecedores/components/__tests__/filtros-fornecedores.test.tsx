@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { FiltrosFornecedores } from '../filtros-fornecedores'
+
 import type { FiltrosFornecedor } from '../../types/fornecedor'
+import { FiltrosFornecedores } from '../filtros-fornecedores'
 
 // Mock dos componentes UI
 vi.mock('@/components/ui/button', () => ({

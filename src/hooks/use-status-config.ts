@@ -5,8 +5,14 @@
  * Centraliza todas as configurações visuais e lógica de status
  */
 
-import { useMemo, useCallback } from 'react'
 import { CheckCircle, AlertTriangle, Clock, XCircle, Pause } from 'lucide-react'
+import { useMemo, useCallback } from 'react'
+
+import {
+  parseStatusContrato,
+  parseStatusFornecedor,
+  parseStatusUnidade,
+} from '@/types/status'
 import type {
   StatusConfigMap,
   StatusDomain,
@@ -110,44 +116,35 @@ export function useStatusConfig() {
       const domainConfig = statusConfigMap[domain]
 
       // Normalizar status para lowercase para maior flexibilidade
-      const normalizedStatus = status?.toLowerCase() as Status
-
       // Obter configuração específica ou fallback
-      let config: StatusConfig | undefined
-
       switch (domain) {
-        case 'contrato':
-          config = (domainConfig as Record<StatusContrato, StatusConfig>)[
-            normalizedStatus as StatusContrato
-          ]
-          break
-        case 'fornecedor':
-          config = (domainConfig as Record<StatusFornecedor, StatusConfig>)[
-            normalizedStatus as StatusFornecedor
-          ]
-          break
-        case 'unidade':
-          config = (domainConfig as Record<StatusUnidade, StatusConfig>)[
-            normalizedStatus as StatusUnidade
-          ]
-          break
-      }
-
-      // Fallback para status padrão se não encontrar configuração
-      if (!config) {
-        switch (domain) {
-          case 'contrato':
-            return statusConfigMap.contrato.indefinido
-          case 'fornecedor':
-            return statusConfigMap.fornecedor.ativo
-          case 'unidade':
-            return statusConfigMap.unidade.ativo
-          default:
-            return statusConfigMap.contrato.indefinido
+        case 'contrato': {
+          const contratoConfig = domainConfig as Record<
+            StatusContrato,
+            StatusConfig
+          >
+          const contratoStatus = parseStatusContrato(status)
+          return contratoConfig[contratoStatus]
         }
+        case 'fornecedor': {
+          const fornecedorConfig = domainConfig as Record<
+            StatusFornecedor,
+            StatusConfig
+          >
+          const fornecedorStatus = parseStatusFornecedor(status)
+          return fornecedorConfig[fornecedorStatus]
+        }
+        case 'unidade': {
+          const unidadeConfig = domainConfig as Record<
+            StatusUnidade,
+            StatusConfig
+          >
+          const unidadeStatus = parseStatusUnidade(status)
+          return unidadeConfig[unidadeStatus]
+        }
+        default:
+          return statusConfigMap.contrato.indefinido
       }
-
-      return config
     },
     [statusConfigMap],
   )
@@ -194,4 +191,27 @@ export function useStatusConfig() {
     getContratoStatusFromVigencia,
     statusConfigMap,
   }
+}
+
+// Função utilitária para usar status de contrato baseado em vigência (hook)
+export const useContratoStatus = (
+  vigenciaInicial?: string,
+  vigenciaFinal?: string,
+  statusAtual?: string,
+): StatusContrato => {
+  const { getContratoStatusFromVigencia } = useStatusConfig()
+  return useMemo(
+    () =>
+      getContratoStatusFromVigencia(
+        vigenciaInicial,
+        vigenciaFinal,
+        statusAtual,
+      ),
+    [
+      vigenciaInicial,
+      vigenciaFinal,
+      statusAtual,
+      getContratoStatusFromVigencia,
+    ],
+  )
 }

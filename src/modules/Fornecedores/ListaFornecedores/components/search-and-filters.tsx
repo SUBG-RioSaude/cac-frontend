@@ -1,4 +1,3 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -10,25 +9,29 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
+  Info,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import type { FiltrosFornecedorApi } from '../types/fornecedor'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { useDebounce } from '@/hooks/use-debounce'
+
+import type { FiltrosFornecedorApi } from '../types/fornecedor'
 
 // Função para detectar se o termo é CNPJ ou Razão Social
 function detectarTipoPesquisa(termo: string): Partial<FiltrosFornecedorApi> {
@@ -48,19 +51,17 @@ function detectarTipoPesquisa(termo: string): Partial<FiltrosFornecedorApi> {
   return { razaoSocial: termo.trim() }
 }
 
-const FILTROS_IGNORADOS: Array<keyof FiltrosFornecedorApi> = [
+const FILTROS_IGNORADOS: (keyof FiltrosFornecedorApi)[] = [
   'pagina',
   'tamanhoPagina',
 ]
 
 function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
   return (
-    Object.entries(filtros) as Array<
-      [
-        keyof FiltrosFornecedorApi,
-        FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
-      ]
-    >
+    Object.entries(filtros) as [
+      keyof FiltrosFornecedorApi,
+      FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
+    ][]
   ).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
@@ -71,15 +72,12 @@ function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
         acc[key] = undefined
         return acc
       }
-      if (
-        value === null ||
-        (typeof value === 'string' && value.trim() === '')
-      ) {
+      if (typeof value === 'string' && value.trim() === '') {
         return acc
       }
     }
 
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       return acc
     }
 
@@ -113,14 +111,17 @@ interface SearchAndFiltersFornecedoresProps {
   onFiltrosChange: (filtros: FiltrosFornecedorApi) => void
   filtrosAtivos: FiltrosFornecedorApi
   isLoading?: boolean
+  totalResultados?: number
 }
 
-export function SearchAndFiltersFornecedores({
+export const SearchAndFiltersFornecedores = ({
   onFiltrosChange,
   filtrosAtivos,
   isLoading = false,
-}: SearchAndFiltersFornecedoresProps) {
+  totalResultados,
+}: SearchAndFiltersFornecedoresProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Estados locais para UI
   const [statusExpanded, setStatusExpanded] = useState(false)
@@ -131,7 +132,7 @@ export function SearchAndFiltersFornecedores({
     [filtrosAtivos],
   )
   const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(
-    filtrosAtivos.cnpj || filtrosAtivos.razaoSocial || '',
+    filtrosAtivos.cnpj ?? filtrosAtivos.razaoSocial ?? '',
   )
   const [filtrosLocais, setFiltrosLocais] =
     useState<FiltrosFornecedorApi>(filtrosBase)
@@ -141,8 +142,11 @@ export function SearchAndFiltersFornecedores({
   const filtrosAplicadosRef = useRef<string>('')
 
   // Estado para mostrar loading durante debounce
+  // Só mostra loading se tiver 3+ caracteres e ainda não terminou o debounce
   const isSearching =
-    termoPesquisaLocal !== termoPesquisaDebounced && termoPesquisaLocal !== ''
+    termoPesquisaLocal !== termoPesquisaDebounced &&
+    termoPesquisaLocal.trim() !== '' &&
+    termoPesquisaLocal.trim().length >= 3
 
   useEffect(() => {
     setFiltrosLocais((prev) =>
@@ -152,8 +156,14 @@ export function SearchAndFiltersFornecedores({
 
   // Efeito para enviar pesquisa debounced
   useEffect(() => {
-    // Só processa se há termo de pesquisa debounced ou se mudaram outros filtros
-    const temPesquisa = termoPesquisaDebounced.trim() !== ''
+    const termoTrimmed = termoPesquisaDebounced.trim()
+    const temPesquisa = termoTrimmed !== ''
+
+    // Validação: só buscar se tiver 3+ caracteres OU campo vazio
+    // Se tiver 1-2 caracteres, não fazer nada
+    if (temPesquisa && termoTrimmed.length < 3) {
+      return
+    }
 
     const filtrosNormalizados = sanitizeFiltros(filtrosLocais)
 
@@ -206,6 +216,47 @@ export function SearchAndFiltersFornecedores({
 
   const filtrosAtivosCount = contarFiltrosAtivos()
 
+  const limparCampoPesquisa = useCallback(() => {
+    setTermoPesquisaLocal('')
+
+    // Remove cnpj e razaoSocial dos filtros locais
+    setFiltrosLocais((prev) => {
+      const filtrosSemPesquisa = { ...prev }
+      delete filtrosSemPesquisa.cnpj
+      delete filtrosSemPesquisa.razaoSocial
+      return filtrosSemPesquisa
+    })
+
+    const filtrosParaEnviar = {
+      pagina: 1,
+      tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
+      // Preserva outros filtros ativos
+      ...(filtrosLocais.status !== undefined && {
+        status: filtrosLocais.status,
+      }),
+      ...(filtrosLocais.valorMinimo !== undefined && {
+        valorMinimo: filtrosLocais.valorMinimo,
+      }),
+      ...(filtrosLocais.valorMaximo !== undefined && {
+        valorMaximo: filtrosLocais.valorMaximo,
+      }),
+      ...(filtrosLocais.contratosMinimo !== undefined && {
+        contratosMinimo: filtrosLocais.contratosMinimo,
+      }),
+      ...(filtrosLocais.contratosMaximo !== undefined && {
+        contratosMaximo: filtrosLocais.contratosMaximo,
+      }),
+      cnpj: undefined,
+      razaoSocial: undefined,
+    }
+
+    filtrosAplicadosRef.current = JSON.stringify(filtrosParaEnviar)
+    onFiltrosChange(filtrosParaEnviar)
+
+    // Mantém foco no input
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }, [filtrosLocais, onFiltrosChange])
+
   const limparFiltros = useCallback(() => {
     setTermoPesquisaLocal('')
     setFiltrosLocais({})
@@ -216,6 +267,43 @@ export function SearchAndFiltersFornecedores({
     onFiltrosChange({ pagina: 1, tamanhoPagina: 10 })
   }, [onFiltrosChange])
 
+  // Atalhos de teclado globais
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K ou / para focar no campo de busca
+      if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
+        // Não ativar se usuário está digitando em outro input
+        const target = e.target as HTMLElement
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+          return
+        }
+
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Mantém foco no input durante e após buscas
+  useEffect(() => {
+    // Se há termo de pesquisa e o input não está focado, restaura o foco
+    // Isso evita perda de foco durante re-renders causados por atualizações da API
+    if (
+      termoPesquisaLocal.length > 0 &&
+      document.activeElement !== inputRef.current &&
+      !isFilterOpen
+    ) {
+      // Não restaurar foco se dropdown de filtros estiver aberto
+      // Usar requestAnimationFrame para garantir que o foco seja restaurado após o render
+      requestAnimationFrame(() => {
+        inputRef.current?.focus()
+      })
+    }
+  }, [totalResultados, isLoading, termoPesquisaLocal, isFilterOpen])
+
   return (
     <div
       role="search"
@@ -223,7 +311,7 @@ export function SearchAndFiltersFornecedores({
     >
       {/* Search Bar */}
       <motion.div
-        className="relative max-w-md flex-1"
+        className="relative min-h-[44px] max-w-md flex-1"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -235,6 +323,11 @@ export function SearchAndFiltersFornecedores({
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           )}
           <Input
+            ref={inputRef}
+            role="searchbox"
+            aria-label="Buscar fornecedores por CNPJ ou Razão Social"
+            aria-busy={isSearching}
+            aria-describedby="search-hint"
             placeholder="Digite CNPJ ou Razão Social do fornecedor..."
             value={termoPesquisaLocal}
             onChange={(e) => {
@@ -243,39 +336,14 @@ export function SearchAndFiltersFornecedores({
 
               // Se o campo foi limpo, reset imediato dos filtros de pesquisa
               if (novoTermo.trim() === '') {
-                // Remove cnpj e razaoSocial dos filtros locais também
-                setFiltrosLocais((prev) => {
-                  const filtrosSemPesquisa = { ...prev }
-                  delete filtrosSemPesquisa.cnpj
-                  delete filtrosSemPesquisa.razaoSocial
-                  return filtrosSemPesquisa
-                })
-
-                const filtrosParaEnviar = {
-                  pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
-                  // Preserva outros filtros ativos (status, valor, contratos)
-                  ...(filtrosLocais.status && { status: filtrosLocais.status }),
-                  ...(filtrosLocais.valorMinimo && {
-                    valorMinimo: filtrosLocais.valorMinimo,
-                  }),
-                  ...(filtrosLocais.valorMaximo && {
-                    valorMaximo: filtrosLocais.valorMaximo,
-                  }),
-                  ...(filtrosLocais.contratosMinimo && {
-                    contratosMinimo: filtrosLocais.contratosMinimo,
-                  }),
-                  ...(filtrosLocais.contratosMaximo && {
-                    contratosMaximo: filtrosLocais.contratosMaximo,
-                  }),
-                  // Explicitamente define cnpj e razaoSocial como undefined
-                  cnpj: undefined,
-                  razaoSocial: undefined,
-                }
-
-                // Atualiza referência para evitar conflitos
-                filtrosAplicadosRef.current = JSON.stringify(filtrosParaEnviar)
-                onFiltrosChange(filtrosParaEnviar)
+                limparCampoPesquisa()
+              }
+            }}
+            onKeyDown={(e) => {
+              // ESC limpa o campo
+              if (e.key === 'Escape' && termoPesquisaLocal) {
+                e.preventDefault()
+                limparCampoPesquisa()
               }
             }}
             className="bg-background focus:border-primary h-11 w-full border-2 pr-4 pl-10 shadow-sm transition-all duration-200 lg:w-full"
@@ -285,49 +353,58 @@ export function SearchAndFiltersFornecedores({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setTermoPesquisaLocal('')
-
-                // Remove cnpj e razaoSocial dos filtros locais também
-                setFiltrosLocais((prev) => {
-                  const filtrosSemPesquisa = { ...prev }
-                  delete filtrosSemPesquisa.cnpj
-                  delete filtrosSemPesquisa.razaoSocial
-                  return filtrosSemPesquisa
-                })
-
-                const filtrosParaEnviar = {
-                  pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
-                  // Preserva outros filtros ativos (status, valor, contratos)
-                  ...(filtrosLocais.status && { status: filtrosLocais.status }),
-                  ...(filtrosLocais.valorMinimo && {
-                    valorMinimo: filtrosLocais.valorMinimo,
-                  }),
-                  ...(filtrosLocais.valorMaximo && {
-                    valorMaximo: filtrosLocais.valorMaximo,
-                  }),
-                  ...(filtrosLocais.contratosMinimo && {
-                    contratosMinimo: filtrosLocais.contratosMinimo,
-                  }),
-                  ...(filtrosLocais.contratosMaximo && {
-                    contratosMaximo: filtrosLocais.contratosMaximo,
-                  }),
-                  // Explicitamente define cnpj e razaoSocial como undefined
-                  cnpj: undefined,
-                  razaoSocial: undefined,
-                }
-
-                // Atualiza referência para evitar conflitos
-                filtrosAplicadosRef.current = JSON.stringify(filtrosParaEnviar)
-                onFiltrosChange(filtrosParaEnviar)
-              }}
+              onClick={limparCampoPesquisa}
               className="hover:bg-muted absolute top-1/2 right-2 h-6 w-6 -translate-y-1/2 transform p-0"
+              aria-label="Limpar busca"
             >
               <X className="h-3 w-3" />
             </Button>
           )}
         </div>
+
+        {/* Mensagem informativa quando digitar menos de 3 caracteres - Posicionamento absoluto */}
+        <AnimatePresence>
+          {termoPesquisaLocal.trim().length > 0 &&
+            termoPesquisaLocal.trim().length < 3 && (
+              <motion.div
+                id="search-hint"
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="text-muted-foreground bg-background/95 absolute top-full left-0 z-10 mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm shadow-sm backdrop-blur-sm"
+              >
+                <Info className="h-4 w-4 flex-shrink-0" />
+                <span>Digite pelo menos 3 caracteres para buscar</span>
+              </motion.div>
+            )}
+        </AnimatePresence>
+
+        {/* Contador de resultados - Posicionamento absoluto */}
+        <AnimatePresence>
+          {termoPesquisaLocal.trim().length >= 3 &&
+            totalResultados !== undefined &&
+            !isSearching && (
+              <motion.div
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 z-10 mt-1"
+              >
+                <Badge variant="secondary" className="text-xs shadow-sm">
+                  {totalResultados}{' '}
+                  {totalResultados === 1
+                    ? 'fornecedor encontrado'
+                    : 'fornecedores encontrados'}
+                </Badge>
+              </motion.div>
+            )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Filters Dropdown */}
@@ -477,7 +554,8 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMinimo, ...rest } = prev
+                              const { valorMinimo: _valorMinimo, ...rest } =
+                                prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMinimo: Number(valor) }
@@ -502,7 +580,8 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMaximo, ...rest } = prev
+                              const { valorMaximo: _valorMaximo, ...rest } =
+                                prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMaximo: Number(valor) }
@@ -558,7 +637,10 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMinimo, ...rest } = prev
+                              const {
+                                contratosMinimo: _contratosMinimo,
+                                ...rest
+                              } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMinimo: Number(valor) }
@@ -583,7 +665,10 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMaximo, ...rest } = prev
+                              const {
+                                contratosMaximo: _contratosMaximo,
+                                ...rest
+                              } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMaximo: Number(valor) }

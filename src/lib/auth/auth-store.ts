@@ -1,8 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+
+import { createServiceLogger } from '@/lib/logger'
+import type { Usuario } from '@/types/auth'
+
 import { authService } from './auth-service'
 import { cookieUtils, authCookieConfig } from './cookie-utils'
-import type { Usuario } from '@/types/auth'
 
 export interface AuthState {
   // Estado
@@ -45,6 +48,20 @@ const validarTokenJWT = (token: string): boolean => {
   return false
 }
 
+const authLogger = createServiceLogger('auth-store')
+
+const sanitizeMensagem = (
+  mensagem: string | null | undefined,
+  fallback: string,
+): string => {
+  if (typeof mensagem !== 'string') {
+    return fallback
+  }
+
+  const mensagemNormalizada = mensagem.trim()
+  return mensagemNormalizada.length > 0 ? mensagemNormalizada : fallback
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -69,7 +86,7 @@ export const useAuthStore = create<AuthState>()(
           } else {
             set({
               carregando: false,
-              erro: resultado.mensagem || 'Erro no login',
+              erro: resultado.mensagem ?? 'Erro no login',
             })
             return false
           }
@@ -94,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
           if (resultado.precisaTrocarSenha) {
             sessionStorage.setItem(
               'tokenTrocaSenha',
-              resultado.tokenTrocaSenha || '',
+              resultado.tokenTrocaSenha ?? '',
             )
             sessionStorage.setItem('auth_email', email)
             sessionStorage.setItem('auth_context', 'password_reset') // Define contexto correto para troca de senha
@@ -147,7 +164,7 @@ export const useAuthStore = create<AuthState>()(
             // Se não foi sucesso e não precisa trocar senha, define o erro
             set({
               carregando: false,
-              erro: resultado.mensagem || 'Erro ao confirmar código 2FA.',
+              erro: resultado.mensagem ?? 'Erro ao confirmar código 2FA.',
             })
             return false
           }
@@ -211,9 +228,13 @@ export const useAuthStore = create<AuthState>()(
               return false
             }
           } else {
+            const mensagemErro = sanitizeMensagem(
+              resultado.mensagem,
+              'Erro ao trocar senha',
+            )
             set({
               carregando: false,
-              erro: resultado.mensagem || 'Erro ao trocar senha',
+              erro: mensagemErro,
             })
             return false
           }
@@ -238,9 +259,13 @@ export const useAuthStore = create<AuthState>()(
             set({ carregando: false })
             return true
           } else {
+            const mensagemErro = sanitizeMensagem(
+              resultado.mensagem,
+              'Erro ao solicitar recuperação',
+            )
             set({
               carregando: false,
-              erro: resultado.mensagem || 'Erro ao solicitar recuperação',
+              erro: mensagemErro,
             })
             return false
           }
@@ -262,7 +287,14 @@ export const useAuthStore = create<AuthState>()(
 
         // Invalida token no servidor (não bloqueia UI)
         if (refreshToken && validarTokenJWT(refreshToken)) {
-          authService.logout(refreshToken).catch(() => {})
+          authService.logout(refreshToken).catch((erro) => {
+            authLogger.warn(
+              { action: 'logout', scope: 'single-session' },
+              erro instanceof Error
+                ? erro.message
+                : 'Erro desconhecido ao encerrar sessão',
+            )
+          })
         }
 
         // Remove tokens dos cookies
@@ -307,7 +339,14 @@ export const useAuthStore = create<AuthState>()(
           })
 
           sessionStorage.clear()
-        } catch (erro) {}
+        } catch (erro) {
+          authLogger.warn(
+            { action: 'logout', scope: 'all-sessions' },
+            erro instanceof Error
+              ? erro.message
+              : 'Erro desconhecido ao encerrar todas as sessões',
+          )
+        }
       },
 
       // Renovação de token
@@ -351,7 +390,7 @@ export const useAuthStore = create<AuthState>()(
             get().logout()
             return false
           }
-        } catch (erro) {
+        } catch {
           get().logout()
           return false
         }
@@ -385,7 +424,7 @@ export const useAuthStore = create<AuthState>()(
               set({ estaAutenticado: false, carregando: false })
             }
           }
-        } catch (erro) {
+        } catch {
           set({ estaAutenticado: false, carregando: false })
         }
       },

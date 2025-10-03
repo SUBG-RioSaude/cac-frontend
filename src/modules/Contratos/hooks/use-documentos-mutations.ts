@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
+
 import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   uploadDocumento,
   deleteDocumento,
@@ -68,18 +69,18 @@ export function useUploadDocumento() {
     },
     onSuccess: (_data, variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento enviado com sucesso!')
 
       // Invalida a query de documentos para atualizar a lista
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: contratoKeys.documentos(variables.contratoId),
       })
     },
     onError: (error, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       mutation.error('Falha ao enviar documento', error)
     },
@@ -98,7 +99,7 @@ export function useDeleteDocumento() {
       return deleteDocumento(data.documentoId)
     },
     onMutate: async (data) => {
-      const contratoId = data.contratoId
+      const { contratoId } = data
 
       const loadingToast = mutation.loading('Excluindo documento...')
 
@@ -127,23 +128,23 @@ export function useDeleteDocumento() {
     },
     onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento excluído com sucesso!')
 
       // Invalida a query para garantir consistência, embora já tenhamos feito o optimistic update
-      queryClient.invalidateQueries({
-        queryKey: contratoKeys.documentos(context?.contratoId),
+      void queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context.contratoId),
       })
     },
     onError: (error, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       // Rollback em caso de erro
       if (context?.previousDocumentos) {
         queryClient.setQueryData(
-          contratoKeys.documentos(context?.contratoId),
+          contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
         )
       }
@@ -166,7 +167,7 @@ export function useUpdateDocumento() {
       return updateDocumento(data.documentoId, data.payload)
     },
     onMutate: async (data) => {
-      const contratoId = data.contratoId
+      const { contratoId } = data
 
       const loadingToast = mutation.loading('Atualizando documento...')
       await queryClient.cancelQueries({
@@ -192,20 +193,20 @@ export function useUpdateDocumento() {
     },
     onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento atualizado com sucesso!')
-      queryClient.invalidateQueries({
-        queryKey: contratoKeys.documentos(context?.contratoId),
+      void queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context.contratoId),
       })
     },
     onError: (error, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       if (context?.previousDocumentos) {
         queryClient.setQueryData(
-          contratoKeys.documentos(context?.contratoId),
+          contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
         )
       }
@@ -228,7 +229,7 @@ export function useCreateDocumento() {
       return createDocumento(data.payload)
     },
     onMutate: async (data) => {
-      const contratoId = data.contratoId
+      const { contratoId } = data
 
       const loadingToast = mutation.loading('Registrando documento...')
       await queryClient.cancelQueries({
@@ -250,23 +251,23 @@ export function useCreateDocumento() {
     },
     onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documento registrado com sucesso!')
 
       // Invalida a query de documentos para atualizar a lista com o novo documento
-      queryClient.invalidateQueries({
-        queryKey: contratoKeys.documentos(context?.contratoId),
+      void queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context.contratoId),
       })
     },
     onError: (error, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       // Rollback in case of error (if optimistic update was performed)
       if (context?.previousDocumentos) {
         queryClient.setQueryData(
-          contratoKeys.documentos(context?.contratoId),
+          contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
         )
       }
@@ -289,7 +290,7 @@ export function useUpdateDocumentosMultiplos() {
       return saveDocumentosMultiplos(data.contratoId, data.payload)
     },
     onMutate: async (data) => {
-      const contratoId = data.contratoId
+      const { contratoId } = data
       const loadingToast = mutation.loading('Salvando documentos...')
 
       await queryClient.cancelQueries({
@@ -304,22 +305,22 @@ export function useUpdateDocumentosMultiplos() {
     },
     onSuccess: (_data, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       mutation.success('Documentos salvos com sucesso!')
 
       // Invalidar cache para buscar dados atualizados
-      queryClient.invalidateQueries({
-        queryKey: contratoKeys.documentos(context?.contratoId),
+      void queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context.contratoId),
       })
     },
     onError: (error, _variables, context) => {
       if (context?.loadingToast) {
-        toast.dismiss(context.loadingToast)
+        toast.dismiss(context?.loadingToast)
       }
       if (context?.previousDocumentos) {
         queryClient.setQueryData(
-          contratoKeys.documentos(context?.contratoId),
+          contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
         )
       }
@@ -342,7 +343,7 @@ export function useUpdateDocumentoStatus() {
       return saveDocumentoStatus(data.contratoId, data.documento)
     },
     onMutate: async (data) => {
-      const contratoId = data.contratoId
+      const { contratoId } = data
 
       await queryClient.cancelQueries({
         queryKey: contratoKeys.documentos(contratoId),
@@ -358,14 +359,14 @@ export function useUpdateDocumentoStatus() {
       mutation.success('Status atualizado com sucesso!')
 
       // Invalidar cache para buscar dados atualizados
-      queryClient.invalidateQueries({
-        queryKey: contratoKeys.documentos(context?.contratoId),
+      void queryClient.invalidateQueries({
+        queryKey: contratoKeys.documentos(context.contratoId),
       })
     },
     onError: (error, _variables, context) => {
       if (context?.previousDocumentos) {
         queryClient.setQueryData(
-          contratoKeys.documentos(context?.contratoId),
+          contratoKeys.documentos(context.contratoId),
           context.previousDocumentos,
         )
       }

@@ -1,11 +1,13 @@
 import { useParams } from 'react-router-dom'
-import { useConsultarEmpresaPorCNPJ } from '@/modules/Empresas/hooks/use-empresas'
+
+import { Skeleton } from '@/components/ui/skeleton'
 import { useContratosPorEmpresa } from '@/modules/Contratos/hooks/use-contratos-empresa'
+import { useConsultarEmpresaPorCNPJ } from '@/modules/Empresas/hooks/use-empresas'
+
 import { FornecedorHeader } from '../components/fornecedor-header'
 import { FornecedorTabs } from '../components/FornecedorTabs'
-import { Skeleton } from '@/components/ui/skeleton'
 
-export default function VisualizacaoFornecedorPage() {
+const VisualizacaoFornecedorPage = () => {
   const { fornecedorId } = useParams<{ fornecedorId: string }>()
   const {
     data: fornecedor,
@@ -16,7 +18,7 @@ export default function VisualizacaoFornecedorPage() {
   // Buscar contratos do fornecedor
   const { data: contratosData, isLoading: isLoadingContratos } =
     useContratosPorEmpresa(
-      fornecedor?.id || '',
+      fornecedor?.id ?? '',
       {},
       { enabled: !!fornecedor?.id },
     )
@@ -37,7 +39,7 @@ export default function VisualizacaoFornecedorPage() {
     return <div>Erro ao carregar os dados do fornecedor.</div>
   }
 
-  const contratos = contratosData?.dados || []
+  const contratos = contratosData?.dados ?? []
 
   return (
     <div className="space-y-6">
@@ -55,3 +57,5 @@ export default function VisualizacaoFornecedorPage() {
     </div>
   )
 }
+
+export default VisualizacaoFornecedorPage

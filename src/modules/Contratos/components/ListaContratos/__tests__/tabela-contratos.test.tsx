@@ -1,11 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import { TabelaContratos } from '../tabela-contratos'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type {
   Contrato,
   PaginacaoParams,
 } from '@/modules/Contratos/types/contrato'
+
+import { TabelaContratos } from '../tabela-contratos'
 
 // Mock props para os testes
 const mockProps = {
@@ -274,7 +276,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
   it('Renderizar componente com hideContratadaColumn={true}', () => {
     renderizarComRouter(
-      <TabelaContratos {...propsWithData} hideContratadaColumn={true} />,
+      <TabelaContratos {...propsWithData} hideContratadaColumn />,
     )
 
     // Verifica se a coluna Contratada NÃO está presente
@@ -293,7 +295,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
   it('Verificar se coluna "Contratada" NÃO está visível', () => {
     renderizarComRouter(
-      <TabelaContratos {...propsWithData} hideContratadaColumn={true} />,
+      <TabelaContratos {...propsWithData} hideContratadaColumn />,
     )
 
     // Nenhuma coluna Contratada deve estar presente
@@ -302,7 +304,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
   it('deve ocultar células da Contratada no modo mobile', () => {
     renderizarComRouter(
-      <TabelaContratos {...propsWithData} hideContratadaColumn={true} />,
+      <TabelaContratos {...propsWithData} hideContratadaColumn />,
     )
 
     // No mobile, Razão Social e CNPJ também não devem aparecer quando oculto
@@ -343,7 +345,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     // Oculta a coluna e verifica ausência do conteúdo na mesma linha
     rerender(
       <BrowserRouter>
-        <TabelaContratos {...propsWithData} hideContratadaColumn={true} />
+        <TabelaContratos {...propsWithData} hideContratadaColumn />
       </BrowserRouter>,
     )
     const bodyRowsHidden = screen
@@ -383,7 +385,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     // Com coluna oculta
     rerender(
       <BrowserRouter>
-        <TabelaContratos {...propsLoading} hideContratadaColumn={true} />
+        <TabelaContratos {...propsLoading} hideContratadaColumn />
       </BrowserRouter>,
     )
     const desktopTableHidden = document.querySelector(
@@ -406,11 +408,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
 
   it('Renderizar estado de loading com hideContratadaColumn={true}', () => {
     renderizarComRouter(
-      <TabelaContratos
-        {...mockProps}
-        isLoading={true}
-        hideContratadaColumn={true}
-      />,
+      <TabelaContratos {...mockProps} isLoading hideContratadaColumn />,
     )
 
     // Verifica se o header da coluna Contratada NÃO está presente durante loading
@@ -443,7 +441,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     // Alterna para ocultar
     rerender(
       <BrowserRouter>
-        <TabelaContratos {...propsWithData} hideContratadaColumn={true} />
+        <TabelaContratos {...propsWithData} hideContratadaColumn />
       </BrowserRouter>,
     )
     expect(screen.queryAllByText('Contratada')).toHaveLength(0)
@@ -500,7 +498,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     // Ao ocultar, nem header nem conteúdo devem existir
     rerender(
       <BrowserRouter>
-        <TabelaContratos {...propsSemEmpresa} hideContratadaColumn={true} />
+        <TabelaContratos {...propsSemEmpresa} hideContratadaColumn />
       </BrowserRouter>,
     )
     expect(screen.queryAllByText('Contratada')).toHaveLength(0)
@@ -535,7 +533,7 @@ describe('TabelaContratos - hideContratadaColumn', () => {
     // Sem coluna Contratada
     rerender(
       <BrowserRouter>
-        <TabelaContratos {...propsWithData} hideContratadaColumn={true} />
+        <TabelaContratos {...propsWithData} hideContratadaColumn />
       </BrowserRouter>,
     )
 

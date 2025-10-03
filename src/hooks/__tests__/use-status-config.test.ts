@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { useStatusConfig } from '../use-status-config'
 import { CheckCircle, AlertTriangle, Clock, XCircle, Pause } from 'lucide-react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+import { useStatusConfig } from '../use-status-config'
 
 describe('useStatusConfig', () => {
   describe('getStatusConfig', () => {

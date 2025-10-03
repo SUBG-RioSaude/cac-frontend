@@ -1,22 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
-import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
 import {
   ChevronRight,
   ChevronLeft,
@@ -34,11 +16,28 @@ import {
   Building2,
   Lock,
 } from 'lucide-react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 
-import { TipoAlteracaoSelector } from './components/TipoAlteracaoSelector'
-import { BlocosDinamicos } from './components/BlocosDinamicos'
-import { ModalAlertaLimiteLegal } from './components/ModalAlertaLimiteLegal'
-import { useAlteracoesContratuais } from './hooks/useAlteracoesContratuais'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
+
 import {
   useContractContext,
   useContractFinancials,
@@ -55,8 +54,11 @@ import type {
   TipoAlteracao,
 } from '../../types/alteracoes-contratuais'
 import { TIPOS_ALTERACAO_CONFIG } from '../../types/alteracoes-contratuais'
-import type { FornecedorResumoApi } from '@/modules/Empresas/types/empresa'
-import { useEmpresasByIds } from '@/modules/Empresas/hooks/use-empresas'
+
+import { BlocosDinamicos } from './components/BlocosDinamicos'
+import { ModalAlertaLimiteLegal } from './components/ModalAlertaLimiteLegal'
+import { TipoAlteracaoSelector } from './components/TipoAlteracaoSelector'
+import { useAlteracoesContratuais } from './hooks/useAlteracoesContratuais'
 
 interface ContractInfo {
   numeroContrato?: string
@@ -86,8 +88,8 @@ interface AlteracoesContratuaisProps {
   vigenciaFinal?: string // Data final do contrato para travar campo de publicação
   alteracaoId?: string // Para edição
   initialData?: Partial<AlteracaoContratualForm>
-  onSaved?: (alteracao: AlteracaoContratualResponse) => void
-  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
   onCancelled?: () => void
   className?: string
 }
@@ -126,7 +128,7 @@ const ETAPAS: Etapa[] = [
   },
 ]
 
-export function AlteracoesContratuais({
+export const AlteracoesContratuais = ({
   contratoId,
   numeroContrato,
   valorOriginal = 0,
@@ -137,7 +139,7 @@ export function AlteracoesContratuais({
   onSubmitted,
   onCancelled,
   className,
-}: AlteracoesContratuaisProps) {
+}: AlteracoesContratuaisProps) => {
   const [etapaAtual, setEtapaAtual] = useState(0)
   const [modalLimiteLegal, setModalLimiteLegal] = useState<{
     open: boolean
@@ -200,7 +202,7 @@ export function AlteracoesContratuais({
   useEffect(() => {
     if (vigenciaFinal && !dados.dataEfeito) {
       // Converter vigenciaFinal para formato yyyy-mm-dd
-      const dataFormatada = vigenciaFinal.split('T')[0] // Remove parte de tempo se presente
+      const [dataFormatada] = vigenciaFinal.split('T') // Remove parte de tempo se presente
       atualizarDados({ dataEfeito: dataFormatada })
     }
   }, [vigenciaFinal, dados.dataEfeito, atualizarDados])
@@ -223,7 +225,7 @@ export function AlteracoesContratuais({
         ) {
           podeAvancar = false
         }
-        if (!dados.dataEfeito || dados.dataEfeito === '') {
+        if (!dados.dataEfeito) {
           podeAvancar = false
         }
         break
@@ -302,7 +304,10 @@ export function AlteracoesContratuais({
       // Callback de sucesso ao submeter (se disponível)
       // Note: onSubmitted será chamado pelo hook quando a operação for bem-sucedida
     } catch (error) {
-      console.error('❌ Erro ao submeter alteração:', error)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('❌ Erro ao submeter alteração:', error)
+      }
       setModalErro({
         open: true,
         mensagem:
@@ -328,10 +333,10 @@ export function AlteracoesContratuais({
   // IDs de empresas usados nos blocos de fornecedores (para revisão)
   const fornecedoresIds = useMemo(() => {
     const idsVinculados = (
-      dados.blocos?.fornecedores?.fornecedoresVinculados || []
+      dados.blocos?.fornecedores?.fornecedoresVinculados ?? []
     ).map((f) => f.empresaId)
     const idsDesvinculados =
-      dados.blocos?.fornecedores?.fornecedoresDesvinculados || []
+      dados.blocos?.fornecedores?.fornecedoresDesvinculados ?? []
     const idNovoPrincipal = dados.blocos?.fornecedores?.novoFornecedorPrincipal
     const ids = [
       ...idsVinculados,
@@ -362,12 +367,13 @@ export function AlteracoesContratuais({
       ) {
         return contractSuppliers.mainSupplier.razaoSocial || empresaId
       }
-      const fromList = contractSuppliers.suppliers?.find(
+      const fromList = contractSuppliers.suppliers.find(
         (s) => s.id === empresaId,
       )
-      if (fromList) return fromList.razaoSocial || empresaId
-      const fetched = empresasLookup.data?.[empresaId]
-      if (fetched) return fetched.razaoSocial || empresaId
+      if (fromList?.razaoSocial) return fromList.razaoSocial
+      const fetched = empresasLookup.data[empresaId]
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (fetched?.razaoSocial) return fetched.razaoSocial
       return empresaId
     },
     [
@@ -383,7 +389,7 @@ export function AlteracoesContratuais({
       case 0: // Tipos
         return (
           <TipoAlteracaoSelector
-            tiposSelecionados={dados.tiposAlteracao || []}
+            tiposSelecionados={dados.tiposAlteracao ?? []}
             onChange={handleTiposChange}
             disabled={isLoading}
             error={errors.tiposAlteracao}
@@ -410,7 +416,7 @@ export function AlteracoesContratuais({
                 </Label>
                 <Textarea
                   id="justificativa"
-                  value={dados.dadosBasicos?.justificativa || ''}
+                  value={dados.dadosBasicos?.justificativa ?? ''}
                   onChange={(e) =>
                     handleDadosBasicosChange('justificativa', e.target.value)
                   }
@@ -428,7 +434,7 @@ export function AlteracoesContratuais({
                   </div>
                 )}
                 <div className="text-xs text-gray-500">
-                  {(dados.dadosBasicos?.justificativa || '').length} caracteres
+                  {(dados.dadosBasicos?.justificativa ?? '').length} caracteres
                 </div>
               </div>
 
@@ -437,7 +443,7 @@ export function AlteracoesContratuais({
                 <Label htmlFor="fundamento-legal">Documento</Label>
                 <Textarea
                   id="fundamento-legal"
-                  value={dados.dadosBasicos?.fundamentoLegal || ''}
+                  value={dados.dadosBasicos?.fundamentoLegal ?? ''}
                   onChange={(e) =>
                     handleDadosBasicosChange('fundamentoLegal', e.target.value)
                   }
@@ -461,13 +467,13 @@ export function AlteracoesContratuais({
                 <Input
                   id="dataEfeito"
                   type="date"
-                  value={dados.dataEfeito || ''}
+                  value={dados.dataEfeito ?? ''}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     atualizarDados({ dataEfeito: e.target.value })
                   }
                   disabled={isLoading || !!vigenciaFinal} // Desabilita se vigenciaFinal estiver presente
                   className={cn(
-                    errors['dataEfeito'] && 'border-red-500',
+                    errors.dataEfeito && 'border-red-500',
                     vigenciaFinal &&
                       'cursor-not-allowed bg-gray-50 text-gray-700',
                   )}
@@ -484,10 +490,10 @@ export function AlteracoesContratuais({
                     contrato
                   </div>
                 )}
-                {errors['dataEfeito'] && (
+                {errors.dataEfeito && (
                   <div className="flex items-center gap-2 text-sm text-red-600">
                     <AlertCircle className="h-4 w-4" />
-                    {errors['dataEfeito']}
+                    {errors.dataEfeito}
                   </div>
                 )}
               </div>
@@ -500,7 +506,7 @@ export function AlteracoesContratuais({
                 </Label>
                 <Textarea
                   id="observacoes"
-                  value={dados.dadosBasicos?.observacoes || ''}
+                  value={dados.dadosBasicos?.observacoes ?? ''}
                   onChange={(e) =>
                     handleDadosBasicosChange('observacoes', e.target.value)
                   }
@@ -516,7 +522,7 @@ export function AlteracoesContratuais({
       case 2: // Blocos dinâmicos
         return (
           <BlocosDinamicos
-            tiposSelecionados={dados.tiposAlteracao || []}
+            tiposSelecionados={dados.tiposAlteracao ?? []}
             dados={dados}
             onChange={atualizarDados}
             contractContext={{
@@ -563,14 +569,15 @@ export function AlteracoesContratuais({
         const getTipoNome = (tipo: number): string => {
           const config =
             TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
-          return config?.label || `Tipo ${tipo}`
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          return config ? config.label : `Tipo ${tipo}`
         }
 
-        const getUnitName = (unitId: string) => {
+        const getUnitName = (unitId: string): string => {
           // Check in linked units (array of objects with id property)
-          const unit = contractUnits.linkedUnits?.find((u) => u.id === unitId)
-          if (unit) {
-            return unit.nome || unitId
+          const unit = contractUnits.linkedUnits.find((u) => u.id === unitId)
+          if (unit?.nome) {
+            return unit.nome
           }
           // Check if it's the demanding unit (stored as string)
           if (contractUnits.demandingUnit === unitId) {
@@ -598,7 +605,7 @@ export function AlteracoesContratuais({
                     <Label className="text-sm font-medium text-gray-700">
                       Contrato
                     </Label>
-                    <p className="text-sm">{numeroContrato || contratoId}</p>
+                    <p className="text-sm">{numeroContrato ?? contratoId}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-700">
@@ -628,7 +635,7 @@ export function AlteracoesContratuais({
                     Justificativa
                   </Label>
                   <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
-                    {dados.dadosBasicos?.justificativa || '-'}
+                    {dados.dadosBasicos?.justificativa ?? '-'}
                   </p>
                 </div>
 
@@ -670,7 +677,7 @@ export function AlteracoesContratuais({
             </Card>
 
             {/* Detalhes dos Blocos Alterados */}
-            {Object.keys(dados.blocos || {}).length > 0 && (
+            {Object.keys(dados.blocos ?? {}).length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -834,12 +841,9 @@ export function AlteracoesContratuais({
                               </span>
                               <div className="mt-1 space-y-1">
                                 {dados.blocos.fornecedores.fornecedoresVinculados.map(
-                                  (
-                                    fornecedor: FornecedorAlteracao,
-                                    index: number,
-                                  ) => (
+                                  (fornecedor: FornecedorAlteracao) => (
                                     <div
-                                      key={index}
+                                      key={fornecedor.empresaId}
                                       className="rounded border bg-white p-2 text-xs"
                                     >
                                       <span className="font-medium">
@@ -869,9 +873,9 @@ export function AlteracoesContratuais({
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {dados.blocos.fornecedores.fornecedoresDesvinculados.map(
-                                  (id: string, index: number) => (
+                                  (id: string) => (
                                     <Badge
-                                      key={index}
+                                      key={id}
                                       variant="destructive"
                                       className="text-xs"
                                     >
@@ -918,9 +922,9 @@ export function AlteracoesContratuais({
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {dados.blocos.unidades.unidadesVinculadas.map(
-                                  (unidade, index: number) => (
+                                  (unidade) => (
                                     <Badge
-                                      key={index}
+                                      key={unidade.unidadeSaudeId}
                                       variant="default"
                                       className="text-xs"
                                     >
@@ -940,9 +944,9 @@ export function AlteracoesContratuais({
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {dados.blocos.unidades.unidadesDesvinculadas.map(
-                                  (id: string, index: number) => (
+                                  (id: string) => (
                                     <Badge
-                                      key={index}
+                                      key={id}
                                       variant="destructive"
                                       className="text-xs"
                                     >
@@ -1055,7 +1059,7 @@ export function AlteracoesContratuais({
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center">
                   <Button
-                    onClick={handleSubmeter}
+                    onClick={() => void handleSubmeter()}
                     disabled={!podeSubmeter || isLoading}
                     className="flex items-center gap-2"
                     variant="default"
@@ -1256,8 +1260,8 @@ export function AlteracoesContratuais({
               <ul className="mt-1 space-y-1 text-xs text-red-700">
                 {Object.values(errors)
                   .slice(0, 5)
-                  .map((error, index) => (
-                    <li key={index}>• {error}</li>
+                  .map((error) => (
+                    <li key={`error-${error}`}>• {error}</li>
                   ))}
                 {Object.keys(errors).length > 5 && (
                   <li>• E mais {Object.keys(errors).length - 5} erro(s)...</li>

@@ -1,16 +1,18 @@
-import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import type {
+  DocumentoContratoDto,
+  SaveDocumentosMultiplosPayload,
+} from '@/modules/Contratos/types/contrato'
+
 import {
   useUpdateDocumentosMultiplos,
   useUpdateDocumentoStatus,
   useUploadDocumento,
   useDeleteDocumento,
 } from '../use-documentos-mutations'
-import type {
-  DocumentoContratoDto,
-  SaveDocumentosMultiplosPayload,
-} from '@/modules/Contratos/types/contrato'
 
 // Mock do sonner toast
 vi.mock('sonner', () => ({
@@ -322,10 +324,7 @@ describe('useDeleteDocumento', () => {
 
     // Aguardar o optimistic update ser aplicado
     await waitFor(() => {
-      const cacheData = queryClient.getQueryData([
-        'documentos',
-        contratoId,
-      ]) as DocumentoContratoDto[]
+      const cacheData = queryClient.getQueryData(['documentos', contratoId])!
       expect(cacheData).toEqual([])
     })
 

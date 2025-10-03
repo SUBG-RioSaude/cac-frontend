@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cnpjUtils } from '@/lib/utils'
 
 interface FornecedorHeaderProps {
@@ -9,11 +10,11 @@ interface FornecedorHeaderProps {
   status: string
 }
 
-export function FornecedorHeader({
+export const FornecedorHeader = ({
   razaoSocial,
   cnpj,
   status,
-}: FornecedorHeaderProps) {
+}: FornecedorHeaderProps) => {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">

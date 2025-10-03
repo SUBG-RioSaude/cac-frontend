@@ -1,47 +1,46 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Edit, Download, MoreHorizontal } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Edit, Download, MoreHorizontal } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ContratoStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusContrato } from '@/types/status'
-import { Separator } from '@/components/ui/separator'
 import { DateDisplay } from '@/components/ui/formatters'
-
-// Componentes das abas
-import { DetalhesContrato } from '../../components/VisualizacaoContratos/detalhes-contrato'
-import { RegistroAlteracoes } from '../../components/VisualizacaoContratos/registro-alteracoes'
-import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/indicadores-relatorios'
-
-// import type { ContratoDetalhado } from '../../types/contrato' // removido pois não está sendo usado
-import { useContratoDetalhado } from '../../hooks/use-contratos'
-import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
-import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
+import { Separator } from '@/components/ui/separator'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { currencyUtils } from '@/lib/utils'
+import { parseStatusContrato } from '@/types/status'
+
 import { AlteracoesContratuais } from '../../components/AlteracoesContratuais'
-import { ContractChat } from '../../components/Timeline/contract-chat'
 import { TabDocumentos } from '../../components/Documentos/tab-documentos'
+import { ContractChat } from '../../components/Timeline/contract-chat'
+import { DetalhesContrato } from '../../components/VisualizacaoContratos/detalhes-contrato'
+import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/indicadores-relatorios'
+import { RegistroAlteracoes } from '../../components/VisualizacaoContratos/registro-alteracoes'
+// import type { ContratoDetalhado } from '../../types/contrato' // removido pois não está sendo usado
 import { TabEmpenhos } from '../../components/VisualizacaoContratos/tab-empenhos'
-import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
-// import { useTimelineIntegration } from '../../hooks/useTimelineIntegration' // Hook temporariamente removido
-import type { TimelineEntry } from '../../types/timeline'
-import type { ChatMessage } from '../../types/timeline'
 import {
   getActiveTabs,
   getDefaultTab,
   isTabEnabled,
   getGridCols,
 } from '../../config/tabs-config'
+import { useContratoDetalhado } from '../../hooks/use-contratos'
+import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
+import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
+import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
+// import { useTimelineIntegration } from '../../hooks/useTimelineIntegration' // Hook temporariamente removido
+import type { TimelineEntry } from '../../types/timeline'
+import type { ChatMessage } from '../../types/timeline'
 
-export function VisualizarContrato() {
+export const VisualizarContrato = () => {
   const { contratoId: id } = useParams<{ contratoId: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
@@ -55,11 +54,11 @@ export function VisualizarContrato() {
     isError,
     error,
     refetch,
-  } = useContratoDetalhado(id || '', { enabled: !!id })
+  } = useContratoDetalhado(id ?? '', { enabled: !!id })
 
   // Hook para buscar histórico de alterações contratuais
   const { data: historicoAlteracoes = [] } = useHistoricoAlteracoes(
-    id || '',
+    id ?? '',
     !!id,
   )
 
@@ -76,12 +75,14 @@ export function VisualizarContrato() {
     setModoEdicaoGlobal(!modoEdicaoGlobal)
   }
 
-  const handleExportar = () => {}
+  const handleExportar = () => {
+    // TODO: Implementar funcionalidade de exportação
+  }
 
   // Handlers para integração com alterações contratuais
 
   const handleSalvarAlteracao = useCallback(
-    async (_alteracao: AlteracaoContratualResponse) => {
+    (_alteracao: AlteracaoContratualResponse) => {
       try {
         // Simular usuário atual
         // const autor = {
@@ -93,24 +94,24 @@ export function VisualizarContrato() {
         // criarEntradaAlteracao(alteracao, autor)
         // TODO: Criar marcos relacionados se necessário
         // criarMarcosAlteracao(alteracao)
-      } catch (error) {
-        console.error('Erro ao salvar alteração:', error)
+      } catch {
+        // TODO: Implementar notificação de erro adequada
       }
     },
     [],
   )
 
   const _handleSubmeterAlteracao = useCallback(
-    async (alteracao: AlteracaoContratualResponse) => {
+    (alteracao: AlteracaoContratualResponse) => {
       try {
-        await handleSalvarAlteracao(alteracao)
+        handleSalvarAlteracao(alteracao)
 
         // TODO: Atualizar status para submetida
         if (alteracao.id) {
           // atualizarStatusAlteracao(alteracao.id, 'submetida')
         }
-      } catch (error) {
-        console.error('Erro ao submeter alteração:', error)
+      } catch {
+        // TODO: Implementar notificação de erro adequada
       }
     },
     [handleSalvarAlteracao],
@@ -127,7 +128,7 @@ export function VisualizarContrato() {
 
       const entradaChat = {
         id: `chat_${mensagem.id}`,
-        contratoId: contrato?.id || '',
+        contratoId: contrato?.id ?? '',
         tipo: 'manual' as const,
         categoria: 'observacao' as const,
         titulo: `Observação do Chat - ${mensagem.remetente.nome}`,
@@ -152,9 +153,7 @@ export function VisualizarContrato() {
       setAbaAtiva(novaAba)
     } else {
       // Se aba está desabilitada, redireciona para aba padrão
-      console.warn(
-        `Aba "${novaAba}" está desabilitada. Redirecionando para aba padrão.`,
-      )
+      // Aba desabilitada - redirecionar para aba padrão
       setAbaAtiva(getDefaultTab())
     }
   }, [])
@@ -171,9 +170,9 @@ export function VisualizarContrato() {
       <div className="from-background to-muted/20 min-h-screen bg-gradient-to-br">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="animate-pulse space-y-6">
-            <div className="bg-muted h-8 w-1/3 rounded"></div>
-            <div className="bg-muted h-32 rounded"></div>
-            <div className="bg-muted h-96 rounded"></div>
+            <div className="bg-muted h-8 w-1/3 rounded" />
+            <div className="bg-muted h-32 rounded" />
+            <div className="bg-muted h-96 rounded" />
           </div>
         </div>
       </div>
@@ -194,7 +193,12 @@ export function VisualizarContrato() {
                 : 'Não foi possível carregar os dados do contrato. Tente novamente.'}
             </p>
             <div className="flex justify-center gap-2">
-              <Button onClick={() => refetch()} variant="outline">
+              <Button
+                onClick={() => {
+                  void refetch()
+                }}
+                variant="outline"
+              >
                 Tentar novamente
               </Button>
               <Button onClick={() => navigate('/contratos')}>
@@ -410,7 +414,7 @@ export function VisualizarContrato() {
                   >
                     <div
                       className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
-                    ></div>
+                    />
                     <span className="text-center">{tab.label}</span>
                   </TabsTrigger>
                 ))}
@@ -479,8 +483,12 @@ export function VisualizarContrato() {
                       numeroContrato={contrato.numeroContrato}
                       valorOriginal={contrato.valorTotal}
                       vigenciaFinal={contrato.dataTermino}
-                      onSaved={handleSalvarAlteracao}
-                      onSubmitted={_handleSubmeterAlteracao}
+                      onSaved={(alteracao) => {
+                        void handleSalvarAlteracao(alteracao)
+                      }}
+                      onSubmitted={(alteracao) => {
+                        void _handleSubmeterAlteracao(alteracao)
+                      }}
                       key={contrato.id}
                     />
                   </TabsContent>
@@ -497,8 +505,10 @@ export function VisualizarContrato() {
                     <TabEmpenhos
                       contratoId={contrato.id}
                       valorTotalContrato={contrato.valorTotal}
-                      unidadesVinculadas={contrato.unidadesVinculadas || []}
-                      empenhosIniciais={extrairEmpenhosDoContrato(contrato)}
+                      unidadesVinculadas={contrato.unidadesVinculadas ?? []}
+                      empenhosIniciais={extrairEmpenhosDoContrato(
+                        contrato as never,
+                      )}
                     />
                   </TabsContent>
                 )}

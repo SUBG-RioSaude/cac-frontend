@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@/tests/test-utils'
-import { DetalhesContrato } from '../detalhes-contrato'
+
 import { contratoDetalhadoMock } from '@/modules/Contratos/data/contratos-mock'
+import { render, screen } from '@/tests/test-utils'
+
+import { DetalhesContrato } from '../detalhes-contrato'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({

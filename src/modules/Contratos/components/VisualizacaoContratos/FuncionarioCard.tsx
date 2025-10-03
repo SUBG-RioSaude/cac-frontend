@@ -1,6 +1,3 @@
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
 import {
   User,
   Mail,
@@ -17,12 +14,16 @@ import {
   Users,
   Shield,
 } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Skeleton } from '@/components/ui/skeleton'
 import type {
   Responsavel,
   ContratoFuncionario,
 } from '@/modules/Contratos/types/contrato'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
-import { DateDisplay } from '@/components/ui/formatters'
 
 interface FuncionarioCardProps {
   responsavel?: Responsavel // dados básicos do contrato (legado)
@@ -36,7 +37,7 @@ interface FuncionarioCardProps {
   permitirRemocao?: boolean // Se deve mostrar botão de remover
 }
 
-export function FuncionarioCard({
+export const FuncionarioCard = ({
   responsavel,
   contratoFuncionario,
   funcionario,
@@ -46,7 +47,7 @@ export function FuncionarioCard({
   onRemover,
   permitirSubstituicao = true,
   permitirRemocao = true,
-}: FuncionarioCardProps) {
+}: FuncionarioCardProps) => {
   const variantConfig = {
     fiscal: {
       bgColor: 'bg-blue-100',
@@ -98,27 +99,27 @@ export function FuncionarioCard({
 
   // Usar dados da API de contratos primeiro (mais ricos), depois funcionário geral, depois legado
   const nomeCompleto =
-    contratoFuncionario?.funcionarioNome ||
-    funcionario?.nomeCompleto ||
-    responsavel?.nome ||
+    contratoFuncionario?.funcionarioNome ??
+    funcionario?.nomeCompleto ??
+    responsavel?.nome ??
     'Nome não informado'
   const cargo =
-    contratoFuncionario?.funcionarioCargo ||
-    funcionario?.cargo ||
-    responsavel?.cargo ||
+    contratoFuncionario?.funcionarioCargo ??
+    funcionario?.cargo ??
+    responsavel?.cargo ??
     'Cargo não informado'
   const email =
-    contratoFuncionario?.email ||
-    funcionario?.emailInstitucional ||
-    responsavel?.email ||
+    contratoFuncionario?.email ??
+    funcionario?.emailInstitucional ??
+    responsavel?.email ??
     ''
   const telefone =
-    contratoFuncionario?.telefone ||
-    funcionario?.telefone ||
-    responsavel?.telefone ||
+    contratoFuncionario?.telefone ??
+    funcionario?.telefone ??
+    responsavel?.telefone ??
     ''
   const matricula =
-    contratoFuncionario?.funcionarioMatricula || funcionario?.matricula
+    contratoFuncionario?.funcionarioMatricula ?? funcionario?.matricula
 
   return (
     <div className="rounded-lg border p-4">

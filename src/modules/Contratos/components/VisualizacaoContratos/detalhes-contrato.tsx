@@ -1,20 +1,4 @@
-﻿import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { ContratoStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusContrato } from '@/types/status'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+﻿import { motion, AnimatePresence } from 'framer-motion'
 import {
   FileText,
   Building,
@@ -35,6 +19,33 @@ import {
   Trash2,
   RefreshCw,
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  CNPJDisplay,
+  CEPDisplay,
+  DateDisplay,
+} from '@/components/ui/formatters'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { dateUtils } from '@/lib/utils'
+import {
+  EditableFieldWrapper,
+  ConfirmEditModal,
+  useFieldEditing,
+} from '@/modules/Contratos/components/EditableFields'
 import type {
   ContratoDetalhado,
   Endereco,
@@ -46,24 +57,16 @@ import {
 } from '@/modules/Contratos/types/contrato'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
-import {
-  CNPJDisplay,
-  CEPDisplay,
-  DateDisplay,
-} from '@/components/ui/formatters'
-import { dateUtils } from '@/lib/utils'
-import {
-  EditableFieldWrapper,
-  ConfirmEditModal,
-  useFieldEditing,
-} from '@/modules/Contratos/components/EditableFields'
-import { FuncionarioCard } from './FuncionarioCard'
-import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
-import { AdicionarFuncionarioModal } from './AdicionarFuncionarioModal'
+import { parseStatusContrato } from '@/types/status'
+
 import {
   useContratoTodosFuncionarios,
   useRemoverFuncionarioContrato,
 } from '../../hooks/use-contratos-funcionarios'
+
+import { AdicionarFuncionarioModal } from './AdicionarFuncionarioModal'
+import { FuncionarioCard } from './FuncionarioCard'
+import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
@@ -75,7 +78,7 @@ type ContratoComIds = ContratoDetalhado & {
   unidadeGestoraId?: string
 }
 
-export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
+export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
   const [modalSubstituicao, setModalSubstituicao] = useState<{
     aberto: boolean
@@ -114,23 +117,49 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const {
     data: empresaData,
     isLoading: empresaLoading,
-    error: empresaError,
+    error: empresaErrorRaw,
   } = useEmpresa(contrato.empresaId, { enabled: !!contrato.empresaId })
+
+  const empresaError = empresaErrorRaw instanceof Error ? empresaErrorRaw : null
 
   // Coletar IDs das unidades para busca
   const contratoComIds = contrato as ContratoComIds
   const unidadesIds = [
     contratoComIds.unidadeDemandanteId,
     contratoComIds.unidadeGestoraId,
-    ...(contrato.unidadesVinculadas?.map((u) => u.unidadeSaudeId) || []),
+    ...(contrato.unidadesVinculadas?.map((u) => u.unidadeSaudeId) ?? []),
   ].filter((id): id is string => Boolean(id))
 
   // Buscar dados completos das unidades usando hook otimizado
   const {
     data: unidadesData,
     isLoading: unidadesLoading,
-    error: unidadesError,
+    error: unidadesErrorRaw,
   } = useUnidadesByIds(unidadesIds, { enabled: unidadesIds.length > 0 })
+
+  const unidadesError =
+    unidadesErrorRaw instanceof Error ? unidadesErrorRaw : null
+
+  const fiscalSkeletonIds = useMemo(
+    () => ['fiscal-skeleton-0', 'fiscal-skeleton-1'],
+    [],
+  )
+  const gestorSkeletonIds = useMemo(
+    () => ['gestor-skeleton-0', 'gestor-skeleton-1'],
+    [],
+  )
+  const contatoSkeletonIds = useMemo(
+    () => ['contato-skeleton-0', 'contato-skeleton-1'],
+    [],
+  )
+  const unidadeSkeletonIds = useMemo(
+    () => ['unidade-skeleton-0', 'unidade-skeleton-1'],
+    [],
+  )
+  const enderecoSkeletonIds = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => `endereco-skeleton-${index}`),
+    [],
+  )
 
   // Buscar TODOS os funcionários do contrato em uma única request
   const { data: todosFuncionarios = [], isLoading: funcionariosLoading } =
@@ -143,6 +172,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   const gestoresAtivos = todosFuncionarios.filter(
     (f) => f.tipoGerencia === 1 && f.estaAtivo,
   )
+
+  const unidadesVinculadasApi = contrato.unidadesVinculadas ?? []
 
   // Hook para remoção de funcionários
   const removerMutation = useRemoverFuncionarioContrato()
@@ -216,15 +247,18 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
   // Helper para obter nome da unidade
   const getUnidadeNome = (unidadeId: string | null | undefined) => {
     if (!unidadeId) return 'Não informado'
-    if (unidadesLoading && !unidadesData[unidadeId]) return 'Carregando...'
-    return unidadesData?.[unidadeId]?.nome || unidadeId
+    const unidade = unidadesData[unidadeId]
+    if (unidadesLoading && !unidade) return 'Carregando...'
+    return unidade?.nome ?? unidadeId
   }
 
   // Helper para obter endereco de fornecedor
   const getEnderecoField = (field: keyof Endereco): string => {
-    if (typeof contrato.fornecedor.endereco === 'string') return ''
-    const endereco = contrato.fornecedor.endereco
-    return endereco[field] || ''
+    const { endereco } = contrato.fornecedor
+
+    if (typeof endereco === 'string') return ''
+
+    return endereco[field] ?? ''
   }
 
   const formatarMoeda = (valor: number) => {
@@ -275,7 +309,9 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
     originalValue?: number,
     currentValue?: number,
   ) => {
-    return originalValue && currentValue && originalValue !== currentValue
+    return Boolean(
+      originalValue && currentValue && originalValue !== currentValue,
+    )
   }
 
   const getTipoContratacaoBadge = (tipo: string) => {
@@ -353,7 +389,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         {isEditing('numeroContrato') ? (
                           <EditableFieldWrapper
                             fieldKey="numeroContrato"
-                            value={pendingValue || contrato.numeroContrato}
+                            value={pendingValue ?? contrato.numeroContrato}
                             onSave={(value) =>
                               handleFieldSave('numeroContrato', value)
                             }
@@ -364,6 +400,14 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <div
                             className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
                             onClick={() => startEditing('numeroContrato')}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                startEditing('numeroContrato')
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
                           >
                             {contrato.numeroContrato}
                           </div>
@@ -377,7 +421,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           {isEditing('processoRio') ? (
                             <EditableFieldWrapper
                               fieldKey="processoRio"
-                              value={pendingValue || contrato.processoRio || ''}
+                              value={pendingValue ?? contrato.processoRio ?? ''}
                               onSave={(value) =>
                                 handleFieldSave('processoRio', value)
                               }
@@ -388,8 +432,16 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             <div
                               className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
                               onClick={() => startEditing('processoRio')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  startEditing('processoRio')
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
                             >
-                              {contrato.processoRio || 'Não informado'}
+                              {contrato.processoRio ?? 'Não informado'}
                             </div>
                           )}
                         </div>
@@ -400,7 +452,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           {isEditing('processoSei') ? (
                             <EditableFieldWrapper
                               fieldKey="processoSei"
-                              value={pendingValue || contrato.processoSei || ''}
+                              value={pendingValue ?? contrato.processoSei ?? ''}
                               onSave={(value) =>
                                 handleFieldSave('processoSei', value)
                               }
@@ -411,8 +463,16 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             <div
                               className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
                               onClick={() => startEditing('processoSei')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  startEditing('processoSei')
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
                             >
-                              {contrato.processoSei || 'Não informado'}
+                              {contrato.processoSei ?? 'Não informado'}
                             </div>
                           )}
                         </div>
@@ -424,7 +484,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             <EditableFieldWrapper
                               fieldKey="processoLegado"
                               value={
-                                pendingValue || contrato.processoLegado || ''
+                                pendingValue ?? contrato.processoLegado ?? ''
                               }
                               onSave={(value) =>
                                 handleFieldSave('processoLegado', value)
@@ -436,8 +496,16 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             <div
                               className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
                               onClick={() => startEditing('processoLegado')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  startEditing('processoLegado')
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
                             >
-                              {contrato.processoLegado || 'Não informado'}
+                              {contrato.processoLegado ?? 'Não informado'}
                             </div>
                           )}
                         </div>
@@ -451,7 +519,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       {isEditing('categoriaObjeto') ? (
                         <EditableFieldWrapper
                           fieldKey="categoriaObjeto"
-                          value={pendingValue || contrato.categoriaObjeto}
+                          value={pendingValue ?? contrato.categoriaObjeto}
                           onSave={(value) =>
                             handleFieldSave('categoriaObjeto', value)
                           }
@@ -462,6 +530,14 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <div
                           className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
                           onClick={() => startEditing('categoriaObjeto')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              startEditing('categoriaObjeto')
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
                         >
                           {contrato.categoriaObjeto}
                         </div>
@@ -474,7 +550,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       {isEditing('objeto') ? (
                         <EditableFieldWrapper
                           fieldKey="objeto"
-                          value={pendingValue || contrato.objeto}
+                          value={pendingValue ?? contrato.objeto}
                           onSave={(value) => handleFieldSave('objeto', value)}
                           onCancel={cancelEditing}
                           isLoading={isLoading}
@@ -483,6 +559,14 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <div
                           className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
                           onClick={() => startEditing('objeto')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              startEditing('objeto')
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
                         >
                           {contrato.objeto}
                         </div>
@@ -496,7 +580,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         </p>
                         <div className="mt-1">
                           {getTipoContratacaoBadge(
-                            contrato.tipoContratacao || '',
+                            contrato.tipoContratacao ?? '',
                           )}
                         </div>
                       </div>
@@ -582,13 +666,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
 
                       // Timeline com alterações - ordem invertida (atual no topo)
                       const mesesOriginais =
-                        contrato.prazoOriginalMeses ||
+                        contrato.prazoOriginalMeses ??
                         contrato.prazoInicialMeses
 
                       return (
                         <div className="relative">
                           {/* Linha conectora vertical */}
-                          <div className="absolute top-8 bottom-4 left-4 z-0 w-0.5 bg-gray-300"></div>
+                          <div className="absolute top-8 bottom-4 left-4 z-0 w-0.5 bg-gray-300" />
 
                           <div className="space-y-0">
                             {/* Item Atual - no topo */}
@@ -662,7 +746,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                 <div className="text-sm text-gray-600">
                                   Valor:{' '}
                                   {formatarMoeda(
-                                    contrato.valorGlobalOriginal ||
+                                    contrato.valorGlobalOriginal ??
                                       contrato.valorTotal,
                                   )}
                                 </div>
@@ -698,8 +782,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   <CardContent className="space-y-4">
                     {funcionariosLoading ? (
                       <div className="space-y-4">
-                        {[1, 2].map((i) => (
-                          <Skeleton key={i} className="h-32 w-full" />
+                        {fiscalSkeletonIds.map((placeholderId) => (
+                          <Skeleton
+                            key={placeholderId}
+                            className="h-32 w-full"
+                          />
                         ))}
                       </div>
                     ) : fiscaisAtivos.length === 0 ? (
@@ -727,8 +814,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             handleAbrirModalSubstituicao(fiscal, 2)
                           }
                           onRemover={() => handleAbrirModalRemover(fiscal, 2)}
-                          permitirSubstituicao={true}
-                          permitirRemocao={true}
+                          permitirSubstituicao
+                          permitirRemocao
                         />
                       ))
                     )}
@@ -755,8 +842,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   <CardContent className="space-y-4">
                     {funcionariosLoading ? (
                       <div className="space-y-4">
-                        {[1, 2].map((i) => (
-                          <Skeleton key={i} className="h-32 w-full" />
+                        {gestorSkeletonIds.map((placeholderId) => (
+                          <Skeleton
+                            key={placeholderId}
+                            className="h-32 w-full"
+                          />
                         ))}
                       </div>
                     ) : gestoresAtivos.length === 0 ? (
@@ -784,8 +874,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             handleAbrirModalSubstituicao(gestor, 1)
                           }
                           onRemover={() => handleAbrirModalRemover(gestor, 1)}
-                          permitirSubstituicao={true}
-                          permitirRemocao={true}
+                          permitirSubstituicao
+                          permitirRemocao
                         />
                       ))
                     )}
@@ -880,7 +970,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                         <Skeleton className="mt-1 h-7 w-3/4" />
                       ) : (
                         <p className="text-lg font-semibold">
-                          {empresaData?.razaoSocial ||
+                          {empresaData?.razaoSocial ??
                             contrato.fornecedor.razaoSocial}
                         </p>
                       )}
@@ -895,14 +985,14 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <p className="font-semibold">
                             <CNPJDisplay
                               value={
-                                empresaData?.cnpj || contrato.fornecedor.cnpj
+                                empresaData?.cnpj ?? contrato.fornecedor.cnpj
                               }
                             />
                           </p>
                         )}
                       </div>
-                      {(empresaData?.inscricaoEstadual ||
-                        contrato.fornecedor.inscricaoEstadual ||
+                      {(empresaData?.inscricaoEstadual ??
+                        contrato.fornecedor.inscricaoEstadual ??
                         empresaLoading) && (
                         <div>
                           <p className="text-muted-foreground text-sm">
@@ -912,7 +1002,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             <Skeleton className="mt-1 h-6 w-full" />
                           ) : (
                             <p className="font-semibold">
-                              {empresaData?.inscricaoEstadual ||
+                              {empresaData?.inscricaoEstadual ??
                                 contrato.fornecedor.inscricaoEstadual}
                             </p>
                           )}
@@ -920,8 +1010,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                       )}
                     </div>
 
-                    {(empresaData?.inscricaoMunicipal ||
-                      contrato.fornecedor.inscricaoMunicipal ||
+                    {(empresaData?.inscricaoMunicipal ??
+                      contrato.fornecedor.inscricaoMunicipal ??
                       empresaLoading) && (
                       <div>
                         <p className="text-muted-foreground text-sm">
@@ -931,7 +1021,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <Skeleton className="mt-1 h-6 w-3/4" />
                         ) : (
                           <p className="font-semibold">
-                            {empresaData?.inscricaoMunicipal ||
+                            {empresaData?.inscricaoMunicipal ??
                               contrato.fornecedor.inscricaoMunicipal}
                           </p>
                         )}
@@ -959,9 +1049,9 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   <CardContent className="space-y-3">
                     {empresaLoading ? (
                       <div className="space-y-3">
-                        {[...Array(2)].map((_, i) => (
+                        {contatoSkeletonIds.map((placeholderId) => (
                           <div
-                            key={i}
+                            key={placeholderId}
                             className="flex items-center gap-3 rounded-lg border p-3"
                           >
                             <Skeleton className="h-8 w-8 rounded-full" />
@@ -972,17 +1062,17 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           </div>
                         ))}
                       </div>
-                    ) : empresaData?.contatos &&
-                      empresaData.contatos.length > 0 ? (
-                      empresaData.contatos.map((contato, index) => {
-                        // Detectar se Ã© email ou telefone baseado no tipo ou valor
+                    ) : empresaData && empresaData.contatos.length > 0 ? (
+                      empresaData.contatos.map((contato) => {
                         const isEmail =
-                          contato.tipo?.toLowerCase().includes('email') ||
-                          contato.valor?.includes('@')
+                          contato.tipo.toLowerCase().includes('email') ||
+                          contato.valor.includes('@')
 
                         return (
                           <div
-                            key={index}
+                            key={
+                              contato.id || `${contato.tipo}-${contato.valor}`
+                            }
                             className="flex items-center gap-3 rounded-lg border p-3"
                           >
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
@@ -996,29 +1086,29 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                               <p className="font-medium">{contato.valor}</p>
                               <p className="text-muted-foreground text-sm">
                                 {contato.nome && (
-                                  <span className="capitalize">
-                                    {contato.nome}
-                                  </span>
+                                  <>
+                                    <span className="capitalize">
+                                      {contato.nome}
+                                    </span>
+                                    {' - '}
+                                  </>
                                 )}
-                                {contato.nome && contato.tipo && ' - '}
-                                {contato.tipo && (
-                                  <span className="capitalize">
-                                    {contato.tipo}
-                                  </span>
-                                )}
+                                <span className="capitalize">
+                                  {contato.tipo}
+                                </span>
                               </p>
                             </div>
                           </div>
                         )
                       })
                     ) : contrato.fornecedor.contatos.length > 0 ? (
-                      contrato.fornecedor.contatos.map((contato, index) => (
+                      contrato.fornecedor.contatos.map((contato) => (
                         <div
-                          key={index}
+                          key={`${contato.tipo}-${contato.valor}`}
                           className="flex items-center gap-3 rounded-lg border p-3"
                         >
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-                            {contato.tipo === 'email' ? (
+                            {contato.tipo.toLowerCase() === 'email' ? (
                               <Mail className="h-4 w-4 text-blue-600" />
                             ) : (
                               <Phone className="h-4 w-4 text-blue-600" />
@@ -1060,10 +1150,10 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                   <CardContent>
                     {empresaLoading ? (
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {[...Array(6)].map((_, i) => (
+                        {enderecoSkeletonIds.map((placeholderId, index) => (
                           <div
-                            key={i}
-                            className={i === 1 ? 'sm:col-span-2' : ''}
+                            key={placeholderId}
+                            className={index === 1 ? 'sm:col-span-2' : ''}
                           >
                             <Skeleton className="mb-1 h-4 w-16" />
                             <Skeleton className="h-6 w-full" />
@@ -1077,7 +1167,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           <p className="font-semibold">
                             <CEPDisplay
                               value={
-                                empresaData?.cep || getEnderecoField('cep')
+                                empresaData?.cep ?? getEnderecoField('cep')
                               }
                             />
                           </p>
@@ -1087,7 +1177,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Logradouro
                           </p>
                           <p className="font-semibold">
-                            {empresaData?.endereco ||
+                            {empresaData?.endereco ??
                               getEnderecoField('logradouro')}
                             {getEnderecoField('numero') &&
                               `, ${getEnderecoField('numero')}`}
@@ -1098,7 +1188,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Bairro
                           </p>
                           <p className="font-semibold">
-                            {empresaData?.bairro || getEnderecoField('bairro')}
+                            {empresaData?.bairro ?? getEnderecoField('bairro')}
                           </p>
                         </div>
                         <div>
@@ -1106,13 +1196,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             Cidade
                           </p>
                           <p className="font-semibold">
-                            {empresaData?.cidade || getEnderecoField('cidade')}
+                            {empresaData?.cidade ?? getEnderecoField('cidade')}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-sm">UF</p>
                           <p className="font-semibold">
-                            {empresaData?.estado || getEnderecoField('uf')}
+                            {empresaData?.estado ?? getEnderecoField('uf')}
                           </p>
                         </div>
                         {getEnderecoField('complemento') && (
@@ -1180,12 +1270,15 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                   {unidadesDemandantes.length > 1 ? 's' : ''}
                                 </p>
                                 <div className="flex max-h-48 flex-wrap gap-2 overflow-auto pr-1">
-                                  {unidadesDemandantes.map((u, idx) => {
+                                  {unidadesDemandantes.map((u) => {
                                     const sigla =
-                                      unidadesData?.[u.unidadeSaudeId]?.sigla
+                                      unidadesData[u.unidadeSaudeId]?.sigla
                                     return (
                                       <div
-                                        key={`${u.unidadeSaudeId}-${idx}`}
+                                        key={
+                                          u.id ||
+                                          `${u.unidadeSaudeId}-demandante`
+                                        }
                                         className="bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1"
                                       >
                                         <span className="text-sm font-medium">
@@ -1209,7 +1302,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             const id = contratoComIds.unidadeDemandanteId
                             const nome = getUnidadeNome(id)
                             const sigla = id
-                              ? unidadesData?.[id]?.sigla
+                              ? unidadesData[id]?.sigla
                               : undefined
                             return (
                               <div className="flex flex-wrap gap-2">
@@ -1266,12 +1359,14 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                   {unidadesGestoras.length > 1 ? 's' : ''}
                                 </p>
                                 <div className="flex max-h-48 flex-wrap gap-2 overflow-auto pr-1">
-                                  {unidadesGestoras.map((u, idx) => {
+                                  {unidadesGestoras.map((u) => {
                                     const sigla =
-                                      unidadesData?.[u.unidadeSaudeId]?.sigla
+                                      unidadesData[u.unidadeSaudeId]?.sigla
                                     return (
                                       <div
-                                        key={`${u.unidadeSaudeId}-${idx}`}
+                                        key={
+                                          u.id || `${u.unidadeSaudeId}-gestora`
+                                        }
                                         className="bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1"
                                       >
                                         <span className="text-sm font-medium">
@@ -1295,7 +1390,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             const id = contratoComIds.unidadeGestoraId
                             const nome = getUnidadeNome(id)
                             const sigla = id
-                              ? unidadesData?.[id]?.sigla
+                              ? unidadesData[id]?.sigla
                               : undefined
                             return (
                               <div className="flex flex-wrap gap-2">
@@ -1341,8 +1436,11 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                     <div className="space-y-4">
                       {unidadesLoading ? (
                         <div className="space-y-4">
-                          {[...Array(2)].map((_, i) => (
-                            <div key={i} className="rounded-lg border p-4">
+                          {unidadeSkeletonIds.map((placeholderId) => (
+                            <div
+                              key={placeholderId}
+                              className="rounded-lg border p-4"
+                            >
                               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                 <div className="flex-1 space-y-2">
                                   <Skeleton className="h-6 w-3/4" />
@@ -1359,9 +1457,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                             </div>
                           ))}
                         </div>
-                      ) : contrato.unidadesVinculadas &&
-                        contrato.unidadesVinculadas.length > 0 ? (
-                        contrato.unidadesVinculadas.map((unidade, index) => {
+                      ) : unidadesVinculadasApi.length > 0 ? (
+                        unidadesVinculadasApi.map((unidade) => {
                           const nomeUnidade = getUnidadeNome(
                             unidade.unidadeSaudeId,
                           )
@@ -1371,7 +1468,13 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                           ).toFixed(1)
 
                           return (
-                            <div key={index} className="rounded-lg border p-4">
+                            <div
+                              key={
+                                unidade.id ||
+                                `${unidade.unidadeSaudeId}-${unidade.valorAtribuido}`
+                              }
+                              className="rounded-lg border p-4"
+                            >
                               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                 <div className="flex-1">
                                   <h4 className="font-semibold">
@@ -1395,15 +1498,18 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                   <div
                                     className="h-2 rounded-full bg-blue-600"
                                     style={{ width: `${percentualValor}%` }}
-                                  ></div>
+                                  />
                                 </div>
                               </div>
                             </div>
                           )
                         })
                       ) : contrato.unidades.vinculadas.length > 0 ? (
-                        contrato.unidades.vinculadas.map((unidade, index) => (
-                          <div key={index} className="rounded-lg border p-4">
+                        contrato.unidades.vinculadas.map((unidade) => (
+                          <div
+                            key={`${unidade.nome}-${unidade.percentualValor}`}
+                            className="rounded-lg border p-4"
+                          >
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                               <div className="flex-1">
                                 <h4 className="font-semibold">
@@ -1429,7 +1535,7 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
                                   style={{
                                     width: `${unidade.percentualValor}%`,
                                   }}
-                                ></div>
+                                />
                               </div>
                             </div>
                           </div>
@@ -1555,8 +1661,8 @@ export function DetalhesContrato({ contrato }: DetalhesContratoProps) {
           onClose={cancelEditing}
           onConfirm={async () => await confirmSave()}
           fieldLabel={modalProps.fieldLabel}
-          oldValue={modalProps.oldValue || ''}
-          newValue={modalProps.newValue || ''}
+          oldValue={modalProps.oldValue}
+          newValue={modalProps.newValue}
           isLoading={isLoading}
           isCritical={modalProps.isCritical}
           formatValue={(value) => {

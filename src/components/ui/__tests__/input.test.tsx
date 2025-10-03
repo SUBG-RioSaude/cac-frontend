@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
-import '@testing-library/jest-dom'
 import React from 'react'
+import '@testing-library/jest-dom'
+import { describe, it, expect, vi } from 'vitest'
+
 import { Input } from '../input'
 
 describe('Input', () => {

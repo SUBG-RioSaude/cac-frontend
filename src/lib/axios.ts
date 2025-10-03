@@ -1,21 +1,22 @@
+import type { AxiosError } from 'axios'
 import axios, {
-  AxiosError,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { getToken, logout, renovarToken } from './auth/auth'
+
 import { apiMetrics } from './api-metrics'
+import { getToken, logout, renovarToken } from './auth/auth'
 
 // Cliente para Gateway (rota principal)
 export const apiGateway = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 5000, // Timeout mais curto para fallback rápido
   withCredentials: false,
 })
 
 // Cliente para Microserviço Direto (fallback)
 export const apiDirect = axios.create({
-  baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
+  baseURL: import.meta.env.VITE_API_URL_CONTRATOS as string,
   timeout: 10000,
   withCredentials: false,
 })
@@ -23,7 +24,7 @@ export const apiDirect = axios.create({
 // Interceptador de requisição para adicionar token dos cookies
 // Cliente principal com fallback automático
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 5000,
   withCredentials: false,
 })
@@ -35,9 +36,8 @@ const authInterceptor = (config: InternalAxiosRequestConfig) => {
     // Valida se o token tem formato JWT válido
     if (token.split('.').length === 3) {
       config.headers.Authorization = `Bearer ${token}`
-    } else {
-      console.warn('Token JWT inválido detectado')
     }
+    // Token inválido - não adiciona ao header
   }
   return config
 }
@@ -127,37 +127,36 @@ export async function executeWithFallback<T>(requestConfig: {
 // Interceptador de resposta para renovação automática de token
 api.interceptors.response.use(
   (response) => response,
-  async (erro) => {
-    const { response } = erro
+  async (erro: AxiosError) => {
+    const { response, config } = erro
 
     // Se o erro for 401 (não autorizado), tenta renovar o token
     if (response?.status === 401) {
       try {
         const renovado = await renovarToken()
-        if (renovado) {
+        if (renovado && config) {
           // Reexecuta a requisição original com o novo token
           const token = getToken()
           if (token && token.split('.').length === 3) {
-            erro.config.headers.Authorization = `Bearer ${token}`
-            return api.request(erro.config)
+            config.headers.Authorization = `Bearer ${token}`
+            return api.request(config)
           }
         }
-      } catch (renovacaoErro) {
+      } catch {
         // Se não conseguir renovar, faz logout
-        console.error('Erro ao renovar token:', renovacaoErro)
         logout()
         window.location.href = '/login'
-        return Promise.reject(erro)
+        return Promise.reject(new Error('Falha na renovação do token'))
       }
     }
 
-    return Promise.reject(erro)
+    return Promise.reject(new Error(erro.message || 'Erro na requisição'))
   },
 )
 
 // API específica para autenticação (sem interceptadores de renovação)
 export const authApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL_AUTH,
+  baseURL: import.meta.env.VITE_API_URL_AUTH as string,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

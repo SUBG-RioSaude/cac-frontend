@@ -1,17 +1,4 @@
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { UnidadeStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusUnidade } from '@/types/status'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,13 +7,30 @@ import {
   ArrowDown,
   Eye,
 } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { UnidadeStatusBadge } from '@/components/ui/status-badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { createServiceLogger } from '@/lib/logger'
+import { currencyUtils } from '@/lib/utils'
 import type {
   Unidade,
   PaginacaoParamsUnidade,
   OrdenacaoParams,
   ColunaOrdenacao,
 } from '@/modules/Unidades/ListaUnidades/types/unidade'
-import { currencyUtils } from '@/lib/utils'
+import { parseStatusUnidade } from '@/types/status'
+
+const logger = createServiceLogger('tabela-unidades')
 
 interface TabelaUnidadesProps {
   unidades: Unidade[]
@@ -43,7 +47,7 @@ interface TabelaUnidadesProps {
   isLoading?: boolean
 }
 
-export function TabelaUnidades({
+export const TabelaUnidades = ({
   unidades,
   unidadesSelecionadas,
   onUnidadesSelecionadasChange,
@@ -55,7 +59,7 @@ export function TabelaUnidades({
   onEditarUnidade,
   onExcluirUnidade,
   isLoading = false,
-}: TabelaUnidadesProps) {
+}: TabelaUnidadesProps) => {
   // Supress unused variables warnings for future implementation
   void onEditarUnidade
   void onExcluirUnidade
@@ -97,12 +101,13 @@ export function TabelaUnidades({
   }
 
   const handleVisualizarUnidade = (unidade: Unidade) => {
-    console.log('[DEBUG] Navegando para unidade:', unidade)
-    console.log(
-      '[DEBUG] ID da unidade:',
-      unidade.id,
-      'tipo:',
-      typeof unidade.id,
+    logger.debug(
+      {
+        operation: 'navegar_para_unidade',
+        unidadeId: unidade.id,
+        idType: typeof unidade.id,
+      },
+      'Navegando para visualizar unidade',
     )
     onVisualizarUnidade(unidade)
   }
@@ -218,7 +223,7 @@ export function TabelaUnidades({
                           Contratos Ativos
                         </p>
                         <p className="text-sm font-medium">
-                          {unidade.contratosAtivos || 0}
+                          {unidade.contratosAtivos ?? 0}
                         </p>
                       </div>
                       <div>
@@ -227,7 +232,7 @@ export function TabelaUnidades({
                         </p>
                         <p className="text-sm font-medium">
                           {currencyUtils.formatar(
-                            unidade.valorTotalContratado || 0,
+                            unidade.valorTotalContratado ?? 0,
                           )}
                         </p>
                       </div>
@@ -356,13 +361,13 @@ export function TabelaUnidades({
                       </TableCell>
                       <TableCell className="w-[120px]">
                         <div className="text-center text-sm font-medium">
-                          {unidade.contratosAtivos || 0}
+                          {unidade.contratosAtivos ?? 0}
                         </div>
                       </TableCell>
                       <TableCell className="w-[150px]">
                         <div className="text-right text-sm font-medium">
                           {currencyUtils.formatar(
-                            unidade.valorTotalContratado || 0,
+                            unidade.valorTotalContratado ?? 0,
                           )}
                         </div>
                       </TableCell>

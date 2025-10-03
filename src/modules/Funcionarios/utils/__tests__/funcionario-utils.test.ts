@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest'
+
+import { SituacaoFuncional } from '../../types/funcionario-api'
+import type { FuncionarioApi } from '../../types/funcionario-api'
 import {
   validarMatricula,
   validarFormatoCpf,
@@ -24,8 +27,6 @@ import {
   contarPorSituacao,
   calcularEstatisticas,
 } from '../funcionario-utils'
-import { SituacaoFuncional } from '../../types/funcionario-api'
-import type { FuncionarioApi } from '../../types/funcionario-api'
 
 describe('Funcionario Utils', () => {
   // Helper para criar funcion�rios mock
@@ -354,18 +355,18 @@ describe('Funcionario Utils', () => {
       ]
 
       it('deve encontrar funcion�rios por nome parcial', () => {
-        const funcionarios = buscarPorNome(funcionariosComNome, 'Silva')
-        expect(funcionarios).toHaveLength(2)
+        const resultadosBusca = buscarPorNome(funcionariosComNome, 'Silva')
+        expect(resultadosBusca).toHaveLength(2)
       })
 
       it('deve retornar vazio para busca muito curta', () => {
-        const funcionarios = buscarPorNome(funcionariosComNome, 'J')
-        expect(funcionarios).toHaveLength(0)
+        const resultadosVazio = buscarPorNome(funcionariosComNome, 'J')
+        expect(resultadosVazio).toHaveLength(0)
       })
 
       it('deve buscar ignorando case', () => {
-        const funcionarios = buscarPorNome(funcionariosComNome, 'SILVA')
-        expect(funcionarios).toHaveLength(2)
+        const resultadosCase = buscarPorNome(funcionariosComNome, 'SILVA')
+        expect(resultadosCase).toHaveLength(2)
       })
     })
 
@@ -377,14 +378,14 @@ describe('Funcionario Utils', () => {
       ]
 
       it('deve filtrar por lota��o', () => {
-        const funcionarios = filtrarPorLotacao(funcionariosComLotacao, 'TI')
-        expect(funcionarios).toHaveLength(1)
-        expect(funcionarios[0].lotacao).toBe('TI')
+        const resultadosFiltro = filtrarPorLotacao(funcionariosComLotacao, 'TI')
+        expect(resultadosFiltro).toHaveLength(1)
+        expect(resultadosFiltro[0].lotacao).toBe('TI')
       })
 
       it('deve retornar todos se lota��o for vazia', () => {
-        const funcionarios = filtrarPorLotacao(funcionariosComLotacao, '')
-        expect(funcionarios).toHaveLength(3)
+        const todosFuncionarios = filtrarPorLotacao(funcionariosComLotacao, '')
+        expect(todosFuncionarios).toHaveLength(3)
       })
     })
   })
@@ -400,8 +401,8 @@ describe('Funcionario Utils', () => {
       it('deve agrupar funcion�rios por lota��o', () => {
         const grupos = agruparPorLotacao(funcionarios)
 
-        expect(grupos['TI']).toHaveLength(2)
-        expect(grupos['RH']).toHaveLength(1)
+        expect(grupos.TI).toHaveLength(2)
+        expect(grupos.RH).toHaveLength(1)
       })
 
       it('deve lidar com funcion�rios sem lota��o', () => {

@@ -1,8 +1,4 @@
-import type {
-  Logger as PinoLogger,
-  Level,
-  LevelWithSilent,
-} from 'pino'
+import type { Logger as PinoLogger, Level, LevelWithSilent } from 'pino'
 
 export type LogLevel = Level
 export type LogLevelWithSilent = LevelWithSilent

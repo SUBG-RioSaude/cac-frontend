@@ -3,8 +3,9 @@
  * Evita invalidações desnecessárias e mantém UX fluida
  */
 
-import { useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useMemo } from 'react'
+
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 
 // Implementação simples de debounce
@@ -72,7 +73,7 @@ export function useContractContextInvalidation(
   const debouncedInvalidate = useMemo(
     () =>
       debounce(() => {
-        invalidateAll()
+        void invalidateAll()
       }, debounceDelay),
     [invalidateAll, debounceDelay],
   )
@@ -82,7 +83,7 @@ export function useContractContextInvalidation(
    */
   const invalidateContext = useCallback(() => {
     if (immediate) {
-      invalidateAll()
+      void invalidateAll()
     } else {
       debouncedInvalidate()
     }
@@ -92,7 +93,7 @@ export function useContractContextInvalidation(
    * Invalidar contexto imediatamente (sem debounce)
    */
   const invalidateContextImmediate = useCallback(() => {
-    invalidateAll()
+    void invalidateAll()
   }, [invalidateAll])
 
   /**

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+
 import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
 

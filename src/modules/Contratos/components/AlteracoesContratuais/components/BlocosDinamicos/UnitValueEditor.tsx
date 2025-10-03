@@ -1,16 +1,3 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import {
   Building2,
   MapPin,
@@ -24,6 +11,20 @@ import {
   TrendingDown,
   Equal,
 } from 'lucide-react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import type {
   UnidadeVinculada,
@@ -60,7 +61,7 @@ const CORES_TIPO: Record<string, string> = {
   Unidade: 'bg-gray-100 text-gray-700',
 }
 
-export function UnitValueEditor({
+export const UnitValueEditor = ({
   isOpen,
   onClose,
   unit,
@@ -70,7 +71,7 @@ export function UnitValueEditor({
   disabled = false,
   mode = 'create',
   existingValue = 0,
-}: UnitValueEditorProps) {
+}: UnitValueEditorProps) => {
   const [valor, setValor] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [operacao, setOperacao] = useState<OperacaoValorUnidade>('substituir')
@@ -117,7 +118,7 @@ export function UnitValueEditor({
       const decimalPart = parts[parts.length - 1] // última parte é decimal
       const integerPart = parts.slice(0, -1).join('').replace(/\./g, '') // remove pontos dos milhares
 
-      const finalString = integerPart + '.' + decimalPart
+      const finalString = `${integerPart}.${decimalPart}`
       return parseFloat(finalString) || 0
     },
     [],
@@ -244,7 +245,7 @@ export function UnitValueEditor({
       if (mode === 'edit' && operacao !== 'substituir') {
         baseValue = existingValue
       } else {
-        baseValue = availableValue || 0
+        baseValue = availableValue ?? 0
       }
 
       const value = baseValue * (percentage / 100)
@@ -338,7 +339,7 @@ export function UnitValueEditor({
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(availableValue || 0)}
+                  }).format(availableValue ?? 0)}
                 </p>
               </div>
             </div>

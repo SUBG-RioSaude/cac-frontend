@@ -36,7 +36,7 @@ function mapearDocumentoApiParaDto(
     linkExterno:
       documento.urlDocumento !== 'sem url' ? documento.urlDocumento : null,
     status: documento.ativo ? 'conferido' : 'pendente',
-    observacoes: documento.observacoes || '',
+    observacoes: documento.observacoes ?? '',
     dataCadastro: documento.dataCadastro,
     dataAtualizacao: documento.dataAtualizacao,
   }

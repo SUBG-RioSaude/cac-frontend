@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-export function UnidadesPageSkeleton() {
+export const UnidadesPageSkeleton = () => {
   return (
     <div
       data-testid="unidades-skeleton"
@@ -84,8 +84,8 @@ export function UnidadesPageSkeleton() {
             <div className="mx-3 mb-3 sm:mx-6 sm:mb-6">
               {/* Versão mobile - Cards skeleton */}
               <div className="block space-y-3 lg:hidden">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <Card key={i} className="p-4">
+                {Array.from({ length: 5 }, (_unusedMobile, mobileCardIndex) => (
+                  <Card key={mobileCardIndex} className="p-4">
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <Skeleton className="h-4 w-4" />
@@ -98,14 +98,17 @@ export function UnidadesPageSkeleton() {
                     </div>
 
                     <div className="mb-3 space-y-2">
-                      {Array.from({ length: 5 }, (_, j) => (
-                        <div key={j}>
-                          <Skeleton className="mb-1 h-3 w-8" />
-                          <Skeleton
-                            className={`h-4 ${j === 4 ? 'w-full' : 'w-20'}`}
-                          />
-                        </div>
-                      ))}
+                      {Array.from(
+                        { length: 5 },
+                        (_unusedMobileField, fieldIndex) => (
+                          <div key={fieldIndex}>
+                            <Skeleton className="mb-1 h-3 w-8" />
+                            <Skeleton
+                              className={`h-4 ${fieldIndex === 4 ? 'w-full' : 'w-20'}`}
+                            />
+                          </div>
+                        ),
+                      )}
                     </div>
 
                     <div className="flex items-center justify-end gap-1">
@@ -158,8 +161,8 @@ export function UnidadesPageSkeleton() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Array.from({ length: 10 }, (_, i) => (
-                      <TableRow key={i}>
+                    {Array.from({ length: 10 }, (_unusedRow, rowIndex) => (
+                      <TableRow key={rowIndex}>
                         <TableCell>
                           <Skeleton className="h-4 w-4" />
                         </TableCell>
@@ -210,8 +213,8 @@ export function UnidadesPageSkeleton() {
               <div className="flex items-center justify-center gap-2">
                 <Skeleton className="h-8 w-20" />
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <Skeleton key={i} className="h-8 w-8" />
+                  {Array.from({ length: 5 }, (_unusedPage, pageIndex) => (
+                    <Skeleton key={pageIndex} className="h-8 w-8" />
                   ))}
                 </div>
                 <Skeleton className="h-8 w-20" />

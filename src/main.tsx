@@ -1,8 +1,8 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 //CSS
 import './index.css'
 
@@ -20,8 +20,8 @@ const queryClient = new QueryClient({
       retry: (failureCount, error: unknown) => {
         // Não retry para erros 4xx (client errors)
         if (error && typeof error === 'object' && 'response' in error) {
-          const status = (error as { response: { status: number } }).response
-            ?.status
+          const { response } = error as { response: { status: number } }
+          const { status } = response
           if (status >= 400 && status < 500) {
             return false
           }
@@ -52,12 +52,7 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
+        <BrowserRouter>
           <App />
         </BrowserRouter>
         <ReactQueryDevtools initialIsOpen={false} />

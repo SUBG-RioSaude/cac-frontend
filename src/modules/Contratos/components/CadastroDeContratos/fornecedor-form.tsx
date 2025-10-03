@@ -1,28 +1,4 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useCallback, useEffect, useState, useMemo } from 'react'
-
-import { ButtonLoadingSpinner } from '@/components/ui/loading'
-import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
-import { toast } from 'sonner'
 import {
   ArrowRight,
   ArrowLeft,
@@ -35,8 +11,32 @@ import {
   X,
   ShieldCheck,
 } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
+import { useCallback, useEffect, useState, useMemo } from 'react'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ButtonLoadingSpinner } from '@/components/ui/loading'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
 import {
   useConsultarEmpresaPorCNPJ,
   useCadastrarEmpresa,
@@ -103,6 +103,15 @@ const validarFormatoTelefoneFixo = (telefone: string) => {
 const validarFormatoCelular = (celular: string) => {
   const celularLimpo = celular.replace(/\D/g, '')
   return celularLimpo.length === 11
+}
+
+interface ViaCepResponse {
+  cep?: string
+  logradouro?: string
+  bairro?: string
+  localidade?: string
+  uf?: string
+  erro?: boolean
 }
 
 const fornecedorSchema = z.object({
@@ -204,7 +213,38 @@ const estadosBrasileiros = [
   'TO',
 ]
 
-export default function FornecedorForm({
+const buildDefaultContatos = (contatos?: Contato[]) =>
+  contatos && contatos.length > 0
+    ? contatos
+    : [
+        {
+          id: '1',
+          nome: '',
+          valor: '',
+          tipo: 'Email' as const,
+          ativo: true,
+        },
+      ]
+
+const buildFormDefaultValues = (dados: Partial<DadosFornecedor>) => ({
+  cnpj: dados.cnpj ? cnpjUtils.formatar(dados.cnpj) : '',
+  razaoSocial: dados.razaoSocial ?? '',
+  estadoIE: dados.estadoIE ?? '',
+  inscricaoEstadual: dados.inscricaoEstadual ?? '',
+  inscricaoMunicipal: dados.inscricaoMunicipal ?? '',
+  endereco: dados.endereco ?? '',
+  numero: dados.numero ?? '',
+  complemento: dados.complemento ?? '',
+  bairro: dados.bairro ?? '',
+  cidade: dados.cidade ?? '',
+  estado: dados.estado ?? '',
+  cep: dados.cep ?? '',
+  ativo: dados.ativo ?? true,
+  contatos: buildDefaultContatos(dados.contatos),
+  empresaId: dados.empresaId ?? '',
+})
+
+const FornecedorForm = ({
   onSubmit,
   onCancel,
   onPrevious,
@@ -212,7 +252,7 @@ export default function FornecedorForm({
   onAdvanceRequest,
   onDataChange,
   onEmpresaCadastrada,
-}: FornecedorFormProps) {
+}: FornecedorFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
@@ -221,8 +261,42 @@ export default function FornecedorForm({
   const [cepValido, setCepValido] = useState(false)
   const [cnpjParaConsultar, setCnpjParaConsultar] = useState<string>('')
   const [empresaEncontrada, setEmpresaEncontrada] =
-    useState<EmpresaResponse | null>(null)
+    useState<Partial<EmpresaResponse> | null>(null)
   const [toastJaMostrado, setToastJaMostrado] = useState(false)
+
+  const defaultValues = useMemo(
+    () => buildFormDefaultValues(dadosIniciais),
+    [dadosIniciais],
+  )
+
+  // Definir form e hooks relacionados ANTES das funções que os utilizam
+  const form = useForm({
+    resolver: zodResolver(fornecedorSchema),
+    defaultValues,
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'contatos',
+  })
+
+  // Watch para o estado selecionado para tornar os campos reativos
+  const estadoSelecionado = useWatch({
+    control: form.control,
+    name: 'estadoIE',
+  })
+
+  // Watch apenas para os tipos de contatos para reatividade
+  const watchedContatosRaw = useWatch({
+    control: form.control,
+    name: 'contatos',
+  }) as Contato[] | undefined
+
+  // Memoiza os tipos para evitar re-renders desnecessários
+  const tiposContatosMemo = useMemo(() => {
+    const watchedContatos = watchedContatosRaw ?? []
+    return watchedContatos.map((contato) => contato.tipo)
+  }, [watchedContatosRaw])
 
   // Hook para consultar empresa por CNPJ
   const { isLoading: isConsultandoCNPJ, refetch: refetchConsultaCNPJ } =
@@ -230,7 +304,7 @@ export default function FornecedorForm({
       enabled: false, // Só executa quando chamarmos refetch
       onSuccess: (data) => {
         // Valida se os dados essenciais existem
-        if (!data?.cnpj || !data.razaoSocial) {
+        if (!data.cnpj || !data.razaoSocial) {
           toast.error('Erro ao carregar dados da empresa', {
             description: 'Dados incompletos recebidos da API.',
           })
@@ -246,21 +320,20 @@ export default function FornecedorForm({
         setEmpresaEncontrada(data)
 
         // Preenche todos os campos do formulário de uma vez
-        const contatosMapeados =
-          data.contatos?.map((contato, index) => ({
-            id: (index + 1).toString(),
-            nome: contato.nome,
-            valor: contato.valor,
-            tipo: contato.tipo,
-            ativo: true,
-          })) || []
+        const contatosMapeados = data.contatos.map((contato, index) => ({
+          id: (index + 1).toString(),
+          nome: contato.nome,
+          valor: contato.valor,
+          tipo: contato.tipo,
+          ativo: true,
+        }))
 
         form.reset({
           cnpj: cnpjUtils.formatar(data.cnpj),
           razaoSocial: data.razaoSocial,
           estadoIE: data.estado,
-          inscricaoEstadual: data.inscricaoEstadual || '',
-          inscricaoMunicipal: data.inscricaoMunicipal || '',
+          inscricaoEstadual: data.inscricaoEstadual ?? '',
+          inscricaoMunicipal: data.inscricaoMunicipal ?? '',
           endereco: data.endereco,
           numero: 'S/N', // Número não vem da API, usa "S/N" como padrão
           complemento: '', // Complemento não vem da API
@@ -314,10 +387,16 @@ export default function FornecedorForm({
       cnpjParaConsultar.length === 14 &&
       cnpjUtils.validar(cnpjParaConsultar)
     ) {
-      refetchConsultaCNPJ()
+      void refetchConsultaCNPJ()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cnpjParaConsultar]) // Removido refetchConsultaCNPJ das dependências para evitar loops
+
+  // Função para validar formato do CEP
+  const validarFormatoCEP = (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, '')
+    return cepLimpo.length === 8
+  }
 
   // Hook para cadastrar empresa
   const { mutateAsync: cadastrarEmpresaAsync, resetMutation } =
@@ -339,7 +418,7 @@ export default function FornecedorForm({
     try {
       const cepLimpo = cep.replace(/\D/g, '')
       const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
-      const data = await response.json()
+      const data = (await response.json()) as ViaCepResponse
 
       if (data.erro) {
         setCepError('CEP não encontrado')
@@ -351,10 +430,10 @@ export default function FornecedorForm({
 
       if (data.cep) {
         // Preenche os campos automaticamente
-        form.setValue('endereco', data.logradouro || '')
-        form.setValue('bairro', data.bairro || '')
-        form.setValue('cidade', data.localidade || '')
-        form.setValue('estado', data.uf || '')
+        form.setValue('endereco', data.logradouro ?? '')
+        form.setValue('bairro', data.bairro ?? '')
+        form.setValue('cidade', data.localidade ?? '')
+        form.setValue('estado', data.uf ?? '')
 
         // Marca CEP como válido e habilita campos
         setCepValido(true)
@@ -362,9 +441,9 @@ export default function FornecedorForm({
 
         // Foca no campo número após preencher
         setTimeout(() => {
-          const numeroField = document.querySelector(
+          const numeroField = document.querySelector<HTMLInputElement>(
             'input[name="numero"]',
-          ) as HTMLInputElement
+          )
           numeroField?.focus()
         }, 100)
       }
@@ -391,9 +470,9 @@ export default function FornecedorForm({
 
     // Foca no campo de endereço para o usuário preencher manualmente
     setTimeout(() => {
-      const enderecoField = document.querySelector(
+      const enderecoField = document.querySelector<HTMLInputElement>(
         'input[name="endereco"]',
-      ) as HTMLInputElement
+      )
       enderecoField?.focus()
     }, 100)
   }
@@ -424,121 +503,37 @@ export default function FornecedorForm({
     setCnpjParaConsultar(cnpjLimpo)
   }
 
-  const form = useForm({
-    resolver: zodResolver(fornecedorSchema),
-    defaultValues: {
-      cnpj: dadosIniciais?.cnpj ? cnpjUtils.formatar(dadosIniciais.cnpj) : '',
-      razaoSocial: dadosIniciais?.razaoSocial || '',
-      estadoIE: dadosIniciais?.estadoIE || '',
-      inscricaoEstadual: dadosIniciais?.inscricaoEstadual || '',
-      inscricaoMunicipal: dadosIniciais?.inscricaoMunicipal || '',
-      endereco: dadosIniciais?.endereco || '',
-      numero: dadosIniciais?.numero || '',
-      complemento: dadosIniciais?.complemento || '',
-      bairro: dadosIniciais?.bairro || '',
-      cidade: dadosIniciais?.cidade || '',
-      estado: dadosIniciais?.estado || '',
-      cep: dadosIniciais?.cep || '',
-      ativo: dadosIniciais?.ativo ?? true,
-      contatos: dadosIniciais?.contatos?.length
-        ? dadosIniciais.contatos
-        : [
-            {
-              id: '1',
-              nome: '',
-              valor: '',
-              tipo: 'Email' as const,
-              ativo: true,
-            },
-          ],
-    },
-  })
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'contatos',
-  })
-
-  // Watch para o estado selecionado para tornar os campos reativos
-  const estadoSelecionado = useWatch({
-    control: form.control,
-    name: 'estadoIE',
-  })
-
-  // Watch apenas para os tipos de contatos para reatividade
-  const watchedContatosRaw = useWatch({
-    control: form.control,
-    name: 'contatos',
-  })
-
-  // Memoiza os tipos para evitar re-renders desnecessários
-  const tiposContatosMemo = useMemo(() => {
-    const watchedContatos = watchedContatosRaw || []
-    return watchedContatos.map((contato) => contato?.tipo || 'Email')
-  }, [watchedContatosRaw])
-
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {
-    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
-      form.reset({
-        cnpj: dadosIniciais?.cnpj ? cnpjUtils.formatar(dadosIniciais.cnpj) : '',
-        razaoSocial: dadosIniciais?.razaoSocial || '',
-        estadoIE: dadosIniciais?.estadoIE || '',
-        inscricaoEstadual: dadosIniciais?.inscricaoEstadual || '',
-        inscricaoMunicipal: dadosIniciais?.inscricaoMunicipal || '',
-        endereco: dadosIniciais?.endereco || '',
-        numero: dadosIniciais?.numero || '',
-        complemento: dadosIniciais?.complemento || '',
-        bairro: dadosIniciais?.bairro || '',
-        cidade: dadosIniciais?.cidade || '',
-        estado: dadosIniciais?.estado || '',
-        cep: dadosIniciais?.cep || '',
-        ativo: dadosIniciais?.ativo ?? true,
-        empresaId: dadosIniciais?.empresaId || '',
-        contatos: dadosIniciais?.contatos?.length
-          ? dadosIniciais.contatos
-          : [
-              {
-                id: '1',
-                nome: '',
-                valor: '',
-                tipo: 'Email' as const,
-                ativo: true,
-              },
-            ],
-      })
+    if (Object.keys(dadosIniciais).length > 0) {
+      form.reset(buildFormDefaultValues(dadosIniciais))
     }
   }, [dadosIniciais, form])
 
   // Restaurar estados do CEP quando dadosIniciais.cep existe (corrige problema ao voltar de outros steps)
   useEffect(() => {
-    if (dadosIniciais?.cep) {
-      const cep = dadosIniciais.cep
-      const cepLimpo = cep.replace(/\D/g, '')
-
-      // Se o CEP tem 8 dígitos, marca como válido e preenchido
-      if (cepLimpo.length === 8) {
-        setCepValido(true)
-        setCepPreenchido(true)
-        setCepError(null)
-
-        // Se há empresa encontrada nos dados iniciais, também marca isso
-        if (dadosIniciais.empresaId) {
-          // Simula empresa encontrada para manter consistência da UI
-          setEmpresaEncontrada({
-            id: dadosIniciais.empresaId,
-            cnpj: dadosIniciais.cnpj || '',
-            razaoSocial: dadosIniciais.razaoSocial || '',
-          } as EmpresaResponse)
-        }
-      }
+    const cepInicial = dadosIniciais.cep
+    if (!cepInicial) {
+      return
     }
-  }, [
-    dadosIniciais?.cep,
-    dadosIniciais?.empresaId,
-    dadosIniciais?.cnpj,
-    dadosIniciais?.razaoSocial,
-  ])
+
+    const cepLimpo = cepInicial.replace(/\D/g, '')
+    if (cepLimpo.length !== 8) {
+      return
+    }
+
+    setCepValido(true)
+    setCepPreenchido(true)
+    setCepError(null)
+
+    if (!empresaEncontrada && dadosIniciais.empresaId) {
+      setEmpresaEncontrada({
+        id: dadosIniciais.empresaId,
+        cnpj: dadosIniciais.cnpj ?? '',
+        razaoSocial: dadosIniciais.razaoSocial ?? '',
+      })
+    }
+  }, [dadosIniciais, empresaEncontrada])
 
   // Função para notificar mudanças de dados sem watch
   const handleDataChange = useCallback(
@@ -554,28 +549,28 @@ export default function FornecedorForm({
   const notificarMudancas = useCallback(() => {
     if (!onDataChange) return
 
-    const formValues = form.getValues()
-    const empresaIdAtual = formValues.empresaId || empresaEncontrada?.id
+    const formValues = form.getValues() as z.infer<typeof fornecedorSchema>
+    const empresaIdAtual = formValues.empresaId ?? empresaEncontrada?.id
 
     const dados: Partial<DadosFornecedor> = {
-      cnpj: formValues.cnpj || '',
-      razaoSocial: formValues.razaoSocial || '',
-      estadoIE: formValues.estadoIE || '',
-      inscricaoEstadual: formValues.inscricaoEstadual || '',
-      inscricaoMunicipal: formValues.inscricaoMunicipal || '',
-      endereco: formValues.endereco || '',
-      numero: formValues.numero || '',
-      complemento: formValues.complemento || '',
-      bairro: formValues.bairro || '',
-      cidade: formValues.cidade || '',
-      estado: formValues.estado || '',
-      cep: formValues.cep || '',
-      ativo: formValues.ativo || false,
+      cnpj: formValues.cnpj,
+      razaoSocial: formValues.razaoSocial,
+      estadoIE: formValues.estadoIE,
+      inscricaoEstadual: formValues.inscricaoEstadual,
+      inscricaoMunicipal: formValues.inscricaoMunicipal,
+      endereco: formValues.endereco,
+      numero: formValues.numero,
+      complemento: formValues.complemento,
+      bairro: formValues.bairro,
+      cidade: formValues.cidade,
+      estado: formValues.estado,
+      cep: formValues.cep,
+      ativo: formValues.ativo,
       empresaId: empresaIdAtual,
-      contatos: (formValues.contatos || []).map((contato) => ({
+      contatos: formValues.contatos.map((contato) => ({
         id: contato.id,
-        nome: contato.nome || '',
-        valor: contato.valor || '',
+        nome: contato.nome,
+        valor: contato.valor,
         tipo: contato.tipo,
         ativo: contato.ativo,
       })),
@@ -602,7 +597,7 @@ export default function FornecedorForm({
     } as DadosFornecedor
 
     // Validações adicionais com feedback ao usuário
-    if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
+    if (dadosFornecedor.contatos.length === 0) {
       toast.error('Pelo menos um contato é obrigatório', {
         description: 'Adicione pelo menos um contato antes de continuar.',
       })
@@ -610,7 +605,10 @@ export default function FornecedorForm({
     }
 
     const contatosValidos = dadosFornecedor.contatos.filter(
-      (contato) => contato.nome && contato.valor && contato.tipo,
+      (contato) =>
+        Boolean(contato.nome) &&
+        Boolean(contato.valor) &&
+        Boolean(contato.tipo),
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
@@ -647,16 +645,10 @@ export default function FornecedorForm({
         const empresaCriada = await cadastrarEmpresaAsync(empresaRequest)
 
         // Validação robusta da empresa criada
-        if (!empresaCriada) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!empresaCriada?.id) {
           toast.error('Erro no cadastro da empresa', {
-            description: 'Resposta vazia do servidor',
-          })
-          return
-        }
-
-        if (!empresaCriada.id) {
-          toast.error('Erro no cadastro da empresa', {
-            description: 'ID da empresa não foi retornado',
+            description: 'Resposta inválida do servidor',
           })
           return
         }
@@ -705,7 +697,7 @@ export default function FornecedorForm({
 
       // Avança para o próximo step
       const empresaIdFinal =
-        form.getValues('empresaId') || empresaEncontrada?.id
+        form.getValues('empresaId') ?? empresaEncontrada?.id
 
       if (onAdvanceRequest) {
         // Incluir o empresaId nos dados se disponível
@@ -713,16 +705,16 @@ export default function FornecedorForm({
           ...dadosFornecedor,
           empresaId: empresaIdFinal,
         }
-        await onAdvanceRequest(dadosCompletos)
+        void onAdvanceRequest(dadosCompletos)
       } else {
         // Incluir o empresaId nos dados se disponível
         const dadosCompletos = {
           ...dadosFornecedor,
           empresaId: empresaIdFinal,
         }
-        await onSubmit?.(dadosCompletos)
+        onSubmit(dadosCompletos)
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao processar formulário', {
         description: 'Tente novamente ou verifique os dados.',
       })
@@ -746,16 +738,27 @@ export default function FornecedorForm({
     }
   }
 
-  const getPlaceholderPorTipo = (tipo: string) => {
+  const getPlaceholderPorTipo = (tipo: Contato['tipo']) => {
     switch (tipo) {
       case 'Email':
         return 'exemplo@email.com'
-      case 'Fixo':
+      case 'Telefone':
         return '(11) 3333-4444'
       case 'Celular':
-        return '(11) 9 9999-8888'
       default:
-        return ''
+        return '(11) 9 9999-8888'
+    }
+  }
+
+  const getLabelPorTipo = (tipo: Contato['tipo']) => {
+    switch (tipo) {
+      case 'Email':
+        return 'E-mail'
+      case 'Telefone':
+        return 'Telefone Fixo'
+      case 'Celular':
+      default:
+        return 'Celular'
     }
   }
 
@@ -766,12 +769,6 @@ export default function FornecedorForm({
       return apenasNumeros
     }
     return `${apenasNumeros.slice(0, 5)}-${apenasNumeros.slice(5, 8)}`
-  }
-
-  // Função para validar formato do CEP
-  const validarFormatoCEP = (cep: string) => {
-    const cepLimpo = cep.replace(/\D/g, '')
-    return cepLimpo.length === 8
   }
 
   // Função para aplicar máscara no telefone fixo
@@ -807,7 +804,9 @@ export default function FornecedorForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={(e) => {
+          void form.handleSubmit(handleFormSubmit)(e)
+        }}
         className="space-y-8"
       >
         {/* Informações Básicas */}
@@ -893,7 +892,7 @@ export default function FornecedorForm({
                           />
                           {isConsultandoCNPJ && (
                             <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
+                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
                             </div>
                           )}
                           {isValidCnpj !== null && !isConsultandoCNPJ && (
@@ -1122,7 +1121,7 @@ export default function FornecedorForm({
 
                             // Só busca CEP quando o formato estiver completo
                             if (valorMascarado) {
-                              buscarCEP(valorMascarado)
+                              void buscarCEP(valorMascarado)
                             }
                           }}
                           className={cn(
@@ -1134,7 +1133,7 @@ export default function FornecedorForm({
                         />
                         {isLoadingCEP && (
                           <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
+                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
                           </div>
                         )}
                         {!isLoadingCEP && cepValido && (
@@ -1468,18 +1467,12 @@ export default function FornecedorForm({
                         render={({ field: valorField }) => {
                           // Usa o tipo memoizado para evitar re-renders
                           const tipoContato =
-                            tiposContatosMemo[index] || 'Email'
+                            tiposContatosMemo[index] ?? 'Email'
 
                           return (
                             <FormItem>
                               <FormLabel className="mb-2">
-                                {tipoContato === 'Email'
-                                  ? 'E-mail'
-                                  : tipoContato === 'Telefone'
-                                    ? 'Telefone Fixo'
-                                    : tipoContato === 'Celular'
-                                      ? 'Celular'
-                                      : 'Valor'}
+                                {getLabelPorTipo(tipoContato)}
                               </FormLabel>
                               <FormControl>
                                 <div className="relative">
@@ -1521,7 +1514,8 @@ export default function FornecedorForm({
                                           validarFormatoTelefoneFixo(
                                             valorProcessado,
                                           )
-                                        } else if (tipoContato === 'Celular') {
+                                        } else {
+                                          // Celular
                                           validarFormatoCelular(valorProcessado)
                                         }
                                       }
@@ -1632,3 +1626,5 @@ export default function FornecedorForm({
     </Form>
   )
 }
+
+export default FornecedorForm

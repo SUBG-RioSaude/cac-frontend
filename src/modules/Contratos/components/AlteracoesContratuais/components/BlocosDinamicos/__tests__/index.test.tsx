@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
-import { BlocosDinamicos } from '../index'
+import { describe, it, expect, vi } from 'vitest'
+
 import { TipoAlteracao } from '../../../../../types/alteracoes-contratuais'
+import { BlocosDinamicos } from '../index'
 
 // Mocks básicos
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({

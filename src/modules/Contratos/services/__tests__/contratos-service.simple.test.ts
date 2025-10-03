@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import { executeWithFallback } from '@/lib/axios'
+
 import {
   getContratos,
   getContratoDetalhado,
@@ -18,8 +21,6 @@ vi.mock('@/lib/axios', () => ({
 vi.mock('@/modules/Contratos/types/contrato', () => ({
   transformLegacyPayloadToNew: vi.fn((payload) => payload),
 }))
-
-import { executeWithFallback } from '@/lib/axios'
 const mockExecuteWithFallback = vi.mocked(executeWithFallback)
 
 describe('ContratosService - Testes Essenciais', () => {

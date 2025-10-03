@@ -43,7 +43,7 @@ export async function adicionarFuncionarioContrato(
     observacoes: payload.observacoes,
   }
   const response = await api.post(`/contratos/${contratoId}/funcionarios`, body)
-  return response.data
+  return response.data as AdicionarFuncionarioResponse
 }
 
 /**
@@ -78,8 +78,8 @@ export async function substituirFuncionarioContrato(
       funcionarioAntigoId,
       tipoGerencia,
     )
-  } catch (error) {
-    console.error('Erro ao remover funcionário antigo:', error)
+  } catch {
+    // Erro ao remover funcionário antigo
     throw new Error(
       'Não foi possível remover o funcionário atual. Operação cancelada.',
     )
@@ -94,8 +94,8 @@ export async function substituirFuncionarioContrato(
       dataInicio,
     })
     return novoFuncionario
-  } catch (error) {
-    console.error('Erro ao adicionar novo funcionário:', error)
+  } catch {
+    // Erro ao adicionar novo funcionário
 
     // Tentar rollback: re-adicionar funcionário antigo
     try {
@@ -104,8 +104,8 @@ export async function substituirFuncionarioContrato(
         tipoGerencia,
         observacoes: 'Revertido automaticamente após falha na substituição',
       })
-    } catch (rollbackError) {
-      console.error('Falha no rollback:', rollbackError)
+    } catch {
+      // Falha no rollback
       throw new Error(
         'Erro crítico: Não foi possível adicionar o novo funcionário e o rollback falhou. Contate o suporte.',
       )
@@ -128,7 +128,7 @@ export async function listarFuncionariosContrato(
   const response = await api.get(`/contratos/${contratoId}/funcionarios`, {
     params,
   })
-  return response.data
+  return response.data as unknown[]
 }
 
 /**
@@ -140,7 +140,7 @@ export async function obterHistoricoFuncionarios(
   const response = await api.get(
     `/contratos/${contratoId}/funcionarios/historico`,
   )
-  return response.data
+  return response.data as unknown[]
 }
 
 /**
@@ -154,7 +154,7 @@ export async function obterFuncionariosAtivosEm(
     `/contratos/${contratoId}/funcionarios/ativo-em`,
     { params: { data } },
   )
-  return response.data
+  return response.data as unknown[]
 }
 
 /**
@@ -167,7 +167,7 @@ export async function obterPeriodosFuncionario(
   const response = await api.get(
     `/contratos/${contratoId}/funcionarios/${funcionarioId}/periodos`,
   )
-  return response.data
+  return response.data as unknown[]
 }
 
 // ========== UTILITÁRIOS ==========

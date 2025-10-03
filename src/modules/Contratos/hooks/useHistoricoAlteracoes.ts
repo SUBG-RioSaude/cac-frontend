@@ -3,9 +3,10 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+
 import { getHistoricoAlteracoesContrato } from '../services/alteracoes-contratuais-service'
-import type { AlteracaoContrato } from '../types/contrato'
 import type { AlteracaoContratualResponse } from '../types/alteracoes-contratuais'
+import type { AlteracaoContrato } from '../types/contrato'
 
 /**
  * Transforma dados da nova API para o formato esperado pelo componente RegistroAlteracoes
@@ -28,14 +29,11 @@ function transformAlteracaoContratual(
     6: 'sub_rogacao', // Sub-rogação
   }
 
-  const primeiroTipo = alteracao.tiposAlteracao?.[0] || 3
+  const primeiroTipo = alteracao.tiposAlteracao[0] || 3
   const tipo = tipoMap[primeiroTipo] || 'alteracao_contratual'
 
   // Usar resumoAlteracao da API se disponível, senão usar justificativa
-  const descricao =
-    alteracao.resumoAlteracao ||
-    alteracao.justificativa ||
-    `Alteração Contratual - ${alteracao.id.substring(0, 8)}`
+  const descricao = alteracao.resumoAlteracao ?? alteracao.justificativa
 
   return {
     id: alteracao.id,
@@ -52,16 +50,16 @@ function transformAlteracaoContratual(
     versaoContrato: alteracao.versaoContrato,
     dataEfeito: alteracao.dataEfeito,
     requerConfirmacaoLimiteLegal: alteracao.requerConfirmacaoLimiteLegal,
-    alertaLimiteLegal: alteracao.alertaLimiteLegal || undefined,
+    alertaLimiteLegal: alteracao.alertaLimiteLegal ?? undefined,
 
     // Dados estruturados dos blocos (agora diretamente na raiz) - converter null para undefined
-    vigencia: alteracao.vigencia || undefined,
-    valor: alteracao.valor || undefined,
-    clausulas: alteracao.clausulas || undefined,
+    vigencia: alteracao.vigencia ?? undefined,
+    valor: alteracao.valor ?? undefined,
+    clausulas: alteracao.clausulas ?? undefined,
 
     // Campos adicionais - preservar dados originais da API
-    fornecedores: alteracao.fornecedores || undefined,
-    unidades: alteracao.unidades || undefined,
+    fornecedores: alteracao.fornecedores ?? undefined,
+    unidades: alteracao.unidades ?? undefined,
   }
 }
 

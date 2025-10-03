@@ -5,6 +5,7 @@
  */
 
 import { executeWithFallback } from '@/lib/axios'
+
 import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,
@@ -39,12 +40,12 @@ interface CriarAlteracaoRequest {
   }
   blocos: {
     clausulas?: {
-      clausulasAlteradas: Array<{
+      clausulasAlteradas: {
         numeroClausula: string
         textoOriginal: string
         textoAlterado: string
         tipoAlteracao: 'substituir' | 'incluir' | 'excluir'
-      }>
+      }[]
     }
     vigencia?: {
       operacao: number // OperacaoVigencia
@@ -62,19 +63,19 @@ interface CriarAlteracaoRequest {
     }
     fornecedores?: {
       operacao: number // OperacaoFornecedor
-      fornecedoresAfetados: Array<{
+      fornecedoresAfetados: {
         id: string
         nome: string
         cnpj: string
-      }>
+      }[]
     }
     unidades?: {
       operacao: number // OperacaoUnidade
-      unidadesAfetadas: Array<{
+      unidadesAfetadas: {
         id: string
         nome: string
         codigo: string
-      }>
+      }[]
     }
   }
 }
@@ -99,16 +100,16 @@ export async function getAlteracoesContratuais(
     method: 'get',
     url: `/contratos/${contratoId}/alteracoes`,
     params: {
-      pagina: filtros?.pagina || 1,
-      tamanhoPagina: filtros?.tamanhoPagina || 10,
+      pagina: filtros?.pagina ?? 1,
+      tamanhoPagina: filtros?.tamanhoPagina ?? 10,
       status: filtros?.status,
       tipoAlteracao: filtros?.tipoAlteracao,
       dataInicio: filtros?.dataInicio,
       dataFim: filtros?.dataFim,
-      ordenarPor: filtros?.ordenarPor || 'dataCriacao',
-      direcaoOrdenacao: filtros?.direcaoOrdenacao || 'desc',
+      ordenarPor: filtros?.ordenarPor ?? 'dataCriacao',
+      direcaoOrdenacao: filtros?.direcaoOrdenacao ?? 'desc',
     },
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -124,7 +125,7 @@ export async function getAlteracaoContratualById(
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'get',
     url: `/alteracoes-contratuais/${id}`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -150,7 +151,7 @@ export async function criarAlteracaoContratual(
     method: 'post',
     url: `/alteracoes-contratuais`,
     data: payload,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   // Status 202 indica alerta de limite legal
@@ -187,7 +188,7 @@ export async function confirmarLimiteLegal(
     method: 'post',
     url: `/alteracoes-contratuais/${id}/confirmar-limite`,
     data: confirmacao,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -219,7 +220,7 @@ export async function atualizarAlteracaoContratual(
         valor: dados.blocos.valor
           ? {
               operacao: dados.blocos.valor.operacao,
-              valor: dados.blocos.valor.valorAjuste || 0,
+              valor: dados.blocos.valor.valorAjuste ?? 0,
               percentual: dados.blocos.valor.percentualAjuste,
             }
           : undefined,
@@ -231,7 +232,7 @@ export async function atualizarAlteracaoContratual(
                   id: f.empresaId,
                   nome: f.empresaId, // Usar empresaId como nome por enquanto
                   cnpj: f.empresaId, // Usar empresaId como cnpj por enquanto
-                })) || [],
+                })) ?? [],
             }
           : undefined,
         unidades: dados.blocos.unidades
@@ -242,7 +243,7 @@ export async function atualizarAlteracaoContratual(
                   id: u.unidadeSaudeId,
                   nome: u.unidadeSaudeId,
                   codigo: u.unidadeSaudeId,
-                })) || [],
+                })) ?? [],
             }
           : undefined,
       }
@@ -258,7 +259,7 @@ export async function atualizarAlteracaoContratual(
     method: 'put',
     url: `/alteracoes-contratuais/${id}`,
     data: payload,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -272,7 +273,7 @@ export async function excluirAlteracaoContratual(id: string): Promise<void> {
   await executeWithFallback({
     method: 'delete',
     url: `/alteracoes-contratuais/${id}`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 }
 
@@ -293,7 +294,7 @@ export async function submeterParaAprovacao(
     method: 'post',
     url: `/alteracoes-contratuais/${id}/submeter`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -314,7 +315,7 @@ export async function aprovarAlteracao(
     method: 'post',
     url: `/alteracoes-contratuais/${id}/aprovar`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -335,7 +336,7 @@ export async function rejeitarAlteracao(
     method: 'post',
     url: `/alteracoes-contratuais/${id}/rejeitar`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -351,7 +352,7 @@ export async function getWorkflowStatus(
   const response = await executeWithFallback<WorkflowStatusResponse[]>({
     method: 'get',
     url: `/alteracoes-contratuais/${id}/workflow`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -374,7 +375,7 @@ export async function gerarResumoAlteracao(
       ...dados,
       contratoId,
     },
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -392,7 +393,7 @@ export async function getTiposAlteracaoConfig(): Promise<
   >({
     method: 'get',
     url: '/alteracoes-contratuais/tipos',
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -403,28 +404,28 @@ export async function getTiposAlteracaoConfig(): Promise<
  * GET /api/alteracoes-contratuais/{id}/documentos
  */
 export async function getDocumentosAlteracao(id: string): Promise<{
-  documentos: Array<{
+  documentos: {
     id: string
     nome: string
     tipo: string
     tamanho: number
     url: string
     dataCriacao: string
-  }>
+  }[]
 }> {
   const response = await executeWithFallback<{
-    documentos: Array<{
+    documentos: {
       id: string
       nome: string
       tipo: string
       tamanho: number
       url: string
       dataCriacao: string
-    }>
+    }[]
   }>({
     method: 'get',
     url: `/alteracoes-contratuais/${id}/documentos`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -480,7 +481,7 @@ export async function getHistoricoAlteracoesContrato(
   const response = await executeWithFallback<AlteracaoContratualResponse[]>({
     method: 'get',
     url: `/alteracoes-contratuais/contrato/${contratoId}/historico`,
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data

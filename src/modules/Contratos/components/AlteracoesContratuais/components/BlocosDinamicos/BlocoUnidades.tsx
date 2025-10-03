@@ -1,11 +1,3 @@
-import { useState, useCallback, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import {
   Building2,
   Search,
@@ -15,19 +7,29 @@ import {
   Loader2,
   DollarSign,
 } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import {
   useUnidades,
   useBuscarUnidades,
 } from '@/modules/Unidades/hooks/use-unidades'
+import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
 import type {
   BlocoUnidades as IBlocoUnidades,
   UnidadeVinculada,
 } from '../../../../types/alteracoes-contratuais'
-import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
 import { LinkedUnitsManager } from './LinkedUnitsManager'
-import { UnlinkedUnitsManager } from './UnlinkedUnitsManager'
 import { UnitValueEditor } from './UnitValueEditor'
+import { UnlinkedUnitsManager } from './UnlinkedUnitsManager'
 
 interface TransformedUnidade {
   id: string
@@ -60,11 +62,11 @@ interface BlocoUnidadesProps {
 function transformUnidadeApiData(unidade: UnidadeSaudeApi): TransformedUnidade {
   return {
     id: unidade.id,
-    codigo: unidade.sigla || `UN${unidade.id.slice(-3)}`,
+    codigo: unidade.sigla ?? `UN${unidade.id.slice(-3)}`,
     nome: unidade.nome,
-    tipo: unidade.cap?.nome || 'Unidade',
+    tipo: unidade.cap.nome || 'Unidade',
     endereco: unidade.endereco
-      ? `${unidade.endereco}, ${unidade.bairro || ''}`.trim().replace(/,$/, '')
+      ? `${unidade.endereco}, ${unidade.bairro ?? ''}`.trim().replace(/,$/, '')
       : 'Endereço não informado',
     ativo: unidade.ativo,
   }
@@ -78,7 +80,7 @@ const CORES_TIPO: Record<string, string> = {
   Unidade: 'bg-gray-100 text-gray-700',
 }
 
-export function BlocoUnidades({
+export const BlocoUnidades = ({
   dados = {},
   onChange,
   contractUnits,
@@ -86,7 +88,7 @@ export function BlocoUnidades({
   errors = {},
   disabled = false,
   required = false,
-}: BlocoUnidadesProps) {
+}: BlocoUnidadesProps) => {
   const [busca, setBusca] = useState('')
   const [valueEditorUnit, setValueEditorUnit] =
     useState<TransformedUnidade | null>(null)
@@ -118,12 +120,12 @@ export function BlocoUnidades({
   // Unidades da API transformadas
   const unidadesApi = useMemo(() => {
     const unidades = shouldSearch ? unidadesBusca : unidadesResponse?.dados
-    return unidades?.map(transformUnidadeApiData) || []
+    return unidades?.map(transformUnidadeApiData) ?? []
   }, [shouldSearch, unidadesBusca, unidadesResponse])
 
   // Unidades já vinculadas ao contrato atual (disponíveis para desvincular)
   const unidadesJaVinculadas = useMemo(() => {
-    if (!contractUnits?.linkedUnits) return []
+    if (!contractUnits) return []
 
     // Filtrar unidades já vinculadas que não estão nas desvinculadas
     return contractUnits.linkedUnits.filter(
@@ -133,9 +135,11 @@ export function BlocoUnidades({
 
   // Filtrar unidades disponíveis para vincular (excluir já vinculadas no contrato atual e nas alterações)
   const unidadesDisponiveis = useMemo(() => {
-    const jaVinculadasIds = contractUnits?.linkedUnits?.map((u) => u.id) || []
+    const jaVinculadasIds = contractUnits
+      ? contractUnits.linkedUnits.map((u) => u.id)
+      : []
     const vinculadasAlteracoes =
-      dados.unidadesVinculadas?.map((uv) => uv.unidadeSaudeId) || []
+      dados.unidadesVinculadas?.map((uv) => uv.unidadeSaudeId) ?? []
 
     return unidadesApi.filter((u) => {
       return (
@@ -158,7 +162,7 @@ export function BlocoUnidades({
   const valorCalculations = useMemo(() => {
     // Valor das unidades já vinculadas no contrato atual
     const valorJaVinculado = unidadesJaVinculadas.reduce(
-      (sum, unit) => sum + (unit.valorAtual || 0),
+      (sum, unit) => sum + (unit.valorAtual ?? 0),
       0,
     )
 
@@ -167,14 +171,14 @@ export function BlocoUnidades({
       dados.unidadesVinculadas?.reduce(
         (sum, unit) => sum + unit.valorAtribuido,
         0,
-      ) || 0
+      ) ?? 0
 
     // Valor das unidades sendo desvinculadas (precisa ser subtraído)
     const valorDesvinculado =
       dados.unidadesDesvinculadas?.reduce((sum, unitId) => {
         const unidade = unidadesJaVinculadas.find((u) => u.id === unitId)
-        return sum + (unidade?.valorAtual || 0)
-      }, 0) || 0
+        return sum + (unidade?.valorAtual ?? 0)
+      }, 0) ?? 0
 
     // Total distribuído após as alterações
     const valorTotalDistribuido =
@@ -209,6 +213,16 @@ export function BlocoUnidades({
   // Manter compatibilidade com código existente
   const currentAllocatedValue = valorCalculations.valorNovasVinculadas
 
+  const demandingUnit = contractUnits?.demandingUnit ?? null
+  const managingUnit = contractUnits?.managingUnit ?? null
+  const linkedUnits = contractUnits ? contractUnits.linkedUnits : []
+  const linkedUnitsCount = linkedUnits.length
+  const hasUnitsSummary = contractUnits
+    ? Boolean(demandingUnit ?? managingUnit)
+    : false
+  const hasUnitsContext = hasUnitsSummary ? true : linkedUnitsCount > 0
+  const editModeUnit = valueEditorUnit?.__editMode ? valueEditorUnit : null
+
   const handleFieldChange = useCallback(
     (field: keyof IBlocoUnidades, value: unknown) => {
       onChange({
@@ -225,7 +239,7 @@ export function BlocoUnidades({
 
   const handleSaveLinkedUnit = useCallback(
     (unidadeVinculada: UnidadeVinculada) => {
-      const vinculadas = [...(dados.unidadesVinculadas || []), unidadeVinculada]
+      const vinculadas = [...(dados.unidadesVinculadas ?? []), unidadeVinculada]
       handleFieldChange('unidadesVinculadas', vinculadas)
       setValueEditorUnit(null)
     },
@@ -241,7 +255,7 @@ export function BlocoUnidades({
 
   const handleDesvincularUnidade = useCallback(
     (unidadeId: string) => {
-      const desvinculadas = [...(dados.unidadesDesvinculadas || []), unidadeId]
+      const desvinculadas = [...(dados.unidadesDesvinculadas ?? []), unidadeId]
       handleFieldChange('unidadesDesvinculadas', desvinculadas)
     },
     [dados.unidadesDesvinculadas, handleFieldChange],
@@ -267,15 +281,15 @@ export function BlocoUnidades({
   // Verificar se tem alterações
   const temAlteracoes = useMemo(() => {
     return (
-      (dados.unidadesVinculadas?.length || 0) > 0 ||
-      (dados.unidadesDesvinculadas?.length || 0) > 0
+      (dados.unidadesVinculadas?.length ?? 0) > 0 ||
+      (dados.unidadesDesvinculadas?.length ?? 0) > 0
     )
   }, [dados])
 
   // Contar por tipo (simplificado)
   const contagemPorTipo = useMemo(() => {
-    const vinculadas = dados.unidadesVinculadas?.length || 0
-    const desvinculadas = dados.unidadesDesvinculadas?.length || 0
+    const vinculadas = dados.unidadesVinculadas?.length ?? 0
+    const desvinculadas = dados.unidadesDesvinculadas?.length ?? 0
     return { vinculadas, desvinculadas }
   }, [dados])
 
@@ -318,16 +332,16 @@ export function BlocoUnidades({
           )}
 
           {/* Contexto resumido do contrato atual */}
-          {(contractUnits?.demandingUnit || contractUnits?.managingUnit) && (
+          {contractUnits && hasUnitsSummary && (
             <div className="flex items-center gap-2">
-              {contractUnits.demandingUnit && (
+              {demandingUnit && (
                 <Badge variant="outline" className="text-xs">
-                  Demandante: {contractUnits.demandingUnit}
+                  Demandante: {demandingUnit}
                 </Badge>
               )}
-              {contractUnits.managingUnit && (
+              {managingUnit && (
                 <Badge variant="outline" className="text-xs">
-                  Gestora: {contractUnits.managingUnit}
+                  Gestora: {managingUnit}
                 </Badge>
               )}
             </div>
@@ -460,72 +474,66 @@ export function BlocoUnidades({
       )}
 
       {/* Contexto de Unidades Atual do Contrato */}
-      {contractUnits &&
-        (contractUnits.demandingUnit ||
-          contractUnits.managingUnit ||
-          contractUnits.linkedUnits.length > 0) && (
-          <Card className="border-teal-200 bg-teal-50">
-            <CardContent className="pt-4">
-              <div className="mb-3">
-                <h4 className="flex items-center gap-2 font-medium text-teal-900">
-                  <Building2 className="h-4 w-4" />
-                  Unidades Vinculadas ao Contrato
-                </h4>
+      {contractUnits && hasUnitsContext && (
+        <Card className="border-teal-200 bg-teal-50">
+          <CardContent className="pt-4">
+            <div className="mb-3">
+              <h4 className="flex items-center gap-2 font-medium text-teal-900">
+                <Building2 className="h-4 w-4" />
+                Unidades Vinculadas ao Contrato
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+              <div>
+                <Label className="text-xs text-teal-600">
+                  Unidade Demandante
+                </Label>
+                <p className="font-medium text-teal-900">
+                  {demandingUnit ?? 'Não informado'}
+                </p>
               </div>
-              <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
-                <div>
-                  <Label className="text-xs text-teal-600">
-                    Unidade Demandante
-                  </Label>
-                  <p className="font-medium text-teal-900">
-                    {contractUnits.demandingUnit || 'Não informado'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-xs text-teal-600">
-                    Unidade Gestora
-                  </Label>
-                  <p className="font-medium text-teal-900">
-                    {contractUnits.managingUnit || 'Não informado'}
-                  </p>
+              <div>
+                <Label className="text-xs text-teal-600">Unidade Gestora</Label>
+                <p className="font-medium text-teal-900">
+                  {managingUnit ?? 'Não informado'}
+                </p>
+              </div>
+            </div>
+            {linkedUnitsCount > 0 && (
+              <div className="mt-3 border-t border-teal-200 pt-3">
+                <Label className="text-xs text-teal-600">
+                  Unidades Vinculadas Adicionais
+                </Label>
+                <p className="text-sm text-teal-800">
+                  {linkedUnitsCount} unidade(s) adicional(is) vinculada(s) ao
+                  contrato
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {linkedUnits
+                    .slice(0, 3)
+                    .map((unit: TransformedUnidade, index: number) => (
+                      <Badge
+                        key={unit.id}
+                        variant="outline"
+                        className="bg-teal-100 text-xs text-teal-700"
+                      >
+                        {unit.nome || `Unidade ${index + 1}`}
+                      </Badge>
+                    ))}
+                  {linkedUnitsCount > 3 && (
+                    <Badge
+                      variant="outline"
+                      className="bg-teal-100 text-xs text-teal-700"
+                    >
+                      +{linkedUnitsCount - 3} mais
+                    </Badge>
+                  )}
                 </div>
               </div>
-              {contractUnits.linkedUnits &&
-                contractUnits.linkedUnits.length > 0 && (
-                  <div className="mt-3 border-t border-teal-200 pt-3">
-                    <Label className="text-xs text-teal-600">
-                      Unidades Vinculadas Adicionais
-                    </Label>
-                    <p className="text-sm text-teal-800">
-                      {contractUnits.linkedUnits.length} unidade(s)
-                      adicional(is) vinculada(s) ao contrato
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {contractUnits.linkedUnits
-                        .slice(0, 3)
-                        .map((unit: TransformedUnidade, index: number) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="bg-teal-100 text-xs text-teal-700"
-                          >
-                            {unit.nome || `Unidade ${index + 1}`}
-                          </Badge>
-                        ))}
-                      {contractUnits.linkedUnits.length > 3 && (
-                        <Badge
-                          variant="outline"
-                          className="bg-teal-100 text-xs text-teal-700"
-                        >
-                          +{contractUnits.linkedUnits.length - 3} mais
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-            </CardContent>
-          </Card>
-        )}
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Unidades Já Vinculadas ao Contrato */}
       {unidadesJaVinculadas.length > 0 && (
@@ -564,7 +572,7 @@ export function BlocoUnidades({
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
-                      }).format(unidade.valorAtual || 0)}
+                      }).format(unidade.valorAtual ?? 0)}
                     </div>
                   </div>
 
@@ -709,7 +717,7 @@ export function BlocoUnidades({
 
       {/* Unidades vinculadas com valor */}
       <LinkedUnitsManager
-        unidadesVinculadas={dados.unidadesVinculadas || []}
+        unidadesVinculadas={dados.unidadesVinculadas ?? []}
         onChange={handleUpdateLinkedUnits}
         getUnitDetails={getUnitDetails}
         disabled={disabled}
@@ -719,7 +727,7 @@ export function BlocoUnidades({
 
       {/* Unidades desvinculadas */}
       <UnlinkedUnitsManager
-        unidadesDesvinculadas={dados.unidadesDesvinculadas || []}
+        unidadesDesvinculadas={dados.unidadesDesvinculadas ?? []}
         onChange={handleUpdateUnlinkedUnits}
         getUnitDetails={getUnitDetails}
         disabled={disabled}
@@ -735,7 +743,7 @@ export function BlocoUnidades({
             </Label>
             <Textarea
               id="observacoes-unidades"
-              value={dados.observacoes || ''}
+              value={dados.observacoes ?? ''}
               onChange={(e) => handleFieldChange('observacoes', e.target.value)}
               disabled={disabled}
               rows={3}
@@ -760,13 +768,13 @@ export function BlocoUnidades({
               Resumo das Alterações
             </h4>
             <div className="space-y-1 text-blue-800">
-              {(dados.unidadesVinculadas?.length || 0) > 0 && (
+              {(dados.unidadesVinculadas?.length ?? 0) > 0 && (
                 <div>
                   • {dados.unidadesVinculadas!.length} unidade(s) serão
                   vinculadas ao contrato
                 </div>
               )}
-              {(dados.unidadesDesvinculadas?.length || 0) > 0 && (
+              {(dados.unidadesDesvinculadas?.length ?? 0) > 0 && (
                 <div>
                   • {dados.unidadesDesvinculadas!.length} unidade(s) serão
                   desvinculadas do contrato
@@ -783,8 +791,8 @@ export function BlocoUnidades({
               )}
               <div className="mt-2 text-xs text-blue-600">
                 Total de alterações:{' '}
-                {(dados.unidadesVinculadas?.length || 0) +
-                  (dados.unidadesDesvinculadas?.length || 0)}{' '}
+                {(dados.unidadesVinculadas?.length ?? 0) +
+                  (dados.unidadesDesvinculadas?.length ?? 0)}{' '}
                 unidades
               </div>
             </div>
@@ -805,10 +813,8 @@ export function BlocoUnidades({
         contractValue={contractValue}
         valorRestante={valorCalculations.valorRestante}
         disabled={disabled}
-        mode={valueEditorUnit?.__editMode ? 'edit' : 'create'}
-        existingValue={
-          valueEditorUnit?.__editMode ? valueEditorUnit?.valorAtual || 0 : 0
-        }
+        mode={editModeUnit ? 'edit' : 'create'}
+        existingValue={editModeUnit?.valorAtual ?? 0}
       />
     </div>
   )

@@ -400,7 +400,7 @@ export const ieUtils: IEUtils = {
       mask: '###.###.###/####',
       validate: (ie: string) => {
         if (ie.length !== 13) return false
-        const seq = ie.slice(0, 3) + '0' + ie.slice(3, 11)
+        const seq = `${ie.slice(0, 3)}0${ie.slice(3, 11)}`
         const dv1 = ieUtils.mod10(seq, [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2])
         if (parseInt(ie[11]) !== dv1) return false
         const dv2 = ieUtils.mod11(
@@ -643,23 +643,42 @@ export const ieUtils: IEUtils = {
 
     if (!estado) return ieLimpa.length >= 8 && ieLimpa.length <= 14
 
-    const config = ieUtils.estados[estado.toUpperCase()]
-    if (!config) return ieLimpa.length >= 8 && ieLimpa.length <= 14
+    const upperEstado = estado.toUpperCase()
+    const hasConfig = Object.prototype.hasOwnProperty.call(
+      ieUtils.estados,
+      upperEstado,
+    )
 
+    if (!hasConfig) return ieLimpa.length >= 8 && ieLimpa.length <= 14
+
+    const config = ieUtils.estados[upperEstado]
     return config.validate(ieLimpa)
   },
 
   aplicarMascara: (value: string, estado?: string): string => {
     const ieLimpa = ieUtils.limpar(value)
 
-    if (!estado || !ieUtils.estados[estado.toUpperCase()]) {
+    if (!estado) {
       // Máscara padrão
       return ieLimpa.length <= 9
         ? ieLimpa.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3')
         : ieLimpa.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3.$4')
     }
 
-    const { mask } = ieUtils.estados[estado.toUpperCase()]
+    const upperEstado = estado.toUpperCase()
+    const hasConfig = Object.prototype.hasOwnProperty.call(
+      ieUtils.estados,
+      upperEstado,
+    )
+
+    if (!hasConfig) {
+      // Máscara padrão se estado inválido
+      return ieLimpa.length <= 9
+        ? ieLimpa.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3')
+        : ieLimpa.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3.$4')
+    }
+
+    const { mask } = ieUtils.estados[upperEstado]
     let pos = 0
     return mask.replace(/#/g, () =>
       pos < ieLimpa.length ? ieLimpa[pos++] : '',
@@ -860,7 +879,7 @@ export const dateUtils = {
         dateString.includes('+') ||
         dateString.includes('-', 10)
           ? dateString
-          : dateString + 'Z'
+          : `${dateString}Z`
 
       const date = new Date(isoString)
 
@@ -871,7 +890,7 @@ export const dateUtils = {
 
       // Formata usando UTC para evitar conversão de timezone
       return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
-    } catch (error) {
+    } catch {
       return ''
     }
   },
@@ -894,7 +913,7 @@ export const dateUtils = {
         dateString.includes('+') ||
         dateString.includes('-', 10)
           ? dateString
-          : dateString + 'Z'
+          : `${dateString}Z`
 
       const date = new Date(isoString)
 
@@ -910,7 +929,7 @@ export const dateUtils = {
       }
 
       return date.toLocaleDateString('pt-BR', { ...defaultOptions, ...options })
-    } catch (error) {
+    } catch {
       return ''
     }
   },
@@ -1154,7 +1173,7 @@ export const percentualUtils = {
    * @returns Percentual formatado como string
    */
   formatar: (valor: number): string => {
-    if (isNaN(valor) || valor === null || valor === undefined) {
+    if (Number.isNaN(valor)) {
       return '0'
     }
 
@@ -1178,7 +1197,7 @@ export const percentualUtils = {
     if (numero < 0 || numero > 100) return false
 
     // Verifica se tem no máximo 2 casas decimais
-    const partesDecimais = valorStr.split('.')[1]
+    const [, partesDecimais] = valorStr.split('.')
     if (partesDecimais && partesDecimais.length > 2) {
       return false
     }
@@ -1192,14 +1211,14 @@ export const percentualUtils = {
    * @returns string vazia se válido, mensagem de erro se inválido
    */
   validarComMensagem: (valor: string | number): string => {
-    if (valor === '' || valor === null || valor === undefined) {
+    if (valor === '') {
       return 'Percentual é obrigatório'
     }
 
     const valorStr = valor.toString().replace(',', '.')
-    const numero = parseFloat(valorStr)
+    const numero = Number.parseFloat(valorStr)
 
-    if (isNaN(numero)) {
+    if (Number.isNaN(numero)) {
       return 'Percentual deve ser um número válido'
     }
 
@@ -1212,7 +1231,7 @@ export const percentualUtils = {
     }
 
     // Verifica se tem no máximo 2 casas decimais
-    const partesDecimais = valorStr.split('.')[1]
+    const [, partesDecimais] = valorStr.split('.')
     if (partesDecimais && partesDecimais.length > 2) {
       return 'Percentual pode ter no máximo 2 casas decimais'
     }
@@ -1237,14 +1256,14 @@ export const percentualUtils = {
     // Evita múltiplos pontos
     const pontos = valorLimpo.split('.')
     if (pontos.length > 2) {
-      valorLimpo = pontos[0] + '.' + pontos.slice(1).join('')
+      valorLimpo = `${pontos[0]}.${pontos.slice(1).join('')}`
     }
 
     // Limita a 2 casas decimais
     if (valorLimpo.includes('.')) {
       const [inteira, decimal] = valorLimpo.split('.')
       const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
-      valorLimpo = inteira + (decimalLimitado ? '.' + decimalLimitado : '')
+      valorLimpo = inteira + (decimalLimitado ? `.${decimalLimitado}` : '')
     }
 
     // Limita valor máximo a 100

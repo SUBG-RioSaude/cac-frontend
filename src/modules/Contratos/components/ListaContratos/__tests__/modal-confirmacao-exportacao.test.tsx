@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import { ModalConfirmacaoExportacao } from '../modal-confirmacao-exportacao'
 
 describe('ModalConfirmacaoExportacao', () => {

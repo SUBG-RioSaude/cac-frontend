@@ -1,11 +1,14 @@
+import { motion } from 'framer-motion'
+import { Plus, FileDown } from 'lucide-react'
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+
 import { Button } from '@/components/ui/button'
-import { Plus, FileDown } from 'lucide-react'
+import { useFornecedoresResumo } from '@/modules/Empresas/hooks/use-empresas'
+import { ModalConfirmacaoExportacao } from '@/modules/Fornecedores/ListaFornecedores/components/modal-confirmacao-exportacao'
+import { ModalNovoFornecedor } from '@/modules/Fornecedores/ListaFornecedores/components/modal-novo-fornecedor'
 import { SearchAndFiltersFornecedores } from '@/modules/Fornecedores/ListaFornecedores/components/search-and-filters'
 import { TabelaFornecedores } from '@/modules/Fornecedores/ListaFornecedores/components/tabela-fornecedores'
-import { ModalConfirmacaoExportacao } from '@/modules/Fornecedores/ListaFornecedores/components/modal-confirmacao-exportacao'
 import { useFornecedoresStore } from '@/modules/Fornecedores/ListaFornecedores/store/fornecedores-store'
 import type {
   Fornecedor,
@@ -13,10 +16,8 @@ import type {
   PaginacaoParamsFornecedor,
 } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 import { mapearFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
-import { ModalNovoFornecedor } from '@/modules/Fornecedores/ListaFornecedores/components/modal-novo-fornecedor'
-import { useFornecedoresResumo } from '@/modules/Empresas/hooks/use-empresas'
 
-const CAMPOS_FILTRO: Array<keyof FiltrosFornecedorApi> = [
+const CAMPOS_FILTRO: (keyof FiltrosFornecedorApi)[] = [
   'pagina',
   'tamanhoPagina',
   'cnpj',
@@ -52,7 +53,7 @@ function filtrosSaoIguais(
   })
 }
 
-export default function FornecedoresListPage() {
+const FornecedoresListPage = () => {
   const navigate = useNavigate()
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
   const [filtros, setFiltros] = useState<FiltrosFornecedorApi>({
@@ -82,9 +83,9 @@ export default function FornecedoresListPage() {
   // Paginação baseada na resposta da API com otimização
   const paginacao = useMemo(() => {
     const result = {
-      pagina: apiResponse?.pagina || filtros.pagina || 1,
-      itensPorPagina: apiResponse?.tamanhoPagina || filtros.tamanhoPagina || 10,
-      total: apiResponse?.totalItens || 0,
+      pagina: apiResponse?.pagina ?? filtros.pagina ?? 1,
+      itensPorPagina: apiResponse?.tamanhoPagina ?? filtros.tamanhoPagina ?? 10,
+      total: apiResponse?.totalItens ?? 0,
     }
     return result
   }, [
@@ -126,7 +127,7 @@ export default function FornecedoresListPage() {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
   }
 
   const handleExportarTodos = () => {
@@ -151,7 +152,7 @@ export default function FornecedoresListPage() {
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    link.remove()
 
     setModalExportacaoAberto(false)
   }
@@ -254,6 +255,7 @@ export default function FornecedoresListPage() {
             )}
             filtrosAtivos={filtros}
             isLoading={isFetching}
+            totalResultados={apiResponse?.totalItens}
           />
         </motion.div>
 
@@ -293,3 +295,5 @@ export default function FornecedoresListPage() {
     </div>
   )
 }
+
+export default FornecedoresListPage

@@ -19,7 +19,7 @@ export interface EditableFieldConfig {
     max?: number
     pattern?: RegExp
   }
-  options?: Array<{ value: string; label: string }> // Para campos select
+  options?: { value: string; label: string }[] // Para campos select
 }
 
 /**
@@ -184,6 +184,7 @@ export const EDITABLE_FIELDS_CONFIG: Record<string, EditableFieldConfig> = {
  * Verifica se um campo requer confirmação
  */
 export function requiresConfirmation(fieldKey: string): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return EDITABLE_FIELDS_CONFIG[fieldKey]?.requiresConfirmation ?? false
 }
 
@@ -191,6 +192,7 @@ export function requiresConfirmation(fieldKey: string): boolean {
  * Verifica se um campo é crítico
  */
 export function isCriticalField(fieldKey: string): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return EDITABLE_FIELDS_CONFIG[fieldKey]?.isCritical ?? false
 }
 
@@ -207,6 +209,7 @@ export function getFieldConfig(
  * Obtém o label de um campo
  */
 export function getFieldLabel(fieldKey: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return EDITABLE_FIELDS_CONFIG[fieldKey]?.label ?? fieldKey
 }
 
@@ -234,5 +237,6 @@ export const FIELD_GROUPS = {
 }
 
 export function getFieldsInGroup(groupKey: string): string[] {
-  return FIELD_GROUPS[groupKey as keyof typeof FIELD_GROUPS] || []
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return FIELD_GROUPS[groupKey as keyof typeof FIELD_GROUPS] ?? []
 }

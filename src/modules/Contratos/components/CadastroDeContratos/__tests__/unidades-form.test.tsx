@@ -1,7 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import UnidadesFormMelhorado from '../unidades-form'
+
 import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
+
+import UnidadesFormMelhorado from '../unidades-form'
 import type { DadosUnidades } from '../unidades-form'
 
 // Mock das funções utilitárias
@@ -18,7 +20,7 @@ vi.mock('@/lib/utils', () => ({
   },
   percentualUtils: {
     formatar: vi.fn((valor: number) => {
-      if (isNaN(valor) || valor === null || valor === undefined) return '0'
+      if (isNaN(valor)) return '0'
       const numeroFormatado = Number(valor.toFixed(2))
       return numeroFormatado.toString()
     }),
@@ -32,8 +34,7 @@ vi.mock('@/lib/utils', () => ({
       return true
     }),
     validarComMensagem: vi.fn((valor: string | number) => {
-      if (valor === '' || valor === null || valor === undefined)
-        return 'Percentual é obrigatório'
+      if (valor === '') return 'Percentual é obrigatório'
       const valorStr = valor.toString().replace(',', '.')
       const numero = parseFloat(valorStr)
       if (isNaN(numero)) return 'Percentual deve ser um número válido'
@@ -50,11 +51,11 @@ vi.mock('@/lib/utils', () => ({
       valorLimpo = valorLimpo.replace(',', '.')
       const pontos = valorLimpo.split('.')
       if (pontos.length > 2)
-        valorLimpo = pontos[0] + '.' + pontos.slice(1).join('')
+        valorLimpo = `${pontos[0]}.${pontos.slice(1).join('')}`
       if (valorLimpo.includes('.')) {
         const [inteira, decimal] = valorLimpo.split('.')
         const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
-        valorLimpo = inteira + (decimalLimitado ? '.' + decimalLimitado : '')
+        valorLimpo = inteira + (decimalLimitado ? `.${decimalLimitado}` : '')
       }
       const numero = parseFloat(valorLimpo)
       if (!isNaN(numero) && numero > 100) return '100'
@@ -71,6 +72,24 @@ vi.mock('@/lib/utils', () => ({
     classes.filter(Boolean).join(' '),
   ),
 }))
+
+// Dados mock para testes
+const mockUnidade: UnidadeHospitalar = {
+  id: '1',
+  nome: 'Hospital Teste',
+  sigla: 'HT',
+  ug: '123456',
+  cnpj: '12.345.678/0001-90',
+  codigo: 'HT001',
+  cep: '01234-567',
+  endereco: 'Rua Teste, 123',
+  cidade: 'São Paulo',
+  estado: 'SP',
+  responsavel: 'Dr. João Silva',
+  telefone: '(11) 1234-5678',
+  email: 'teste@hospital.com',
+  ativa: true,
+}
 
 // Mock do componente BuscaUnidadeInteligente
 let contadorUnidades = 1
@@ -105,24 +124,6 @@ vi.mock('../busca-unidade-inteligente', () => ({
     </div>
   ),
 }))
-
-// Dados mock para testes
-const mockUnidade: UnidadeHospitalar = {
-  id: '1',
-  nome: 'Hospital Teste',
-  sigla: 'HT',
-  ug: '123456',
-  cnpj: '12.345.678/0001-90',
-  codigo: 'HT001',
-  cep: '01234-567',
-  endereco: 'Rua Teste, 123',
-  cidade: 'São Paulo',
-  estado: 'SP',
-  responsavel: 'Dr. João Silva',
-  telefone: '(11) 1234-5678',
-  email: 'teste@hospital.com',
-  ativa: true,
-}
 
 const mockDadosIniciais: DadosUnidades = {
   unidades: [
@@ -357,7 +358,7 @@ describe('UnidadesFormMelhorado', () => {
 
       const botoesCancelar = screen.getAllByText('Cancelar')
       const botaoCancelarEdicao =
-        botoesCancelar.find((btn) => btn.closest('.space-y-4')) ||
+        botoesCancelar.find((btn) => btn.closest('.space-y-4')) ??
         botoesCancelar[0]
       fireEvent.click(botaoCancelarEdicao)
 

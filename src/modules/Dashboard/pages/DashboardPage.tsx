@@ -5,11 +5,7 @@
  * Dashboard executivo com visão consolidada dos contratos
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
 import {
   RefreshCw,
   BarChart3,
@@ -18,15 +14,17 @@ import {
   AlertTriangle,
   Activity,
 } from 'lucide-react'
+import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 // Hooks
-import { useFilters } from '../hooks/useFilters'
-import { useDashboardData } from '../hooks/useDashboardData'
 
 // Components
-import { GlobalFilters } from '../components/Filters/GlobalFilters'
 import {
   TotalContractsCard,
   ActiveContractsCard,
@@ -38,6 +36,9 @@ import {
   StatusTrendChart,
   TypeDistributionChart,
 } from '../components/Charts'
+import { GlobalFilters } from '../components/Filters/GlobalFilters'
+import { useDashboardData } from '../hooks/useDashboardData'
+import { useFilters } from '../hooks/useFilters'
 
 // Configuração das tabs
 const dashboardTabs = [
@@ -73,7 +74,7 @@ const dashboardTabs = [
   },
 ]
 
-export function DashboardPage() {
+export const DashboardPage = () => {
   const { filters, updateFilter, resetFilters, hasActiveFilters } = useFilters()
   const { data, isLoading, refetch } = useDashboardData(filters)
   const [activeTab, setActiveTab] = useState('metrics')
@@ -83,7 +84,7 @@ export function DashboardPage() {
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Cabeçalho Melhorado */}
         <div className="from-primary/10 via-primary/5 border-primary/10 relative overflow-hidden rounded-2xl border bg-gradient-to-r to-transparent">
-          <div className="bg-grid-pattern absolute inset-0 opacity-5"></div>
+          <div className="bg-grid-pattern absolute inset-0 opacity-5" />
           <div className="relative p-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">

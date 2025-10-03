@@ -4,6 +4,8 @@
  */
 
 import { useQuery, useQueries } from '@tanstack/react-query'
+
+import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
 import {
   getUnidades,
   getUnidadeById,
@@ -15,7 +17,6 @@ import {
   getTiposUnidade,
   getTiposAdministracao,
 } from '@/modules/Unidades/services/unidades-service'
-import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
 import type {
   FiltrosUnidadesApi,
   UnidadeSaudeApi,
@@ -176,7 +177,7 @@ export function useUnidadesByIds(
   ids: string[],
   options?: { enabled?: boolean },
 ) {
-  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
+  const uniqueIds = Array.from(new Set(ids.filter(Boolean)))
 
   // Usar useQueries com configurações otimizadas para reduzir requests
   const queries = useQueries({
@@ -197,16 +198,16 @@ export function useUnidadesByIds(
   })
 
   // Processar resultados manualmente
-  const map = uniqueIds.reduce<Record<string, UnidadeSaudeApi>>(
+  const map = uniqueIds.reduce<Partial<Record<string, UnidadeSaudeApi>>>(
     (acc, id, idx) => {
       const q = queries[idx]
-      if (q?.data) acc[id] = q.data
+      if (q.data) acc[id] = q.data
       return acc
     },
     {},
   )
 
-  const isLoading = queries.some((q) => q.isLoading && !q.data)
+  const isLoading = queries.some((q) => q.isLoading)
   const isFetching = queries.some((q) => q.isFetching)
   const error = queries.find((q) => q.error)?.error
 

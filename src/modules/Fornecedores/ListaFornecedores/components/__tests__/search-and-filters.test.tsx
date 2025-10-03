@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { SearchAndFiltersFornecedores } from '../search-and-filters'
+
 import type { FiltrosFornecedorApi } from '../../types/fornecedor'
+import { SearchAndFiltersFornecedores } from '../search-and-filters'
 
 // Mock do store
 vi.mock('../../store/fornecedores-store', () => ({

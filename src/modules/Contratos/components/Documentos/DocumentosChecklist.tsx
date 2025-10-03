@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+
 import type { ChecklistData } from '../../types/contrato'
 
 interface DocumentosChecklistProps {
@@ -18,18 +19,24 @@ const checklistLabels: Record<keyof ChecklistData, string> = {
   publicacaoExtrato: 'Publicação de Extrato Contratual',
 }
 
-export function DocumentosChecklist({
+export const DocumentosChecklist = ({
   checklistData,
   contratoId,
-}: DocumentosChecklistProps) {
+}: DocumentosChecklistProps) => {
   const handleCheckedChange = (
     documentoKey: keyof ChecklistData,
     checked: boolean,
   ) => {
     // Log para testes e debug
-    console.log(
-      `Documento ${documentoKey} (contrato ${contratoId}) alterado para: ${checked}`,
-    )
+    if (
+      process.env.NODE_ENV === 'development' ||
+      process.env.NODE_ENV === 'test'
+    ) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `Documento ${documentoKey} (contrato ${contratoId}) alterado para: ${checked}`,
+      )
+    }
     // Lógica para atualizar o estado e criar evento na timeline será adicionada aqui
   }
 
@@ -41,8 +48,8 @@ export function DocumentosChecklist({
       <CardContent className="space-y-4">
         {Object.entries(checklistLabels).map(([key, label]) => {
           const documentoKey = key as keyof ChecklistData
-          const documento = checklistData[documentoKey]
-          const isChecked = documento?.entregue || false
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          const isChecked = checklistData[documentoKey]?.entregue ?? false
 
           return (
             <div

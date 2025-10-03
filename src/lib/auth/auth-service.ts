@@ -1,4 +1,5 @@
 import axios from 'axios'
+
 import type {
   LoginRequest,
   LoginResponse,
@@ -15,7 +16,7 @@ import type {
   VerificarAcessoResponse,
 } from '@/types/auth'
 
-const API_URL = import.meta.env.VITE_API_URL_AUTH
+const API_URL = import.meta.env.VITE_API_URL_AUTH as string
 
 // Interface para erros da API
 interface ApiError {
@@ -42,7 +43,7 @@ export const authService = {
     const payload: LoginRequest = {
       email,
       senha,
-      sistemaId: import.meta.env.SYSTEM_ID,
+      sistemaId: import.meta.env.SYSTEM_ID as string,
     }
 
     try {
@@ -179,8 +180,9 @@ export const authService = {
   async verificarAcesso(): Promise<VerificarAcessoResponse> {
     try {
       const response = await authApi.get<VerificarAcessoResponse>(
-        '/usuariopermissaosistema/verificar-acesso/' +
-          import.meta.env.SYSTEM_ID,
+        `/usuariopermissaosistema/verificar-acesso/${
+          import.meta.env.SYSTEM_ID
+        }`,
       )
       return response.data
     } catch (erro: unknown) {

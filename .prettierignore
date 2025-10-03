@@ -3,3 +3,12 @@ node_modules
 dist
 .vscode
 .env
+
+# Coverage reports
+coverage
+*.coverage.json
+coverage-report.json
+
+# Build artifacts
+*.log
+pnpm-lock.yaml

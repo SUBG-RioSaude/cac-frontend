@@ -5,7 +5,9 @@
  * Gráfico de linha mostrando evolução dos status nos últimos 6 meses
  */
 
+import { TrendingUp } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
@@ -15,7 +17,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp } from 'lucide-react'
+
 import { useDashboardCharts } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
@@ -44,10 +46,10 @@ const chartConfig = {
   },
 }
 
-export function StatusTrendChart({
+export const StatusTrendChart = ({
   filters,
   className,
-}: StatusTrendChartProps) {
+}: StatusTrendChartProps) => {
   const { statusTrend, isLoading, error } = useDashboardCharts(filters)
 
   // Estados de carregamento e erro
@@ -138,7 +140,7 @@ export function StatusTrendChart({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value}
+              tickFormatter={(value: string) => value}
             />
             <YAxis
               tickLine={false}

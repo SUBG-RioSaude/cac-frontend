@@ -8,7 +8,7 @@ interface InformacoesFornecedorProps {
   inscricaoMunicipal?: string | null
 }
 
-export function InformacoesFornecedor(props: InformacoesFornecedorProps) {
+export const InformacoesFornecedor = (props: InformacoesFornecedorProps) => {
   return (
     <Card>
       <CardHeader>
@@ -31,14 +31,14 @@ export function InformacoesFornecedor(props: InformacoesFornecedorProps) {
               <p className="text-muted-foreground mb-1 text-sm">
                 Inscrição Estadual
               </p>
-              <p>{props.inscricaoEstadual || 'Não informada'}</p>
+              <p>{props.inscricaoEstadual ?? 'Não informada'}</p>
             </div>
 
             <div>
               <p className="text-muted-foreground mb-1 text-sm">
                 Inscrição Municipal
               </p>
-              <p>{props.inscricaoMunicipal || 'Não informada'}</p>
+              <p>{props.inscricaoMunicipal ?? 'Não informada'}</p>
             </div>
           </div>
         </div>
