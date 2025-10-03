@@ -13,7 +13,7 @@ export const apiGateway = axios.create({
 // Cliente para Microserviço Direto (fallback)
 export const apiDirect = axios.create({
     baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
-    timeout: 10000,
+    timeout: 30000, // Aumentado para 30s para operações complexas
     withCredentials: false,
 })
 
@@ -52,15 +52,17 @@ export async function executeWithFallback<T>(
         params?: Record<string, unknown>
         headers?: Record<string, string>
         baseURL?: string
+        timeout?: number // Novo parâmetro para timeout customizado
     }
 ): Promise<AxiosResponse<T>> {
-    const { method, url, data, params, headers, baseURL } = requestConfig
+    const { method, url, data, params, headers, baseURL, timeout } = requestConfig
     
     try {
         console.log(`[API] Tentando gateway: ${method.toUpperCase()} ${url}`)
         
         // Primeira tentativa: Gateway ou baseURL específica
-        const clientToUse = baseURL ? axios.create({ baseURL, timeout: 5000 }) : apiGateway
+        const gatewayTimeout = timeout || 5000
+        const clientToUse = baseURL ? axios.create({ baseURL, timeout: gatewayTimeout }) : apiGateway
         if (baseURL) {
             clientToUse.interceptors.request.use(authInterceptor)
         }
@@ -96,7 +98,16 @@ export async function executeWithFallback<T>(
             console.warn(`[API] ⚠️ Gateway falhou: ${error.message}. Tentando microserviço direto...`)
             
             try {
-                const fallbackResponse = await apiDirect.request<T>({
+                // Usar timeout customizado se fornecido, senão usar o padrão do apiDirect
+                const directTimeout = timeout || 30000
+                const directClient = axios.create({
+                    baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
+                    timeout: directTimeout,
+                    withCredentials: false,
+                })
+                directClient.interceptors.request.use(authInterceptor)
+                
+                const fallbackResponse = await directClient.request<T>({
                     method,
                     url,
                     data,

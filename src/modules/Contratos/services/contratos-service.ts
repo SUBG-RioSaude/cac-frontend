@@ -119,7 +119,8 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
   
   const response = await executeWithFallback<Contrato>({
     method: 'get',
-    url: `/contratos/${id}`
+    url: `/contratos/${id}`,
+    timeout: 45000 // 45 segundos para operações detalhadas
   })
 
 
