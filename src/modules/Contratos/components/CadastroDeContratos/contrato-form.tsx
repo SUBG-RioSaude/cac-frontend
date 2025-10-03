@@ -1298,26 +1298,83 @@ const ContratoForm = ({
                                   {!isCarregandoModalidades &&
                                     !pesquisaProcesso &&
                                     totalModalidades > 0 && (
-                                      <div className="border-b border-gray-200 bg-blue-50 p-3 text-xs text-blue-700">
-                                        <p className="font-medium">
-                                          💡 Dica: Mostrando{' '}
-                                          {modalidadesFavoritas.length +
-                                            demaisModalidades.length}{' '}
-                                          de {totalModalidades} modalidades
-                                        </p>
-                                        <p className="mt-1 text-blue-600">
-                                          Digite para pesquisar entre todas as
-                                          opções
-                                        </p>
+                                      <div className="border-b border-gray-200 bg-blue-50 p-3 text-xs">
+                                        <div className="flex items-start gap-2">
+                                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                                          <div className="flex-1">
+                                            <p className="font-medium text-blue-900">
+                                              Exibindo{' '}
+                                              {modalidadesFavoritas.length +
+                                                demaisModalidades.length}{' '}
+                                              de {totalModalidades} modalidades
+                                              disponíveis
+                                            </p>
+                                            <p className="mt-1 text-blue-700">
+                                              Utilize o campo de busca para
+                                              localizar modalidades específicas
+                                            </p>
+                                          </div>
+                                        </div>
                                       </div>
                                     )}
 
                                   {/* Modalidades Favoritas */}
                                   {!isCarregandoModalidades &&
                                     modalidadesFavoritas.length > 0 && (
-                                    <>
-                                      <CommandGroup heading="Modalidade Favorita">
-                                        {modalidadesFavoritas.map((opcao) => (
+                                      <>
+                                        <CommandGroup heading="Modalidade Favorita">
+                                          {modalidadesFavoritas.map((opcao) => (
+                                            <CommandItem
+                                              key={opcao}
+                                              value={opcao}
+                                              onSelect={(currentValue) => {
+                                                const anoNumero =
+                                                  obterAnoNumero(processo.valor)
+                                                const processoCompleto =
+                                                  anoNumero
+                                                    ? `${currentValue}-${anoNumero}`
+                                                    : currentValue
+                                                atualizarProcesso(
+                                                  index,
+                                                  processoCompleto,
+                                                )
+                                                setOpenProcesso(false)
+                                                setPesquisaProcesso('')
+                                              }}
+                                              className="font-medium"
+                                            >
+                                              <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                              <Check
+                                                className={cn(
+                                                  'mr-2 h-4 w-4',
+                                                  obterPrefixoSufixo(
+                                                    processo.valor,
+                                                  ) === opcao
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0',
+                                                )}
+                                              />
+                                              {opcao}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                        {demaisModalidades.length > 0 && (
+                                          <CommandSeparator />
+                                        )}
+                                      </>
+                                    )}
+
+                                  {/* Demais Modalidades */}
+                                  {!isCarregandoModalidades &&
+                                    demaisModalidades.length > 0 && (
+                                      <CommandGroup
+                                        heading={
+                                          modalidadesFavoritas.length > 0
+                                            ? 'Todas as Modalidades'
+                                            : undefined
+                                        }
+                                      >
+                                        {demaisModalidades.map((opcao) => (
                                           <CommandItem
                                             key={opcao}
                                             value={opcao}
@@ -1335,9 +1392,7 @@ const ContratoForm = ({
                                               setOpenProcesso(false)
                                               setPesquisaProcesso('')
                                             }}
-                                            className="font-medium"
                                           >
-                                            <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
                                             <Check
                                               className={cn(
                                                 'mr-2 h-4 w-4',
@@ -1352,56 +1407,7 @@ const ContratoForm = ({
                                           </CommandItem>
                                         ))}
                                       </CommandGroup>
-                                      {demaisModalidades.length > 0 && (
-                                        <CommandSeparator />
-                                      )}
-                                    </>
-                                  )}
-
-                                  {/* Demais Modalidades */}
-                                  {!isCarregandoModalidades &&
-                                    demaisModalidades.length > 0 && (
-                                      <CommandGroup
-                                      heading={
-                                        modalidadesFavoritas.length > 0
-                                          ? 'Todas as Modalidades'
-                                          : undefined
-                                      }
-                                    >
-                                      {demaisModalidades.map((opcao) => (
-                                        <CommandItem
-                                          key={opcao}
-                                          value={opcao}
-                                          onSelect={(currentValue) => {
-                                            const anoNumero = obterAnoNumero(
-                                              processo.valor,
-                                            )
-                                            const processoCompleto = anoNumero
-                                              ? `${currentValue}-${anoNumero}`
-                                              : currentValue
-                                            atualizarProcesso(
-                                              index,
-                                              processoCompleto,
-                                            )
-                                            setOpenProcesso(false)
-                                            setPesquisaProcesso('')
-                                          }}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              'mr-2 h-4 w-4',
-                                              obterPrefixoSufixo(
-                                                processo.valor,
-                                              ) === opcao
-                                                ? 'opacity-100'
-                                                : 'opacity-0',
-                                            )}
-                                          />
-                                          {opcao}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  )}
+                                    )}
                                 </CommandList>
                               </Command>
                             </PopoverContent>
