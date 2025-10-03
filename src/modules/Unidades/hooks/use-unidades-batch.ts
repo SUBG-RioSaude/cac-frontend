@@ -5,9 +5,13 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect, useMemo } from 'react'
-import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
+
+import { createServiceLogger } from '@/lib/logger'
 import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
+import { getUnidadeById } from '@/modules/Unidades/services/unidades-service'
 import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+
+const logger = createServiceLogger('use-unidades-batch')
 
 /**
  * Hook para busca otimizada de múltiplas unidades
@@ -15,15 +19,17 @@ import type { UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
  */
 export function useUnidadesBatch(
   ids: string[],
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   const queryClient = useQueryClient()
-  const [unidadesData, setUnidadesData] = useState<Record<string, UnidadeSaudeApi>>({})
+  const [unidadesData, setUnidadesData] = useState<
+    Partial<Record<string, UnidadeSaudeApi>>
+  >({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   const uniqueIds = useMemo(() => {
-    return Array.from(new Set((ids || []).filter(Boolean)))
+    return Array.from(new Set(ids.filter(Boolean)))
   }, [ids])
 
   const enabled = options?.enabled ?? true
@@ -38,12 +44,14 @@ export function useUnidadesBatch(
         setIsLoading(true)
         setError(null)
 
-        const resultMap: Record<string, UnidadeSaudeApi> = {}
+        const resultMap: Partial<Record<string, UnidadeSaudeApi>> = {}
         const idsToFetch: string[] = []
 
         // Verificar cache primeiro
         for (const id of uniqueIds) {
-          const cached = queryClient.getQueryData<UnidadeSaudeApi>(unidadeKeys.detail(id))
+          const cached = queryClient.getQueryData<UnidadeSaudeApi>(
+            unidadeKeys.detail(id),
+          )
           if (cached) {
             resultMap[id] = cached
           } else {
@@ -59,16 +67,30 @@ export function useUnidadesBatch(
               // Cachear o resultado
               queryClient.setQueryData(unidadeKeys.detail(id), unidade)
               return { id, data: unidade, success: true }
-            } catch (error) {
-              console.warn(`Erro ao buscar unidade ${id}:`, error)
-              return { id, error, success: false }
+            } catch (fetchError) {
+              logger.warn(
+                {
+                  operation: 'buscar_unidade_batch',
+                  unidadeId: id,
+                  error:
+                    fetchError instanceof Error
+                      ? fetchError.message
+                      : String(fetchError),
+                },
+                `Erro ao buscar unidade ${id}`,
+              )
+              return { id, error: fetchError, success: false }
             }
           })
 
           const results = await Promise.allSettled(promises)
-          
+
           results.forEach((result) => {
-            if (result.status === 'fulfilled' && result.value.success && result.value.data) {
+            if (
+              result.status === 'fulfilled' &&
+              result.value.success &&
+              result.value.data
+            ) {
               resultMap[result.value.id] = result.value.data
             }
           })
@@ -76,14 +98,22 @@ export function useUnidadesBatch(
 
         setUnidadesData(resultMap)
       } catch (err) {
-        setError(err as Error)
-        console.error('Erro ao buscar unidades em lote:', err)
+        const errorObj = err as Error
+        setError(errorObj)
+        logger.error(
+          {
+            operation: 'buscar_unidades_lote',
+            error: errorObj.message,
+            stack: errorObj.stack,
+          },
+          'Erro ao buscar unidades em lote',
+        )
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchUnidades()
+    void fetchUnidades()
   }, [uniqueIds, enabled, queryClient])
 
   return {
@@ -91,9 +121,12 @@ export function useUnidadesBatch(
     isLoading,
     error,
     // Helper para obter nome da unidade
-    getNome: (id: string) => unidadesData[id]?.nome || `Unidade ${id}`,
+    getNome: (id: string) => {
+      const unidade = unidadesData[id]
+      return unidade?.nome ?? `Unidade ${id}`
+    },
     // Verificar se uma unidade específica está carregando
-    isUnidadeLoading: (id: string) => isLoading && !unidadesData[id]
+    isUnidadeLoading: (id: string) => isLoading && !unidadesData[id],
   }
 }
 
@@ -101,17 +134,16 @@ export function useUnidadesBatch(
  * Hook individual otimizado que usa o cache compartilhado
  * Para casos onde apenas uma unidade é necessária
  */
-export function useUnidadeSingle(
-  id: string,
-  options?: { enabled?: boolean }
-) {
+export function useUnidadeSingle(id: string, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient()
-  
+
   return useQuery({
     queryKey: unidadeKeys.detail(id),
     queryFn: async () => {
       // Verificar se já está em cache de outro hook
-      const cached = queryClient.getQueryData<UnidadeSaudeApi>(unidadeKeys.detail(id))
+      const cached = queryClient.getQueryData<UnidadeSaudeApi>(
+        unidadeKeys.detail(id),
+      )
       if (cached) {
         return cached
       }
@@ -124,6 +156,6 @@ export function useUnidadeSingle(
     refetchOnReconnect: false,
     refetchOnMount: false,
     retry: 1,
-    networkMode: 'online'
+    networkMode: 'online',
   })
 }

@@ -1,25 +1,39 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, Home, ArrowLeft, Mail } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ForbiddenProps {
   error?: string
 }
 
-export default function Forbidden({ error: propError }: ForbiddenProps) {
+interface LocationState {
+  error?: string
+}
+
+function isValidLocationState(state: unknown): state is LocationState {
+  return typeof state === 'object' && state !== null
+}
+
+const Forbidden = ({ error: propError }: ForbiddenProps) => {
   const navigate = useNavigate()
   const location = useLocation()
 
   // Buscar erro do state da navegação ou usar prop
-  const error = location.state?.error || propError
+  const locationError =
+    isValidLocationState(location.state) &&
+    typeof location.state.error === 'string'
+      ? location.state.error
+      : undefined
+  const error = locationError ?? propError
 
   const handleContactAdmin = () => {
     const subject = encodeURIComponent(
       'Solicitação de Acesso - Sistema CAC Frontend',
     )
     const body = encodeURIComponent(
-      `Solicitação de acesso:\n\nHorário: ${new Date().toLocaleString()}\nURL: ${window.location.href}\nErro técnico: ${error || 'Não especificado'}\n\nPor favor, solicito acesso a este recurso.`,
+      `Solicitação de acesso:\n\nHorário: ${new Date().toLocaleString()}\nURL: ${window.location.href}\nErro técnico: ${error ?? 'Não especificado'}\n\nPor favor, solicito acesso a este recurso.`,
     )
     window.location.href = `mailto:admin@sistema.com?subject=${subject}&body=${body}`
   }
@@ -91,3 +105,5 @@ export default function Forbidden({ error: propError }: ForbiddenProps) {
     </div>
   )
 }
+
+export default Forbidden

@@ -138,7 +138,7 @@ export function useCEP(options: UseCEPOptions = {}): UseCEPReturn {
           navigate('/403')
         }
 
-        const data: EnderecoViaCEP = await response.json()
+        const data = (await response.json()) as EnderecoViaCEP
 
         if (data.erro) {
           throw new Error('CEP não encontrado')
@@ -163,13 +163,13 @@ export function useCEP(options: UseCEPOptions = {}): UseCEPReturn {
             return // Requisição foi cancelada, não é erro
           }
 
-          const errorMessage =
+          const errorMsg =
             err.message === 'CEP não encontrado'
               ? 'CEP não encontrado. Verifique se o CEP está correto.'
               : 'Erro ao buscar endereço. Tente novamente.'
 
-          setError(errorMessage)
-          onError?.(errorMessage)
+          setError(errorMsg)
+          onError?.(errorMsg)
         }
       } finally {
         setIsLoading(false)
@@ -198,9 +198,10 @@ export function useCEP(options: UseCEPOptions = {}): UseCEPReturn {
         }
 
         // Implementa debounce
-        timeoutRef.current = setTimeout(async () => {
-          await buscarCEPInterno(cepLimpo)
-          resolve()
+        timeoutRef.current = setTimeout(() => {
+          void buscarCEPInterno(cepLimpo).then(() => {
+            resolve()
+          })
         }, debounceMs)
       })
     },

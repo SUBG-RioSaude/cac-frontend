@@ -5,7 +5,7 @@ import { cookieUtils } from './cookie-utils'
 const validarTokenJWT = (token: string): boolean => {
   if (!token || typeof token !== 'string') return false
   const partes = token.split('.')
-  return partes.length === 3 && partes.every(part => part.length > 0)
+  return partes.length === 3 && partes.every((part) => part.length > 0)
 }
 
 // Função para obter o token JWT atual dos cookies
@@ -50,10 +50,13 @@ export async function renovarToken(): Promise<boolean> {
 export function hasAuthCookies(): boolean {
   const token = cookieUtils.getCookie('auth_token')
   const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-  
-  return !!(token && refreshToken && 
-           validarTokenJWT(token) && 
-           validarTokenJWT(refreshToken))
+
+  return !!(
+    token &&
+    refreshToken &&
+    validarTokenJWT(token) &&
+    validarTokenJWT(refreshToken)
+  )
 }
 
 // Função para limpar todos os cookies de autenticação
@@ -62,14 +65,22 @@ export function clearAuthCookies(): void {
   cookieUtils.removeCookie('auth_refresh_token')
 }
 
+// Interface para payload do JWT
+interface JWTPayload {
+  exp: number
+  iat: number
+  sub: string
+  email: string
+}
+
 // Função para validar se um token está próximo de expirar
 export function isTokenNearExpiry(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split('.')[1])) as JWTPayload
     const exp = payload.exp * 1000 // Converte para milissegundos
     const now = Date.now()
     const timeUntilExpiry = exp - now
-    
+
     // Retorna true se faltar menos de 5 minutos para expirar
     return timeUntilExpiry < 5 * 60 * 1000
   } catch {
@@ -80,12 +91,12 @@ export function isTokenNearExpiry(token: string): boolean {
 // Função para obter informações do token (sem validação de assinatura)
 export function getTokenInfo(token: string) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split('.')[1])) as JWTPayload
     return {
       exp: new Date(payload.exp * 1000),
       iat: new Date(payload.iat * 1000),
       sub: payload.sub,
-      email: payload.email
+      email: payload.email,
     }
   } catch {
     return null

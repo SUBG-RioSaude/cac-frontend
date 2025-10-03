@@ -1,20 +1,25 @@
-import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { 
-  FileText, 
-  CheckCircle2, 
-  Clock, 
+import {
+  FileText,
+  CheckCircle2,
+  Clock,
   AlertTriangle,
   Filter,
-  Plus
+  Plus,
 } from 'lucide-react'
+import { useState, useMemo } from 'react'
 
-import type { DocumentoContrato, FiltroDocumento, EstatisticaDocumentos } from '@/modules/Contratos/types/contrato'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
+import type {
+  DocumentoContrato,
+  FiltroDocumento,
+  EstatisticaDocumentos,
+} from '@/modules/Contratos/types/contrato'
+
 import { CardDocumento } from './card-documento'
 import { FiltroDocumentos } from './filtro-documentos'
 import { NovoDocumentoDialog } from './novo-documento-dialog'
@@ -25,70 +30,95 @@ interface ListaDocumentosProps {
   onStatusChange?: (id: string, status: DocumentoContrato['status']) => void
   onLinkChange?: (id: string, link: string) => void
   onObservacoesChange?: (id: string, observacoes: string) => void
-  onAdicionarDocumento?: (documento: Omit<DocumentoContrato, 'id' | 'dataUpload' | 'dataUltimaVerificacao' | 'prioridade'>) => void
+  onAdicionarDocumento?: (
+    documento: Omit<
+      DocumentoContrato,
+      'id' | 'dataUpload' | 'dataUltimaVerificacao' | 'prioridade'
+    >,
+  ) => void
   usuarioAtual?: string
   className?: string
 }
 
-export function ListaDocumentos({ 
-  documentos, 
+export const ListaDocumentos = ({
+  documentos,
   estatisticas,
   onStatusChange,
   onLinkChange,
   onObservacoesChange,
   onAdicionarDocumento,
   usuarioAtual = 'Usuário Atual',
-  className 
-}: ListaDocumentosProps) {
+  className,
+}: ListaDocumentosProps) => {
   const [filtro, setFiltro] = useState<FiltroDocumento>({
     categoria: 'todos',
     status: 'todos',
     tipo: 'todos',
-    busca: ''
+    busca: '',
   })
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
 
   const documentosFiltrados = useMemo(() => {
-    return documentos.filter(doc => {
-      // Filtro por categoria
-      if (filtro.categoria && filtro.categoria !== 'todos' && doc.categoria !== filtro.categoria) {
-        return false
-      }
+    return documentos
+      .filter((doc) => {
+        // Filtro por categoria
+        if (
+          filtro.categoria &&
+          filtro.categoria !== 'todos' &&
+          doc.categoria !== filtro.categoria
+        ) {
+          return false
+        }
 
-      // Filtro por status
-      if (filtro.status && filtro.status !== 'todos' && doc.status !== filtro.status) {
-        return false
-      }
+        // Filtro por status
+        if (
+          filtro.status &&
+          filtro.status !== 'todos' &&
+          doc.status !== filtro.status
+        ) {
+          return false
+        }
 
-      // Filtro por tipo
-      if (filtro.tipo && filtro.tipo !== 'todos' && doc.tipo.id !== filtro.tipo) {
-        return false
-      }
+        // Filtro por tipo
+        if (
+          filtro.tipo &&
+          filtro.tipo !== 'todos' &&
+          doc.tipo.id !== filtro.tipo
+        ) {
+          return false
+        }
 
-      // Filtro por busca
-      if (filtro.busca) {
-        const busca = filtro.busca.toLowerCase()
-        return (
-          doc.nome.toLowerCase().includes(busca) ||
-          doc.descricao.toLowerCase().includes(busca) ||
-          doc.tipo.nome.toLowerCase().includes(busca) ||
-          doc.responsavel?.toLowerCase().includes(busca)
-        )
-      }
+        // Filtro por busca
+        if (filtro.busca) {
+          const busca = filtro.busca.toLowerCase()
+          return (
+            doc.nome.toLowerCase().includes(busca) ||
+            doc.descricao.toLowerCase().includes(busca) ||
+            doc.tipo.nome.toLowerCase().includes(busca) ||
+            doc.responsavel?.toLowerCase().includes(busca)
+          )
+        }
 
-      return true
-    }).sort((a, b) => {
-      // Ordenar por prioridade (obrigatórios primeiro) e depois por status
-      if (a.categoria === 'obrigatorio' && b.categoria === 'opcional') return -1
-      if (a.categoria === 'opcional' && b.categoria === 'obrigatorio') return 1
-      
-      // Dentro da mesma categoria, ordenar por prioridade
-      return a.prioridade - b.prioridade
-    })
+        return true
+      })
+      .sort((a, b) => {
+        // Ordenar por prioridade (obrigatórios primeiro) e depois por status
+        if (a.categoria === 'obrigatorio' && b.categoria === 'opcional')
+          return -1
+        if (a.categoria === 'opcional' && b.categoria === 'obrigatorio')
+          return 1
+
+        // Dentro da mesma categoria, ordenar por prioridade
+        return a.prioridade - b.prioridade
+      })
   }, [documentos, filtro])
 
-  const obrigatorios = documentosFiltrados.filter(d => d.categoria === 'obrigatorio')
-  const opcionais = documentosFiltrados.filter(d => d.categoria === 'opcional')
+  const obrigatorios = documentosFiltrados.filter(
+    (d) => d.categoria === 'obrigatorio',
+  )
+  const opcionais = documentosFiltrados.filter(
+    (d) => d.categoria === 'opcional',
+  )
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -100,11 +130,11 @@ export function ListaDocumentos({
               <FileText className="h-5 w-5 text-blue-600" />
               Documentos do Contrato
             </CardTitle>
-            
+
             <div className="flex items-center gap-3">
               {/* Botão Adicionar Documento */}
               {onAdicionarDocumento && (
-                <NovoDocumentoDialog 
+                <NovoDocumentoDialog
                   onAdicionarDocumento={onAdicionarDocumento}
                   usuarioAtual={usuarioAtual}
                 >
@@ -119,22 +149,22 @@ export function ListaDocumentos({
                   </motion.div>
                 </NovoDocumentoDialog>
               )}
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setMostrarFiltros(!mostrarFiltros)}
                 className={cn(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm border transition-colors',
-                  mostrarFiltros 
-                    ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                    : 'bg-background text-muted-foreground border-border hover:bg-muted'
+                  'flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors',
+                  mostrarFiltros
+                    ? 'border-blue-200 bg-blue-50 text-blue-700'
+                    : 'bg-background text-muted-foreground border-border hover:bg-muted',
                 )}
               >
                 <Filter className="h-4 w-4" />
                 Filtros
               </motion.button>
-              
+
               <Badge variant="outline" className="font-medium">
                 {documentosFiltrados.length} de {documentos.length} documentos
               </Badge>
@@ -147,13 +177,15 @@ export function ListaDocumentos({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span>Progresso de Verificação</span>
-              <span className="font-medium">{estatisticas.percentualCompleto}%</span>
+              <span className="font-medium">
+                {estatisticas.percentualCompleto}%
+              </span>
             </div>
             <Progress value={estatisticas.percentualCompleto} className="h-2" />
           </div>
 
           {/* Resumo estatísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="flex items-center gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <div>
@@ -161,7 +193,7 @@ export function ListaDocumentos({
                 <div className="text-muted-foreground">Conferidos</div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-amber-600" />
               <div>
@@ -169,7 +201,7 @@ export function ListaDocumentos({
                 <div className="text-muted-foreground">Pendentes</div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <AlertTriangle className="h-4 w-4 text-red-600" />
               <div>
@@ -177,11 +209,13 @@ export function ListaDocumentos({
                 <div className="text-muted-foreground">Com Pendência</div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4 text-orange-600" />
               <div>
-                <div className="font-medium">{estatisticas.obrigatoriosPendentes}</div>
+                <div className="font-medium">
+                  {estatisticas.obrigatoriosPendentes}
+                </div>
                 <div className="text-muted-foreground">Obrig. Pendentes</div>
               </div>
             </div>
@@ -192,11 +226,13 @@ export function ListaDocumentos({
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg"
+              className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3"
             >
-              <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-orange-600" />
               <div className="text-sm text-orange-800">
-                <strong>Atenção:</strong> Existem {estatisticas.obrigatoriosPendentes} documento(s) obrigatório(s) pendente(s).
+                <strong>Atenção:</strong> Existem{' '}
+                {estatisticas.obrigatoriosPendentes} documento(s) obrigatório(s)
+                pendente(s).
               </div>
             </motion.div>
           )}
@@ -227,10 +263,11 @@ export function ListaDocumentos({
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Documentos Obrigatórios</h3>
             <Badge variant="destructive" className="text-xs">
-              {obrigatorios.filter(d => d.status !== 'conferido').length} pendentes
+              {obrigatorios.filter((d) => d.status !== 'conferido').length}{' '}
+              pendentes
             </Badge>
           </div>
-          
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <AnimatePresence>
               {obrigatorios.map((documento) => (
@@ -256,7 +293,7 @@ export function ListaDocumentos({
               {opcionais.length} documentos
             </Badge>
           </div>
-          
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <AnimatePresence>
               {opcionais.map((documento) => (
@@ -278,13 +315,13 @@ export function ListaDocumentos({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-12"
+          className="py-12 text-center"
         >
-          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-muted-foreground">
+          <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+          <h3 className="text-muted-foreground text-lg font-semibold">
             Nenhum documento encontrado
           </h3>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-2 text-sm">
             Tente ajustar os filtros de busca para encontrar documentos.
           </p>
         </motion.div>

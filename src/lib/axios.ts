@@ -1,13 +1,17 @@
+import type { AxiosError } from 'axios'
+import axios, {
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 
-import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import { getToken, logout, renovarToken } from './auth/auth';
-import { apiMetrics } from './api-metrics';
+import { apiMetrics } from './api-metrics'
+import { getToken, logout, renovarToken } from './auth/auth'
 
 // Cliente para Gateway (rota principal)
 export const apiGateway = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    timeout: 5000, // Timeout mais curto para fallback rápido
-    withCredentials: false,
+  baseURL: import.meta.env.VITE_API_URL as string,
+  timeout: 5000, // Timeout mais curto para fallback rápido
+  withCredentials: false,
 })
 
 // Cliente para Microserviço Direto (fallback)
@@ -20,9 +24,9 @@ export const apiDirect = axios.create({
 // Interceptador de requisição para adicionar token dos cookies
 // Cliente principal com fallback automático
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    timeout: 5000,
-    withCredentials: false,
+  baseURL: import.meta.env.VITE_API_URL as string,
+  timeout: 5000,
+  withCredentials: false,
 })
 
 // Interceptor de autenticação para todos os clientes
@@ -32,9 +36,8 @@ const authInterceptor = (config: InternalAxiosRequestConfig) => {
     // Valida se o token tem formato JWT válido
     if (token.split('.').length === 3) {
       config.headers.Authorization = `Bearer ${token}`
-    } else {
-      console.warn('Token JWT inválido detectado')
     }
+    // Token inválido - não adiciona ao header
   }
   return config
 }
@@ -61,7 +64,7 @@ export async function executeWithFallback<T>(
         console.log(`[API] Tentando gateway: ${method.toUpperCase()} ${url}`)
         
         // Primeira tentativa: Gateway ou baseURL específica
-        const gatewayTimeout = timeout || 5000
+        const gatewayTimeout = timeout ?? 5000
         const clientToUse = baseURL ? axios.create({ baseURL, timeout: gatewayTimeout }) : apiGateway
         if (baseURL) {
             clientToUse.interceptors.request.use(authInterceptor)
@@ -99,7 +102,7 @@ export async function executeWithFallback<T>(
             
             try {
                 // Usar timeout customizado se fornecido, senão usar o padrão do apiDirect
-                const directTimeout = timeout || 30000
+                const directTimeout = timeout ?? 30000
                 const directClient = axios.create({
                     baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
                     timeout: directTimeout,
@@ -139,39 +142,38 @@ export async function executeWithFallback<T>(
 // Interceptador de resposta para renovação automática de token
 api.interceptors.response.use(
   (response) => response,
-  async (erro) => {
-    const { response } = erro
+  async (erro: AxiosError) => {
+    const { response, config } = erro
 
     // Se o erro for 401 (não autorizado), tenta renovar o token
     if (response?.status === 401) {
       try {
         const renovado = await renovarToken()
-        if (renovado) {
+        if (renovado && config) {
           // Reexecuta a requisição original com o novo token
           const token = getToken()
           if (token && token.split('.').length === 3) {
-            erro.config.headers.Authorization = `Bearer ${token}`
-            return api.request(erro.config)
+            config.headers.Authorization = `Bearer ${token}`
+            return api.request(config)
           }
         }
-      } catch (renovacaoErro) {
+      } catch {
         // Se não conseguir renovar, faz logout
-        console.error('Erro ao renovar token:', renovacaoErro)
         logout()
         window.location.href = '/login'
-        return Promise.reject(erro)
+        return Promise.reject(new Error('Falha na renovação do token'))
       }
     }
 
-    return Promise.reject(erro)
-  }
+    return Promise.reject(new Error(erro.message || 'Erro na requisição'))
+  },
 )
 
 // API específica para autenticação (sem interceptadores de renovação)
 export const authApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL_AUTH,
+  baseURL: import.meta.env.VITE_API_URL_AUTH as string,
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 })

@@ -1,18 +1,4 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMemo, useCallback, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { ContratoStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusContrato } from '@/types/status'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Eye,
   ChevronLeft,
@@ -24,13 +10,32 @@ import {
   Briefcase,
   Archive,
 } from 'lucide-react'
-import type { Contrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
+import { useMemo, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Skeleton } from '@/components/ui/skeleton'
-import { VigenciaDisplay } from './VigenciaDisplay'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { CNPJDisplay } from '@/components/ui/formatters'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { cnpjUtils } from '@/lib/utils'
+import type {
+  Contrato,
+  PaginacaoParams,
+} from '@/modules/Contratos/types/contrato'
+import { parseStatusContrato } from '@/types/status'
+
 import { ModalUnidadesResponsaveis } from './ModalUnidadesResponsaveis'
+import { VigenciaDisplay } from './VigenciaDisplay'
 
 interface TabelaContratosProps {
   contratos: Contrato[]
@@ -45,7 +50,7 @@ interface TabelaContratosProps {
   hideContratadaColumn?: boolean
 }
 
-export function TabelaContratos({
+export const TabelaContratos = ({
   contratos,
   isLoading,
   paginacao,
@@ -55,12 +60,13 @@ export function TabelaContratos({
   onSelecionarTodos,
   totalContratos,
   hideContratadaColumn = false,
-}: TabelaContratosProps) {
+}: TabelaContratosProps) => {
   const navigate = useNavigate()
-  
+
   // Estado para modal de unidades
   const [modalUnidadesAberto, setModalUnidadesAberto] = useState(false)
-  const [contratoSelecionado, setContratoSelecionado] = useState<Contrato | null>(null)
+  const [contratoSelecionado, setContratoSelecionado] =
+    useState<Contrato | null>(null)
 
   const formatarMoeda = useMemo(() => {
     const formatter = new Intl.NumberFormat('pt-BR', {
@@ -70,15 +76,12 @@ export function TabelaContratos({
     return (valor: number) => formatter.format(valor)
   }, [])
 
-
   const obterProcessoPriorizado = useCallback((contrato: Contrato) => {
     if (contrato.processoRio) return contrato.processoRio
     if (contrato.processoSei) return contrato.processoSei
     if (contrato.processoLegado) return contrato.processoLegado
     return 'N/A'
   }, [])
-
-
 
   const handleVisualizarContrato = (contrato: Contrato) => {
     navigate(`/contratos/${contrato.id}`)
@@ -96,8 +99,26 @@ export function TabelaContratos({
 
   const obterTotalUnidades = (contrato: Contrato) => {
     if (!contrato.unidadesResponsaveis) return 0
-    return contrato.unidadesResponsaveis.filter(u => u.ativo).length
+    return contrato.unidadesResponsaveis.filter((u) => u.ativo).length
   }
+
+  const tableSkeletonRowIds = useMemo(
+    () =>
+      Array.from(
+        { length: paginacao.itensPorPagina },
+        (_, index) => `table-skeleton-${index}`,
+      ),
+    [paginacao.itensPorPagina],
+  )
+
+  const mobileSkeletonCardIds = useMemo(
+    () =>
+      Array.from(
+        { length: paginacao.itensPorPagina },
+        (_, index) => `mobile-skeleton-${index}`,
+      ),
+    [paginacao.itensPorPagina],
+  )
 
   const inicio = (paginacao.pagina - 1) * paginacao.itensPorPagina
   const fim = inicio + paginacao.itensPorPagina
@@ -126,15 +147,29 @@ export function TabelaContratos({
     onSelecionarTodos(contratoIds, checked)
   }
 
-  const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => (
+  const InfoItem = ({
+    icon: Icon,
+    label,
+    value,
+  }: {
+    icon: React.ElementType
+    label: string
+    value: React.ReactNode
+  }) => (
     <div className="flex items-center gap-2 text-sm">
-      <Icon className="h-4 w-4 text-muted-foreground" />
+      <Icon className="text-muted-foreground h-4 w-4" />
       <span className="font-semibold">{label}:</span>
       <span className="text-muted-foreground">{value}</span>
     </div>
   )
 
-  const MobileContractCard = ({ contrato, index }: { contrato: Contrato, index: number }) => (
+  const MobileContractCard = ({
+    contrato,
+    index,
+  }: {
+    contrato: Contrato
+    index: number
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -142,7 +177,7 @@ export function TabelaContratos({
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card className="mb-4 overflow-hidden transition-shadow hover:shadow-lg">
-        <CardHeader className="flex flex-row items-start justify-between gap-4 bg-muted/30 p-4">
+        <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-4">
           <div className="flex items-center gap-3">
             <Checkbox
               checked={contratosSelecionados.includes(contrato.id)}
@@ -151,8 +186,12 @@ export function TabelaContratos({
               }
             />
             <div>
-              <h3 className="font-bold text-primary">{contrato.numeroContrato}</h3>
-              <p className="text-xs text-muted-foreground">{obterProcessoPriorizado(contrato)}</p>
+              <h3 className="text-primary font-bold">
+                {contrato.numeroContrato}
+              </h3>
+              <p className="text-muted-foreground text-xs">
+                {obterProcessoPriorizado(contrato)}
+              </p>
             </div>
           </div>
           <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
@@ -161,36 +200,57 @@ export function TabelaContratos({
           <div>
             {!hideContratadaColumn && (
               <>
-                <p className="font-semibold text-lg">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'Empresa não informada'}</p>
-                <p className="text-sm text-muted-foreground">CNPJ: <CNPJDisplay value={contrato.empresaCnpj || contrato.contratada?.cnpj} fallback="N/A" /></p>
+                <p className="text-lg font-semibold">
+                  {contrato.empresaRazaoSocial ??
+                    contrato.contratada?.razaoSocial ??
+                    'Empresa não informada'}
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  CNPJ:{' '}
+                  <CNPJDisplay
+                    value={contrato.empresaCnpj ?? contrato.contratada?.cnpj}
+                    fallback="N/A"
+                  />
+                </p>
               </>
             )}
-            <p className="text-sm text-muted-foreground truncate" title={contrato.descricaoObjeto || ''}>
-              {contrato.descricaoObjeto || 'Objeto não informado'}
+            <p
+              className="text-muted-foreground truncate text-sm"
+              title={contrato.descricaoObjeto ?? ''}
+            >
+              {contrato.descricaoObjeto ?? 'Objeto não informado'}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <InfoItem icon={DollarSign} label="Valor Global" value={formatarMoeda(contrato.valorGlobal)} />
+            <InfoItem
+              icon={DollarSign}
+              label="Valor Global"
+              value={formatarMoeda(contrato.valorGlobal)}
+            />
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+              <p className="text-muted-foreground mb-1 flex items-center gap-1 text-xs font-medium">
                 <Calendar className="h-3 w-3" />
                 Vigência
               </p>
-              <VigenciaDisplay 
+              <VigenciaDisplay
                 vigenciaInicio={contrato.vigenciaInicial}
                 vigenciaFim={contrato.vigenciaFinal}
                 compact
               />
             </div>
-            <InfoItem icon={Briefcase} label="Contratação" value={contrato.contratacao || 'N/A'} />
+            <InfoItem
+              icon={Briefcase}
+              label="Contratação"
+              value={contrato.contratacao ?? 'N/A'}
+            />
             <div className="flex items-center gap-2 text-sm">
-              <Building className="h-4 w-4 text-muted-foreground" />
+              <Building className="text-muted-foreground h-4 w-4" />
               <span className="font-semibold">Unidades:</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleMostrarUnidades(contrato)}
-                className="h-auto p-1 font-normal hover:bg-muted/50 ml-auto"
+                className="hover:bg-muted/50 ml-auto h-auto p-1 font-normal"
                 disabled={obterTotalUnidades(contrato) === 0}
               >
                 {obterTotalUnidades(contrato) === 0 ? (
@@ -202,8 +262,16 @@ export function TabelaContratos({
                 )}
               </Button>
             </div>
-            <InfoItem icon={FileText} label="Processo" value={obterProcessoPriorizado(contrato)} />
-            <InfoItem icon={Archive} label="Vínculo PCA" value={contrato.vinculacaoPCA || 'N/A'} />
+            <InfoItem
+              icon={FileText}
+              label="Processo"
+              value={obterProcessoPriorizado(contrato)}
+            />
+            <InfoItem
+              icon={Archive}
+              label="Vínculo PCA"
+              value={contrato.vinculacaoPCA ?? 'N/A'}
+            />
           </div>
           <div className="flex items-center justify-end border-t pt-3">
             <Button
@@ -228,14 +296,14 @@ export function TabelaContratos({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card className="border-0 bg-card/50 shadow-2xl backdrop-blur">
+      <Card className="bg-card/50 border-0 shadow-2xl backdrop-blur">
         <CardHeader className="pb-4">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <CardTitle className="text-lg font-semibold sm:text-xl">
                 Lista de Contratos
               </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-sm">
                 {totalContratos} contratos encontrados
               </p>
             </div>
@@ -261,114 +329,178 @@ export function TabelaContratos({
                       />
                     </TableHead>
                     <TableHead className="font-semibold">Contrato</TableHead>
-                    {!hideContratadaColumn && <TableHead className="font-semibold">Contratada</TableHead>}
-                    <TableHead className="font-semibold">Tipo Contratação</TableHead>
+                    {!hideContratadaColumn && (
+                      <TableHead className="font-semibold">
+                        Contratada
+                      </TableHead>
+                    )}
+                    <TableHead className="font-semibold">
+                      Tipo Contratação
+                    </TableHead>
                     <TableHead className="font-semibold">Unidades</TableHead>
-                    <TableHead className="font-semibold">Período de Vigência</TableHead>
-                    <TableHead className="font-semibold text-right">Valor Global</TableHead>
+                    <TableHead className="font-semibold">
+                      Período de Vigência
+                    </TableHead>
+                    <TableHead className="text-right font-semibold">
+                      Valor Global
+                    </TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
-                    <TableHead className="text-right font-semibold">Ações</TableHead>
+                    <TableHead className="text-right font-semibold">
+                      Ações
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence>
-                    {isLoading ? (
-                      Array.from({ length: paginacao.itensPorPagina }).map((_, index) => (
-                        <TableRow key={`skeleton-${index}`}>
-                          <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                          {!hideContratadaColumn && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
-                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                          <TableCell className="text-right"><Skeleton className="ml-auto h-8 w-12" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      contratos.map((contrato, index) => (
-                        <motion.tr
-                          key={contrato.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3, delay: index * 0.05 }}
-                          className="hover:bg-muted/30 transition-colors"
-                        >
-                          <TableCell>
-                            <Checkbox
-                              checked={contratosSelecionados.includes(contrato.id)}
-                              onCheckedChange={(checked) =>
-                                onSelecionarContrato(contrato.id, checked as boolean)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium text-primary">{contrato.numeroContrato || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">{obterProcessoPriorizado(contrato)}</div>
-                            <div className="text-xs text-muted-foreground truncate max-w-48" title={contrato.descricaoObjeto || ''}>
-                              {contrato.descricaoObjeto || 'N/A'}
-                            </div>
-                          </TableCell>
-                          {!hideContratadaColumn && (
+                    {isLoading
+                      ? tableSkeletonRowIds.map((skeletonId) => (
+                          <TableRow key={skeletonId}>
                             <TableCell>
-                              <div className="font-medium">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {(() => {
-                                  const rawCnpj = contrato.empresaCnpj || contrato.contratada?.cnpj
-                                  const cnpjTexto = rawCnpj ? cnpjUtils.formatar(rawCnpj) : 'N/A'
-                                  return `CNPJ: ${cnpjTexto}`
-                                })()}
+                              <Skeleton className="h-4 w-4" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-28" />
+                            </TableCell>
+                            {!hideContratadaColumn && (
+                              <TableCell>
+                                <Skeleton className="h-4 w-32" />
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-16" />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Skeleton className="ml-auto h-8 w-12" />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      : contratos.map((contrato, index) => (
+                          <motion.tr
+                            key={contrato.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            className="hover:bg-muted/30 transition-colors"
+                          >
+                            <TableCell>
+                              <Checkbox
+                                checked={contratosSelecionados.includes(
+                                  contrato.id,
+                                )}
+                                onCheckedChange={(checked) =>
+                                  onSelecionarContrato(
+                                    contrato.id,
+                                    checked as boolean,
+                                  )
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-primary font-medium">
+                                {contrato.numeroContrato ?? 'N/A'}
+                              </div>
+                              <div className="text-muted-foreground text-xs">
+                                {obterProcessoPriorizado(contrato)}
+                              </div>
+                              <div
+                                className="text-muted-foreground max-w-48 truncate text-xs"
+                                title={contrato.descricaoObjeto ?? ''}
+                              >
+                                {contrato.descricaoObjeto ?? 'N/A'}
                               </div>
                             </TableCell>
-                          )}
-                          <TableCell>
-                            <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleMostrarUnidades(contrato)}
-                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-60"
-                              disabled={obterTotalUnidades(contrato) === 0}
-                            >
-                              {obterTotalUnidades(contrato) === 0 ? (
-                                <span className="text-muted-foreground">Nenhuma unidade</span>
-                              ) : (
-                                <>
-                                  <Building className="h-4 w-4 text-gray-600" />
-                                  <span className="font-medium text-gray-800">Mostrar</span>
-                                  <span className="rounded-full bg-gray-100 text-gray-800 px-2 py-0.5 text-xs font-medium">
-                                    {obterTotalUnidades(contrato)}
+                            {!hideContratadaColumn && (
+                              <TableCell>
+                                <div className="font-medium">
+                                  {contrato.empresaRazaoSocial ??
+                                    contrato.contratada?.razaoSocial ??
+                                    'N/A'}
+                                </div>
+                                <div className="text-muted-foreground text-xs">
+                                  {(() => {
+                                    const rawCnpj =
+                                      contrato.empresaCnpj ??
+                                      contrato.contratada?.cnpj
+                                    const cnpjTexto = rawCnpj
+                                      ? cnpjUtils.formatar(rawCnpj)
+                                      : 'N/A'
+                                    return `CNPJ: ${cnpjTexto}`
+                                  })()}
+                                </div>
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <div className="font-medium">
+                                {contrato.contratacao ?? 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleMostrarUnidades(contrato)}
+                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 transition-colors duration-200 hover:bg-gray-50 disabled:opacity-60"
+                                disabled={obterTotalUnidades(contrato) === 0}
+                              >
+                                {obterTotalUnidades(contrato) === 0 ? (
+                                  <span className="text-muted-foreground">
+                                    Nenhuma unidade
                                   </span>
-                                </>
-                              )}
-                            </Button>
-                          </TableCell>
-                          <TableCell>
-                            <VigenciaDisplay 
-                              vigenciaInicio={contrato.vigenciaInicial}
-                              vigenciaFim={contrato.vigenciaFinal}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right font-medium">{formatarMoeda(contrato.valorGlobal)}</TableCell>
-                          <TableCell><ContratoStatusBadge status={parseStatusContrato(contrato.status)} /></TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleVisualizarContrato(contrato)}
-                              className="h-8 px-3 shadow-sm"
-                            >
-                              <Eye className="mr-1 h-4 w-4" />
-                              Abrir
-                            </Button>
-                          </TableCell>
-                        </motion.tr>
-                      ))
-                    )}
+                                ) : (
+                                  <>
+                                    <Building className="h-4 w-4 text-gray-600" />
+                                    <span className="font-medium text-gray-800">
+                                      Mostrar
+                                    </span>
+                                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                                      {obterTotalUnidades(contrato)}
+                                    </span>
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <VigenciaDisplay
+                                vigenciaInicio={contrato.vigenciaInicial}
+                                vigenciaFim={contrato.vigenciaFinal}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatarMoeda(contrato.valorGlobal)}
+                            </TableCell>
+                            <TableCell>
+                              <ContratoStatusBadge
+                                status={parseStatusContrato(contrato.status)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() =>
+                                  handleVisualizarContrato(contrato)
+                                }
+                                className="h-8 px-3 shadow-sm"
+                              >
+                                <Eye className="mr-1 h-4 w-4" />
+                                Abrir
+                              </Button>
+                            </TableCell>
+                          </motion.tr>
+                        ))}
                   </AnimatePresence>
                 </TableBody>
               </Table>
@@ -377,7 +509,7 @@ export function TabelaContratos({
 
           {/* Tablet Table (Medium to Large screens) */}
           <div className="hidden lg:block xl:hidden">
-            <div className="mx-4 mb-6 overflow-x-auto rounded-lg border bg-background/50 sm:mx-6">
+            <div className="bg-background/50 mx-4 mb-6 overflow-x-auto rounded-lg border sm:mx-6">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -393,111 +525,168 @@ export function TabelaContratos({
                       />
                     </TableHead>
                     <TableHead className="font-semibold">Contrato</TableHead>
-                    {!hideContratadaColumn && <TableHead className="font-semibold">Contratada</TableHead>}
+                    {!hideContratadaColumn && (
+                      <TableHead className="font-semibold">
+                        Contratada
+                      </TableHead>
+                    )}
                     <TableHead className="font-semibold">Contratação</TableHead>
                     <TableHead className="font-semibold">Unidades</TableHead>
                     <TableHead className="font-semibold">Vigência</TableHead>
-                    <TableHead className="font-semibold text-right">Valor</TableHead>
+                    <TableHead className="text-right font-semibold">
+                      Valor
+                    </TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
-                    <TableHead className="text-right font-semibold">Ações</TableHead>
+                    <TableHead className="text-right font-semibold">
+                      Ações
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence>
-                    {isLoading ? (
-                      Array.from({ length: paginacao.itensPorPagina }).map((_, index) => (
-                        <TableRow key={`skeleton-${index}`}>
-                          <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                          {!hideContratadaColumn && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
-                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                          <TableCell className="text-right"><Skeleton className="ml-auto h-8 w-12" /></TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      contratos.map((contrato, index) => (
-                        <motion.tr
-                          key={contrato.id}
-                          className="group border-b transition-colors hover:bg-muted/50"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2, delay: index * 0.05 }}
-                          layout
-                        >
-                          <TableCell>
-                            <Checkbox
-                              checked={contratosSelecionados.includes(contrato.id)}
-                              onCheckedChange={(checked) =>
-                                onSelecionarContrato(contrato.id, checked as boolean)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium">{contrato.numeroContrato || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground truncate max-w-32">{contrato.descricaoObjeto || 'N/A'}</div>
-                          </TableCell>
-                          {!hideContratadaColumn && (
+                    {isLoading
+                      ? tableSkeletonRowIds.map((skeletonId) => (
+                          <TableRow key={skeletonId}>
                             <TableCell>
-                              <div className="font-medium truncate max-w-36">{contrato.empresaRazaoSocial || contrato.contratada?.razaoSocial || 'N/A'}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {(() => {
-                                  const rawCnpj = contrato.empresaCnpj || contrato.contratada?.cnpj
-                                  const cnpjTexto = rawCnpj ? cnpjUtils.formatar(rawCnpj) : 'N/A'
-                                  return `CNPJ: ${cnpjTexto}`
-                                })()}
+                              <Skeleton className="h-4 w-4" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-28" />
+                            </TableCell>
+                            {!hideContratadaColumn && (
+                              <TableCell>
+                                <Skeleton className="h-4 w-32" />
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-16" />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Skeleton className="ml-auto h-8 w-12" />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      : contratos.map((contrato, index) => (
+                          <motion.tr
+                            key={contrato.id}
+                            className="group hover:bg-muted/50 border-b transition-colors"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.05 }}
+                            layout
+                          >
+                            <TableCell>
+                              <Checkbox
+                                checked={contratosSelecionados.includes(
+                                  contrato.id,
+                                )}
+                                onCheckedChange={(checked) =>
+                                  onSelecionarContrato(
+                                    contrato.id,
+                                    checked as boolean,
+                                  )
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {contrato.numeroContrato ?? 'N/A'}
+                              </div>
+                              <div className="text-muted-foreground max-w-32 truncate text-xs">
+                                {contrato.descricaoObjeto ?? 'N/A'}
                               </div>
                             </TableCell>
-                          )}
-                          <TableCell>
-                            <div className="font-medium">{contrato.contratacao || 'N/A'}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleMostrarUnidades(contrato)}
-                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-60"
-                              disabled={obterTotalUnidades(contrato) === 0}
-                            >
-                              {obterTotalUnidades(contrato) === 0 ? (
-                                <span className="text-muted-foreground text-xs">Nenhuma unidade</span>
-                              ) : (
-                                <>
-                                  <Building className="h-4 w-4 text-gray-600" />
-                                  <span className="font-medium text-gray-800">Mostrar</span>
-                                  <span className="rounded-full bg-gray-100 text-gray-800 px-2 py-0.5 text-xs font-medium">
-                                    {obterTotalUnidades(contrato)}
+                            {!hideContratadaColumn && (
+                              <TableCell>
+                                <div className="max-w-36 truncate font-medium">
+                                  {contrato.empresaRazaoSocial ??
+                                    contrato.contratada?.razaoSocial ??
+                                    'N/A'}
+                                </div>
+                                <div className="text-muted-foreground text-xs">
+                                  {(() => {
+                                    const rawCnpj =
+                                      contrato.empresaCnpj ??
+                                      contrato.contratada?.cnpj
+                                    const cnpjTexto = rawCnpj
+                                      ? cnpjUtils.formatar(rawCnpj)
+                                      : 'N/A'
+                                    return `CNPJ: ${cnpjTexto}`
+                                  })()}
+                                </div>
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <div className="font-medium">
+                                {contrato.contratacao ?? 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleMostrarUnidades(contrato)}
+                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 transition-colors duration-200 hover:bg-gray-50 disabled:opacity-60"
+                                disabled={obterTotalUnidades(contrato) === 0}
+                              >
+                                {obterTotalUnidades(contrato) === 0 ? (
+                                  <span className="text-muted-foreground text-xs">
+                                    Nenhuma unidade
                                   </span>
-                                </>
-                              )}
-                            </Button>
-                          </TableCell>
-                          <TableCell>
-                            <VigenciaDisplay 
-                              vigenciaInicio={contrato.vigenciaInicial}
-                              vigenciaFim={contrato.vigenciaFinal}
-                              compact
-                            />
-                          </TableCell>
-                          <TableCell className="text-right font-medium">{formatarMoeda(contrato.valorGlobal)}</TableCell>
-                          <TableCell><ContratoStatusBadge status={parseStatusContrato(contrato.status)} /></TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleVisualizarContrato(contrato)}
-                              className="h-8 px-3 shadow-sm"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </motion.tr>
-                      ))
-                    )}
+                                ) : (
+                                  <>
+                                    <Building className="h-4 w-4 text-gray-600" />
+                                    <span className="font-medium text-gray-800">
+                                      Mostrar
+                                    </span>
+                                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                                      {obterTotalUnidades(contrato)}
+                                    </span>
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <VigenciaDisplay
+                                vigenciaInicio={contrato.vigenciaInicial}
+                                vigenciaFim={contrato.vigenciaFinal}
+                                compact
+                              />
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatarMoeda(contrato.valorGlobal)}
+                            </TableCell>
+                            <TableCell>
+                              <ContratoStatusBadge
+                                status={parseStatusContrato(contrato.status)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() =>
+                                  handleVisualizarContrato(contrato)
+                                }
+                                className="h-8 px-3 shadow-sm"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </motion.tr>
+                        ))}
                   </AnimatePresence>
                 </TableBody>
               </Table>
@@ -507,40 +696,40 @@ export function TabelaContratos({
           {/* Mobile Cards */}
           <div className="px-4 sm:px-6 lg:hidden">
             <AnimatePresence>
-              {isLoading ? (
-                Array.from({ length: paginacao.itensPorPagina }).map((_, index) => (
-                  <Card key={`mobile-skeleton-${index}`} className="mb-4">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
-                        <div className="grid grid-cols-2 gap-3">
-                          <Skeleton className="h-3 w-full" />
-                          <Skeleton className="h-3 w-full" />
+              {isLoading
+                ? mobileSkeletonCardIds.map((skeletonId) => (
+                    <Card key={skeletonId} className="mb-4">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                          <div className="grid grid-cols-2 gap-3">
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-full" />
+                          </div>
+                          <Skeleton className="ml-auto h-8 w-16" />
                         </div>
-                        <Skeleton className="h-8 w-16 ml-auto" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                contratos.map((contrato, index) => (
-                  <MobileContractCard
-                    key={contrato.id}
-                    contrato={contrato}
-                    index={index}
-                  />
-                ))
-              )}
+                      </CardContent>
+                    </Card>
+                  ))
+                : contratos.map((contrato, index) => (
+                    <MobileContractCard
+                      key={contrato.id}
+                      contrato={contrato}
+                      index={index}
+                    />
+                  ))}
             </AnimatePresence>
           </div>
 
           {/* Paginação Responsiva */}
-          <div className="flex flex-col items-center justify-between gap-4 border-t bg-muted/20 px-4 py-4 sm:flex-row sm:px-6">
-            <div className="text-center text-sm text-muted-foreground sm:text-left">
-              <span className="font-medium">{totalContratos}</span> contratos encontrados
+          <div className="bg-muted/20 flex flex-col items-center justify-between gap-4 border-t px-4 py-4 sm:flex-row sm:px-6">
+            <div className="text-muted-foreground text-center text-sm sm:text-left">
+              <span className="font-medium">{totalContratos}</span> contratos
+              encontrados
               <span className="hidden sm:inline">
-                {' '}• Página {paginacao.pagina} de {totalPaginas}
+                {' '}
+                • Página {paginacao.pagina} de {totalPaginas}
               </span>
             </div>
 
@@ -560,8 +749,9 @@ export function TabelaContratos({
                 <span className="text-sm font-medium">
                   Página {paginacao.pagina} de {totalPaginas}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  ({Math.min(inicio + 1, totalContratos)}-{Math.min(fim, totalContratos)} de {totalContratos})
+                <span className="text-muted-foreground text-xs">
+                  ({Math.min(inicio + 1, totalContratos)}-
+                  {Math.min(fim, totalContratos)} de {totalContratos})
                 </span>
               </div>
 
@@ -584,8 +774,8 @@ export function TabelaContratos({
       <ModalUnidadesResponsaveis
         isOpen={modalUnidadesAberto}
         onClose={handleFecharModalUnidades}
-        unidades={contratoSelecionado?.unidadesResponsaveis || []}
-        numeroContrato={contratoSelecionado?.numeroContrato || 'N/A'}
+        unidades={contratoSelecionado?.unidadesResponsaveis ?? []}
+        numeroContrato={contratoSelecionado?.numeroContrato ?? 'N/A'}
       />
     </motion.div>
   )

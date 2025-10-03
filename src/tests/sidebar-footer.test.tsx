@@ -1,8 +1,22 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+
 import SidebarFooter from '@/components/sidebar-footer'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { VERSAO_APP } from '@/lib/versao'
+
+// Mock do sistema de versionamento
+vi.mock('@/lib/versao', () => ({
+  VERSAO_APP: '1.0.0',
+  obterVersaoApp: () => '1.0.0',
+  obterAnoAtual: () => 2024,
+  obterMetadataVersao: () => ({
+    versao: '1.0.0',
+    commitSha: 'abc1234',
+    buildNumber: '1',
+    buildTimestamp: '2024-01-01',
+    ambiente: 'development',
+  }),
+}))
 
 // Mock do hook useIsMobile usado pelo SidebarProvider
 vi.mock('@/hooks/use-mobile', () => ({
@@ -21,37 +35,34 @@ describe('SidebarFooter', () => {
   it('deve renderizar as informações do desenvolvedor quando expandida', () => {
     renderWithSidebarProvider(true)
 
-    const anoAtual = new Date().getFullYear()
     expect(
-      screen.getByText(`Desenvolvido pelo time de TI ${anoAtual}`),
+      screen.getByText('Desenvolvido pelo time de TI 2024'),
     ).toBeInTheDocument()
-    expect(screen.getByText(`v${VERSAO_APP}`)).toBeInTheDocument()
+    expect(screen.getByText('v1.0.0')).toBeInTheDocument()
   })
 
   it('deve renderizar apenas a versão quando colapsada', () => {
     renderWithSidebarProvider(false)
 
-    expect(screen.getByText(`v${VERSAO_APP}`)).toBeInTheDocument()
+    expect(screen.getByText('v1.0.0')).toBeInTheDocument()
     // Não deve mostrar o texto do desenvolvedor quando colapsada
-    const anoAtual = new Date().getFullYear()
     expect(
-      screen.queryByText(`Desenvolvido pelo time de TI ${anoAtual}`),
+      screen.queryByText('Desenvolvido pelo time de TI 2024'),
     ).not.toBeInTheDocument()
   })
 
   it('deve usar o ano atual na mensagem do desenvolvedor', () => {
     renderWithSidebarProvider(true)
 
-    const anoAtual = new Date().getFullYear()
     expect(
-      screen.getByText(`Desenvolvido pelo time de TI ${anoAtual}`),
+      screen.getByText('Desenvolvido pelo time de TI 2024'),
     ).toBeInTheDocument()
   })
 
   it('deve ter estilos corretos para o texto da versão', () => {
     renderWithSidebarProvider(true)
 
-    const versaoElement = screen.getByText(`v${VERSAO_APP}`)
+    const versaoElement = screen.getByText('v1.0.0')
     expect(versaoElement).toHaveClass('text-xs')
     expect(versaoElement).toHaveClass('font-mono')
   })
@@ -59,7 +70,7 @@ describe('SidebarFooter', () => {
   it('deve renderizar com cores da sidebar', () => {
     renderWithSidebarProvider(true)
 
-    const container = screen.getByText(`v${VERSAO_APP}`).closest('div')
+    const container = screen.getByText('v1.0.0').closest('div')
     expect(container).toHaveClass('text-sidebar-foreground/60')
     expect(container).toHaveClass('font-mono')
   })

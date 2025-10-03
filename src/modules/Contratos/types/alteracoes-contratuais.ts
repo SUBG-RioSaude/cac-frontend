@@ -1,7 +1,7 @@
 // Tipos que mapeiam para os IDs da API (conforme documentação EGC-174)
 export const TipoAlteracao = {
   AditivoPrazo: 1,
-  Valor: 2,  
+  Valor: 2,
   AditivoQualitativo: 3,
   AditivoQuantidade: 4,
   PrazoEValor: 5,
@@ -13,19 +13,19 @@ export const TipoAlteracao = {
   Rescisao: 11,
   Supressao: 12,
   Suspensao: 13,
-  Apostilamento: 14
+  Apostilamento: 14,
 } as const
 
-export type TipoAlteracao = typeof TipoAlteracao[keyof typeof TipoAlteracao]
+export type TipoAlteracao = (typeof TipoAlteracao)[keyof typeof TipoAlteracao]
 
 // Operações de valor
 export const OperacaoValor = {
   Acrescentar: 1,
   Diminuir: 2,
-  Substituir: 3
+  Substituir: 3,
 } as const
 
-export type OperacaoValor = typeof OperacaoValor[keyof typeof OperacaoValor]
+export type OperacaoValor = (typeof OperacaoValor)[keyof typeof OperacaoValor]
 
 // Operações de vigência
 export const OperacaoVigencia = {
@@ -33,29 +33,32 @@ export const OperacaoVigencia = {
   Diminuir: 2,
   Substituir: 3,
   SuspenderDeterminado: 4,
-  SuspenderIndeterminado: 5
+  SuspenderIndeterminado: 5,
 } as const
 
-export type OperacaoVigencia = typeof OperacaoVigencia[keyof typeof OperacaoVigencia]
+export type OperacaoVigencia =
+  (typeof OperacaoVigencia)[keyof typeof OperacaoVigencia]
 
 // Tipos de unidade de tempo
 export const TipoUnidadeTempo = {
   Dias: 1,
   Meses: 2,
-  Anos: 3
+  Anos: 3,
 } as const
 
-export type TipoUnidadeTempo = typeof TipoUnidadeTempo[keyof typeof TipoUnidadeTempo]
+export type TipoUnidadeTempo =
+  (typeof TipoUnidadeTempo)[keyof typeof TipoUnidadeTempo]
 
 // Status das alterações
 export const StatusAlteracao = {
   Rascunho: 1,
   AguardandoAprovacao: 2,
   Vigente: 3,
-  Rejeitado: 4
+  Rejeitado: 4,
 } as const
 
-export type StatusAlteracao = typeof StatusAlteracao[keyof typeof StatusAlteracao]
+export type StatusAlteracao =
+  (typeof StatusAlteracao)[keyof typeof StatusAlteracao]
 
 // Interface para o Bloco Cláusulas
 export interface BlocoClausulas {
@@ -110,11 +113,12 @@ export interface UnidadeVinculada {
 // Operações de valor para unidades
 export const OperacaoValorUnidade = {
   Substituir: 'substituir',
-  Adicionar: 'adicionar', 
-  Subtrair: 'subtrair'
+  Adicionar: 'adicionar',
+  Subtrair: 'subtrair',
 } as const
 
-export type OperacaoValorUnidade = typeof OperacaoValorUnidade[keyof typeof OperacaoValorUnidade]
+export type OperacaoValorUnidade =
+  (typeof OperacaoValorUnidade)[keyof typeof OperacaoValorUnidade]
 
 // Interface para alteração de valor de unidade
 export interface AlteracaoValorUnidade {
@@ -147,19 +151,21 @@ export interface BlocoUnidades {
 export const OperacaoFornecedor = {
   Vincular: 1,
   Desvincular: 2,
-  Substituir: 3
+  Substituir: 3,
 } as const
 
-export type OperacaoFornecedor = typeof OperacaoFornecedor[keyof typeof OperacaoFornecedor]
+export type OperacaoFornecedor =
+  (typeof OperacaoFornecedor)[keyof typeof OperacaoFornecedor]
 
 // Operações para unidades
 export const OperacaoUnidade = {
   Vincular: 1,
   Desvincular: 2,
-  Substituir: 3
+  Substituir: 3,
 } as const
 
-export type OperacaoUnidade = typeof OperacaoUnidade[keyof typeof OperacaoUnidade]
+export type OperacaoUnidade =
+  (typeof OperacaoUnidade)[keyof typeof OperacaoUnidade]
 
 // Status de alterações contratuais (mapeamento para API)
 export const StatusAlteracaoContratual = {
@@ -168,10 +174,11 @@ export const StatusAlteracaoContratual = {
   Aprovada: 3,
   Rejeitada: 4,
   Ativa: 5,
-  Cancelada: 6
+  Cancelada: 6,
 } as const
 
-export type StatusAlteracaoContratual = typeof StatusAlteracaoContratual[keyof typeof StatusAlteracaoContratual]
+export type StatusAlteracaoContratual =
+  (typeof StatusAlteracaoContratual)[keyof typeof StatusAlteracaoContratual]
 
 // Interface para dados básicos da alteração
 export interface DadosBasicos {
@@ -190,12 +197,12 @@ export interface AlteracaoContratualPayload {
   justificativa: string
   status: number // StatusAlteracao
   dataEfeito: string // ISO string: "2024-01-01T00:00:00.000Z"
-  
+
   // Campos opcionais básicos
   dataAssinatura?: string // ISO string
   requerConfirmacaoLimiteLegal?: boolean
   alertaLimiteLegal?: string
-  
+
   // Blocos dinâmicos (flat structure - formato exato da API)
   // Bloco Clausulas
   clausulas?: {
@@ -203,7 +210,7 @@ export interface AlteracaoContratualPayload {
     clausulasIncluidas?: string
     clausulasAlteradas?: string
   }
-  
+
   // Bloco Vigência
   vigencia?: {
     operacao: number // OperacaoVigencia
@@ -213,17 +220,17 @@ export interface AlteracaoContratualPayload {
     isIndeterminado?: boolean
     observacoes?: string
   }
-  
+
   // Bloco Valor
   valor?: {
-    operacao: number // OperacaoValor  
+    operacao: number // OperacaoValor
     valorAjuste?: number
     percentualAjuste?: number
     novoValorGlobal?: number
     observacoes?: string
     valorCalculadoAutomaticamente?: boolean
   }
-  
+
   // Bloco Fornecedores - NOVO FORMATO
   fornecedores?: {
     fornecedoresVinculados?: string[] // Array de IDs
@@ -231,7 +238,7 @@ export interface AlteracaoContratualPayload {
     novoFornecedorPrincipal?: string // ID do fornecedor principal
     observacoes?: string
   }
-  
+
   // Bloco Unidades - NOVO FORMATO
   unidades?: {
     unidadesVinculadas?: UnidadeVinculada[] // Array com valor atribuído
@@ -242,12 +249,12 @@ export interface AlteracaoContratualPayload {
 
 // Interface para bloco de cláusulas (API)
 export interface BlocoClausulasApi {
-  clausulasAlteradas: Array<{
+  clausulasAlteradas: {
     numeroClausula: string
     textoOriginal: string
     textoAlterado: string
     tipoAlteracao: 'substituir' | 'incluir' | 'excluir'
-  }>
+  }[]
 }
 
 // Interface para bloco de vigência (API)
@@ -271,28 +278,28 @@ export interface BlocoValorApi {
 // Interface para bloco de fornecedores (API)
 export interface BlocoFornecedoresApi {
   operacao: OperacaoFornecedor
-  fornecedoresAfetados: Array<{
+  fornecedoresAfetados: {
     id: string
     nome: string
     cnpj: string
-  }>
+  }[]
 }
 
 // Interface para bloco de unidades (API)
 export interface BlocoUnidadesApi {
   operacao: OperacaoUnidade
-  unidadesAfetadas: Array<{
+  unidadesAfetadas: {
     id: string
     nome: string
     codigo: string
-  }>
+  }[]
 }
 
 // Interface para blocos dinâmicos (API)
 // Interface para estrutura de blocos no frontend
 export interface BlocosDinamicos {
   clausulas?: BlocoClausulas
-  vigencia?: BlocoVigencia  
+  vigencia?: BlocoVigencia
   valor?: BlocoValor
   fornecedores?: BlocoFornecedores
   unidades?: BlocoUnidades
@@ -306,7 +313,7 @@ export interface AlteracaoContratualForm {
   dadosBasicos: DadosBasicos
   dataEfeito: string // Data de efeito da alteração (ISO string)
   blocos: BlocosDinamicos
-  
+
   // Campos de sistema
   id?: string
   versaoContrato?: number
@@ -329,14 +336,14 @@ export interface AlteracaoContratualResponse {
   status: StatusAlteracaoContratual
   dataEfeito: string
   dataAssinatura?: string | null
-  
+
   // Blocos estruturados (diretamente na raiz como nos dados reais)
   clausulas?: {
     clausulasExcluidas?: string
     clausulasIncluidas?: string
     clausulasAlteradas?: string
   } | null
-  
+
   vigencia?: {
     operacao: number
     tipoUnidade?: number
@@ -345,7 +352,7 @@ export interface AlteracaoContratualResponse {
     isIndeterminado?: boolean
     observacoes?: string
   } | null
-  
+
   valor?: {
     operacao: number
     valorAjuste?: number
@@ -354,10 +361,10 @@ export interface AlteracaoContratualResponse {
     observacoes?: string
     valorCalculadoAutomaticamente?: boolean
   } | null
-  
+
   fornecedores?: object | null // Para compatibilidade futura
   unidades?: object | null // Para compatibilidade futura
-  
+
   // Campos específicos da API
   requerConfirmacaoLimiteLegal: boolean
   alertaLimiteLegal?: string | null
@@ -365,7 +372,7 @@ export interface AlteracaoContratualResponse {
   estadoPosteriorJson?: string | null
   resumoAlteracao?: string
   podeSerEditada: boolean
-  
+
   // Campos de auditoria
   usuarioCadastroId: string
   usuarioAtualizacaoId: string
@@ -377,13 +384,13 @@ export interface AlteracaoContratualResponse {
 
 // Interface para alerta de limite legal
 export interface AlertaLimiteLegal {
-  limites: Array<{
+  limites: {
     tipo: 'acrescimo' | 'prazo' | 'objeto'
     limiteLegal: number
     valorAtual: number
     severidade: 'alerta' | 'critico'
     observacoes?: string
-  }>
+  }[]
   fundamentacaoLegal?: string
 }
 
@@ -454,8 +461,20 @@ export interface TipoAlteracaoConfig {
   icone: string
   cor: string
   exemplos: string[]
-  blocosObrigatorios: ('clausulas' | 'vigencia' | 'valor' | 'fornecedores' | 'unidades')[]
-  blocosOpcionais: ('clausulas' | 'vigencia' | 'valor' | 'fornecedores' | 'unidades')[]
+  blocosObrigatorios: (
+    | 'clausulas'
+    | 'vigencia'
+    | 'valor'
+    | 'fornecedores'
+    | 'unidades'
+  )[]
+  blocosOpcionais: (
+    | 'clausulas'
+    | 'vigencia'
+    | 'valor'
+    | 'fornecedores'
+    | 'unidades'
+  )[]
   limiteLegal?: number // 25 ou 50 para alterações quantitativas
 }
 
@@ -489,10 +508,13 @@ export interface ResumoAlteracao {
 }
 
 // Tipos válidos de alteração (excluindo os removidos)
-export type TipoAlteracaoValido = Exclude<TipoAlteracao, 2 | 5 | 10>; // Excluir Valor, PrazoEValor, RepactuacaoEReequilibrio
+export type TipoAlteracaoValido = Exclude<TipoAlteracao, 2 | 5 | 10> // Excluir Valor, PrazoEValor, RepactuacaoEReequilibrio
 
 // Configuração dos tipos de alteração conforme EGC-174
-export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoConfig> = {
+export const TIPOS_ALTERACAO_CONFIG: Record<
+  TipoAlteracaoValido,
+  TipoAlteracaoConfig
+> = {
   [TipoAlteracao.AditivoPrazo]: {
     tipo: TipoAlteracao.AditivoPrazo,
     label: 'Aditivo - Prazo',
@@ -501,7 +523,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     cor: 'blue',
     exemplos: ['Prorrogação por 12 meses', 'Extensão de prazo'],
     blocosObrigatorios: ['vigencia'],
-    blocosOpcionais: ['clausulas', 'valor']
+    blocosOpcionais: ['clausulas', 'valor'],
   },
   [TipoAlteracao.AditivoQualitativo]: {
     tipo: TipoAlteracao.AditivoQualitativo,
@@ -511,8 +533,14 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     cor: 'green',
     exemplos: ['Mudança de especificação', 'Alteração no escopo'],
     blocosObrigatorios: [],
-    blocosOpcionais: ['clausulas', 'vigencia', 'valor', 'fornecedores', 'unidades'],
-    limiteLegal: 50
+    blocosOpcionais: [
+      'clausulas',
+      'vigencia',
+      'valor',
+      'fornecedores',
+      'unidades',
+    ],
+    limiteLegal: 50,
   },
   [TipoAlteracao.AditivoQuantidade]: {
     tipo: TipoAlteracao.AditivoQuantidade,
@@ -523,7 +551,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     exemplos: ['Acréscimo de 25% no quantitativo', 'Redução de itens'],
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
-    limiteLegal: 25
+    limiteLegal: 25,
   },
   [TipoAlteracao.Apostilamento]: {
     tipo: TipoAlteracao.Apostilamento,
@@ -533,7 +561,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     cor: 'gray',
     exemplos: ['Registro de mudança', 'Anotação administrativa'],
     blocosObrigatorios: [],
-    blocosOpcionais: ['clausulas']
+    blocosOpcionais: ['clausulas'],
   },
   [TipoAlteracao.Reajuste]: {
     tipo: TipoAlteracao.Reajuste,
@@ -544,7 +572,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     exemplos: ['Aplicação do IPCA', 'Reajuste anual'],
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
-    limiteLegal: 50
+    limiteLegal: 50,
   },
   [TipoAlteracao.Reequilibrio]: {
     tipo: TipoAlteracao.Reequilibrio,
@@ -555,7 +583,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     exemplos: ['Reequilíbrio por aumento de custos', 'Ajuste econômico'],
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
-    limiteLegal: 50
+    limiteLegal: 50,
   },
   [TipoAlteracao.Repactuacao]: {
     tipo: TipoAlteracao.Repactuacao,
@@ -566,7 +594,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     exemplos: ['Revisão de preços', 'Recomposição tarifária'],
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
-    limiteLegal: 50
+    limiteLegal: 50,
   },
   [TipoAlteracao.Rescisao]: {
     tipo: TipoAlteracao.Rescisao,
@@ -576,7 +604,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     cor: 'red',
     exemplos: ['Rescisão amigável', 'Encerramento por descumprimento'],
     blocosObrigatorios: ['vigencia'],
-    blocosOpcionais: ['clausulas']
+    blocosOpcionais: ['clausulas'],
   },
   [TipoAlteracao.SubRogacao]: {
     tipo: TipoAlteracao.SubRogacao,
@@ -586,7 +614,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     cor: 'indigo',
     exemplos: ['Substituição de fornecedor', 'Transferência de contrato'],
     blocosObrigatorios: ['fornecedores'],
-    blocosOpcionais: ['clausulas']
+    blocosOpcionais: ['clausulas'],
   },
   [TipoAlteracao.Supressao]: {
     tipo: TipoAlteracao.Supressao,
@@ -597,7 +625,7 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     exemplos: ['Redução de 20% no escopo', 'Supressão de itens'],
     blocosObrigatorios: ['valor'],
     blocosOpcionais: ['clausulas'],
-    limiteLegal: 25
+    limiteLegal: 25,
   },
   [TipoAlteracao.Suspensao]: {
     tipo: TipoAlteracao.Suspensao,
@@ -607,14 +635,14 @@ export const TIPOS_ALTERACAO_CONFIG: Record<TipoAlteracaoValido, TipoAlteracaoCo
     cor: 'yellow',
     exemplos: ['Suspensão por 30 dias', 'Paralisação temporária'],
     blocosObrigatorios: ['vigencia'],
-    blocosOpcionais: ['clausulas']
+    blocosOpcionais: ['clausulas'],
   },
 }
 
 // Função helper para verificar blocos obrigatórios
 export function getBlocosObrigatorios(tipos: TipoAlteracao[]): Set<string> {
   const blocos = new Set<string>()
-  tipos.forEach(tipo => {
+  tipos.forEach((tipo) => {
     // Verificar se o tipo existe no config antes de acessar
     if (tipo in TIPOS_ALTERACAO_CONFIG) {
       const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
@@ -629,7 +657,7 @@ export function getBlocosObrigatorios(tipos: TipoAlteracao[]): Set<string> {
 // Função helper para verificar blocos opcionais
 export function getBlocosOpcionais(tipos: TipoAlteracao[]): Set<string> {
   const blocos = new Set<string>()
-  tipos.forEach(tipo => {
+  tipos.forEach((tipo) => {
     // Verificar se o tipo existe no config antes de acessar
     if (tipo in TIPOS_ALTERACAO_CONFIG) {
       const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
@@ -644,11 +672,11 @@ export function getBlocosOpcionais(tipos: TipoAlteracao[]): Set<string> {
 // Função helper para obter limite legal
 export function getLimiteLegal(tipos: TipoAlteracao[]): number {
   let maiorLimite = 0
-  tipos.forEach(tipo => {
+  tipos.forEach((tipo) => {
     // Verificar se o tipo existe no config antes de acessar
     if (tipo in TIPOS_ALTERACAO_CONFIG) {
       const config = TIPOS_ALTERACAO_CONFIG[tipo as TipoAlteracaoValido]
-      const limite = config.limiteLegal || 0
+      const limite = config.limiteLegal ?? 0
       if (limite > maiorLimite) {
         maiorLimite = limite
       }
@@ -664,111 +692,120 @@ export function getLimiteLegal(tipos: TipoAlteracao[]): number {
  * Converte estrutura nested para flat e ajusta tipos
  */
 export function transformToApiPayload(
-  dados: AlteracaoContratualForm
+  dados: AlteracaoContratualForm,
 ): AlteracaoContratualPayload {
-  
   const payload: AlteracaoContratualPayload = {
     contratoId: dados.contratoId,
     tiposAlteracao: dados.tiposAlteracao,
     justificativa: dados.dadosBasicos.justificativa,
-    status: dados.status || StatusAlteracao.Rascunho,
-    dataEfeito: dados.dataEfeito
+    status: dados.status ?? StatusAlteracao.Rascunho,
+    dataEfeito: dados.dataEfeito,
   }
 
   // Campos opcionais básicos
-  if (dados.dadosBasicos?.fundamentoLegal) {
+  if (dados.dadosBasicos.fundamentoLegal) {
     // Note: fundamentoLegal não existe no novo formato, vai no justificativa ou observacoes
   }
-  
+
   // Adicionar data de assinatura se disponível (pode vir do contrato ou ser definida pelo usuário)
   if (dados.dataAssinatura) {
     payload.dataAssinatura = dados.dataAssinatura
   }
-  
+
   // Configurar flags de limite legal se necessário
   if (dados.requerConfirmacaoLimiteLegal !== undefined) {
     payload.requerConfirmacaoLimiteLegal = dados.requerConfirmacaoLimiteLegal
   }
-  
+
   if (dados.alertaLimiteLegal) {
     payload.alertaLimiteLegal = dados.alertaLimiteLegal
   }
 
   // Transformar blocos dinâmicos
-  if (dados.blocos?.clausulas) {
-    const clausulas = dados.blocos.clausulas as BlocoClausulas
+  if (dados.blocos.clausulas) {
+    const { clausulas } = dados.blocos
     payload.clausulas = {
       clausulasExcluidas: clausulas.clausulasExcluidas,
       clausulasIncluidas: clausulas.clausulasIncluidas,
-      clausulasAlteradas: clausulas.clausulasAlteradas
+      clausulasAlteradas: clausulas.clausulasAlteradas,
     }
   }
 
-  if (dados.blocos?.vigencia) {
-    const vigencia = dados.blocos.vigencia as BlocoVigencia
+  if (dados.blocos.vigencia) {
+    const { vigencia } = dados.blocos
     payload.vigencia = {
       operacao: vigencia.operacao,
       tipoUnidade: vigencia.tipoUnidade,
       valorTempo: vigencia.valorTempo,
       novaDataFinal: vigencia.novaDataFinal,
       isIndeterminado: vigencia.isIndeterminado,
-      observacoes: vigencia.observacoes
+      observacoes: vigencia.observacoes,
     }
   }
 
-  if (dados.blocos?.valor) {
-    const valor = dados.blocos.valor as BlocoValor
+  if (dados.blocos.valor) {
+    const { valor } = dados.blocos
     payload.valor = {
       operacao: valor.operacao,
       valorAjuste: valor.valorAjuste,
       percentualAjuste: valor.percentualAjuste,
       novoValorGlobal: valor.novoValorGlobal,
       observacoes: valor.observacoes,
-      valorCalculadoAutomaticamente: valor.valorCalculadoAutomaticamente
+      valorCalculadoAutomaticamente: valor.valorCalculadoAutomaticamente,
     }
   }
 
   // NOVO: Transformar bloco fornecedores
-  if (dados.blocos?.fornecedores) {
-    const fornecedores = dados.blocos.fornecedores as BlocoFornecedores
-    
+  if (dados.blocos.fornecedores) {
+    const { fornecedores } = dados.blocos
+
     payload.fornecedores = {
-      observacoes: fornecedores.observacoes
+      observacoes: fornecedores.observacoes,
     }
 
     // Analisar operação e mapear fornecedores afetados
-    if (fornecedores.fornecedoresVinculados && fornecedores.fornecedoresVinculados.length > 0) {
-      payload.fornecedores.fornecedoresVinculados = fornecedores.fornecedoresVinculados.map(f => f.empresaId)
+    if (
+      fornecedores.fornecedoresVinculados &&
+      fornecedores.fornecedoresVinculados.length > 0
+    ) {
+      payload.fornecedores.fornecedoresVinculados =
+        fornecedores.fornecedoresVinculados.map((f) => f.empresaId)
     }
-    
-    if (fornecedores.fornecedoresDesvinculados && fornecedores.fornecedoresDesvinculados.length > 0) {
-      payload.fornecedores.fornecedoresDesvinculados = fornecedores.fornecedoresDesvinculados
+
+    if (
+      fornecedores.fornecedoresDesvinculados &&
+      fornecedores.fornecedoresDesvinculados.length > 0
+    ) {
+      payload.fornecedores.fornecedoresDesvinculados =
+        fornecedores.fornecedoresDesvinculados
     }
-    
+
     if (fornecedores.novoFornecedorPrincipal) {
-      payload.fornecedores.novoFornecedorPrincipal = fornecedores.novoFornecedorPrincipal
+      payload.fornecedores.novoFornecedorPrincipal =
+        fornecedores.novoFornecedorPrincipal
     }
-    
   }
 
-  // NOVO: Transformar bloco unidades  
-  if (dados.blocos?.unidades) {
-    const unidades = dados.blocos.unidades as BlocoUnidades
-    
+  // NOVO: Transformar bloco unidades
+  if (dados.blocos.unidades) {
+    const { unidades } = dados.blocos
+
     payload.unidades = {
-      observacoes: unidades.observacoes
+      observacoes: unidades.observacoes,
     }
 
     // Transformar unidades vinculadas com valor atribuído
     if (unidades.unidadesVinculadas && unidades.unidadesVinculadas.length > 0) {
       payload.unidades.unidadesVinculadas = unidades.unidadesVinculadas // Já no formato correto
     }
-    
+
     // Unidades desvinculadas permanecem como array de IDs
-    if (unidades.unidadesDesvinculadas && unidades.unidadesDesvinculadas.length > 0) {
+    if (
+      unidades.unidadesDesvinculadas &&
+      unidades.unidadesDesvinculadas.length > 0
+    ) {
       payload.unidades.unidadesDesvinculadas = unidades.unidadesDesvinculadas
     }
-    
   }
 
   return payload

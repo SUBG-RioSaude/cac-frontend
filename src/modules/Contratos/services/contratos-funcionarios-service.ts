@@ -34,7 +34,7 @@ export interface AdicionarFuncionarioResponse {
  */
 export async function adicionarFuncionarioContrato(
   contratoId: string,
-  payload: AdicionarFuncionarioPayload
+  payload: AdicionarFuncionarioPayload,
 ): Promise<AdicionarFuncionarioResponse> {
   const body = {
     funcionarioId: payload.funcionarioId,
@@ -42,11 +42,8 @@ export async function adicionarFuncionarioContrato(
     dataInicio: payload.dataInicio,
     observacoes: payload.observacoes,
   }
-  const response = await api.post(
-    `/contratos/${contratoId}/funcionarios`,
-    body
-  )
-  return response.data
+  const response = await api.post(`/contratos/${contratoId}/funcionarios`, body)
+  return response.data as AdicionarFuncionarioResponse
 }
 
 /**
@@ -55,14 +52,11 @@ export async function adicionarFuncionarioContrato(
 export async function removerFuncionarioContrato(
   contratoId: string,
   funcionarioId: string,
-  tipoGerencia: 1 | 2
+  tipoGerencia: 1 | 2,
 ): Promise<void> {
-  await api.delete(
-    `/contratos/${contratoId}/funcionarios/${funcionarioId}`,
-    {
-      params: { tipoGerencia }
-    }
-  )
+  await api.delete(`/contratos/${contratoId}/funcionarios/${funcionarioId}`, {
+    params: { tipoGerencia },
+  })
 }
 
 /**
@@ -75,14 +69,20 @@ export async function substituirFuncionarioContrato(
   funcionarioNovoId: string,
   tipoGerencia: 1 | 2,
   observacoes?: string,
-  dataInicio?: string
+  dataInicio?: string,
 ): Promise<AdicionarFuncionarioResponse> {
   // Passo 1: Remover funcionário antigo
   try {
-    await removerFuncionarioContrato(contratoId, funcionarioAntigoId, tipoGerencia)
-  } catch (error) {
-    console.error('Erro ao remover funcionário antigo:', error)
-    throw new Error('Não foi possível remover o funcionário atual. Operação cancelada.')
+    await removerFuncionarioContrato(
+      contratoId,
+      funcionarioAntigoId,
+      tipoGerencia,
+    )
+  } catch {
+    // Erro ao remover funcionário antigo
+    throw new Error(
+      'Não foi possível remover o funcionário atual. Operação cancelada.',
+    )
   }
 
   // Passo 2: Adicionar novo funcionário
@@ -91,25 +91,29 @@ export async function substituirFuncionarioContrato(
       funcionarioId: funcionarioNovoId,
       tipoGerencia,
       observacoes,
-      dataInicio
+      dataInicio,
     })
     return novoFuncionario
-  } catch (error) {
-    console.error('Erro ao adicionar novo funcionário:', error)
-    
+  } catch {
+    // Erro ao adicionar novo funcionário
+
     // Tentar rollback: re-adicionar funcionário antigo
     try {
       await adicionarFuncionarioContrato(contratoId, {
         funcionarioId: funcionarioAntigoId,
         tipoGerencia,
-        observacoes: 'Revertido automaticamente após falha na substituição'
+        observacoes: 'Revertido automaticamente após falha na substituição',
       })
-    } catch (rollbackError) {
-      console.error('Falha no rollback:', rollbackError)
-      throw new Error('Erro crítico: Não foi possível adicionar o novo funcionário e o rollback falhou. Contate o suporte.')
+    } catch {
+      // Falha no rollback
+      throw new Error(
+        'Erro crítico: Não foi possível adicionar o novo funcionário e o rollback falhou. Contate o suporte.',
+      )
     }
-    
-    throw new Error('Não foi possível adicionar o novo funcionário. O funcionário anterior foi mantido.')
+
+    throw new Error(
+      'Não foi possível adicionar o novo funcionário. O funcionário anterior foi mantido.',
+    )
   }
 }
 
@@ -118,26 +122,25 @@ export async function substituirFuncionarioContrato(
  */
 export async function listarFuncionariosContrato(
   contratoId: string,
-  tipoGerencia?: 1 | 2
+  tipoGerencia?: 1 | 2,
 ): Promise<unknown[]> {
   const params = tipoGerencia ? { tipoGerencia } : {}
-  const response = await api.get(
-    `/contratos/${contratoId}/funcionarios`,
-    { params }
-  )
-  return response.data
+  const response = await api.get(`/contratos/${contratoId}/funcionarios`, {
+    params,
+  })
+  return response.data as unknown[]
 }
 
 /**
  * Obter histórico completo de funcionários do contrato
  */
 export async function obterHistoricoFuncionarios(
-  contratoId: string
+  contratoId: string,
 ): Promise<unknown[]> {
   const response = await api.get(
-    `/contratos/${contratoId}/funcionarios/historico`
+    `/contratos/${contratoId}/funcionarios/historico`,
   )
-  return response.data
+  return response.data as unknown[]
 }
 
 /**
@@ -145,13 +148,13 @@ export async function obterHistoricoFuncionarios(
  */
 export async function obterFuncionariosAtivosEm(
   contratoId: string,
-  data: string
+  data: string,
 ): Promise<unknown[]> {
   const response = await api.get(
     `/contratos/${contratoId}/funcionarios/ativo-em`,
-    { params: { data } }
+    { params: { data } },
   )
-  return response.data
+  return response.data as unknown[]
 }
 
 /**
@@ -159,12 +162,12 @@ export async function obterFuncionariosAtivosEm(
  */
 export async function obterPeriodosFuncionario(
   contratoId: string,
-  funcionarioId: string
+  funcionarioId: string,
 ): Promise<unknown[]> {
   const response = await api.get(
-    `/contratos/${contratoId}/funcionarios/${funcionarioId}/periodos`
+    `/contratos/${contratoId}/funcionarios/${funcionarioId}/periodos`,
   )
-  return response.data
+  return response.data as unknown[]
 }
 
 // ========== UTILITÁRIOS ==========
@@ -183,18 +186,24 @@ export function getTipoGerenciaLabel(tipo: 1 | 2): string {
 export function validarSubstituicaoFuncionario(
   funcionarioAtualId: string,
   funcionarioNovoId: string,
-  tipoGerencia: 1 | 2
+  tipoGerencia: 1 | 2,
 ): { valido: boolean; erro?: string } {
   if (!funcionarioAtualId || !funcionarioNovoId) {
     return { valido: false, erro: 'IDs dos funcionários são obrigatórios' }
   }
 
   if (funcionarioAtualId === funcionarioNovoId) {
-    return { valido: false, erro: 'O novo funcionário deve ser diferente do atual' }
+    return {
+      valido: false,
+      erro: 'O novo funcionário deve ser diferente do atual',
+    }
   }
 
   if (![1, 2].includes(tipoGerencia)) {
-    return { valido: false, erro: 'Tipo de gerência deve ser 1 (Fiscal) ou 2 (Gestor)' }
+    return {
+      valido: false,
+      erro: 'Tipo de gerência deve ser 1 (Fiscal) ou 2 (Gestor)',
+    }
   }
 
   return { valido: true }

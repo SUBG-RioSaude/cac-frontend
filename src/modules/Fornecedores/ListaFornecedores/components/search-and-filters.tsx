@@ -1,4 +1,3 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -12,24 +11,27 @@ import {
   Loader2,
   Info,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import type { FiltrosFornecedorApi } from '../types/fornecedor'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { useDebounce } from '@/hooks/use-debounce'
+
+import type { FiltrosFornecedorApi } from '../types/fornecedor'
 
 // Função para detectar se o termo é CNPJ ou Razão Social
 function detectarTipoPesquisa(termo: string): Partial<FiltrosFornecedorApi> {
@@ -49,15 +51,18 @@ function detectarTipoPesquisa(termo: string): Partial<FiltrosFornecedorApi> {
   return { razaoSocial: termo.trim() }
 }
 
-const FILTROS_IGNORADOS: Array<keyof FiltrosFornecedorApi> = [
+const FILTROS_IGNORADOS: (keyof FiltrosFornecedorApi)[] = [
   'pagina',
   'tamanhoPagina',
 ]
 
 function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
-  return (Object.entries(filtros) as Array<
-    [keyof FiltrosFornecedorApi, FiltrosFornecedorApi[keyof FiltrosFornecedorApi]]
-  >).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
+  return (
+    Object.entries(filtros) as [
+      keyof FiltrosFornecedorApi,
+      FiltrosFornecedorApi[keyof FiltrosFornecedorApi],
+    ][]
+  ).reduce<FiltrosFornecedorApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
     }
@@ -67,12 +72,12 @@ function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
         acc[key] = undefined
         return acc
       }
-      if (value === null || (typeof value === 'string' && value.trim() === '')) {
+      if (typeof value === 'string' && value.trim() === '') {
         return acc
       }
     }
 
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       return acc
     }
 
@@ -84,7 +89,6 @@ function sanitizeFiltros(filtros: FiltrosFornecedorApi): FiltrosFornecedorApi {
     return acc
   }, {} as FiltrosFornecedorApi)
 }
-
 
 function shallowEqualFiltros(
   a: FiltrosFornecedorApi,
@@ -110,12 +114,12 @@ interface SearchAndFiltersFornecedoresProps {
   totalResultados?: number
 }
 
-export function SearchAndFiltersFornecedores({
+export const SearchAndFiltersFornecedores = ({
   onFiltrosChange,
   filtrosAtivos,
   isLoading = false,
-  totalResultados
-}: SearchAndFiltersFornecedoresProps) {
+  totalResultados,
+}: SearchAndFiltersFornecedoresProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -123,9 +127,15 @@ export function SearchAndFiltersFornecedores({
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [valorExpanded, setValorExpanded] = useState(false)
   const [contratosExpanded, setContratosExpanded] = useState(false)
-  const filtrosBase = useMemo(() => sanitizeFiltros(filtrosAtivos), [filtrosAtivos])
-  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(filtrosAtivos.cnpj || filtrosAtivos.razaoSocial || '')
-  const [filtrosLocais, setFiltrosLocais] = useState<FiltrosFornecedorApi>(filtrosBase)
+  const filtrosBase = useMemo(
+    () => sanitizeFiltros(filtrosAtivos),
+    [filtrosAtivos],
+  )
+  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(
+    filtrosAtivos.cnpj ?? filtrosAtivos.razaoSocial ?? '',
+  )
+  const [filtrosLocais, setFiltrosLocais] =
+    useState<FiltrosFornecedorApi>(filtrosBase)
 
   // Debounce para pesquisa (500ms)
   const termoPesquisaDebounced = useDebounce(termoPesquisaLocal, 500)
@@ -133,7 +143,8 @@ export function SearchAndFiltersFornecedores({
 
   // Estado para mostrar loading durante debounce
   // Só mostra loading se tiver 3+ caracteres e ainda não terminou o debounce
-  const isSearching = termoPesquisaLocal !== termoPesquisaDebounced &&
+  const isSearching =
+    termoPesquisaLocal !== termoPesquisaDebounced &&
     termoPesquisaLocal.trim() !== '' &&
     termoPesquisaLocal.trim().length >= 3
 
@@ -157,10 +168,12 @@ export function SearchAndFiltersFornecedores({
     const filtrosNormalizados = sanitizeFiltros(filtrosLocais)
 
     // Se não tem pesquisa, remove explicitamente cnpj e razaoSocial
-    const pesquisaDetectada = temPesquisa ? detectarTipoPesquisa(termoPesquisaDebounced) : {
-      cnpj: undefined,
-      razaoSocial: undefined
-    }
+    const pesquisaDetectada = temPesquisa
+      ? detectarTipoPesquisa(termoPesquisaDebounced)
+      : {
+          cnpj: undefined,
+          razaoSocial: undefined,
+        }
 
     const filtrosParaEnviar: FiltrosFornecedorApi = {
       ...filtrosNormalizados,
@@ -207,7 +220,7 @@ export function SearchAndFiltersFornecedores({
     setTermoPesquisaLocal('')
 
     // Remove cnpj e razaoSocial dos filtros locais
-    setFiltrosLocais(prev => {
+    setFiltrosLocais((prev) => {
       const filtrosSemPesquisa = { ...prev }
       delete filtrosSemPesquisa.cnpj
       delete filtrosSemPesquisa.razaoSocial
@@ -216,13 +229,23 @@ export function SearchAndFiltersFornecedores({
 
     const filtrosParaEnviar = {
       pagina: 1,
-      tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+      tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
       // Preserva outros filtros ativos
-      ...(filtrosLocais.status && { status: filtrosLocais.status }),
-      ...(filtrosLocais.valorMinimo && { valorMinimo: filtrosLocais.valorMinimo }),
-      ...(filtrosLocais.valorMaximo && { valorMaximo: filtrosLocais.valorMaximo }),
-      ...(filtrosLocais.contratosMinimo && { contratosMinimo: filtrosLocais.contratosMinimo }),
-      ...(filtrosLocais.contratosMaximo && { contratosMaximo: filtrosLocais.contratosMaximo }),
+      ...(filtrosLocais.status !== undefined && {
+        status: filtrosLocais.status,
+      }),
+      ...(filtrosLocais.valorMinimo !== undefined && {
+        valorMinimo: filtrosLocais.valorMinimo,
+      }),
+      ...(filtrosLocais.valorMaximo !== undefined && {
+        valorMaximo: filtrosLocais.valorMaximo,
+      }),
+      ...(filtrosLocais.contratosMinimo !== undefined && {
+        contratosMinimo: filtrosLocais.contratosMinimo,
+      }),
+      ...(filtrosLocais.contratosMaximo !== undefined && {
+        contratosMaximo: filtrosLocais.contratosMaximo,
+      }),
       cnpj: undefined,
       razaoSocial: undefined,
     }
@@ -268,9 +291,12 @@ export function SearchAndFiltersFornecedores({
   useEffect(() => {
     // Se há termo de pesquisa e o input não está focado, restaura o foco
     // Isso evita perda de foco durante re-renders causados por atualizações da API
-    if (termoPesquisaLocal.length > 0 &&
-        document.activeElement !== inputRef.current &&
-        !isFilterOpen) { // Não restaurar foco se dropdown de filtros estiver aberto
+    if (
+      termoPesquisaLocal.length > 0 &&
+      document.activeElement !== inputRef.current &&
+      !isFilterOpen
+    ) {
+      // Não restaurar foco se dropdown de filtros estiver aberto
       // Usar requestAnimationFrame para garantir que o foco seja restaurado após o render
       requestAnimationFrame(() => {
         inputRef.current?.focus()
@@ -279,10 +305,13 @@ export function SearchAndFiltersFornecedores({
   }, [totalResultados, isLoading, termoPesquisaLocal, isFilterOpen])
 
   return (
-    <div role="search" className="flex flex-col gap-4 lg:flex-row lg:items-center">
+    <div
+      role="search"
+      className="flex flex-col gap-4 lg:flex-row lg:items-center"
+    >
       {/* Search Bar */}
       <motion.div
-        className="relative max-w-md flex-1 min-h-[44px]"
+        className="relative min-h-[44px] max-w-md flex-1"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -317,7 +346,7 @@ export function SearchAndFiltersFornecedores({
                 limparCampoPesquisa()
               }
             }}
-            className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 w-full lg:w-full"
+            className="bg-background focus:border-primary h-11 w-full border-2 pr-4 pl-10 shadow-sm transition-all duration-200 lg:w-full"
             disabled={isLoading}
           />
           {termoPesquisaLocal && !isSearching && (
@@ -335,40 +364,46 @@ export function SearchAndFiltersFornecedores({
 
         {/* Mensagem informativa quando digitar menos de 3 caracteres - Posicionamento absoluto */}
         <AnimatePresence>
-          {termoPesquisaLocal.trim().length > 0 && termoPesquisaLocal.trim().length < 3 && (
-            <motion.div
-              id="search-hint"
-              role="status"
-              aria-live="polite"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 mt-1 flex items-center gap-2 text-muted-foreground text-sm bg-background/95 backdrop-blur-sm px-3 py-2 rounded-md border shadow-sm z-10"
-            >
-              <Info className="h-4 w-4 flex-shrink-0" />
-              <span>Digite pelo menos 3 caracteres para buscar</span>
-            </motion.div>
-          )}
+          {termoPesquisaLocal.trim().length > 0 &&
+            termoPesquisaLocal.trim().length < 3 && (
+              <motion.div
+                id="search-hint"
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="text-muted-foreground bg-background/95 absolute top-full left-0 z-10 mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm shadow-sm backdrop-blur-sm"
+              >
+                <Info className="h-4 w-4 flex-shrink-0" />
+                <span>Digite pelo menos 3 caracteres para buscar</span>
+              </motion.div>
+            )}
         </AnimatePresence>
 
         {/* Contador de resultados - Posicionamento absoluto */}
         <AnimatePresence>
-          {termoPesquisaLocal.trim().length >= 3 && totalResultados !== undefined && !isSearching && (
-            <motion.div
-              role="status"
-              aria-live="polite"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 mt-1 z-10"
-            >
-              <Badge variant="secondary" className="text-xs shadow-sm">
-                {totalResultados} {totalResultados === 1 ? 'fornecedor encontrado' : 'fornecedores encontrados'}
-              </Badge>
-            </motion.div>
-          )}
+          {termoPesquisaLocal.trim().length >= 3 &&
+            totalResultados !== undefined &&
+            !isSearching && (
+              <motion.div
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 z-10 mt-1"
+              >
+                <Badge variant="secondary" className="text-xs shadow-sm">
+                  {totalResultados}{' '}
+                  {totalResultados === 1
+                    ? 'fornecedor encontrado'
+                    : 'fornecedores encontrados'}
+                </Badge>
+              </motion.div>
+            )}
         </AnimatePresence>
       </motion.div>
 
@@ -382,7 +417,7 @@ export function SearchAndFiltersFornecedores({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-11 cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 w-full lg:w-auto hover:bg-slate-600"
+              className="h-11 w-full cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 hover:bg-slate-600 lg:w-auto"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
@@ -394,7 +429,11 @@ export function SearchAndFiltersFornecedores({
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-96 p-0" align="start" sideOffset={8}>
+          <DropdownMenuContent
+            className="w-96 p-0"
+            align="start"
+            sideOffset={8}
+          >
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -515,7 +554,8 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMinimo, ...rest } = prev
+                              const { valorMinimo: _valorMinimo, ...rest } =
+                                prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMinimo: Number(valor) }
@@ -540,7 +580,8 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { valorMaximo, ...rest } = prev
+                              const { valorMaximo: _valorMaximo, ...rest } =
+                                prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, valorMaximo: Number(valor) }
@@ -596,7 +637,10 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMinimo, ...rest } = prev
+                              const {
+                                contratosMinimo: _contratosMinimo,
+                                ...rest
+                              } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMinimo: Number(valor) }
@@ -621,7 +665,10 @@ export function SearchAndFiltersFornecedores({
                           const valor = e.target.value
                           setFiltrosLocais((prev) => {
                             if (valor === '') {
-                              const { contratosMaximo, ...rest } = prev
+                              const {
+                                contratosMaximo: _contratosMaximo,
+                                ...rest
+                              } = prev
                               return rest as FiltrosFornecedorApi
                             }
                             return { ...prev, contratosMaximo: Number(valor) }
@@ -638,8 +685,6 @@ export function SearchAndFiltersFornecedores({
         </DropdownMenu>
       </motion.div>
 
-
-
       {/* Active Filters Display */}
       <AnimatePresence>
         {filtrosAtivosCount > 0 && (
@@ -650,7 +695,8 @@ export function SearchAndFiltersFornecedores({
             className="flex items-center gap-2"
           >
             <span className="text-muted-foreground text-sm">
-              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''} ativo
+              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''}{' '}
+              ativo
               {filtrosAtivosCount > 1 ? 's' : ''}
             </span>
           </motion.div>

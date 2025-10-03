@@ -1,32 +1,30 @@
-import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  ArrowLeft, 
-  Building, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Building,
+  MapPin,
   AlertCircle,
   RefreshCw,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { useUnidadeDetalhada } from '../hooks/use-unidade-detalhada'
 
-export function UnidadeDetalhesPage() {
+export const UnidadeDetalhesPage = () => {
   const { unidadeId } = useParams<{ unidadeId: string }>()
   const navigate = useNavigate()
-  
-  console.log('[DEBUG] UnidadeDetalhesPage - ID recebido:', unidadeId)
-  
-  const { unidade, carregando, erro, recarregar } = useUnidadeDetalhada({
-    id: unidadeId || '',
-    enabled: !!unidadeId
-  })
 
-  console.log('[DEBUG] UnidadeDetalhesPage - Estado:', { unidade, carregando, erro })
+  const { unidade, carregando, erro, recarregar } = useUnidadeDetalhada({
+    id: unidadeId ?? '',
+    enabled: !!unidadeId,
+  })
 
   const handleVoltar = () => {
     navigate('/unidades')
@@ -36,8 +34,8 @@ export function UnidadeDetalhesPage() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 w-1/4 rounded bg-gray-200" />
+          <div className="h-64 rounded bg-gray-200" />
         </div>
       </div>
     )
@@ -48,29 +46,26 @@ export function UnidadeDetalhesPage() {
       <div className="space-y-6">
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="mb-4 flex items-center gap-3">
               <AlertCircle className="h-6 w-6 text-red-600" />
               <h3 className="text-lg font-semibold text-red-800">
                 Erro ao Carregar Unidade
               </h3>
             </div>
-            <p className="text-red-700 mb-4">
-              {erro || 'Não foi possível carregar os dados da unidade'}
+            <p className="mb-4 text-red-700">
+              {erro ?? 'Não foi possível carregar os dados da unidade'}
             </p>
             <div className="flex gap-3">
-              <Button 
+              <Button
                 onClick={recarregar}
                 variant="outline"
                 className="border-red-300 text-red-700 hover:bg-red-100"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Tentar Novamente
               </Button>
-              <Button 
-                onClick={handleVoltar}
-                variant="outline"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+              <Button onClick={handleVoltar} variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
               </Button>
             </div>
@@ -104,18 +99,22 @@ export function UnidadeDetalhesPage() {
             <p className="text-muted-foreground">Detalhes da Unidade</p>
           </div>
         </div>
-        <Badge 
-          variant={unidade.ativo ? "default" : "secondary"}
-          className={unidade.ativo ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+        <Badge
+          variant={unidade.ativo ? 'default' : 'secondary'}
+          className={
+            unidade.ativo
+              ? 'bg-green-100 text-green-800'
+              : 'bg-gray-100 text-gray-800'
+          }
         >
           {unidade.ativo ? (
             <>
-              <CheckCircle className="h-3 w-3 mr-1" />
+              <CheckCircle className="mr-1 h-3 w-3" />
               Ativo
             </>
           ) : (
             <>
-              <XCircle className="h-3 w-3 mr-1" />
+              <XCircle className="mr-1 h-3 w-3" />
               Inativo
             </>
           )}
@@ -144,48 +143,68 @@ export function UnidadeDetalhesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Nome</label>
+                  <span className="text-muted-foreground text-sm font-medium">
+                    Nome
+                  </span>
                   <p className="text-lg font-semibold">{unidade.nome}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Sigla</label>
-                  <p className="text-lg font-mono">{unidade.sigla}</p>
+                  <span className="text-muted-foreground text-sm font-medium">
+                    Sigla
+                  </span>
+                  <p className="font-mono text-lg">{unidade.sigla}</p>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">CAP (Centro de Aplicação)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h4 className="text-muted-foreground mb-3 text-sm font-medium">
+                  CAP (Centro de Aplicação)
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Nome do CAP</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Nome do CAP
+                    </span>
                     <p className="font-medium">{unidade.cap.nome}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">UO</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      UO
+                    </span>
                     <p className="font-mono">{unidade.cap.uo}</p>
                   </div>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">Códigos</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <h4 className="text-muted-foreground mb-3 text-sm font-medium">
+                  Códigos
+                </h4>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">UA</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      UA
+                    </span>
                     <p className="font-mono">{unidade.ua}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">UO</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      UO
+                    </span>
                     <p className="font-mono">{unidade.uo}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">UG</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      UG
+                    </span>
                     <p className="font-mono">{unidade.ug}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">CNES</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      CNES
+                    </span>
                     <p className="font-mono">{unidade.cnes}</p>
                   </div>
                 </div>
@@ -203,40 +222,56 @@ export function UnidadeDetalhesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Endereço</label>
+                  <span className="text-muted-foreground text-sm font-medium">
+                    Endereço
+                  </span>
                   <p className="font-medium">{unidade.endereco}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Bairro</label>
+                  <span className="text-muted-foreground text-sm font-medium">
+                    Bairro
+                  </span>
                   <p className="font-medium">{unidade.bairro}</p>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">Coordenadas</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h4 className="text-muted-foreground mb-3 text-sm font-medium">
+                  Coordenadas
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Latitude</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Latitude
+                    </span>
                     <p className="font-mono">{unidade.latitude}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Longitude</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Longitude
+                    </span>
                     <p className="font-mono">{unidade.longitude}</p>
                   </div>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-muted-foreground mb-3">Estrutura Organizacional</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h4 className="text-muted-foreground mb-3 text-sm font-medium">
+                  Estrutura Organizacional
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Subsecretaria</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Subsecretaria
+                    </span>
                     <p className="font-mono">{unidade.subsecretaria}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">AP</label>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      AP
+                    </span>
                     <p className="font-mono">{unidade.ap}</p>
                   </div>
                 </div>

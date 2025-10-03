@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import '@testing-library/jest-dom'
-import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { LayoutAuthenticated } from '../layout-authenticated'
+import { render, screen } from '@testing-library/react'
 import React from 'react'
+import { BrowserRouter } from 'react-router-dom'
+import '@testing-library/jest-dom'
+import { describe, it, expect } from 'vitest'
+
+import { LayoutAuthenticated } from '../layout-authenticated'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,7 +15,11 @@ const queryClient = new QueryClient({
   },
 })
 
-const MockedLayoutAuthenticated = ({ children }: { children: React.ReactNode }) => (
+const MockedLayoutAuthenticated = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <LayoutAuthenticated>{children}</LayoutAuthenticated>
@@ -27,7 +32,7 @@ describe('LayoutAuthenticated', () => {
     render(
       <MockedLayoutAuthenticated>
         <div data-testid="test-content">Test content</div>
-      </MockedLayoutAuthenticated>
+      </MockedLayoutAuthenticated>,
     )
 
     expect(screen.getByTestId('test-content')).toBeInTheDocument()
@@ -37,19 +42,25 @@ describe('LayoutAuthenticated', () => {
     render(
       <MockedLayoutAuthenticated>
         <div>Test content</div>
-      </MockedLayoutAuthenticated>
+      </MockedLayoutAuthenticated>,
     )
 
     const header = screen.getByRole('banner')
     expect(header).toBeInTheDocument()
-    expect(header).toHaveClass('flex-shrink-0', 'border-b', 'border-gray-100', 'bg-white', 'shadow-sm')
+    expect(header).toHaveClass(
+      'flex-shrink-0',
+      'border-b',
+      'border-gray-100',
+      'bg-white',
+      'shadow-sm',
+    )
   })
 
   it('deve renderizar o conteúdo principal dentro do ErrorBoundary', () => {
     render(
       <MockedLayoutAuthenticated>
         <div data-testid="main-content">Main content</div>
-      </MockedLayoutAuthenticated>
+      </MockedLayoutAuthenticated>,
     )
 
     // Usar getAllByRole para verificar todos os elementos main
@@ -60,11 +71,11 @@ describe('LayoutAuthenticated', () => {
 
   it('deve renderizar o children no local correto', () => {
     const testContent = 'Conteúdo de teste específico'
-    
+
     render(
       <MockedLayoutAuthenticated>
         <div data-testid="children-content">{testContent}</div>
-      </MockedLayoutAuthenticated>
+      </MockedLayoutAuthenticated>,
     )
 
     expect(screen.getByTestId('children-content')).toBeInTheDocument()

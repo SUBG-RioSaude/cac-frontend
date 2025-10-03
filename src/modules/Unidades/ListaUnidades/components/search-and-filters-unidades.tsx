@@ -1,4 +1,3 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -10,23 +9,25 @@ import {
   Loader2,
   FileText,
 } from 'lucide-react'
-import { useDebounce } from '@/hooks/use-debounce'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import type { FiltrosUnidadesApi } from '../../types/unidade-api'
 
@@ -45,33 +46,41 @@ function detectarTipoPesquisa(termo: string): Partial<FiltrosUnidadesApi> {
   return { nome: termo.trim() }
 }
 
-const FILTROS_IGNORADOS: Array<keyof FiltrosUnidadesApi> = [
+const FILTROS_IGNORADOS: (keyof FiltrosUnidadesApi)[] = [
   'pagina',
   'tamanhoPagina',
 ]
 
 function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
-  if (!filtros || typeof filtros !== 'object') {
+  if (typeof filtros !== 'object') {
     return {}
   }
-  return (Object.entries(filtros) as Array<
-    [keyof FiltrosUnidadesApi, FiltrosUnidadesApi[keyof FiltrosUnidadesApi]]
-  >).reduce<FiltrosUnidadesApi>((acc, [key, value]) => {
+  return (
+    Object.entries(filtros) as [
+      keyof FiltrosUnidadesApi,
+      FiltrosUnidadesApi[keyof FiltrosUnidadesApi],
+    ][]
+  ).reduce<FiltrosUnidadesApi>((acc, [key, value]) => {
     if (FILTROS_IGNORADOS.includes(key)) {
       return acc
     }
 
-    if (key === 'nome' || key === 'sigla' || key === 'cnes' || key === 'bairro') {
+    if (
+      key === 'nome' ||
+      key === 'sigla' ||
+      key === 'cnes' ||
+      key === 'bairro'
+    ) {
       if (value === undefined) {
         acc[key] = undefined
         return acc
       }
-      if (value === null || (typeof value === 'string' && value.trim() === '')) {
+      if (typeof value === 'string' && value.trim() === '') {
         return acc
       }
     }
 
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       return acc
     }
 
@@ -80,7 +89,7 @@ function sanitizeFiltros(filtros: FiltrosUnidadesApi): FiltrosUnidadesApi {
     }
 
     // Type assertion needed due to generic nature of reduce operation
-    (acc as Record<string, unknown>)[key] = value
+    ;(acc as Record<string, unknown>)[key] = value
     return acc
   }, {} as FiltrosUnidadesApi)
 }
@@ -108,26 +117,33 @@ interface SearchAndFiltersUnidadesProps {
   isLoading?: boolean
 }
 
-export function SearchAndFiltersUnidades({
+export const SearchAndFiltersUnidades = ({
   onFiltrosChange,
   filtrosAtivos,
-  isLoading = false
-}: SearchAndFiltersUnidadesProps) {
+  isLoading = false,
+}: SearchAndFiltersUnidadesProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // Estados locais para UI
   const [statusExpanded, setStatusExpanded] = useState(false)
   const [siglaExpanded, setSiglaExpanded] = useState(false)
-  const filtrosBase = useMemo(() => sanitizeFiltros(filtrosAtivos), [filtrosAtivos])
-  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(filtrosAtivos.nome || filtrosAtivos.sigla || '')
-  const [filtrosLocais, setFiltrosLocais] = useState<FiltrosUnidadesApi>(filtrosBase)
+  const filtrosBase = useMemo(
+    () => sanitizeFiltros(filtrosAtivos),
+    [filtrosAtivos],
+  )
+  const [termoPesquisaLocal, setTermoPesquisaLocal] = useState(
+    filtrosAtivos.nome ?? filtrosAtivos.sigla ?? '',
+  )
+  const [filtrosLocais, setFiltrosLocais] =
+    useState<FiltrosUnidadesApi>(filtrosBase)
 
   // Debounce para pesquisa (500ms)
   const termoPesquisaDebounced = useDebounce(termoPesquisaLocal, 500)
   const filtrosAplicadosRef = useRef<string>('')
 
   // Estado para mostrar loading durante debounce
-  const isSearching = termoPesquisaLocal !== termoPesquisaDebounced && termoPesquisaLocal !== ''
+  const isSearching =
+    termoPesquisaLocal !== termoPesquisaDebounced && termoPesquisaLocal !== ''
 
   useEffect(() => {
     setFiltrosLocais((prev: FiltrosUnidadesApi) =>
@@ -143,10 +159,12 @@ export function SearchAndFiltersUnidades({
     const filtrosNormalizados = sanitizeFiltros(filtrosLocais)
 
     // Se não tem pesquisa, remove explicitamente nome e sigla
-    const pesquisaDetectada = temPesquisa ? detectarTipoPesquisa(termoPesquisaDebounced) : {
-      nome: undefined,
-      sigla: undefined
-    }
+    const pesquisaDetectada = temPesquisa
+      ? detectarTipoPesquisa(termoPesquisaDebounced)
+      : {
+          nome: undefined,
+          sigla: undefined,
+        }
 
     const filtrosParaEnviar: FiltrosUnidadesApi = {
       ...filtrosNormalizados,
@@ -167,13 +185,12 @@ export function SearchAndFiltersUnidades({
     { value: 'inativo', label: 'Inativo', color: 'bg-gray-100 text-gray-800' },
   ]
 
-
   const handleStatusChange = useCallback((status: string, checked: boolean) => {
     setFiltrosLocais((prev: FiltrosUnidadesApi) => {
       if (checked) {
         return { ...prev, ativo: status === 'ativo' }
       }
-      const { ativo, ...rest } = prev
+      const { ativo: _ativo, ...rest } = prev
       return rest as FiltrosUnidadesApi
     })
   }, [])
@@ -200,7 +217,10 @@ export function SearchAndFiltersUnidades({
   }, [onFiltrosChange])
 
   return (
-    <div role="search" className="flex flex-col gap-4 lg:flex-row lg:items-center">
+    <div
+      role="search"
+      className="flex flex-col gap-4 lg:flex-row lg:items-center"
+    >
       {/* Search Bar */}
       <motion.div
         className="relative max-w-md flex-1"
@@ -233,9 +253,11 @@ export function SearchAndFiltersUnidades({
 
                 const filtrosParaEnviar = {
                   pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
                   // Preserva outros filtros ativos (status, cnes, bairro)
-                  ...(filtrosLocais.ativo !== undefined && { ativo: filtrosLocais.ativo }),
+                  ...(filtrosLocais.ativo !== undefined && {
+                    ativo: filtrosLocais.ativo,
+                  }),
                   ...(filtrosLocais.cnes && { cnes: filtrosLocais.cnes }),
                   ...(filtrosLocais.bairro && { bairro: filtrosLocais.bairro }),
                   // Explicitamente define nome e sigla como undefined
@@ -248,7 +270,7 @@ export function SearchAndFiltersUnidades({
                 onFiltrosChange(filtrosParaEnviar)
               }
             }}
-            className="bg-background focus:border-primary h-11 border-2 pr-4 pl-10 shadow-sm transition-all duration-200 w-full lg:w-full"
+            className="bg-background focus:border-primary h-11 w-full border-2 pr-4 pl-10 shadow-sm transition-all duration-200 lg:w-full"
             disabled={isLoading}
           />
           {termoPesquisaLocal && !isSearching && (
@@ -268,9 +290,11 @@ export function SearchAndFiltersUnidades({
 
                 const filtrosParaEnviar = {
                   pagina: 1,
-                  tamanhoPagina: filtrosLocais.tamanhoPagina || 10,
+                  tamanhoPagina: filtrosLocais.tamanhoPagina ?? 10,
                   // Preserva outros filtros ativos (status, cnes, bairro)
-                  ...(filtrosLocais.ativo !== undefined && { ativo: filtrosLocais.ativo }),
+                  ...(filtrosLocais.ativo !== undefined && {
+                    ativo: filtrosLocais.ativo,
+                  }),
                   ...(filtrosLocais.cnes && { cnes: filtrosLocais.cnes }),
                   ...(filtrosLocais.bairro && { bairro: filtrosLocais.bairro }),
                   // Explicitamente define nome e sigla como undefined
@@ -300,7 +324,7 @@ export function SearchAndFiltersUnidades({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-11 cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 w-full lg:w-auto hover:bg-slate-600"
+              className="h-11 w-full cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 hover:bg-slate-600 lg:w-auto"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
@@ -312,7 +336,11 @@ export function SearchAndFiltersUnidades({
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-96 p-0" align="start" sideOffset={8}>
+          <DropdownMenuContent
+            className="w-96 p-0"
+            align="start"
+            sideOffset={8}
+          >
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -372,7 +400,9 @@ export function SearchAndFiltersUnidades({
                       >
                         <Checkbox
                           id={`status-${option.value}`}
-                          checked={filtrosLocais.ativo === (option.value === 'ativo')}
+                          checked={
+                            filtrosLocais.ativo === (option.value === 'ativo')
+                          }
                           onCheckedChange={(checked) =>
                             handleStatusChange(option.value, checked as boolean)
                           }
@@ -419,12 +449,12 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: UBS, CAPS..."
-                      value={filtrosLocais.sigla || ''}
+                      value={filtrosLocais.sigla ?? ''}
                       onChange={(e) => {
                         const valor = e.target.value
                         setFiltrosLocais((prev: FiltrosUnidadesApi) => {
                           if (valor === '') {
-                            const { sigla, ...rest } = prev
+                            const { sigla: _sigla, ...rest } = prev
                             return rest as FiltrosUnidadesApi
                           }
                           return { ...prev, sigla: valor }
@@ -458,12 +488,12 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: 2269311, 7654321..."
-                      value={filtrosLocais.cnes || ''}
+                      value={filtrosLocais.cnes ?? ''}
                       onChange={(e) => {
                         const valor = e.target.value
                         setFiltrosLocais((prev: FiltrosUnidadesApi) => {
                           if (valor === '') {
-                            const { cnes, ...rest } = prev
+                            const { cnes: _cnes, ...rest } = prev
                             return rest as FiltrosUnidadesApi
                           }
                           return { ...prev, cnes: valor }
@@ -497,12 +527,12 @@ export function SearchAndFiltersUnidades({
                   <div className="ml-6">
                     <Input
                       placeholder="Ex: Centro, Copacabana..."
-                      value={filtrosLocais.bairro || ''}
+                      value={filtrosLocais.bairro ?? ''}
                       onChange={(e) => {
                         const valor = e.target.value
                         setFiltrosLocais((prev: FiltrosUnidadesApi) => {
                           if (valor === '') {
-                            const { bairro, ...rest } = prev
+                            const { bairro: _bairro, ...rest } = prev
                             return rest as FiltrosUnidadesApi
                           }
                           return { ...prev, bairro: valor }
@@ -513,7 +543,6 @@ export function SearchAndFiltersUnidades({
                   </div>
                 </CollapsibleContent>
               </Collapsible>
-
             </motion.div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -529,7 +558,8 @@ export function SearchAndFiltersUnidades({
             className="flex items-center gap-2"
           >
             <span className="text-muted-foreground text-sm">
-              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''} ativo
+              {filtrosAtivosCount} filtro{filtrosAtivosCount > 1 ? 's' : ''}{' '}
+              ativo
               {filtrosAtivosCount > 1 ? 's' : ''}
             </span>
           </motion.div>

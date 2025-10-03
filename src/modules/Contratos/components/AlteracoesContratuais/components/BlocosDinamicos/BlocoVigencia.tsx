@@ -1,14 +1,3 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
-import { DateDisplay } from '@/components/ui/formatters'
 import {
   Clock,
   Calendar,
@@ -18,15 +7,31 @@ import {
   StopCircle,
   AlertCircle,
   Calculator,
-  Info
+  Info,
 } from 'lucide-react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 
-import type { 
-  BlocoVigencia as IBlocoVigencia
-} from '../../../../types/alteracoes-contratuais'
-import { 
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+
+import type { BlocoVigencia as IBlocoVigencia } from '../../../../types/alteracoes-contratuais'
+import {
   OperacaoVigencia,
-  TipoUnidadeTempo
+  TipoUnidadeTempo,
 } from '../../../../types/alteracoes-contratuais'
 
 interface ContractTerms {
@@ -61,52 +66,52 @@ const OPERACOES_CONFIG: Record<number, OperacaoConfig> = {
     label: 'Acrescentar tempo',
     icone: Plus,
     cor: 'green',
-    descricao: 'Estender a vigência do contrato'
+    descricao: 'Estender a vigência do contrato',
   },
   [OperacaoVigencia.Diminuir]: {
     label: 'Diminuir tempo',
     icone: Minus,
     cor: 'red',
-    descricao: 'Reduzir o período de vigência'
+    descricao: 'Reduzir o período de vigência',
   },
   [OperacaoVigencia.Substituir]: {
     label: 'Nova data final (em breve)',
     icone: Calendar,
     cor: 'blue',
     descricao: 'Definir nova data de término',
-    disabled: true
+    disabled: true,
   },
   [OperacaoVigencia.SuspenderDeterminado]: {
     label: 'Suspender por período (em breve)',
     icone: Pause,
     cor: 'yellow',
     descricao: 'Pausar execução por tempo determinado',
-    disabled: true
+    disabled: true,
   },
   [OperacaoVigencia.SuspenderIndeterminado]: {
     label: 'Suspender indeterminadamente (em breve)',
     icone: StopCircle,
     cor: 'orange',
     descricao: 'Pausar sem prazo definido para retomada',
-    disabled: true
-  }
+    disabled: true,
+  },
 }
 
 const UNIDADES_TEMPO_CONFIG = {
   [TipoUnidadeTempo.Dias]: { label: 'Dias', singular: 'dia' },
   [TipoUnidadeTempo.Meses]: { label: 'Meses', singular: 'mês' },
-  [TipoUnidadeTempo.Anos]: { label: 'Anos', singular: 'ano' }
+  [TipoUnidadeTempo.Anos]: { label: 'Anos', singular: 'ano' },
 }
 
-export function BlocoVigencia({
+export const BlocoVigencia = ({
   dados = {},
   onChange,
   contractTerms,
   errors = {},
   disabled = false,
   required = false,
-  vigenciaOriginal
-}: BlocoVigenciaProps) {
+  vigenciaOriginal,
+}: BlocoVigenciaProps) => {
   const [calculoAutomatico, setCalculoAutomatico] = useState(true)
   const [novaDataCalculada, setNovaDataCalculada] = useState<string>('')
 
@@ -156,73 +161,89 @@ export function BlocoVigencia({
     if (calculoAutomatico) {
       const dataCalculada = calcularNovaData()
       setNovaDataCalculada(dataCalculada)
-      
+
       if (dataCalculada && dataCalculada !== dados.novaDataFinal) {
         onChange({ ...dados, novaDataFinal: dataCalculada } as IBlocoVigencia)
       }
     }
   }, [dados, onChange, calculoAutomatico, calcularNovaData])
 
-  const handleFieldChange = useCallback((field: keyof IBlocoVigencia, value: unknown) => {
-    const novosDados = {
-      ...dados,
-      [field]: value
-    }
+  const handleFieldChange = useCallback(
+    (field: keyof IBlocoVigencia, value: unknown) => {
+      const novosDados = {
+        ...dados,
+        [field]: value,
+      }
 
-    // Limpar campos desnecessários baseado na operação
-    if (field === 'operacao') {
-      if (value === (OperacaoVigencia.SuspenderIndeterminado as number)) {
-        novosDados.isIndeterminado = true
-        novosDados.valorTempo = undefined
-        novosDados.tipoUnidade = undefined
-        novosDados.novaDataFinal = undefined
-      } else {
-        novosDados.isIndeterminado = false
-        if (value === (OperacaoVigencia.Substituir as number)) {
+      // Limpar campos desnecessários baseado na operação
+      if (field === 'operacao') {
+        if (value === (OperacaoVigencia.SuspenderIndeterminado as number)) {
+          novosDados.isIndeterminado = true
           novosDados.valorTempo = undefined
           novosDados.tipoUnidade = undefined
+          novosDados.novaDataFinal = undefined
+        } else {
+          novosDados.isIndeterminado = false
+          if (value === (OperacaoVigencia.Substituir as number)) {
+            novosDados.valorTempo = undefined
+            novosDados.tipoUnidade = undefined
+          }
         }
       }
-    }
 
-    onChange(novosDados as IBlocoVigencia)
-  }, [dados, onChange])
+      onChange(novosDados as IBlocoVigencia)
+    },
+    [dados, onChange],
+  )
 
-  const handleCalculoToggle = useCallback((ativo: boolean) => {
-    setCalculoAutomatico(ativo)
-    if (!ativo && novaDataCalculada) {
-      handleFieldChange('novaDataFinal', novaDataCalculada)
-    }
-  }, [novaDataCalculada, handleFieldChange])
+  const handleCalculoToggle = useCallback(
+    (ativo: boolean) => {
+      setCalculoAutomatico(ativo)
+      if (!ativo && novaDataCalculada) {
+        handleFieldChange('novaDataFinal', novaDataCalculada)
+      }
+    },
+    [novaDataCalculada, handleFieldChange],
+  )
 
   // Verificar se os campos obrigatórios estão preenchidos
   const camposObrigatoriosPreenchidos = useMemo(() => {
     if (dados.operacao === undefined) return false
-    
-    if (dados.operacao === (OperacaoVigencia.SuspenderIndeterminado as number)) {
+
+    if (
+      dados.operacao === (OperacaoVigencia.SuspenderIndeterminado as number)
+    ) {
       return dados.isIndeterminado === true
     }
-    
+
     if (dados.operacao === (OperacaoVigencia.Substituir as number)) {
       return !!dados.novaDataFinal
     }
-    
+
     return !!(dados.valorTempo && dados.tipoUnidade !== undefined)
   }, [dados])
 
-  const operacaoSelecionada = dados.operacao !== undefined ? OPERACOES_CONFIG[dados.operacao] : null
+  const operacaoSelecionada =
+    dados.operacao !== undefined ? OPERACOES_CONFIG[dados.operacao] : null
+
+  const startDate = contractTerms?.startDate ?? null
+  const endDate = contractTerms?.endDate ?? null
+  const isContractActive = contractTerms?.isActive ?? false
+  const hasContractDates = contractTerms ? Boolean(startDate ?? endDate) : false
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Badge variant={camposObrigatoriosPreenchidos ? 'default' : 'secondary'}>
+          <Badge
+            variant={camposObrigatoriosPreenchidos ? 'default' : 'secondary'}
+          >
             {camposObrigatoriosPreenchidos ? 'Configurado' : 'Incompleto'}
           </Badge>
           {required && !camposObrigatoriosPreenchidos && (
             <Badge variant="destructive" className="text-xs">
-              <AlertCircle className="h-3 w-3 mr-1" />
+              <AlertCircle className="mr-1 h-3 w-3" />
               Obrigatório
             </Badge>
           )}
@@ -230,69 +251,79 @@ export function BlocoVigencia({
       </div>
 
       {/* Contexto de Vigência Atual do Contrato */}
-      {contractTerms && (contractTerms.startDate || contractTerms.endDate) && (
-        <Card className="bg-green-50 border-green-200">
+      {contractTerms && hasContractDates && (
+        <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-4">
             <div className="mb-3">
-              <h4 className="font-medium text-green-900 flex items-center gap-2">
+              <h4 className="flex items-center gap-2 font-medium text-green-900">
                 <Calendar className="h-4 w-4" />
                 Vigência Atual do Contrato
               </h4>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-4">
               <div>
                 <Label className="text-xs text-green-600">Data de Início</Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.startDate 
-                    ? <DateDisplay value={contractTerms.startDate} />
-                    : 'Não informado'}
+                  {startDate ? (
+                    <DateDisplay value={startDate} />
+                  ) : (
+                    'Não informado'
+                  )}
                 </p>
               </div>
               <div>
-                <Label className="text-xs text-green-600">Data de Término</Label>
+                <Label className="text-xs text-green-600">
+                  Data de Término
+                </Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.endDate 
-                    ? <DateDisplay value={contractTerms.endDate} />
-                    : 'Não informado'}
+                  {endDate ? <DateDisplay value={endDate} /> : 'Não informado'}
                 </p>
               </div>
               <div>
                 <Label className="text-xs text-green-600">Duração Total</Label>
                 <p className="font-medium text-green-900">
-                  {contractTerms.startDate && contractTerms.endDate ? (() => {
-                    const inicio = new Date(contractTerms.startDate)
-                    const fim = new Date(contractTerms.endDate)
-                    const diffTime = fim.getTime() - inicio.getTime()
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                    const diffMonths = Math.floor(diffDays / 30)
-                    return `${diffMonths} meses (${diffDays} dias)`
-                  })() : 'N/A'}
+                  {startDate && endDate
+                    ? (() => {
+                        const inicio = new Date(startDate)
+                        const fim = new Date(endDate)
+                        const diffTime = fim.getTime() - inicio.getTime()
+                        const diffDays = Math.ceil(
+                          diffTime / (1000 * 60 * 60 * 24),
+                        )
+                        const diffMonths = Math.floor(diffDays / 30)
+                        return `${diffMonths} meses (${diffDays} dias)`
+                      })()
+                    : 'N/A'}
                 </p>
               </div>
               <div>
                 <Label className="text-xs text-green-600">Status</Label>
-                <p className={cn(
-                  'font-medium flex items-center gap-1',
-                  contractTerms.isActive ? 'text-green-700' : 'text-red-700'
-                )}>
-                  <div className={cn(
-                    'w-2 h-2 rounded-full',
-                    contractTerms.isActive ? 'bg-green-500' : 'bg-red-500'
-                  )} />
-                  {contractTerms.isActive ? 'Ativo' : 'Vencido'}
+                <p
+                  className={cn(
+                    'flex items-center gap-1 font-medium',
+                    isContractActive ? 'text-green-700' : 'text-red-700',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      isContractActive ? 'bg-green-500' : 'bg-red-500',
+                    )}
+                  />
+                  {isContractActive ? 'Ativo' : 'Vencido'}
                 </p>
               </div>
             </div>
-            {contractTerms.endDate && (
-              <div className="mt-3 pt-3 border-t border-green-200">
+            {endDate && (
+              <div className="mt-3 border-t border-green-200 pt-3">
                 <Label className="text-xs text-green-600">Tempo Restante</Label>
                 <p className="font-medium text-green-900">
                   {(() => {
                     const hoje = new Date()
-                    const fim = new Date(contractTerms.endDate)
+                    const fim = new Date(endDate)
                     const diffTime = fim.getTime() - hoje.getTime()
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                    
+
                     if (diffDays < 0) {
                       return `Vencido há ${Math.abs(diffDays)} dias`
                     } else if (diffDays <= 30) {
@@ -310,58 +341,85 @@ export function BlocoVigencia({
       )}
 
       {/* Comparação: Vigência Atual vs. Nova Vigência */}
-      {contractTerms && dados.operacao !== undefined && dados.operacao !== OperacaoVigencia.SuspenderIndeterminado && (
-        <Card className="bg-gray-50">
-          <CardContent className="pt-4">
-            <div className="mb-3">
-              <h4 className="font-medium text-gray-900">Comparação de Vigências</h4>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <Label className="text-xs text-gray-500">Data de Término Atual</Label>
-                <p className="font-medium text-lg text-gray-900">
-                  {contractTerms.endDate 
-                    ? <DateDisplay value={contractTerms.endDate} />
-                    : 'N/A'}
-                </p>
+      {contractTerms &&
+        dados.operacao !== undefined &&
+        dados.operacao !== OperacaoVigencia.SuspenderIndeterminado && (
+          <Card className="bg-gray-50">
+            <CardContent className="pt-4">
+              <div className="mb-3">
+                <h4 className="font-medium text-gray-900">
+                  Comparação de Vigências
+                </h4>
               </div>
-              <div>
-                <Label className="text-xs text-gray-500">
-                  {dados.operacao === OperacaoVigencia.Acrescentar ? 'Extensão' :
-                   dados.operacao === OperacaoVigencia.Diminuir ? 'Redução' : 
-                   dados.operacao === OperacaoVigencia.Substituir ? 'Nova Data' : 'Alteração'}
-                </Label>
-                <p className={cn(
-                  'font-medium text-lg',
-                  dados.operacao === OperacaoVigencia.Acrescentar ? 'text-green-600' :
-                  dados.operacao === OperacaoVigencia.Diminuir ? 'text-red-600' : 'text-blue-600'
-                )}>
-                  {dados.operacao === OperacaoVigencia.Substituir && dados.novaDataFinal ? 
-                    <DateDisplay value={dados.novaDataFinal} /> :
-                   (dados.valorTempo && dados.tipoUnidade !== undefined) ?
-                    `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade]?.label?.toLowerCase()}` : 
-                    'N/A'}
-                </p>
+              <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+                <div>
+                  <Label className="text-xs text-gray-500">
+                    Data de Término Atual
+                  </Label>
+                  <p className="text-lg font-medium text-gray-900">
+                    {endDate ? <DateDisplay value={endDate} /> : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">
+                    {dados.operacao === OperacaoVigencia.Acrescentar
+                      ? 'Extensão'
+                      : dados.operacao === OperacaoVigencia.Diminuir
+                        ? 'Redução'
+                        : dados.operacao === OperacaoVigencia.Substituir
+                          ? 'Nova Data'
+                          : 'Alteração'}
+                  </Label>
+                  <p
+                    className={cn(
+                      'text-lg font-medium',
+                      dados.operacao === OperacaoVigencia.Acrescentar
+                        ? 'text-green-600'
+                        : dados.operacao === OperacaoVigencia.Diminuir
+                          ? 'text-red-600'
+                          : 'text-blue-600',
+                    )}
+                  >
+                    {dados.operacao === OperacaoVigencia.Substituir &&
+                    dados.novaDataFinal ? (
+                      <DateDisplay value={dados.novaDataFinal} />
+                    ) : dados.valorTempo && dados.tipoUnidade !== undefined ? (
+                      `${dados.valorTempo} ${UNIDADES_TEMPO_CONFIG[dados.tipoUnidade].label.toLowerCase()}`
+                    ) : (
+                      'N/A'
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">
+                    Nova Data de Término
+                  </Label>
+                  <p
+                    className={cn(
+                      'text-lg font-medium',
+                      dados.operacao === OperacaoVigencia.Acrescentar
+                        ? 'text-green-600'
+                        : dados.operacao === OperacaoVigencia.Diminuir
+                          ? 'text-red-600'
+                          : 'text-blue-600',
+                    )}
+                  >
+                    {novaDataCalculada ? (
+                      <DateDisplay value={novaDataCalculada} />
+                    ) : (
+                      'N/A'
+                    )}
+                  </p>
+                </div>
               </div>
-              <div>
-                <Label className="text-xs text-gray-500">Nova Data de Término</Label>
-                <p className={cn(
-                  'font-medium text-lg',
-                  dados.operacao === OperacaoVigencia.Acrescentar ? 'text-green-600' :
-                  dados.operacao === OperacaoVigencia.Diminuir ? 'text-red-600' : 'text-blue-600'
-                )}>
-                  {novaDataCalculada ? <DateDisplay value={novaDataCalculada} /> : 'N/A'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
 
       {/* Seleção da operação */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-base">
             <Clock className="h-4 w-4" />
             Tipo de Operação
           </CardTitle>
@@ -369,31 +427,40 @@ export function BlocoVigencia({
         <CardContent>
           <div className="space-y-2">
             <Label>Operação de vigência *</Label>
-            <Select 
-              value={dados.operacao?.toString() || ''} 
-              onValueChange={(value) => handleFieldChange('operacao', parseInt(value) as OperacaoVigencia)}
+            <Select
+              value={dados.operacao?.toString() ?? ''}
+              onValueChange={(value) =>
+                handleFieldChange(
+                  'operacao',
+                  parseInt(value) as OperacaoVigencia,
+                )
+              }
               disabled={disabled}
             >
-              <SelectTrigger className={cn(errors.operacao && 'border-red-500')}>
+              <SelectTrigger
+                className={cn(errors.operacao && 'border-red-500')}
+              >
                 <SelectValue placeholder="Selecione o tipo de operação" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(OPERACOES_CONFIG).map(([key, config]) => {
                   const Icon = config.icone
                   return (
-                    <SelectItem 
-                      key={key} 
+                    <SelectItem
+                      key={key}
                       value={key}
                       disabled={config.disabled}
                     >
                       <div className="flex items-center gap-2">
-                        <Icon className={cn(
-                          "h-4 w-4",
-                          config.disabled && "text-gray-400"
-                        )} />
-                        <span className={cn(
-                          config.disabled && "text-gray-400"
-                        )}>
+                        <Icon
+                          className={cn(
+                            'h-4 w-4',
+                            config.disabled && 'text-gray-400',
+                          )}
+                        />
+                        <span
+                          className={cn(config.disabled && 'text-gray-400')}
+                        >
                           {config.label}
                         </span>
                       </div>
@@ -402,11 +469,13 @@ export function BlocoVigencia({
                 })}
               </SelectContent>
             </Select>
-            
+
             {operacaoSelecionada && (
-              <div className="bg-gray-50 p-3 rounded-md">
+              <div className="rounded-md bg-gray-50 p-3">
                 <p className="text-sm text-gray-600">
-                  <span className="font-medium">{operacaoSelecionada.label}:</span>{' '}
+                  <span className="font-medium">
+                    {operacaoSelecionada.label}:
+                  </span>{' '}
                   {operacaoSelecionada.descricao}
                 </p>
               </div>
@@ -425,26 +494,30 @@ export function BlocoVigencia({
       {/* Configurações específicas por operação */}
       {dados.operacao !== undefined && (
         <Card>
-          <CardContent className="pt-6 space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Suspensão indeterminada */}
-            {dados.operacao === (OperacaoVigencia.SuspenderIndeterminado as number) && (
+            {dados.operacao ===
+              (OperacaoVigencia.SuspenderIndeterminado as number) && (
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="indeterminado"
-                    checked={dados.isIndeterminado || false}
-                    onCheckedChange={(checked) => handleFieldChange('isIndeterminado', checked)}
+                    checked={dados.isIndeterminado ?? false}
+                    onCheckedChange={(checked) =>
+                      handleFieldChange('isIndeterminado', checked)
+                    }
                     disabled={disabled}
                   />
                   <Label htmlFor="indeterminado" className="font-medium">
                     Suspensão por tempo indeterminado
                   </Label>
                 </div>
-                
-                <div className="bg-amber-50 p-3 rounded-md">
+
+                <div className="rounded-md bg-amber-50 p-3">
                   <p className="text-sm text-amber-800">
-                    <Info className="h-4 w-4 inline mr-1" />
-                    Para suspensão indeterminada, não é necessário especificar tempo ou nova data.
+                    <Info className="mr-1 inline h-4 w-4" />
+                    Para suspensão indeterminada, não é necessário especificar
+                    tempo ou nova data.
                   </p>
                 </div>
               </div>
@@ -458,8 +531,10 @@ export function BlocoVigencia({
                   <Input
                     id="nova-data-final"
                     type="date"
-                    value={dados.novaDataFinal || ''}
-                    onChange={(e) => handleFieldChange('novaDataFinal', e.target.value)}
+                    value={dados.novaDataFinal ?? ''}
+                    onChange={(e) =>
+                      handleFieldChange('novaDataFinal', e.target.value)
+                    }
                     disabled={disabled}
                     className={cn(errors.novaDataFinal && 'border-red-500')}
                   />
@@ -474,20 +549,33 @@ export function BlocoVigencia({
             )}
 
             {/* Operações com tempo (Acrescentar/Diminuir/Suspender Determinado) */}
-            {[OperacaoVigencia.Acrescentar as number, OperacaoVigencia.Diminuir as number, OperacaoVigencia.SuspenderDeterminado as number].includes(dados.operacao as number) && (
+            {[
+              OperacaoVigencia.Acrescentar as number,
+              OperacaoVigencia.Diminuir as number,
+              OperacaoVigencia.SuspenderDeterminado as number,
+            ].includes(dados.operacao as number) && (
               <div className="space-y-6">
                 {/* Configuração do tempo */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="valor-tempo">
-                      {dados.operacao === (OperacaoVigencia.SuspenderDeterminado as number) ? 'Período de suspensão' : 'Quantidade de tempo'} *
+                      {dados.operacao ===
+                      (OperacaoVigencia.SuspenderDeterminado as number)
+                        ? 'Período de suspensão'
+                        : 'Quantidade de tempo'}{' '}
+                      *
                     </Label>
                     <Input
                       id="valor-tempo"
                       type="number"
                       min="1"
-                      value={dados.valorTempo || ''}
-                      onChange={(e) => handleFieldChange('valorTempo', parseInt(e.target.value) || undefined)}
+                      value={dados.valorTempo ?? ''}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          'valorTempo',
+                          parseInt(e.target.value) || undefined,
+                        )
+                      }
                       disabled={disabled}
                       className={cn(errors.valorTempo && 'border-red-500')}
                       placeholder="Ex: 6"
@@ -502,20 +590,29 @@ export function BlocoVigencia({
 
                   <div className="space-y-2">
                     <Label>Unidade de tempo *</Label>
-                    <Select 
-                      value={dados.tipoUnidade?.toString() || ''} 
-                      onValueChange={(value) => handleFieldChange('tipoUnidade', parseInt(value) as TipoUnidadeTempo)}
+                    <Select
+                      value={dados.tipoUnidade?.toString() ?? ''}
+                      onValueChange={(value) =>
+                        handleFieldChange(
+                          'tipoUnidade',
+                          parseInt(value) as TipoUnidadeTempo,
+                        )
+                      }
                       disabled={disabled}
                     >
-                      <SelectTrigger className={cn(errors.tipoUnidade && 'border-red-500')}>
+                      <SelectTrigger
+                        className={cn(errors.tipoUnidade && 'border-red-500')}
+                      >
                         <SelectValue placeholder="Selecione a unidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(UNIDADES_TEMPO_CONFIG).map(([key, config]) => (
-                          <SelectItem key={key} value={key}>
-                            {config.label}
-                          </SelectItem>
-                        ))}
+                        {Object.entries(UNIDADES_TEMPO_CONFIG).map(
+                          ([key, config]) => (
+                            <SelectItem key={key} value={key}>
+                              {config.label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     {errors.tipoUnidade && (
@@ -528,62 +625,94 @@ export function BlocoVigencia({
                 </div>
 
                 {/* Cálculo automático da nova data */}
-                {dados.operacao !== (OperacaoVigencia.SuspenderDeterminado as number) && vigenciaOriginal && (
-                  <div className="space-y-4">
-                    <Separator />
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label className="text-sm font-medium">Nova data de término</Label>
-                        <p className="text-xs text-gray-600">
-                          {calculoAutomatico ? 'Calculada automaticamente' : 'Definida manualmente'}
-                        </p>
+                {dados.operacao !==
+                  (OperacaoVigencia.SuspenderDeterminado as number) &&
+                  vigenciaOriginal && (
+                    <div className="space-y-4">
+                      <Separator />
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">
+                            Nova data de término
+                          </Label>
+                          <p className="text-xs text-gray-600">
+                            {calculoAutomatico
+                              ? 'Calculada automaticamente'
+                              : 'Definida manualmente'}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Calculator className="h-4 w-4 text-gray-500" />
+                          <Switch
+                            checked={calculoAutomatico}
+                            onCheckedChange={handleCalculoToggle}
+                            disabled={disabled}
+                          />
+                          <Label className="text-sm">Auto</Label>
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Calculator className="h-4 w-4 text-gray-500" />
-                        <Switch
-                          checked={calculoAutomatico}
-                          onCheckedChange={handleCalculoToggle}
-                          disabled={disabled}
+
+                      <div className="space-y-2">
+                        <Input
+                          type="date"
+                          value={
+                            calculoAutomatico
+                              ? novaDataCalculada
+                              : (dados.novaDataFinal ?? '')
+                          }
+                          onChange={(e) =>
+                            handleFieldChange('novaDataFinal', e.target.value)
+                          }
+                          disabled={disabled || calculoAutomatico}
+                          className={cn(
+                            calculoAutomatico && 'bg-gray-50',
+                            errors.novaDataFinal && 'border-red-500',
+                          )}
                         />
-                        <Label className="text-sm">Auto</Label>
+
+                        {dados.valorTempo !== undefined &&
+                          dados.tipoUnidade !== undefined && (
+                            <div className="rounded-md bg-blue-50 p-3 text-sm">
+                              <div className="space-y-1 text-blue-800">
+                                <div>
+                                  <strong>Data atual de término:</strong>{' '}
+                                  <DateDisplay
+                                    value={vigenciaOriginal.dataFim}
+                                  />
+                                </div>
+                                <div>
+                                  <strong>Operação:</strong>{' '}
+                                  {OPERACOES_CONFIG[dados.operacao].label}{' '}
+                                  {dados.valorTempo}{' '}
+                                  {
+                                    UNIDADES_TEMPO_CONFIG[dados.tipoUnidade]
+                                      .singular
+                                  }
+                                  {dados.valorTempo > 1 ? 's' : ''}
+                                </div>
+                                <div>
+                                  <strong>Nova data de término:</strong>{' '}
+                                  {novaDataCalculada ? (
+                                    <DateDisplay value={novaDataCalculada} />
+                                  ) : (
+                                    'Calculando...'
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                        {errors.novaDataFinal && (
+                          <div className="flex items-center gap-2 text-sm text-red-600">
+                            <AlertCircle className="h-4 w-4" />
+                            {errors.novaDataFinal}
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Input
-                        type="date"
-                        value={calculoAutomatico ? novaDataCalculada : (dados.novaDataFinal || '')}
-                        onChange={(e) => handleFieldChange('novaDataFinal', e.target.value)}
-                        disabled={disabled || calculoAutomatico}
-                        className={cn(
-                          calculoAutomatico && 'bg-gray-50',
-                          errors.novaDataFinal && 'border-red-500'
-                        )}
-                      />
-                      
-                      {vigenciaOriginal && dados.valorTempo && dados.tipoUnidade !== undefined && (
-                        <div className="bg-blue-50 p-3 rounded-md text-sm">
-                          <div className="space-y-1 text-blue-800">
-                            <div><strong>Data atual de término:</strong> <DateDisplay value={vigenciaOriginal.dataFim} /></div>
-                            <div>
-                              <strong>Operação:</strong> {OPERACOES_CONFIG[dados.operacao].label} {dados.valorTempo} {UNIDADES_TEMPO_CONFIG[dados.tipoUnidade].singular}{dados.valorTempo > 1 ? 's' : ''}
-                            </div>
-                            <div><strong>Nova data de término:</strong> {novaDataCalculada ? <DateDisplay value={novaDataCalculada} /> : 'Calculando...'}</div>
-                          </div>
-                        </div>
-                      )}
-
-                      {errors.novaDataFinal && (
-                        <div className="flex items-center gap-2 text-sm text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                          {errors.novaDataFinal}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -592,8 +721,10 @@ export function BlocoVigencia({
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea
                 id="observacoes"
-                value={dados.observacoes || ''}
-                onChange={(e) => handleFieldChange('observacoes', e.target.value)}
+                value={dados.observacoes ?? ''}
+                onChange={(e) =>
+                  handleFieldChange('observacoes', e.target.value)
+                }
                 disabled={disabled}
                 rows={3}
                 className={cn(errors.observacoes && 'border-red-500')}

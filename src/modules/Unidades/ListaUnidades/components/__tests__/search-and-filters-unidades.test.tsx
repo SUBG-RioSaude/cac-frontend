@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { FiltrosUnidadesApi } from '../../types/unidade-api'
+import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
 
 // Mock para Radix UI pointer events
 Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
@@ -29,10 +30,10 @@ const defaultProps = {
   filtrosAtivos: {
     pagina: 1,
     tamanhoPagina: 10,
-    ativo: true
+    ativo: true,
   } as FiltrosUnidadesApi,
   onFiltrosChange: vi.fn(),
-  isLoading: false
+  isLoading: false,
 }
 
 describe('SearchAndFiltersUnidades', () => {
@@ -43,7 +44,9 @@ describe('SearchAndFiltersUnidades', () => {
   it('deve renderizar campo de pesquisa', () => {
     render(<SearchAndFiltersUnidades {...defaultProps} />)
 
-    const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+    const searchInput = screen.getByPlaceholderText(
+      /digite nome ou sigla da unidade/i,
+    )
     expect(searchInput).toBeInTheDocument()
   })
 
@@ -58,8 +61,8 @@ describe('SearchAndFiltersUnidades', () => {
       ...defaultProps,
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
-        nome: 'Hospital'
-      }
+        nome: 'Hospital',
+      },
     }
 
     render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
@@ -77,10 +80,12 @@ describe('SearchAndFiltersUnidades', () => {
         filtrosAtivos={defaultProps.filtrosAtivos}
         onFiltrosChange={mockOnChange}
         isLoading={false}
-      />
+      />,
     )
 
-    const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+    const searchInput = screen.getByPlaceholderText(
+      /digite nome ou sigla da unidade/i,
+    )
     await user.type(searchInput, 't')
 
     expect(searchInput).toBeInTheDocument()
@@ -92,8 +97,8 @@ describe('SearchAndFiltersUnidades', () => {
       ...defaultProps,
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
-        nome: 'Hospital'
-      }
+        nome: 'Hospital',
+      },
     }
 
     render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
@@ -110,9 +115,9 @@ describe('SearchAndFiltersUnidades', () => {
       ...defaultProps,
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
-        nome: 'Hospital'
+        nome: 'Hospital',
       },
-      onFiltrosChange: mockOnChange
+      onFiltrosChange: mockOnChange,
     }
 
     render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
@@ -130,8 +135,8 @@ describe('SearchAndFiltersUnidades', () => {
         ...defaultProps.filtrosAtivos,
         nome: 'Hospital',
         sigla: 'UBS',
-        cnes: '12345'
-      }
+        cnes: '12345',
+      },
     }
 
     render(<SearchAndFiltersUnidades {...propsComFiltros} />)
@@ -254,7 +259,7 @@ describe('SearchAndFiltersUnidades', () => {
           filtrosAtivos={defaultProps.filtrosAtivos}
           onFiltrosChange={mockOnFiltrosChange}
           isLoading={false}
-        />
+        />,
       )
 
       const filtrosButton = screen.getByText('Filtros')
@@ -279,7 +284,7 @@ describe('SearchAndFiltersUnidades', () => {
           filtrosAtivos={defaultProps.filtrosAtivos}
           onFiltrosChange={mockOnFiltrosChange}
           isLoading={false}
-        />
+        />,
       )
 
       const filtrosButton = screen.getByText('Filtros')
@@ -304,7 +309,7 @@ describe('SearchAndFiltersUnidades', () => {
           filtrosAtivos={defaultProps.filtrosAtivos}
           onFiltrosChange={mockOnFiltrosChange}
           isLoading={false}
-        />
+        />,
       )
 
       const filtrosButton = screen.getByText('Filtros')
@@ -323,7 +328,7 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve usar valores padrão quando filtros não são fornecidos', () => {
       const propsSesFiltros = {
         filtrosAtivos: {},
-        onFiltrosChange: vi.fn()
+        onFiltrosChange: vi.fn(),
       }
 
       render(<SearchAndFiltersUnidades {...propsSesFiltros} />)
@@ -338,8 +343,8 @@ describe('SearchAndFiltersUnidades', () => {
         filtrosAtivos: {
           ...defaultProps.filtrosAtivos,
           ativo: true,
-          sigla: 'CAPS'
-        }
+          sigla: 'CAPS',
+        },
       }
 
       render(<SearchAndFiltersUnidades {...propsComFiltros} />)
@@ -361,7 +366,11 @@ describe('SearchAndFiltersUnidades', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
 
       const containerPrincipal = screen.getByRole('search')
-      expect(containerPrincipal).toHaveClass('flex-col', 'lg:flex-row', 'lg:items-center')
+      expect(containerPrincipal).toHaveClass(
+        'flex-col',
+        'lg:flex-row',
+        'lg:items-center',
+      )
     })
 
     it('deve ter altura apropriada nos botões', () => {
@@ -374,7 +383,9 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve ter campo de pesquisa responsivo', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
 
-      const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+      const searchInput = screen.getByPlaceholderText(
+        /digite nome ou sigla da unidade/i,
+      )
       expect(searchInput).toHaveClass('w-full', 'lg:w-full')
     })
   })
@@ -401,7 +412,9 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve ter placeholders informativos', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
 
-      const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+      const searchInput = screen.getByPlaceholderText(
+        /digite nome ou sigla da unidade/i,
+      )
       expect(searchInput).toHaveAttribute('placeholder')
     })
 
@@ -458,10 +471,10 @@ describe('SearchAndFiltersUnidades', () => {
           ...defaultProps.filtrosAtivos,
           nome: 'Hospital',
           ativo: true,
-          sigla: 'UBS'
+          sigla: 'UBS',
         },
         onFiltrosChange: mockOnFiltrosChange,
-        isLoading: false
+        isLoading: false,
       }
 
       render(<SearchAndFiltersUnidades {...propsComFiltros} />)

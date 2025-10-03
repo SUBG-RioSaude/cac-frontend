@@ -1,10 +1,11 @@
 import { create } from 'zustand'
+
+import { fornecedoresMock } from '../data/fornecedores-mock'
 import type {
   Fornecedor,
   FiltrosFornecedor,
   PaginacaoParamsFornecedor,
 } from '../types/fornecedor'
-import { fornecedoresMock } from '../data/fornecedores-mock'
 
 interface FornecedoresState {
   fornecedores: Fornecedor[]

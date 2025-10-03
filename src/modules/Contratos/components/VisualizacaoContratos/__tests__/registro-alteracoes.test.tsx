@@ -1,16 +1,18 @@
-import { render, screen, fireEvent, waitFor } from '@/tests/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { RegistroAlteracoes } from '../registro-alteracoes'
+
 import type { AlteracaoContrato } from '@/modules/Contratos/types/contrato'
 import type { TimelineEntry } from '@/modules/Contratos/types/timeline'
+import { render, screen, fireEvent, waitFor } from '@/tests/test-utils'
+
+import { RegistroAlteracoes } from '../registro-alteracoes'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   useEmpresasByIds: vi.fn(() => ({
     data: {},
     isLoading: false,
-    error: null
-  }))
+    error: null,
+  })),
 }))
 
 vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
@@ -18,8 +20,8 @@ vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
     data: {},
     isLoading: false,
     error: null,
-    getNome: vi.fn((id) => `Mock Unidade ${id}`)
-  }))
+    getNome: vi.fn((id) => `Mock Unidade ${id}`),
+  })),
 }))
 
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
@@ -27,27 +29,31 @@ vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
     data: {
       'unidade-1': { nome: 'Mock Unidade 1' },
       'unidade-2': { nome: 'Mock Unidade 2' },
-      'unidade-3': { nome: 'Mock Unidade 3' }
+      'unidade-3': { nome: 'Mock Unidade 3' },
     },
     isLoading: false,
-    error: null
-  }))
+    error: null,
+  })),
 }))
 
 vi.mock('@/modules/Contratos/hooks/use-historico-funcionarios', () => ({
   useHistoricoFuncionarios: vi.fn(() => ({
     data: [],
     isLoading: false,
-    error: null
-  }))
+    error: null,
+  })),
 }))
 
 // Mock framer-motion para simplificar testes
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: React.ComponentPropsWithoutRef<'div'>) => <div {...props}>{children}</div>
+    div: ({ children, ...props }: React.ComponentPropsWithoutRef<'div'>) => (
+      <div {...props}>{children}</div>
+    ),
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }))
 
 const mockAlteracoes: AlteracaoContrato[] = [
@@ -56,15 +62,15 @@ const mockAlteracoes: AlteracaoContrato[] = [
     tipo: 'criacao',
     descricao: 'Contrato criado no sistema',
     dataHora: '2024-01-10T09:00:00Z',
-    responsavel: 'Sistema'
+    responsavel: 'Sistema',
   },
   {
     id: '2',
     tipo: 'alteracao_valor',
     descricao: 'Aditivo de quantidade aprovado', // Corrigido para refletir o tipo correto
     dataHora: '2024-01-15T14:30:00Z',
-    responsavel: 'João Silva'
-  }
+    responsavel: 'João Silva',
+  },
 ]
 
 const mockEntradasTimeline: TimelineEntry[] = [
@@ -79,7 +85,7 @@ const mockEntradasTimeline: TimelineEntry[] = [
     autor: {
       id: 'user-1',
       nome: 'Maria Santos',
-      tipo: 'gestor'
+      tipo: 'gestor',
     },
     status: 'ativo',
     prioridade: 'alta',
@@ -91,11 +97,11 @@ const mockEntradasTimeline: TimelineEntry[] = [
       diferenca: 15000,
       percentualDiferenca: 15,
       novaVigencia: '2024-12-31',
-      statusAlteracao: 'aprovada'
+      statusAlteracao: 'aprovada',
     },
     tags: ['quantidade', 'aprovada'],
-    criadoEm: '2024-01-20T10:00:00Z'
-  }
+    criadoEm: '2024-01-20T10:00:00Z',
+  },
 ]
 
 describe('RegistroAlteracoes', () => {
@@ -103,7 +109,7 @@ describe('RegistroAlteracoes', () => {
     contratoId: 'test-contract-id',
     alteracoes: mockAlteracoes,
     entradasTimeline: mockEntradasTimeline,
-    onAdicionarObservacao: vi.fn()
+    onAdicionarObservacao: vi.fn(),
   }
 
   beforeEach(() => {
@@ -122,30 +128,38 @@ describe('RegistroAlteracoes', () => {
 
     it('deve renderizar barra de pesquisa e filtro', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
-      expect(screen.getByPlaceholderText('Pesquisar alterações...')).toBeInTheDocument()
+
+      expect(
+        screen.getByPlaceholderText('Pesquisar alterações...'),
+      ).toBeInTheDocument()
       expect(screen.getByText('Todos os tipos')).toBeInTheDocument()
     })
 
     it('deve renderizar botão de observação quando callback fornecido', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
-      expect(screen.getByRole('button', { name: /observação/i })).toBeInTheDocument()
+
+      expect(
+        screen.getByRole('button', { name: /observação/i }),
+      ).toBeInTheDocument()
     })
   })
 
   describe('Exibição de entradas', () => {
     it('deve mostrar entradas unificadas ordenadas por data', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
-      expect(screen.getByText('Aditivo de Quantidade - Acréscimo 15%')).toBeInTheDocument()
-      expect(screen.getAllByText('Aditivo de Quantidade')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal) - corrigido
+
+      expect(
+        screen.getByText('Aditivo de Quantidade - Acréscimo 15%'),
+      ).toBeInTheDocument()
+      expect(
+        screen.getAllByText('Aditivo de Quantidade')[0],
+      ).toBeInTheDocument() // Primeira ocorrência (timeline principal) - corrigido
       expect(screen.getAllByText('Criação do Contrato')[0]).toBeInTheDocument() // Primeira ocorrência (timeline principal)
     })
 
     it('deve exibir dados financeiros para alterações contratuais', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
+
       expect(screen.getByText('R$ 100.000,00')).toBeInTheDocument()
       expect(screen.getByText('R$ 115.000,00')).toBeInTheDocument()
       expect(screen.getByText('+R$ 15.000,00')).toBeInTheDocument()
@@ -153,14 +167,14 @@ describe('RegistroAlteracoes', () => {
 
     it('deve mostrar badges de origem e prioridade', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
-      expect(screen.getByText('Alteração')).toBeInTheDocument() 
+
+      expect(screen.getByText('Alteração')).toBeInTheDocument()
       expect(screen.getByText('alta')).toBeInTheDocument()
     })
 
     it('deve exibir tags quando disponíveis', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
+
       expect(screen.getByText('quantidade')).toBeInTheDocument()
       expect(screen.getByText('aprovada')).toBeInTheDocument()
     })
@@ -169,24 +183,30 @@ describe('RegistroAlteracoes', () => {
   describe('Filtros e pesquisa', () => {
     it('deve filtrar entradas por termo de pesquisa', async () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
+
       const searchInput = screen.getByPlaceholderText('Pesquisar alterações...')
       fireEvent.change(searchInput, { target: { value: 'Quantidade' } })
 
       await waitFor(() => {
-        expect(screen.getByText('Aditivo de Quantidade - Acréscimo 15%')).toBeInTheDocument()
-        expect(screen.queryByText('Criação do Contrato')).not.toBeInTheDocument()
+        expect(
+          screen.getByText('Aditivo de Quantidade - Acréscimo 15%'),
+        ).toBeInTheDocument()
+        expect(
+          screen.queryByText('Criação do Contrato'),
+        ).not.toBeInTheDocument()
       })
     })
 
     it('deve mostrar mensagem quando nenhuma entrada é encontrada', async () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
+
       const searchInput = screen.getByPlaceholderText('Pesquisar alterações...')
       fireEvent.change(searchInput, { target: { value: 'inexistente' } })
 
       await waitFor(() => {
-        expect(screen.getByText('Nenhuma alteração encontrada')).toBeInTheDocument()
+        expect(
+          screen.getByText('Nenhuma alteração encontrada'),
+        ).toBeInTheDocument()
       })
     })
   })
@@ -195,7 +215,7 @@ describe('RegistroAlteracoes', () => {
     it('deve renderizar corretamente sem entradas da timeline', () => {
       const propsVazias = {
         ...mockProps,
-        entradasTimeline: []
+        entradasTimeline: [],
       }
 
       render(<RegistroAlteracoes {...propsVazias} />)
@@ -210,34 +230,38 @@ describe('RegistroAlteracoes', () => {
       const propsSemDados = {
         ...mockProps,
         alteracoes: [],
-        entradasTimeline: []
+        entradasTimeline: [],
       }
-      
+
       render(<RegistroAlteracoes {...propsSemDados} />)
-      
-      expect(screen.getByText('Nenhuma alteração registrada')).toBeInTheDocument()
+
+      expect(
+        screen.getByText('Nenhuma alteração registrada'),
+      ).toBeInTheDocument()
     })
 
     it('deve funcionar sem callbacks opcionais', () => {
       const propsSemCallbacks = {
         alteracoes: mockAlteracoes,
-        entradasTimeline: mockEntradasTimeline
+        entradasTimeline: mockEntradasTimeline,
       }
-      
+
       expect(() => {
         render(<RegistroAlteracoes {...propsSemCallbacks} />)
       }).not.toThrow()
-      
-      expect(screen.queryByRole('button', { name: /observação/i })).not.toBeInTheDocument()
+
+      expect(
+        screen.queryByRole('button', { name: /observação/i }),
+      ).not.toBeInTheDocument()
     })
   })
 
   describe('Callbacks', () => {
     it('deve chamar onAdicionarObservacao quando botão clicado', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
+
       fireEvent.click(screen.getByRole('button', { name: /observação/i }))
-      
+
       expect(mockProps.onAdicionarObservacao).toHaveBeenCalledTimes(1)
     })
   })
@@ -245,9 +269,9 @@ describe('RegistroAlteracoes', () => {
   describe('Resumo por tipo', () => {
     it('deve exibir seção de resumo com estatísticas', () => {
       render(<RegistroAlteracoes {...mockProps} />)
-      
+
       expect(screen.getByText('Resumo por Tipo')).toBeInTheDocument()
-      
+
       const registrosText = screen.getAllByText(/\d+ registros?/)
       expect(registrosText.length).toBeGreaterThan(0)
     })

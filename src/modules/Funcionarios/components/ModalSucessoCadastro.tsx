@@ -1,3 +1,5 @@
+import { CheckCircle, User } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -7,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { CheckCircle, User } from 'lucide-react'
 
 interface ModalSucessoCadastroProps {
   isOpen: boolean
@@ -18,11 +19,11 @@ interface ModalSucessoCadastroProps {
   onConfirm: () => void
 }
 
-export function ModalSucessoCadastro({
+export const ModalSucessoCadastro = ({
   isOpen,
   funcionario,
   onConfirm,
-}: ModalSucessoCadastroProps) {
+}: ModalSucessoCadastroProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onConfirm}>
       <DialogContent className="sm:max-w-md">
@@ -40,12 +41,12 @@ export function ModalSucessoCadastro({
           </div>
         </DialogHeader>
 
-        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+        <div className="bg-muted/50 space-y-2 rounded-lg p-4">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
+            <User className="text-muted-foreground h-4 w-4" />
             <span className="font-medium">{funcionario.nomeCompleto}</span>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             Matrícula: {funcionario.matricula}
           </div>
         </div>

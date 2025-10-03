@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Check, X, Loader2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface EditableCurrencyFieldProps {
   value: number
@@ -12,14 +13,14 @@ interface EditableCurrencyFieldProps {
   max?: number
 }
 
-export function EditableCurrencyField({
+export const EditableCurrencyField = ({
   value: initialValue,
   onSave,
   onCancel,
   isLoading = false,
   min = 0,
-  max
-}: EditableCurrencyFieldProps) {
+  max,
+}: EditableCurrencyFieldProps) => {
   const [displayValue, setDisplayValue] = useState(formatCurrency(initialValue))
   const [numericValue, setNumericValue] = useState(initialValue)
   const [error, setError] = useState('')
@@ -40,20 +41,20 @@ export function EditableCurrencyField({
   function parseCurrencyInput(input: string): number {
     // Remove todos os caracteres não numéricos exceto vírgula e ponto
     const cleaned = input.replace(/[^\d,.-]/g, '')
-    
+
     // Substitui vírgula por ponto para parsing
     const normalized = cleaned.replace(',', '.')
-    
+
     // Converte para número
     const parsed = parseFloat(normalized)
-    
+
     return isNaN(parsed) ? 0 : parsed
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value
     const numeric = parseCurrencyInput(rawValue)
-    
+
     setDisplayValue(rawValue)
     setNumericValue(numeric)
     setError('')
@@ -89,7 +90,7 @@ export function EditableCurrencyField({
 
     try {
       await onSave(numericValue)
-    } catch (error) {
+    } catch {
       setError('Erro ao salvar. Tente novamente.')
     }
   }
@@ -104,7 +105,7 @@ export function EditableCurrencyField({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleSave()
+      void handleSave()
     } else if (e.key === 'Escape') {
       handleCancel()
     }
@@ -126,18 +127,18 @@ export function EditableCurrencyField({
           className={error ? 'border-red-500 focus:border-red-500' : ''}
           disabled={isLoading}
         />
-        {error && (
-          <p className="text-xs text-red-500 mt-1">{error}</p>
-        )}
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       </div>
-      
+
       <div className="flex items-center gap-1">
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleSave}
+          onClick={() => {
+            void handleSave()
+          }}
           disabled={isLoading || !hasChanges || !!error}
-          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+          className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -145,13 +146,13 @@ export function EditableCurrencyField({
             <Check className="h-4 w-4" />
           )}
         </Button>
-        
+
         <Button
           size="sm"
           variant="ghost"
           onClick={handleCancel}
           disabled={isLoading}
-          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
         >
           <X className="h-4 w-4" />
         </Button>

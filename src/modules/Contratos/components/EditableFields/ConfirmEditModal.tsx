@@ -1,3 +1,7 @@
+import { AlertTriangle, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -6,11 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { AlertTriangle, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { Textarea } from '@/components/ui/textarea'
 
 interface ConfirmEditModalProps {
   isOpen: boolean
@@ -24,7 +25,7 @@ interface ConfirmEditModalProps {
   formatValue?: (value: string | number) => string
 }
 
-export function ConfirmEditModal({
+export const ConfirmEditModal = ({
   isOpen,
   onClose,
   onConfirm,
@@ -33,15 +34,15 @@ export function ConfirmEditModal({
   newValue,
   isLoading = false,
   isCritical = false,
-  formatValue = (value) => String(value)
-}: ConfirmEditModalProps) {
+  formatValue = (value) => String(value),
+}: ConfirmEditModalProps) => {
   const [justification, setJustification] = useState('')
 
   const handleConfirm = async () => {
     try {
       await onConfirm(justification)
       setJustification('')
-    } catch (error) {
+    } catch {
       // Error handling será feito pelo componente pai
     }
   }
@@ -62,7 +63,7 @@ export function ConfirmEditModal({
           <DialogDescription>
             Você está prestes a alterar o campo <strong>{fieldLabel}</strong>.
             {isCritical && (
-              <span className="block mt-2 text-amber-600 font-medium">
+              <span className="mt-2 block font-medium text-amber-600">
                 ⚠️ Esta é uma alteração crítica que pode impactar o contrato.
               </span>
             )}
@@ -71,20 +72,20 @@ export function ConfirmEditModal({
 
         <div className="space-y-4">
           {/* Comparação de valores */}
-          <div className="bg-muted rounded-lg p-4 space-y-3">
+          <div className="bg-muted space-y-3 rounded-lg p-4">
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">
+              <Label className="text-muted-foreground text-sm font-medium">
                 Valor Atual:
               </Label>
-              <p className="mt-1 font-mono text-sm bg-background rounded px-2 py-1 border">
+              <p className="bg-background mt-1 rounded border px-2 py-1 font-mono text-sm">
                 {formatValue(oldValue)}
               </p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">
+              <Label className="text-muted-foreground text-sm font-medium">
                 Novo Valor:
               </Label>
-              <p className="mt-1 font-mono text-sm bg-background rounded px-2 py-1 border border-blue-200 text-blue-700">
+              <p className="bg-background mt-1 rounded border border-blue-200 px-2 py-1 font-mono text-sm text-blue-700">
                 {formatValue(newValue)}
               </p>
             </div>
@@ -98,9 +99,9 @@ export function ConfirmEditModal({
             <Textarea
               id="justification"
               placeholder={
-                isCritical 
-                  ? "Explique o motivo desta alteração crítica..."
-                  : "Descreva o motivo da alteração (opcional)..."
+                isCritical
+                  ? 'Explique o motivo desta alteração crítica...'
+                  : 'Descreva o motivo da alteração (opcional)...'
               }
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
@@ -111,24 +112,19 @@ export function ConfirmEditModal({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancelar
           </Button>
           <Button
-            onClick={handleConfirm}
-            disabled={
-              isLoading || 
-              (isCritical && !justification.trim())
-            }
+            onClick={() => {
+              void handleConfirm()
+            }}
+            disabled={isLoading || (isCritical && !justification.trim())}
             className="min-w-[100px]"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Salvando...
               </>
             ) : (

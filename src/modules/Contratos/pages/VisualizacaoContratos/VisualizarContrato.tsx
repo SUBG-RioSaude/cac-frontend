@@ -1,69 +1,67 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Edit, Download, MoreHorizontal } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Edit, Download, MoreHorizontal } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ContratoStatusBadge } from '@/components/ui/status-badge'
-import { parseStatusContrato } from '@/types/status'
-import { Separator } from '@/components/ui/separator'
 import { DateDisplay } from '@/components/ui/formatters'
+import { Separator } from '@/components/ui/separator'
+import { ContratoStatusBadge } from '@/components/ui/status-badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { currencyUtils } from '@/lib/utils'
+import { parseStatusContrato } from '@/types/status'
 
-// Componentes das abas
+import { AlteracoesContratuais } from '../../components/AlteracoesContratuais'
+import { TabDocumentos } from '../../components/Documentos/tab-documentos'
+import { ContractChat } from '../../components/Timeline/contract-chat'
 import { DetalhesContrato } from '../../components/VisualizacaoContratos/detalhes-contrato'
-import { RegistroAlteracoes } from '../../components/VisualizacaoContratos/registro-alteracoes'
 import { IndicadoresRelatorios } from '../../components/VisualizacaoContratos/indicadores-relatorios'
-
+import { RegistroAlteracoes } from '../../components/VisualizacaoContratos/registro-alteracoes'
 // import type { ContratoDetalhado } from '../../types/contrato' // removido pois não está sendo usado
+import { TabEmpenhos } from '../../components/VisualizacaoContratos/tab-empenhos'
+import {
+  getActiveTabs,
+  getDefaultTab,
+  isTabEnabled,
+  getGridCols,
+} from '../../config/tabs-config'
 import { useContratoDetalhado } from '../../hooks/use-contratos'
+import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
 import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
 import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
-import { currencyUtils } from '@/lib/utils'
-import { AlteracoesContratuais } from '../../components/AlteracoesContratuais'
-import { ContractChat } from '../../components/Timeline/contract-chat'
-import { TabDocumentos } from '../../components/Documentos/tab-documentos'
-import { TabEmpenhos } from '../../components/VisualizacaoContratos/tab-empenhos'
-import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
 // import { useTimelineIntegration } from '../../hooks/useTimelineIntegration' // Hook temporariamente removido
 import type { TimelineEntry } from '../../types/timeline'
 import type { ChatMessage } from '../../types/timeline'
-import { 
-  getActiveTabs, 
-  getDefaultTab, 
-  isTabEnabled, 
-  getGridCols 
-} from '../../config/tabs-config'
 
-export function VisualizarContrato() {
+export const VisualizarContrato = () => {
   const { contratoId: id } = useParams<{ contratoId: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
   const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
   const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
-  
+
   // Buscar contrato da API usando React Query
-  const { 
-    data: contrato, 
-    isLoading: loading, 
+  const {
+    data: contrato,
+    isLoading: loading,
     isError,
     error,
-    refetch
-  } = useContratoDetalhado(id || '', { enabled: !!id })
+    refetch,
+  } = useContratoDetalhado(id ?? '', { enabled: !!id })
 
   // Hook para buscar histórico de alterações contratuais
-  const { 
-    data: historicoAlteracoes = []
-  } = useHistoricoAlteracoes(id || '', !!id)
+  const { data: historicoAlteracoes = [] } = useHistoricoAlteracoes(
+    id ?? '',
+    !!id,
+  )
 
-
-  
   // Integração com timeline - temporariamente comentado
   // const { criarEntradaAlteracao, criarMarcosAlteracao, atualizarStatusAlteracao } = useTimelineIntegration({
   //   contratoId: contrato?.id || '',
@@ -73,79 +71,81 @@ export function VisualizarContrato() {
   //   }
   // })
 
-
-  
-
   const handleEditarGlobal = () => {
     setModoEdicaoGlobal(!modoEdicaoGlobal)
   }
 
   const handleExportar = () => {
+    // TODO: Implementar funcionalidade de exportação
   }
 
   // Handlers para integração com alterações contratuais
 
-  const handleSalvarAlteracao = useCallback(async (_alteracao: AlteracaoContratualResponse) => {
-    try {
-      // Simular usuário atual
-      // const autor = {
-      //   id: '1',
-      //   nome: 'João Silva',
-      //   tipo: 'usuario' as const
-      // }
-      
-      // TODO: Criar entrada na timeline
-      // criarEntradaAlteracao(alteracao, autor)
-      
-      // TODO: Criar marcos relacionados se necessário  
-      // criarMarcosAlteracao(alteracao)
-      
-    } catch (error) {
-      console.error('Erro ao salvar alteração:', error)
-    }
-  }, [])
-
-  const _handleSubmeterAlteracao = useCallback(async (alteracao: AlteracaoContratualResponse) => {
-    try {
-      await handleSalvarAlteracao(alteracao)
-      
-      // TODO: Atualizar status para submetida
-      if (alteracao.id) {
-        // atualizarStatusAlteracao(alteracao.id, 'submetida')
+  const handleSalvarAlteracao = useCallback(
+    (_alteracao: AlteracaoContratualResponse) => {
+      try {
+        // Simular usuário atual
+        // const autor = {
+        //   id: '1',
+        //   nome: 'João Silva',
+        //   tipo: 'usuario' as const
+        // }
+        // TODO: Criar entrada na timeline
+        // criarEntradaAlteracao(alteracao, autor)
+        // TODO: Criar marcos relacionados se necessário
+        // criarMarcosAlteracao(alteracao)
+      } catch {
+        // TODO: Implementar notificação de erro adequada
       }
-      
-    } catch (error) {
-      console.error('Erro ao submeter alteração:', error)
-    }
-  }, [handleSalvarAlteracao])
+    },
+    [],
+  )
 
-  const handleMarcarChatComoAlteracao = useCallback((mensagem: ChatMessage) => {
-    // Converter mensagem do chat em entrada do registro de alterações
-    const autor = {
-      id: mensagem.remetente.id,
-      nome: mensagem.remetente.nome,
-      tipo: mensagem.remetente.tipo
-    }
-    
-    const entradaChat = {
-      id: `chat_${mensagem.id}`,
-      contratoId: contrato?.id || '',
-      tipo: 'manual' as const,
-      categoria: 'observacao' as const,
-      titulo: `Observação do Chat - ${mensagem.remetente.nome}`,
-      descricao: mensagem.conteudo,
-      dataEvento: mensagem.dataEnvio,
-      autor,
-      status: 'ativo' as const,
-      prioridade: 'media' as const,
-      tags: ['chat', 'observacao'],
-      criadoEm: new Date().toISOString()
-    }
-    
-    // Adicionar à timeline
-    setEntradasTimeline(prev => [entradaChat, ...prev])
-    
-  }, [contrato])
+  const _handleSubmeterAlteracao = useCallback(
+    (alteracao: AlteracaoContratualResponse) => {
+      try {
+        handleSalvarAlteracao(alteracao)
+
+        // TODO: Atualizar status para submetida
+        if (alteracao.id) {
+          // atualizarStatusAlteracao(alteracao.id, 'submetida')
+        }
+      } catch {
+        // TODO: Implementar notificação de erro adequada
+      }
+    },
+    [handleSalvarAlteracao],
+  )
+
+  const handleMarcarChatComoAlteracao = useCallback(
+    (mensagem: ChatMessage) => {
+      // Converter mensagem do chat em entrada do registro de alterações
+      const autor = {
+        id: mensagem.remetente.id,
+        nome: mensagem.remetente.nome,
+        tipo: mensagem.remetente.tipo,
+      }
+
+      const entradaChat = {
+        id: `chat_${mensagem.id}`,
+        contratoId: contrato?.id ?? '',
+        tipo: 'manual' as const,
+        categoria: 'observacao' as const,
+        titulo: `Observação do Chat - ${mensagem.remetente.nome}`,
+        descricao: mensagem.conteudo,
+        dataEvento: mensagem.dataEnvio,
+        autor,
+        status: 'ativo' as const,
+        prioridade: 'media' as const,
+        tags: ['chat', 'observacao'],
+        criadoEm: new Date().toISOString(),
+      }
+
+      // Adicionar à timeline
+      setEntradasTimeline((prev) => [entradaChat, ...prev])
+    },
+    [contrato],
+  )
 
   // Função para validar mudança de aba
   const handleTabChange = useCallback((novaAba: string) => {
@@ -153,7 +153,7 @@ export function VisualizarContrato() {
       setAbaAtiva(novaAba)
     } else {
       // Se aba está desabilitada, redireciona para aba padrão
-      console.warn(`Aba "${novaAba}" está desabilitada. Redirecionando para aba padrão.`)
+      // Aba desabilitada - redirecionar para aba padrão
       setAbaAtiva(getDefaultTab())
     }
   }, [])
@@ -170,9 +170,9 @@ export function VisualizarContrato() {
       <div className="from-background to-muted/20 min-h-screen bg-gradient-to-br">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="animate-pulse space-y-6">
-            <div className="bg-muted h-8 w-1/3 rounded"></div>
-            <div className="bg-muted h-32 rounded"></div>
-            <div className="bg-muted h-96 rounded"></div>
+            <div className="bg-muted h-8 w-1/3 rounded" />
+            <div className="bg-muted h-32 rounded" />
+            <div className="bg-muted h-96 rounded" />
           </div>
         </div>
       </div>
@@ -188,12 +188,17 @@ export function VisualizarContrato() {
               Erro ao carregar contrato
             </h2>
             <p className="text-muted-foreground mb-4">
-              {error instanceof Error 
-                ? error.message 
+              {error instanceof Error
+                ? error.message
                 : 'Não foi possível carregar os dados do contrato. Tente novamente.'}
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={() => refetch()} variant="outline">
+            <div className="flex justify-center gap-2">
+              <Button
+                onClick={() => {
+                  void refetch()
+                }}
+                variant="outline"
+              >
                 Tentar novamente
               </Button>
               <Button onClick={() => navigate('/contratos')}>
@@ -256,26 +261,34 @@ export function VisualizarContrato() {
               <div className="flex items-center justify-between gap-2 sm:justify-end sm:gap-3">
                 {/* Contador de dias restantes - Sempre visível mas adaptativo */}
                 <div className="text-center sm:text-right">
-                  <p className={`text-lg font-bold sm:text-2xl ${(() => {
+                  <p
+                    className={`text-lg font-bold sm:text-2xl ${(() => {
                       const hoje = new Date()
                       const dataTermino = new Date(contrato.dataTermino)
                       const diffTime = dataTermino.getTime() - hoje.getTime()
-                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                      
+                      const diffDays = Math.ceil(
+                        diffTime / (1000 * 60 * 60 * 24),
+                      )
+
                       if (diffDays <= 0) return 'text-red-600' // Vencido
                       if (diffDays <= 60) return 'text-red-600' // 60 dias ou menos
                       if (diffDays <= 100) return 'text-orange-500' // 100 a 91 dias
                       return 'text-green-600' // Acima de 100 dias
-                    })()}`}>
+                    })()}`}
+                  >
                     {(() => {
                       const hoje = new Date()
                       const dataTermino = new Date(contrato.dataTermino)
                       const diffTime = dataTermino.getTime() - hoje.getTime()
-                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                      const diffDays = Math.ceil(
+                        diffTime / (1000 * 60 * 60 * 24),
+                      )
                       return diffDays > 0 ? diffDays : 0
                     })()}
                   </p>
-                  <p className="text-muted-foreground text-xs">dias restantes</p>
+                  <p className="text-muted-foreground text-xs">
+                    dias restantes
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
@@ -326,8 +339,8 @@ export function VisualizarContrato() {
                   {contrato.numeroContrato}
                 </h1>
                 <div className="flex items-center gap-2">
-                  <ContratoStatusBadge 
-                    status={parseStatusContrato(contrato.status)} 
+                  <ContratoStatusBadge
+                    status={parseStatusContrato(contrato.status)}
                     size="lg"
                     className="px-3 py-1 text-sm font-semibold"
                   />
@@ -356,8 +369,7 @@ export function VisualizarContrato() {
                     Vigência
                   </p>
                   <p className="text-xs font-medium break-words sm:text-sm">
-                    <DateDisplay value={contrato.dataInicio} />{' '}
-                    -{' '}
+                    <DateDisplay value={contrato.dataInicio} /> -{' '}
                     <DateDisplay value={contrato.dataTermino} />
                   </p>
                 </div>
@@ -379,21 +391,30 @@ export function VisualizarContrato() {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList className={`grid h-auto w-full ${
-                getGridCols() === 1 ? 'grid-cols-1' :
-                getGridCols() === 2 ? 'grid-cols-2' : 
-                getGridCols() === 3 ? 'grid-cols-3' :
-                getGridCols() === 4 ? 'grid-cols-4' :
-                getGridCols() === 5 ? 'grid-cols-5' :
-                'grid-cols-6'
-              } rounded-lg bg-gray-50 p-1`}>
+              <TabsList
+                className={`grid h-auto w-full ${
+                  getGridCols() === 1
+                    ? 'grid-cols-1'
+                    : getGridCols() === 2
+                      ? 'grid-cols-2'
+                      : getGridCols() === 3
+                        ? 'grid-cols-3'
+                        : getGridCols() === 4
+                          ? 'grid-cols-4'
+                          : getGridCols() === 5
+                            ? 'grid-cols-5'
+                            : 'grid-cols-6'
+                } rounded-lg bg-gray-50 p-1`}
+              >
                 {getActiveTabs().map((tab) => (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
                     className={`flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border ${tab.icon.activeBorder} ${tab.icon.activeBg} ${tab.icon.activeText} data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm`}
                   >
-                    <div className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}></div>
+                    <div
+                      className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
+                    />
                     <span className="text-center">{tab.label}</span>
                   </TabsTrigger>
                 ))}
@@ -409,7 +430,11 @@ export function VisualizarContrato() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="w-full"
         >
-          <Tabs value={abaAtiva} onValueChange={handleTabChange} className="w-full">
+          <Tabs
+            value={abaAtiva}
+            onValueChange={handleTabChange}
+            className="w-full"
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={abaAtiva}
@@ -449,14 +474,21 @@ export function VisualizarContrato() {
                 )}
 
                 {isTabEnabled('alteracoes-contratuais') && (
-                  <TabsContent value="alteracoes-contratuais" className="mt-0 w-full">
-                    <AlteracoesContratuais 
-                      contratoId={contrato.id} 
+                  <TabsContent
+                    value="alteracoes-contratuais"
+                    className="mt-0 w-full"
+                  >
+                    <AlteracoesContratuais
+                      contratoId={contrato.id}
                       numeroContrato={contrato.numeroContrato}
                       valorOriginal={contrato.valorTotal}
                       vigenciaFinal={contrato.dataTermino}
-                      onSaved={handleSalvarAlteracao}
-                      onSubmitted={_handleSubmeterAlteracao}
+                      onSaved={(alteracao) => {
+                        void handleSalvarAlteracao(alteracao)
+                      }}
+                      onSubmitted={(alteracao) => {
+                        void _handleSubmeterAlteracao(alteracao)
+                      }}
                       key={contrato.id}
                     />
                   </TabsContent>
@@ -470,26 +502,27 @@ export function VisualizarContrato() {
 
                 {isTabEnabled('empenhos') && (
                   <TabsContent value="empenhos" className="mt-0 w-full">
-                    <TabEmpenhos 
-                      contratoId={contrato.id} 
+                    <TabEmpenhos
+                      contratoId={contrato.id}
                       valorTotalContrato={contrato.valorTotal}
-                      unidadesVinculadas={contrato.unidadesVinculadas || []}
-                      empenhosIniciais={extrairEmpenhosDoContrato(contrato)}
+                      unidadesVinculadas={contrato.unidadesVinculadas ?? []}
+                      empenhosIniciais={extrairEmpenhosDoContrato(
+                        contrato as never,
+                      )}
                     />
                   </TabsContent>
                 )}
 
                 {isTabEnabled('timeline') && (
                   <TabsContent value="timeline" className="mt-0 w-full">
-                    <ContractChat 
-                      contratoId={contrato.id} 
+                    <ContractChat
+                      contratoId={contrato.id}
                       numeroContrato={contrato.numeroContrato}
                       onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
                       key={`chat-${contrato.id}`}
                     />
                   </TabsContent>
                 )}
-
               </motion.div>
             </AnimatePresence>
           </Tabs>

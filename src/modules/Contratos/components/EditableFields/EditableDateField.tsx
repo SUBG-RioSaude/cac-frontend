@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { Check, X, Loader2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface EditableDateFieldProps {
   value: string // ISO date string
@@ -12,14 +13,14 @@ interface EditableDateFieldProps {
   maxDate?: string
 }
 
-export function EditableDateField({
+export const EditableDateField = ({
   value: initialValue,
   onSave,
   onCancel,
   isLoading = false,
   minDate,
-  maxDate
-}: EditableDateFieldProps) {
+  maxDate,
+}: EditableDateFieldProps) => {
   const [value, setValue] = useState(formatDateForInput(initialValue))
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -51,18 +52,18 @@ export function EditableDateField({
   function validateDate(dateString: string): string | null {
     if (!dateString) return 'Data é obrigatória'
 
-    const date = new Date(dateString + 'T00:00:00')
+    const date = new Date(`${dateString}T00:00:00`)
     if (isNaN(date.getTime())) return 'Data inválida'
 
     if (minDate) {
-      const min = new Date(minDate + 'T00:00:00')
+      const min = new Date(`${minDate}T00:00:00`)
       if (date < min) {
         return `Data deve ser maior ou igual a ${formatDateForDisplay(minDate)}`
       }
     }
 
     if (maxDate) {
-      const max = new Date(maxDate + 'T00:00:00')
+      const max = new Date(`${maxDate}T00:00:00`)
       if (date > max) {
         return `Data deve ser menor ou igual a ${formatDateForDisplay(maxDate)}`
       }
@@ -74,9 +75,9 @@ export function EditableDateField({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setValue(newValue)
-    
+
     const errorMsg = validateDate(newValue)
-    setError(errorMsg || '')
+    setError(errorMsg ?? '')
   }
 
   const handleSave = async () => {
@@ -94,9 +95,9 @@ export function EditableDateField({
 
     try {
       // Converte a data para ISO string
-      const isoDate = new Date(value + 'T00:00:00').toISOString()
+      const isoDate = new Date(`${value}T00:00:00`).toISOString()
       await onSave(isoDate)
-    } catch (error) {
+    } catch {
       setError('Erro ao salvar. Tente novamente.')
     }
   }
@@ -110,7 +111,7 @@ export function EditableDateField({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleSave()
+      void handleSave()
     } else if (e.key === 'Escape') {
       handleCancel()
     }
@@ -132,18 +133,18 @@ export function EditableDateField({
           className={error ? 'border-red-500 focus:border-red-500' : ''}
           disabled={isLoading}
         />
-        {error && (
-          <p className="text-xs text-red-500 mt-1">{error}</p>
-        )}
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       </div>
-      
+
       <div className="flex items-center gap-1">
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleSave}
+          onClick={() => {
+            void handleSave()
+          }}
           disabled={isLoading || !hasChanges || !!error}
-          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+          className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -151,13 +152,13 @@ export function EditableDateField({
             <Check className="h-4 w-4" />
           )}
         </Button>
-        
+
         <Button
           size="sm"
           variant="ghost"
           onClick={handleCancel}
           disabled={isLoading}
-          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
         >
           <X className="h-4 w-4" />
         </Button>

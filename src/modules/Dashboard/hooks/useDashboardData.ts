@@ -5,38 +5,44 @@
  * Gerencia carregamento e cache dos dados do dashboard
  */
 
-import { useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { DashboardFilters, UseDashboardDataResult } from '../types/dashboard'
+import { useCallback } from 'react'
+
 import { fetchDashboardData } from '../services/dashboard-service'
+import type {
+  DashboardFilters,
+  UseDashboardDataResult,
+} from '../types/dashboard'
 
 /**
  * Hook para gerenciar dados do dashboard com cache e refetch
  */
-export const useDashboardData = (filters: DashboardFilters): UseDashboardDataResult => {
+export const useDashboardData = (
+  filters: DashboardFilters,
+): UseDashboardDataResult => {
   const {
     data,
     isLoading,
     error,
-    refetch: queryRefetch
+    refetch: queryRefetch,
   } = useQuery({
     queryKey: ['dashboard-data', filters],
     queryFn: () => fetchDashboardData(filters),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
     retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
   const refetch = useCallback(() => {
-    queryRefetch()
+    void queryRefetch()
   }, [queryRefetch])
 
   return {
-    data: data || null,
+    data: data ?? null,
     isLoading,
-    error: error?.message || null,
-    refetch
+    error: error?.message ?? null,
+    refetch,
   }
 }
 
@@ -45,11 +51,11 @@ export const useDashboardData = (filters: DashboardFilters): UseDashboardDataRes
  */
 export const useDashboardMetrics = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
-  
+
   return {
-    metrics: data?.metrics || null,
+    metrics: data?.metrics ?? null,
     isLoading,
-    error
+    error,
   }
 }
 
@@ -58,13 +64,13 @@ export const useDashboardMetrics = (filters: DashboardFilters) => {
  */
 export const useDashboardCharts = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
-  
+
   return {
-    statusDistribution: data?.statusDistribution || [],
-    statusTrend: data?.statusTrend || [],
-    typeDistribution: data?.typeDistribution || [],
+    statusDistribution: data?.statusDistribution ?? [],
+    statusTrend: data?.statusTrend ?? [],
+    typeDistribution: data?.typeDistribution ?? [],
     isLoading,
-    error
+    error,
   }
 }
 
@@ -73,11 +79,11 @@ export const useDashboardCharts = (filters: DashboardFilters) => {
  */
 export const useRiskAnalysis = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
-  
+
   return {
-    riskAnalysis: data?.riskAnalysis || null,
+    riskAnalysis: data?.riskAnalysis ?? null,
     isLoading,
-    error
+    error,
   }
 }
 
@@ -86,11 +92,11 @@ export const useRiskAnalysis = (filters: DashboardFilters) => {
  */
 export const useRecentData = (filters: DashboardFilters) => {
   const { data, isLoading, error } = useDashboardData(filters)
-  
+
   return {
-    recentContracts: data?.recentContracts || [],
-    recentActivities: data?.recentActivities || [],
+    recentContracts: data?.recentContracts ?? [],
+    recentActivities: data?.recentActivities ?? [],
     isLoading,
-    error
+    error,
   }
 }

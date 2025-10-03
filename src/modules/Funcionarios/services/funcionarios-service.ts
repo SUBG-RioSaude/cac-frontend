@@ -1,6 +1,7 @@
 import { executeWithFallback } from '@/lib/axios'
-import type { 
-  FuncionarioApi, 
+import { createServiceLogger } from '@/lib/logger'
+import type {
+  FuncionarioApi,
   LotacaoApi,
   FuncionarioParametros,
   LotacaoParametros,
@@ -8,8 +9,10 @@ import type {
   LotacoesPaginacaoResponse,
   BuscaFuncionarioResponse,
   BuscaLotacaoResponse,
-  FuncionarioCreateApi
+  FuncionarioCreateApi,
 } from '@/modules/Funcionarios/types/funcionario-api'
+
+const logger = createServiceLogger('funcionarios-service')
 
 /**
  * ==========================================
@@ -25,48 +28,62 @@ import type {
  * Buscar funcionários com filtros opcionais
  */
 export async function getFuncionarios(
-  filtros: FuncionarioParametros = {}
+  filtros: FuncionarioParametros = {},
 ): Promise<FuncionariosPaginacaoResponse> {
-  const response = await executeWithFallback<FuncionariosPaginacaoResponse>({ 
+  const response = await executeWithFallback<FuncionariosPaginacaoResponse>({
     method: 'get',
     url: '/Funcionarios', // Seguir padrão Pascal case da API
-    params: filtros
+    params: filtros,
   })
 
-  const responseData = response.data;
-  
+  const responseData = response.data
+
   // Debug: Log da resposta para verificar estrutura
-  console.log('Resposta da API de funcionários:', responseData);
+  logger.debug({ responseData }, 'Resposta da API de funcionários')
 
   // Prioridade 1: Checar a estrutura { sucesso: true, dados: { ... } }
-  if (responseData && 'sucesso' in responseData && responseData.sucesso && 'dados' in responseData) {
+  if (
+    typeof responseData === 'object' &&
+    'sucesso' in responseData &&
+    responseData.sucesso &&
+    'dados' in responseData
+  ) {
     // Se 'dados' dentro do wrapper tiver a estrutura de paginação, retorna direto
-    if (responseData.dados && 'dados' in responseData.dados && Array.isArray((responseData.dados as Record<string, unknown>).dados)) {
-      return responseData.dados as unknown as FuncionariosPaginacaoResponse;
+    if (
+      typeof responseData.dados === 'object' &&
+      'dados' in responseData.dados &&
+      Array.isArray((responseData.dados as Record<string, unknown>).dados)
+    ) {
+      return responseData.dados as unknown as FuncionariosPaginacaoResponse
     }
   }
 
   // Prioridade 2: Checar se a resposta já é a estrutura de paginação (sem wrapper)
-  if (responseData && 'dados' in responseData && Array.isArray(responseData.dados)) {
+  if (
+    typeof responseData === 'object' &&
+    'dados' in responseData &&
+    Array.isArray(responseData.dados)
+  ) {
     if ('totalRegistros' in responseData) {
-      return responseData as FuncionariosPaginacaoResponse;
+      return responseData
     }
     // Se for um array de dados sem paginação, monta a estrutura
-    const dados = (responseData as Record<string, unknown>).dados as FuncionarioApi[];
+    const dados = (responseData as Record<string, unknown>)
+      .dados as FuncionarioApi[]
     return {
       dados,
-      paginaAtual: filtros.pagina || 1,
-      tamanhoPagina: filtros.tamanhoPagina || dados.length,
+      paginaAtual: filtros.pagina ?? 1,
+      tamanhoPagina: filtros.tamanhoPagina ?? dados.length,
       totalRegistros: dados.length,
       totalPaginas: 1,
       temProximaPagina: false,
-      temPaginaAnterior: false
-    };
+      temPaginaAnterior: false,
+    }
   }
 
   // Prioridade 3: Checar se a resposta é um array simples de funcionários
   if (Array.isArray(responseData)) {
-    const dados = responseData as FuncionarioApi[];
+    const dados = responseData as FuncionarioApi[]
     return {
       dados,
       paginaAtual: 1,
@@ -74,32 +91,42 @@ export async function getFuncionarios(
       totalRegistros: dados.length,
       totalPaginas: 1,
       temProximaPagina: false,
-      temPaginaAnterior: false
-    };
+      temPaginaAnterior: false,
+    }
   }
 
-  throw new Error('Formato de resposta da API de funcionários não reconhecido');
+  throw new Error('Formato de resposta da API de funcionários não reconhecido')
 }
 
 /**
  * Buscar funcionário por matrícula
  */
-export async function getFuncionarioByMatricula(matricula: string): Promise<BuscaFuncionarioResponse> {
+export async function getFuncionarioByMatricula(
+  matricula: string,
+): Promise<BuscaFuncionarioResponse> {
   try {
     const response = await executeWithFallback<FuncionarioApi>({
       method: 'get',
-      url: `/Funcionarios/matricula/${matricula}`
+      url: `/Funcionarios/matricula/${matricula}`,
     })
 
     return {
       encontrado: true,
-      funcionario: response.data
+      funcionario: response.data,
     }
   } catch (error) {
-    console.error(`Erro ao buscar funcionário por matrícula ${matricula}:`, error)
+    logger.error(
+      {
+        operation: 'buscar_funcionario_matricula',
+        matricula,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      `Erro ao buscar funcionário por matrícula ${matricula}`,
+    )
     return {
       encontrado: false,
-      erro: 'Funcionário não encontrado ou erro na consulta'
+      erro: 'Funcionário não encontrado ou erro na consulta',
     }
   }
 }
@@ -107,22 +134,32 @@ export async function getFuncionarioByMatricula(matricula: string): Promise<Busc
 /**
  * Buscar funcionário por CPF
  */
-export async function getFuncionarioByCpf(cpf: string): Promise<BuscaFuncionarioResponse> {
+export async function getFuncionarioByCpf(
+  cpf: string,
+): Promise<BuscaFuncionarioResponse> {
   try {
     const response = await executeWithFallback<FuncionarioApi>({
       method: 'get',
-      url: `/Funcionarios/cpf/${cpf}`
+      url: `/Funcionarios/cpf/${cpf}`,
     })
 
     return {
       encontrado: true,
-      funcionario: response.data
+      funcionario: response.data,
     }
   } catch (error) {
-    console.error(`Erro ao buscar funcionário por CPF ${cpf}:`, error)
+    logger.error(
+      {
+        operation: 'buscar_funcionario_cpf',
+        cpf: `${cpf.substring(0, 3)}***`, // Mascarar CPF por segurança
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      `Erro ao buscar funcionário por CPF`,
+    )
     return {
       encontrado: false,
-      erro: 'Funcionário não encontrado ou erro na consulta'
+      erro: 'Funcionário não encontrado ou erro na consulta',
     }
   }
 }
@@ -133,12 +170,10 @@ export async function getFuncionarioByCpf(cpf: string): Promise<BuscaFuncionario
 export async function getFuncionarioById(id: string): Promise<FuncionarioApi> {
   const response = await executeWithFallback<FuncionarioApi>({
     method: 'get',
-    url: `/Funcionarios/${id}`
+    url: `/Funcionarios/${id}`,
   })
 
-  if (!response.data) {
-    throw new Error('Funcionário não encontrado')
-  }
+  // A função executeWithFallback garante que response.data nunca é undefined
 
   return response.data
 }
@@ -149,34 +184,40 @@ export async function getFuncionarioById(id: string): Promise<FuncionarioApi> {
  * Buscar lotações com filtros opcionais
  */
 export async function getLotacoes(
-  filtros: LotacaoParametros = {}
+  filtros: LotacaoParametros = {},
 ): Promise<LotacoesPaginacaoResponse> {
-  const response = await executeWithFallback<LotacoesPaginacaoResponse | { dados: LotacaoApi[] }>({ 
+  const response = await executeWithFallback<
+    LotacoesPaginacaoResponse | { dados: LotacaoApi[] }
+  >({
     method: 'get',
     url: '/Lotacoes',
-    params: filtros
+    params: filtros,
   })
 
   // Normalizar resposta da API
-  if (response.data && 'dados' in response.data && Array.isArray(response.data.dados)) {
-    const dados = response.data.dados as LotacaoApi[]
-    
+  if (
+    typeof response.data === 'object' &&
+    'dados' in response.data &&
+    Array.isArray(response.data.dados)
+  ) {
+    const { dados } = response.data
+
     // Se tem metadados de paginação, usar eles
     if ('totalRegistros' in response.data) {
-      return response.data as LotacoesPaginacaoResponse
+      return response.data
     }
-    
+
     // Senão, criar estrutura padrão
     const paginatedResponse: LotacoesPaginacaoResponse = {
       dados,
-      paginaAtual: filtros.pagina || 1,
-      tamanhoPagina: filtros.tamanhoPagina || dados.length,
+      paginaAtual: filtros.pagina ?? 1,
+      tamanhoPagina: filtros.tamanhoPagina ?? dados.length,
       totalRegistros: dados.length,
       totalPaginas: 1,
       temProximaPagina: false,
-      temPaginaAnterior: false
+      temPaginaAnterior: false,
     }
-    
+
     return paginatedResponse
   }
 
@@ -189,7 +230,7 @@ export async function getLotacoes(
       totalRegistros: response.data.length,
       totalPaginas: 1,
       temProximaPagina: false,
-      temPaginaAnterior: false
+      temPaginaAnterior: false,
     }
   }
 
@@ -199,22 +240,32 @@ export async function getLotacoes(
 /**
  * Buscar lotação por código
  */
-export async function getLotacaoByCodigo(codigo: string): Promise<BuscaLotacaoResponse> {
+export async function getLotacaoByCodigo(
+  codigo: string,
+): Promise<BuscaLotacaoResponse> {
   try {
     const response = await executeWithFallback<LotacaoApi>({
       method: 'get',
-      url: `/Lotacoes/codigo/${codigo}`
+      url: `/Lotacoes/codigo/${codigo}`,
     })
 
     return {
       encontrada: true,
-      lotacao: response.data
+      lotacao: response.data,
     }
   } catch (error) {
-    console.error(`Erro ao buscar lotação por código ${codigo}:`, error)
+    logger.error(
+      {
+        operation: 'buscar_lotacao_codigo',
+        codigo,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      `Erro ao buscar lotação por código ${codigo}`,
+    )
     return {
       encontrada: false,
-      erro: 'Lotação não encontrada ou erro na consulta'
+      erro: 'Lotação não encontrada ou erro na consulta',
     }
   }
 }
@@ -225,12 +276,10 @@ export async function getLotacaoByCodigo(codigo: string): Promise<BuscaLotacaoRe
 export async function getLotacaoById(id: string): Promise<LotacaoApi> {
   const response = await executeWithFallback<LotacaoApi>({
     method: 'get',
-    url: `/Lotacoes/${id}`
+    url: `/Lotacoes/${id}`,
   })
 
-  if (!response.data) {
-    throw new Error('Lotação não encontrada')
-  }
+  // A função executeWithFallback garante que response.data nunca é undefined
 
   return response.data
 }
@@ -240,11 +289,14 @@ export async function getLotacaoById(id: string): Promise<LotacaoApi> {
 /**
  * Buscar funcionários por nome (busca parcial)
  */
-export async function buscarFuncionariosPorNome(nome: string, limit = 10): Promise<FuncionarioApi[]> {
+export async function buscarFuncionariosPorNome(
+  nome: string,
+  limit = 10,
+): Promise<FuncionarioApi[]> {
   const response = await getFuncionarios({
     nome,
     tamanhoPagina: limit,
-    ativo: true
+    ativo: true,
   })
 
   return response.dados
@@ -253,11 +305,14 @@ export async function buscarFuncionariosPorNome(nome: string, limit = 10): Promi
 /**
  * Buscar funcionários por lotação
  */
-export async function buscarFuncionariosPorLotacao(lotacao: string, limit = 50): Promise<FuncionarioApi[]> {
+export async function buscarFuncionariosPorLotacao(
+  lotacao: string,
+  limit = 50,
+): Promise<FuncionarioApi[]> {
   const response = await getFuncionarios({
     lotacao,
     tamanhoPagina: limit,
-    ativo: true
+    ativo: true,
   })
 
   return response.dados
@@ -266,11 +321,14 @@ export async function buscarFuncionariosPorLotacao(lotacao: string, limit = 50):
 /**
  * Buscar lotações por nome (busca parcial)
  */
-export async function buscarLotacoesPorNome(nome: string, limit = 20): Promise<LotacaoApi[]> {
+export async function buscarLotacoesPorNome(
+  nome: string,
+  limit = 20,
+): Promise<LotacaoApi[]> {
   const response = await getLotacoes({
     nome,
     tamanhoPagina: limit,
-    ativo: true
+    ativo: true,
   })
 
   return response.dados
@@ -279,20 +337,29 @@ export async function buscarLotacoesPorNome(nome: string, limit = 20): Promise<L
 /**
  * Criar novo funcionário
  */
-export async function criarFuncionario(payload: FuncionarioCreateApi): Promise<FuncionarioApi> {
-  const response = await executeWithFallback<FuncionarioApi | { dados: FuncionarioApi }>({
+export async function criarFuncionario(
+  payload: FuncionarioCreateApi,
+): Promise<FuncionarioApi> {
+  const response = await executeWithFallback<
+    FuncionarioApi | { dados: FuncionarioApi }
+  >({
     method: 'post',
     url: '/Funcionarios',
     data: payload,
   })
 
   // Normalizar possíveis wrappers
-  const responseData = response.data as { dados?: FuncionarioApi } | FuncionarioApi
-  const data = (responseData && typeof responseData === 'object' && 'dados' in responseData && responseData.dados)
-    ? responseData.dados as FuncionarioApi
-    : responseData as FuncionarioApi
+  const responseData = response.data as
+    | { dados?: FuncionarioApi }
+    | FuncionarioApi
+  const data =
+    typeof responseData === 'object' &&
+    'dados' in responseData &&
+    responseData.dados
+      ? responseData.dados
+      : (responseData as FuncionarioApi)
 
-  if (!data || !data.id) {
+  if (!data.id) {
     // Algumas APIs de cadastro podem não retornar o objeto; nesse caso retornamos o payload mapeado
     return {
       id: '',

@@ -1,6 +1,7 @@
-import { Button } from '@/components/ui/button'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface ConfirmarAvancoModalProps {
@@ -13,7 +14,7 @@ interface ConfirmarAvancoModalProps {
   textoCancelar?: string
 }
 
-export default function ConfirmarAvancoModal({
+const ConfirmarAvancoModal = ({
   aberto,
   onConfirmar,
   onCancelar,
@@ -21,7 +22,7 @@ export default function ConfirmarAvancoModal({
   descricao = 'Tem certeza que deseja avançar para a próxima etapa? Esta ação não poderá ser desfeita.',
   textoConfirmar = 'Confirmar',
   textoCancelar = 'Cancelar',
-}: ConfirmarAvancoModalProps) {
+}: ConfirmarAvancoModalProps) => {
   useEffect(() => {
     // Previne scroll da página quando modal estiver aberto
     if (aberto) {
@@ -47,13 +48,21 @@ export default function ConfirmarAvancoModal({
   const isFinalizacao = textoConfirmar.toLowerCase().includes('finalizar')
 
   return (
-    <div className="fixed inset-0 z-[9999] h-screen flex items-center justify-center p-4 md:p-8">
+    <div className="fixed inset-0 z-[9999] flex h-screen items-center justify-center p-4 md:p-8">
       {/* Overlay com blur */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onCancelar}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            onCancelar()
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Fechar modal"
       />
-      
+
       {/* Modal */}
       <div className="relative w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
         {/* Header */}
@@ -127,3 +136,5 @@ export default function ConfirmarAvancoModal({
     </div>
   )
 }
+
+export default ConfirmarAvancoModal

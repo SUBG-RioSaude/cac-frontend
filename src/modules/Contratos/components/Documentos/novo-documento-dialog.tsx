@@ -1,19 +1,5 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { motion } from 'framer-motion'
-import { toast } from 'sonner'
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Badge } from '@/components/ui/badge'
-// import { cn } from '@/lib/utils' // Não usado no momento
 import {
   Plus,
   FileText,
@@ -26,10 +12,45 @@ import {
   Play,
   Receipt,
   File,
-  Loader2
+  Loader2,
 } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
-import type { DocumentoContrato, TipoDocumento } from '@/modules/Contratos/types/contrato'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import type {
+  DocumentoContrato,
+  TipoDocumento,
+} from '@/modules/Contratos/types/contrato'
 import { TIPOS_DOCUMENTO } from '@/modules/Contratos/types/contrato'
 
 const tipoIcons = {
@@ -42,40 +63,47 @@ const tipoIcons = {
   FileSignature,
   Play,
   Receipt,
-  File
+  File,
 }
 
 const novoDocumentoSchema = z.object({
-  nome: z.string()
+  nome: z
+    .string()
     .min(5, 'Nome deve ter pelo menos 5 caracteres')
     .max(100, 'Nome deve ter no máximo 100 caracteres'),
-  descricao: z.string()
+  descricao: z
+    .string()
     .min(10, 'Descrição deve ter pelo menos 10 caracteres')
     .max(500, 'Descrição deve ter no máximo 500 caracteres'),
-  tipoId: z.string()
-    .min(1, 'Selecione um tipo de documento'),
+  tipoId: z.string().min(1, 'Selecione um tipo de documento'),
   categoria: z.enum(['obrigatorio', 'opcional'], {
-    message: 'Selecione a categoria do documento'
+    message: 'Selecione a categoria do documento',
   }),
-  linkExterno: z.string()
+  linkExterno: z
+    .string()
     .url('Link deve ser uma URL válida')
     .optional()
-    .or(z.literal(''))
+    .or(z.literal('')),
 })
 
 type NovoDocumentoForm = z.infer<typeof novoDocumentoSchema>
 
 interface NovoDocumentoDialogProps {
-  onAdicionarDocumento: (documento: Omit<DocumentoContrato, 'id' | 'dataUpload' | 'dataUltimaVerificacao' | 'prioridade'>) => void
+  onAdicionarDocumento: (
+    documento: Omit<
+      DocumentoContrato,
+      'id' | 'dataUpload' | 'dataUltimaVerificacao' | 'prioridade'
+    >,
+  ) => void
   usuarioAtual?: string
   children: React.ReactNode
 }
 
-export function NovoDocumentoDialog({ 
-  onAdicionarDocumento, 
+export const NovoDocumentoDialog = ({
+  onAdicionarDocumento,
   usuarioAtual = 'Usuário Atual',
-  children 
-}: NovoDocumentoDialogProps) {
+  children,
+}: NovoDocumentoDialogProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -86,47 +114,49 @@ export function NovoDocumentoDialog({
       descricao: '',
       tipoId: '',
       categoria: 'obrigatorio',
-      linkExterno: ''
-    }
+      linkExterno: '',
+    },
   })
 
   const tipoSelecionado = form.watch('tipoId')
-  const tipoDocumento = TIPOS_DOCUMENTO.find(t => t.id === tipoSelecionado)
+  const tipoDocumento = TIPOS_DOCUMENTO.find((t) => t.id === tipoSelecionado)
+  const categoriaSelecionada = form.watch('categoria')
 
   const handleSubmit = async (data: NovoDocumentoForm) => {
     try {
       setIsSubmitting(true)
 
-      const tipo = TIPOS_DOCUMENTO.find(t => t.id === data.tipoId)
+      const tipo = TIPOS_DOCUMENTO.find((t) => t.id === data.tipoId)
       if (!tipo) {
         toast.error('Tipo de documento inválido')
         return
       }
 
-      const novoDocumento: Omit<DocumentoContrato, 'id' | 'dataUpload' | 'dataUltimaVerificacao' | 'prioridade'> = {
+      const novoDocumento: Omit<
+        DocumentoContrato,
+        'id' | 'dataUpload' | 'dataUltimaVerificacao' | 'prioridade'
+      > = {
         nome: data.nome.trim(),
         descricao: data.descricao.trim(),
         tipo,
         categoria: data.categoria,
         status: 'pendente',
-        linkExterno: data.linkExterno || undefined,
+        linkExterno: data.linkExterno ?? undefined,
         responsavel: usuarioAtual,
-        observacoes: undefined
+        observacoes: undefined,
       }
 
-      onAdicionarDocumento(novoDocumento)
-      
+      await Promise.resolve(onAdicionarDocumento(novoDocumento))
+
       toast.success(`Documento "${data.nome}" foi adicionado com sucesso`, {
-        description: `Status inicial: Pendente • Categoria: ${data.categoria === 'obrigatorio' ? 'Obrigatório' : 'Opcional'}`
+        description: `Status inicial: Pendente • Categoria: ${data.categoria === 'obrigatorio' ? 'Obrigatório' : 'Opcional'}`,
       })
 
       form.reset()
       setIsOpen(false)
-
-    } catch (error) {
-      console.error('Erro ao adicionar documento:', error)
+    } catch {
       toast.error('Erro ao adicionar documento', {
-        description: 'Tente novamente ou contate o suporte'
+        description: 'Tente novamente ou contate o suporte',
       })
     } finally {
       setIsSubmitting(false)
@@ -135,16 +165,17 @@ export function NovoDocumentoDialog({
 
   const getTipoIcon = (tipo?: TipoDocumento) => {
     if (!tipo) return File
-    return tipoIcons[tipo.icone as keyof typeof tipoIcons] || File
+    const iconKey = tipo.icone as keyof typeof tipoIcons
+    return iconKey in tipoIcons ? tipoIcons[iconKey] : File
   }
+
+  const submitForm = form.handleSubmit(handleSubmit)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogTrigger asChild>{children}</DialogTrigger>
+
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Plus className="h-5 w-5 text-teal-600" />
@@ -153,26 +184,32 @@ export function NovoDocumentoDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            
+          <form
+            onSubmit={(event) => {
+              void submitForm(event)
+            }}
+            className="space-y-6"
+          >
             {/* Preview do tipo selecionado */}
             {tipoDocumento && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border"
+                className="bg-muted/30 flex items-center gap-3 rounded-lg border p-3"
               >
                 {(() => {
                   const IconComponent = getTipoIcon(tipoDocumento)
                   return (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
-                      <IconComponent className="h-5 w-5 text-muted-foreground" />
+                    <div className="bg-muted/50 flex h-10 w-10 items-center justify-center rounded-lg">
+                      <IconComponent className="text-muted-foreground h-5 w-5" />
                     </div>
                   )
                 })()}
                 <div>
                   <div className="font-medium">{tipoDocumento.nome}</div>
-                  <div className="text-sm text-muted-foreground">{tipoDocumento.descricaoDetalhada}</div>
+                  <div className="text-muted-foreground text-sm">
+                    {tipoDocumento.descricaoDetalhada}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -185,7 +222,7 @@ export function NovoDocumentoDialog({
                 <FormItem>
                   <FormLabel className="required">Nome do Documento</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       placeholder="Ex: Edital Pregão Eletrônico nº 001/2024"
                       {...field}
                     />
@@ -206,7 +243,7 @@ export function NovoDocumentoDialog({
                 <FormItem>
                   <FormLabel className="required">Descrição</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Descreva o conteúdo e finalidade do documento..."
                       className="min-h-[80px] resize-none"
                       {...field}
@@ -227,7 +264,10 @@ export function NovoDocumentoDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="required">Tipo de Documento</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo do documento" />
@@ -235,7 +275,9 @@ export function NovoDocumentoDialog({
                     </FormControl>
                     <SelectContent>
                       {TIPOS_DOCUMENTO.map((tipo) => {
-                        const IconComponent = tipoIcons[tipo.icone as keyof typeof tipoIcons] || File
+                        const iconKey = tipo.icone as keyof typeof tipoIcons
+                        const IconComponent =
+                          iconKey in tipoIcons ? tipoIcons[iconKey] : File
                         return (
                           <SelectItem key={tipo.id} value={tipo.id}>
                             <div className="flex items-center gap-2">
@@ -262,15 +304,18 @@ export function NovoDocumentoDialog({
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between space-y-0 rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Documento Obrigatório</FormLabel>
+                    <FormLabel className="text-base">
+                      Documento Obrigatório
+                    </FormLabel>
                     <FormDescription>
-                      Documentos obrigatórios são necessários para a validade do contrato
+                      Documentos obrigatórios são necessários para a validade do
+                      contrato
                     </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
                       checked={field.value === 'obrigatorio'}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         field.onChange(checked ? 'obrigatorio' : 'opcional')
                       }
                     />
@@ -285,9 +330,12 @@ export function NovoDocumentoDialog({
               name="linkExterno"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Link do Documento <span className="text-muted-foreground">(opcional)</span></FormLabel>
+                  <FormLabel>
+                    Link do Documento{' '}
+                    <span className="text-muted-foreground">(opcional)</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       placeholder="https://exemplo.com/documento.pdf"
                       {...field}
                     />
@@ -302,12 +350,18 @@ export function NovoDocumentoDialog({
 
             {/* Resumo da categoria selecionada */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Categoria:</span>
-              <Badge 
-                variant={form.watch('categoria') === 'obrigatorio' ? 'destructive' : 'outline'}
+              <span className="text-muted-foreground text-sm">Categoria:</span>
+              <Badge
+                variant={
+                  categoriaSelecionada === 'obrigatorio'
+                    ? 'destructive'
+                    : 'outline'
+                }
                 className="text-xs"
               >
-                {form.watch('categoria') === 'obrigatorio' ? 'Obrigatório' : 'Opcional'}
+                {categoriaSelecionada === 'obrigatorio'
+                  ? 'Obrigatório'
+                  : 'Opcional'}
               </Badge>
             </div>
 
@@ -324,7 +378,7 @@ export function NovoDocumentoDialog({
               >
                 Cancelar
               </Button>
-              
+
               <Button
                 type="submit"
                 disabled={isSubmitting}
@@ -332,12 +386,12 @@ export function NovoDocumentoDialog({
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Adicionando...
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Adicionar Documento
                   </>
                 )}

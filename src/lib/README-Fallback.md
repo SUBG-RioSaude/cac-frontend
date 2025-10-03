@@ -7,6 +7,7 @@ O sistema implementa um mecanismo de fallback automático onde as requisições 
 ## Configuração
 
 ### Variáveis de Ambiente (.env)
+
 ```bash
 # Gateway principal (primeira tentativa)
 VITE_API_URL="http://devcac:7000/api"
@@ -18,11 +19,13 @@ VITE_API_URL_CONTRATOS="http://devcac:7000/api"
 ## Como Funciona
 
 ### 1. Clientes HTTP
+
 - **`apiGateway`**: Cliente para o gateway (timeout: 5s)
 - **`apiDirect`**: Cliente para microserviço direto (timeout: 10s)
 - **`api`**: Cliente padrão (para compatibilidade)
 
 ### 2. Função de Fallback
+
 ```typescript
 import { executeWithFallback } from '@/lib/axios'
 
@@ -30,23 +33,27 @@ import { executeWithFallback } from '@/lib/axios'
 const response = await executeWithFallback<ResponseType>({
   method: 'get',
   url: '/Contratos',
-  params: { page: 1 }
+  params: { page: 1 },
 })
 ```
 
 ### 3. Critérios para Fallback
+
 O fallback é acionado quando o gateway apresenta:
+
 - **Erro de rede/conectividade**
 - **Timeout** (>5 segundos)
 - **Status 5xx** (erros do servidor)
 
 ### 4. Não faz fallback em:
+
 - **Status 4xx** (erros de cliente - Bad Request, Unauthorized, etc.)
 - **Erros de validação**
 
 ## Monitoramento
 
 ### Console Logs
+
 ```javascript
 [API] Tentando gateway: GET /Contratos
 [API] ✅ Gateway respondeu: 200
@@ -57,7 +64,9 @@ O fallback é acionado quando o gateway apresenta:
 ```
 
 ### Métricas (Desenvolvimento)
+
 No console do navegador (apenas em DEV):
+
 ```javascript
 // Ver métricas em tempo real
 window.apiMetrics.printReport()
@@ -67,6 +76,7 @@ window.apiMetrics.getMetrics()
 ```
 
 **Exemplo de relatório:**
+
 ```
 📊 API Fallback Report
 Total de requisições: 45
@@ -99,12 +109,14 @@ const { data, isLoading } = useContratos(filtros)
 ## Debugging
 
 ### Logs Estruturados
+
 ```
 [API-METRICS] 2024-01-15T10:30:00.000Z - Gateway Success
 [API-METRICS] 2024-01-15T10:30:05.000Z - Gateway Failure { reason: "500 Internal Server Error" }
 ```
 
 ### Status em Tempo Real
+
 ```javascript
 // Verificar últimas falhas
 const metrics = window.apiMetrics.getMetrics()
@@ -115,7 +127,7 @@ console.log('Motivo:', metrics.lastFailureReason)
 ## Arquivos Modificados
 
 - `src/lib/axios.ts` - Clientes HTTP e lógica de fallback
-- `src/lib/api-metrics.ts` - Sistema de métricas  
+- `src/lib/api-metrics.ts` - Sistema de métricas
 - `src/modules/Contratos/services/contratos-service.ts` - Atualizado para usar fallback
 - `src/modules/Contratos/hooks/use-contratos*.ts` - Hooks atualizados
 

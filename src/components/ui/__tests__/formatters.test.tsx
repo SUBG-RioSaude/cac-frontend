@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+
 import {
   CurrencyDisplay,
   DateDisplay,
@@ -109,4 +110,3 @@ describe('Convenience displays (CNPJ/CEP/Phone)', () => {
     expect(screen.getByText(/Telefone/i)).toBeInTheDocument()
   })
 })
-
