@@ -20,7 +20,9 @@ export default function VerifyForm() {
   const [podeReenviar, setPodeReenviar] = useState(false)
   const [codigoExpirado, setCodigoExpirado] = useState(false)
   const [indiceFocado, setIndiceFocado] = useState<number | null>(null)
-  const [contexto, setContexto] = useState<'login' | 'password_recovery'>('login')
+  const [contexto, setContexto] = useState<'login' | 'password_recovery' | 'password_expired'>(
+    'login',
+  )
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const navigate = useNavigate()
@@ -34,9 +36,13 @@ export default function VerifyForm() {
   } = useAuthStore()
 
   useEffect(() => {
-    const emailArmazenado = sessionStorage.getItem("auth_email")
-    const contextoAuth = sessionStorage.getItem("auth_context") as 'login' | 'password_recovery' || 'login'
-    
+    const emailArmazenado = sessionStorage.getItem('auth_email')
+    const contextoAuthRaw = sessionStorage.getItem('auth_context')
+    const contextoAuth =
+      contextoAuthRaw === 'login' || contextoAuthRaw === 'password_recovery' || contextoAuthRaw === 'password_expired'
+        ? contextoAuthRaw
+        : 'login'
+
     if (!emailArmazenado) {
       navigate("/login")
       return
@@ -141,8 +147,8 @@ export default function VerifyForm() {
 
     limparErro()
 
-    if (contexto === 'password_recovery') {
-      // Fluxo de recuperação de senha - apenas verifica código e vai para redefinir senha
+    if (contexto === 'password_recovery' || contexto === 'password_expired') {
+      // Fluxo de recuperação de senha ou senha expirada - apenas verifica código e vai para redefinir senha
       const sucesso = await confirmarCodigo2FA(email, codigoString)
       
       if (sucesso) {
@@ -284,16 +290,35 @@ export default function VerifyForm() {
                   <Mail className="w-8 h-8 text-teal-600" />
                 </motion.div>
                 <motion.h1 className="text-2xl font-bold text-gray-900">
-                  {contexto === 'password_recovery' ? 'Verificar Código de Recuperação' : 'Verificação de Segurança'}
+                  {contexto === 'password_recovery'
+                    ? 'Verificar Código de Recuperação'
+                    : contexto === 'password_expired'
+                    ? 'Senha Expirada - Verificar Identidade'
+                    : 'Verificação de Segurança'}
                 </motion.h1>
                 <motion.p className="text-gray-600 text-sm">
                   {contexto === 'password_recovery' 
                     ? 'Digite o código de recuperação enviado para'
-                    : 'Enviamos um código de 6 dígitos para'
-                  }
+                    : contexto === 'password_expired'
+                    ? 'Sua senha expirou. Digite o código enviado para'
+                    : 'Enviamos um código de 6 dígitos para'}
                   <br />
                   <span className="font-medium">{email}</span>
                 </motion.p>
+
+                {/* Alerta informativo sobre senha expirada */}
+                {contexto === 'password_expired' && (
+                  <motion.div
+                    className="mt-4 rounded-lg bg-orange-50 border border-orange-200 p-3"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <p className="text-sm text-orange-800">
+                      ℹ️ Após verificar o código, você será direcionado para redefinir sua senha.
+                    </p>
+                  </motion.div>
+                )}
               </CardHeader>
 
               <CardContent className="space-y-6">

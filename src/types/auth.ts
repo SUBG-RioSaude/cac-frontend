@@ -51,6 +51,7 @@ export interface ConfirmarCodigo2FAResponse {
     usuario: Usuario
   }
   precisaTrocarSenha?: boolean
+  senhaExpirada?: boolean
   message?: string
   tokenTrocaSenha?: string
   mensagem?: string

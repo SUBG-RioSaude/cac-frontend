@@ -17,14 +17,10 @@ export default function LoginForm() {
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
-  
-  const { 
-    login, 
-    carregando, 
-    erro, 
-    limparErro,
-    estaAutenticado 
-  } = useAuthStore()
+
+  const { login, carregando, erro, limparErro, estaAutenticado } =
+    useAuthStore()
+
 
   // Redireciona se já estiver autenticado
   useEffect(() => {
@@ -65,6 +61,11 @@ export default function LoginForm() {
       navigate("/auth/verificar-codigo", { replace: true })
     }
   }
+
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   void handleSubmitAsync(e)
+  // }
+
 
   const containerVariants = {
     hidden: { opacity: 0 },
