@@ -225,15 +225,24 @@ export function useContratoDetalhado(
     enabled: options?.enabled ?? !!id,
 
     retry: (failureCount, error: unknown) => {
-      if (error && typeof error === 'object' && 'response' in error) {
-        const { status } = (error as { response: { status: number } }).response
-        // Não retry para erros de cliente (4xx)
-        if (status >= 400 && status < 500) {
-          return false
+      if (error && typeof error === 'object') {
+        // Para timeouts, fazer mais tentativas
+        if ('code' in error && error.code === 'ECONNABORTED') {
+          return failureCount < 3 // 3 tentativas para timeouts
+        }
+        
+        if ('response' in error) {
+          const status = (error as { response: { status: number } }).response?.status
+          // Não retry para erros de cliente (4xx)
+          if (status >= 400 && status < 500) {
+            return false
+          }
         }
       }
       return failureCount < 2
     },
+
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Backoff exponencial até 30s
 
     throwOnError: (error: unknown) => {
       if (error && typeof error === 'object' && 'response' in error) {

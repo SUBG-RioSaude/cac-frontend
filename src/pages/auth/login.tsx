@@ -21,6 +21,7 @@ const LoginForm = () => {
   const { login, carregando, erro, limparErro, estaAutenticado } =
     useAuthStore()
 
+
   // Redireciona se já estiver autenticado
   useEffect(() => {
     if (estaAutenticado) {
@@ -64,6 +65,7 @@ const LoginForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     void handleSubmitAsync(e)
   }
+
 
   const containerVariants = {
     hidden: { opacity: 0 },

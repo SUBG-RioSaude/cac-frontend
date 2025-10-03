@@ -31,6 +31,14 @@ const ForgotPasswordForm = () => {
     }
   }, [estaAutenticado, navigate])
 
+  // Pré-preenche email se veio da tela de senha expirada
+  useEffect(() => {
+    const emailArmazenado = sessionStorage.getItem('auth_email')
+    if (emailArmazenado) {
+      setEmail(emailArmazenado)
+    }
+  }, [])
+
   const validarEmail = (emailValue: string): boolean => {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return regexEmail.test(emailValue)
@@ -51,8 +59,11 @@ const ForgotPasswordForm = () => {
       const resultadoSucesso = await esqueciSenha(email)
 
       if (resultadoSucesso) {
-        // Armazenar contexto de recuperação para diferenciá-lo do login 2FA
-        sessionStorage.setItem('auth_context', 'password_recovery')
+        // Mantém contexto se veio de senha expirada, senão define como password_recovery
+        const contextoAtual = sessionStorage.getItem('auth_context')
+        if (contextoAtual !== 'password_expired') {
+          sessionStorage.setItem('auth_context', 'password_recovery')
+        }
         sessionStorage.setItem('auth_email', email)
 
         // Redirecionar imediatamente para a tela de verificação
