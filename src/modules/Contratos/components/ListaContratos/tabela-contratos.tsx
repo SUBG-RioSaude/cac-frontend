@@ -156,10 +156,10 @@ export const TabelaContratos = ({
     label: string
     value: React.ReactNode
   }) => (
-    <div className="flex items-center gap-2 text-sm">
-      <Icon className="text-muted-foreground h-4 w-4" />
+    <div className="flex items-center gap-3 text-sm">
+      <Icon className="text-muted-foreground h-4 w-4 shrink-0" />
       <span className="font-semibold">{label}:</span>
-      <span className="text-muted-foreground">{value}</span>
+      <span className="text-muted-foreground truncate">{value}</span>
     </div>
   )
 
@@ -177,7 +177,7 @@ export const TabelaContratos = ({
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-        <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-4">
+        <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-5">
           <div className="flex items-center gap-3">
             <Checkbox
               checked={contratosSelecionados.includes(contrato.id)}
@@ -196,11 +196,11 @@ export const TabelaContratos = ({
           </div>
           <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
         </CardHeader>
-        <CardContent className="space-y-4 p-4">
-          <div>
+        <CardContent className="space-y-4 p-5 sm:p-6">
+          <div className="space-y-2">
             {!hideContratadaColumn && (
               <>
-                <p className="truncate text-lg font-semibold">
+                <p className="truncate text-base font-semibold sm:text-lg" title={contrato.empresaRazaoSocial ?? contrato.contratada?.razaoSocial ?? 'Empresa não informada'}>
                   {contrato.empresaRazaoSocial ??
                     contrato.contratada?.razaoSocial ??
                     'Empresa não informada'}
@@ -221,7 +221,7 @@ export const TabelaContratos = ({
               {contrato.descricaoObjeto ?? 'Objeto não informado'}
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
             <InfoItem
               icon={DollarSign}
               label="Valor Global"
@@ -244,19 +244,20 @@ export const TabelaContratos = ({
               value={contrato.contratacao ?? 'N/A'}
             />
             <div className="flex items-center gap-2 text-sm">
-              <Building className="text-muted-foreground h-4 w-4" />
+              <Building className="text-muted-foreground h-4 w-4 shrink-0" />
               <span className="font-semibold">Unidades:</span>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => handleMostrarUnidades(contrato)}
-                className="hover:bg-muted/50 ml-auto h-auto p-1 font-normal"
+                className="ml-auto h-auto border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
                 disabled={obterTotalUnidades(contrato) === 0}
               >
                 {obterTotalUnidades(contrato) === 0 ? (
-                  <span className="text-muted-foreground text-xs">Nenhuma</span>
+                  <span>Nenhuma</span>
                 ) : (
-                  <span className="text-primary text-xs">
+                  <span className="flex items-center gap-1">
+                    <Building className="h-3 w-3" />
                     Ver ({obterTotalUnidades(contrato)})
                   </span>
                 )}
@@ -273,7 +274,7 @@ export const TabelaContratos = ({
               value={contrato.vinculacaoPCA ?? 'N/A'}
             />
           </div>
-          <div className="flex items-center justify-end border-t pt-3">
+          <div className="flex items-center justify-end border-t pt-4">
             <Button
               variant="default"
               size="sm"
@@ -694,7 +695,7 @@ export const TabelaContratos = ({
           </div>
 
           {/* Mobile Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 lg:hidden">
             <AnimatePresence>
               {isLoading
                 ? mobileSkeletonCardIds.map((skeletonId) => (
@@ -733,7 +734,7 @@ export const TabelaContratos = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -745,7 +746,7 @@ export const TabelaContratos = ({
                 <span className="hidden sm:inline">Anterior</span>
               </Button>
 
-              <div className="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3">
                 <span className="text-sm font-medium">
                   Página {paginacao.pagina} de {totalPaginas}
                 </span>
