@@ -271,6 +271,22 @@ export const AlteracoesContratuais = ({
     return (pontos / maxPontos) * 100
   }, [dados, blocosObrigatorios.size, validarCamposObrigatorios, podeSubmeter])
 
+  // Obter nomes dos tipos de alteração selecionados
+  const tiposAlteracaoNomes = useMemo(() => {
+    if (!dados.tiposAlteracao || dados.tiposAlteracao.length === 0) {
+      return null
+    }
+
+    return dados.tiposAlteracao
+      .map((tipo: number) => {
+        const config =
+          TIPOS_ALTERACAO_CONFIG[tipo as keyof typeof TIPOS_ALTERACAO_CONFIG]
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        return config ? config.label : `Tipo ${tipo}`
+      })
+      .join(', ')
+  }, [dados.tiposAlteracao])
+
   // Handlers
   const handleTiposChange = useCallback(
     (tipos: number[]) => {
@@ -1136,18 +1152,25 @@ export const AlteracoesContratuais = ({
                 <CardTitle className="text-xl">
                   Nova Alteração Contratual
                 </CardTitle>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {numeroContrato && `Contrato: ${numeroContrato}`}
-                  {valorOriginal > 0 && (
-                    <span className="ml-4">
-                      Valor original:{' '}
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(valorOriginal)}
-                    </span>
+                <div className="mt-1 space-y-1">
+                  <p className="text-muted-foreground text-sm">
+                    {numeroContrato && `Contrato: ${numeroContrato}`}
+                    {valorOriginal > 0 && (
+                      <span className="ml-4">
+                        Valor original:{' '}
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(valorOriginal)}
+                      </span>
+                    )}
+                  </p>
+                  {tiposAlteracaoNomes && (
+                    <p className="text-sm font-medium text-blue-700">
+                      Tipo: {tiposAlteracaoNomes}
+                    </p>
                   )}
-                </p>
+                </div>
               </div>
               <Badge variant="outline" className="px-3">
                 Etapa {etapaAtual + 1} de {ETAPAS.length}
