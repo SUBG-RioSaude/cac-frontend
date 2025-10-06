@@ -176,7 +176,7 @@ export const TabelaContratos = ({
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Card className="mb-4 overflow-hidden transition-shadow hover:shadow-lg">
+      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
         <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-4">
           <div className="flex items-center gap-3">
             <Checkbox
@@ -200,7 +200,7 @@ export const TabelaContratos = ({
           <div>
             {!hideContratadaColumn && (
               <>
-                <p className="text-lg font-semibold">
+                <p className="truncate text-lg font-semibold">
                   {contrato.empresaRazaoSocial ??
                     contrato.contratada?.razaoSocial ??
                     'Empresa não informada'}
@@ -310,10 +310,10 @@ export const TabelaContratos = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="px-4 py-0 sm:px-6">
           {/* Desktop Table (Large screens) */}
           <div className="hidden xl:block">
-            <div className="bg-background/50 mx-4 mb-6 overflow-hidden rounded-lg border sm:mx-6">
+            <div className="bg-background/50 mb-6 overflow-x-auto rounded-lg border scrollbar-hide scroll-smooth">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -478,15 +478,15 @@ export const TabelaContratos = ({
                                 vigenciaFim={contrato.vigenciaFinal}
                               />
                             </TableCell>
-                            <TableCell className="text-right font-medium">
+                            <TableCell className="whitespace-nowrap text-right font-medium">
                               {formatarMoeda(contrato.valorGlobal)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <ContratoStatusBadge
                                 status={parseStatusContrato(contrato.status)}
                               />
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="whitespace-nowrap text-right">
                               <Button
                                 variant="default"
                                 size="sm"
@@ -509,7 +509,7 @@ export const TabelaContratos = ({
 
           {/* Tablet Table (Medium to Large screens) */}
           <div className="hidden lg:block xl:hidden">
-            <div className="bg-background/50 mx-4 mb-6 overflow-x-auto rounded-lg border sm:mx-6">
+            <div className="bg-background/50 mb-6 overflow-x-auto rounded-lg border scrollbar-hide scroll-smooth">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -665,15 +665,15 @@ export const TabelaContratos = ({
                                 compact
                               />
                             </TableCell>
-                            <TableCell className="text-right font-medium">
+                            <TableCell className="whitespace-nowrap text-right font-medium">
                               {formatarMoeda(contrato.valorGlobal)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <ContratoStatusBadge
                                 status={parseStatusContrato(contrato.status)}
                               />
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="whitespace-nowrap text-right">
                               <Button
                                 variant="default"
                                 size="sm"
@@ -694,11 +694,11 @@ export const TabelaContratos = ({
           </div>
 
           {/* Mobile Cards */}
-          <div className="px-4 sm:px-6 lg:hidden">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
             <AnimatePresence>
               {isLoading
                 ? mobileSkeletonCardIds.map((skeletonId) => (
-                    <Card key={skeletonId} className="mb-4">
+                    <Card key={skeletonId}>
                       <CardContent className="p-4">
                         <div className="space-y-3">
                           <Skeleton className="h-4 w-3/4" />

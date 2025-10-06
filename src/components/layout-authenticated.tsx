@@ -24,9 +24,9 @@ export const LayoutAuthenticated = ({ children }: LayoutAuthenticatedProps) => {
         </header>
 
         {/* Conteúdo principal com scroll */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
           <ErrorBoundary>
-            <div className="mx-auto px-6">{children}</div>
+            <div className="mx-auto max-w-[1920px] px-4 sm:px-6">{children}</div>
           </ErrorBoundary>
         </main>
 

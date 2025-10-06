@@ -145,8 +145,8 @@ export const ContratosPage = () => {
       : 'Exportar Todos'
 
   return (
-    <div className="min-h-screen">
-      <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
+    <div className="min-h-screen overflow-x-hidden">
+      <div className="space-y-6 py-6 sm:space-y-8 sm:py-8">
         {/* Cabeçalho Responsivo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
