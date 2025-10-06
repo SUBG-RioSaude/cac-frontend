@@ -314,22 +314,17 @@ export const VisualizarContrato = () => {
             </div>
 
             {/* Título e status */}
-            <div className="space-y-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <h1 className="text-xl font-bold break-all sm:text-2xl lg:text-3xl">
-                  {contrato.numeroContrato}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <ContratoStatusBadge
-                    status={parseStatusContrato(contrato.status)}
-                    size="lg"
-                    className="px-3 py-1 text-sm font-semibold"
-                  />
-                </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <h1 className="text-xl font-bold break-all sm:text-2xl lg:text-3xl">
+                {contrato.numeroContrato}
+              </h1>
+              <div className="flex items-center gap-2">
+                <ContratoStatusBadge
+                  status={parseStatusContrato(contrato.status)}
+                  size="lg"
+                  className="px-3 py-1 text-sm font-semibold"
+                />
               </div>
-              <p className="text-muted-foreground text-sm break-words sm:text-base">
-                {contrato.fornecedor.razaoSocial}
-              </p>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,7 +11,6 @@ import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/t
 import { useContratos } from '@/modules/Contratos/hooks'
 import { useContratosPageState } from '@/modules/Contratos/hooks/useContratosPageState'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
-import { useNavigate } from 'react-router-dom'
 
 export const ContratosPage = () => {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
