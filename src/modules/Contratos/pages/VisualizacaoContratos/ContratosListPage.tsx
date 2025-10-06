@@ -10,6 +10,7 @@ import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/t
 import { useContratos } from '@/modules/Contratos/hooks'
 import { useContratosPageState } from '@/modules/Contratos/hooks/useContratosPageState'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
+import { useNavigate } from 'react-router-dom'
 
 export const ContratosPage = () => {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
@@ -130,9 +131,13 @@ export const ContratosPage = () => {
     }
   }
 
+
+  const navigate = useNavigate()
+
   const handleNovoContrato = () => {
+    navigate('/contratos/cadastrar')
     // TODO: Implementar navegação para novo contrato
-  }
+  } 
 
   const textoExportar =
     pageState.contratosSelecionados.length > 0
@@ -177,10 +182,11 @@ export const ContratosPage = () => {
               <span className="hidden sm:inline">{textoExportar}</span>
             </Button>
             <Button
+              variant="success"
               onClick={handleNovoContrato}
-              className="h-10 cursor-pointer shadow-sm sm:h-auto"
+              className="h-10 cursor-pointer shadow-sm sm:h-auto  border-green-500"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4 text-white" />
               Novo Contrato
             </Button>
           </motion.div>

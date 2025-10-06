@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Edit, Download, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Download, MoreHorizontal } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
@@ -44,7 +44,6 @@ export const VisualizarContrato = () => {
   const { contratoId: id } = useParams<{ contratoId: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
-  const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
   const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
 
   // Buscar contrato da API usando React Query
@@ -70,10 +69,6 @@ export const VisualizarContrato = () => {
   //     setEntradasTimeline(prev => [entrada, ...prev])
   //   }
   // })
-
-  const handleEditarGlobal = () => {
-    setModoEdicaoGlobal(!modoEdicaoGlobal)
-  }
 
   const handleExportar = () => {
     // TODO: Implementar funcionalidade de exportação
@@ -300,20 +295,6 @@ export const VisualizarContrato = () => {
                   >
                     <Download className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Exportar</span>
-                  </Button>
-                  <Button
-                    onClick={handleEditarGlobal}
-                    variant={modoEdicaoGlobal ? 'destructive' : 'default'}
-                    size="sm"
-                    className="text-xs sm:text-sm"
-                  >
-                    <Edit className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
-                    <span className="hidden md:inline">
-                      {modoEdicaoGlobal ? 'Cancelar' : 'Editar Tudo'}
-                    </span>
-                    <span className="md:hidden">
-                      {modoEdicaoGlobal ? 'Cancelar' : 'Editar'}
-                    </span>
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

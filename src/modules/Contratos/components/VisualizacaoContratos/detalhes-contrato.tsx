@@ -937,19 +937,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Dados da Empresa */}
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Building className="h-5 w-5" />
                       Dados da Empresa
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditarCampo('dados-empresa')}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {!!empresaError && (
@@ -1032,19 +1024,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
 
                 {/* Contatos */}
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Phone className="h-5 w-5" />
                       Contatos
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditarCampo('contatos')}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {empresaLoading ? (
@@ -1133,19 +1117,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
 
                 {/* Endereço */}
                 <Card className="lg:col-span-2">
-                  <CardHeader className="flex flex-row items-center justify-between">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       Endereço
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditarCampo('endereco')}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
                   </CardHeader>
                   <CardContent>
                     {empresaLoading ? (
