@@ -579,13 +579,13 @@ export const AlteracoesContratuais = ({
           if (unit?.nome) {
             return unit.nome
           }
-          // Check if it's the demanding unit (stored as string)
-          if (contractUnits.demandingUnit === unitId) {
-            return contractUnits.demandingUnit
+          // Check if it's the demanding unit (compare IDs, return name)
+          if (contractUnits.demandingUnitId === unitId) {
+            return contractUnits.demandingUnit ?? unitId
           }
-          // Check if it's the managing unit (stored as string)
-          if (contractUnits.managingUnit === unitId) {
-            return contractUnits.managingUnit
+          // Check if it's the managing unit (compare IDs, return name)
+          if (contractUnits.managingUnitId === unitId) {
+            return contractUnits.managingUnit ?? unitId
           }
           return unitId
         }
