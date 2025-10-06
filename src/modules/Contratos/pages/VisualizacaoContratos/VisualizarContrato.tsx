@@ -30,7 +30,6 @@ import {
   getActiveTabs,
   getDefaultTab,
   isTabEnabled,
-  getGridCols,
 } from '../../config/tabs-config'
 import { useContratoDetalhado } from '../../hooks/use-contratos'
 import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
@@ -367,31 +366,17 @@ export const VisualizarContrato = () => {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList
-                className={`grid h-auto w-full ${
-                  getGridCols() === 1
-                    ? 'grid-cols-1'
-                    : getGridCols() === 2
-                      ? 'grid-cols-2'
-                      : getGridCols() === 3
-                        ? 'grid-cols-3'
-                        : getGridCols() === 4
-                          ? 'grid-cols-4'
-                          : getGridCols() === 5
-                            ? 'grid-cols-5'
-                            : 'grid-cols-6'
-                } rounded-lg bg-gray-50 p-1`}
-              >
+              <TabsList className="flex h-auto w-full gap-1 overflow-x-auto rounded-lg bg-gray-50 p-1 scrollbar-hide sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 {getActiveTabs().map((tab) => (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className={`flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border ${tab.icon.activeBorder} ${tab.icon.activeBg} ${tab.icon.activeText} data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm`}
+                    className={`flex min-w-[120px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:border ${tab.icon.activeBorder} ${tab.icon.activeBg} ${tab.icon.activeText} data-[state=active]:shadow-sm sm:min-w-0 sm:flex-row sm:gap-2 sm:px-3 sm:py-3 sm:text-sm`}
                   >
                     <div
-                      className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
+                      className={`h-2 w-2 shrink-0 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
                     />
-                    <span className="text-center">{tab.label}</span>
+                    <span className="truncate text-center sm:text-left">{tab.label}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
