@@ -182,11 +182,11 @@ export const ContratosPage = () => {
               <span className="hidden sm:inline">{textoExportar}</span>
             </Button>
             <Button
-              variant="success"
+              variant="outline-premium"
               onClick={handleNovoContrato}
-              className="h-10 cursor-pointer shadow-sm sm:h-auto  border-green-500"
+              className="h-10 cursor-pointer shadow-sm sm:h-auto  "
             >
-              <Plus className="mr-2 h-4 w-4 text-white" />
+              <Plus className="mr-2 h-4 w-4 " />
               Novo Contrato
             </Button>
           </motion.div>

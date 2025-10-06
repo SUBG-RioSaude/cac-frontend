@@ -276,10 +276,10 @@ export const TabelaContratos = ({
           </div>
           <div className="flex items-center justify-end border-t pt-4">
             <Button
-              variant="default"
+              variant="outline-premium"
               size="sm"
               onClick={() => handleVisualizarContrato(contrato)}
-              className="h-9 px-4 shadow-sm"
+              className="h-9 px-4"
               title="Abrir contrato"
             >
               <Eye className="mr-2 h-4 w-4" />
@@ -489,12 +489,12 @@ export const TabelaContratos = ({
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-right">
                               <Button
-                                variant="default"
-                                size="sm"
+                                variant="outline-premium"
+                                
                                 onClick={() =>
                                   handleVisualizarContrato(contrato)
                                 }
-                                className="h-8 px-3 shadow-sm"
+                                className="h-8 px-3"
                               >
                                 <Eye className="mr-1 h-4 w-4" />
                                 Abrir
@@ -676,12 +676,12 @@ export const TabelaContratos = ({
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-right">
                               <Button
-                                variant="default"
+                                variant="outline-premium"
                                 size="sm"
                                 onClick={() =>
                                   handleVisualizarContrato(contrato)
                                 }
-                                className="h-8 px-3 shadow-sm"
+                                className="h-8 px-3"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
