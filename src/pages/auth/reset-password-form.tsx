@@ -56,9 +56,9 @@ const ResetPasswordForm = () => {
       return
     }
 
-    // Verifica se veio do fluxo de recuperação
+    // Verifica se veio do fluxo de recuperação ou senha expirada
     const contexto = sessionStorage.getItem('auth_context')
-    if (contexto !== 'password_reset' && contexto !== 'password_recovery') {
+    if (contexto !== 'password_reset' && contexto !== 'password_recovery' && contexto !== 'password_expired') {
       navigate('/login')
       return
     }
