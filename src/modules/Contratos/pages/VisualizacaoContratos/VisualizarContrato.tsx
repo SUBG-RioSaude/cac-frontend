@@ -447,7 +447,10 @@ export const VisualizarContrato = () => {
                 {/* Renderizar apenas abas ativas */}
                 {isTabEnabled('detalhes') && (
                   <TabsContent value="detalhes" className="mt-0 w-full">
-                    <DetalhesContrato contrato={contrato} />
+                    <DetalhesContrato
+                      contrato={contrato}
+                      onMarcarChatComoAlteracao={handleMarcarChatComoAlteracao}
+                    />
                   </TabsContent>
                 )}
 

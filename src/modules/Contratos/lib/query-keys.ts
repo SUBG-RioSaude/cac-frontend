@@ -65,6 +65,13 @@ export const contratoKeys = {
   // Documentos de um contrato
   documentos: (contratoId: string) =>
     [...contratoKeys.detail(contratoId), 'documentos'] as const,
+
+  // Chat do contrato
+  chat: (contratoId: string) =>
+    [...contratoKeys.detail(contratoId), 'chat'] as const,
+  chatPagina: (contratoId: string, page: number, pageSize?: number) =>
+    [...contratoKeys.chat(contratoId), { page, pageSize }] as const,
+  chatEstatisticas: () => [...contratoKeys.all, 'chat-estatisticas'] as const,
 }
 
 // Query keys para empresas/fornecedores

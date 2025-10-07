@@ -47,3 +47,13 @@ export { useToast } from './useToast'
 
 // Query keys para invalidação manual quando necessário
 export { contratoKeys } from '../lib/query-keys'
+
+// Hooks de Chat
+export {
+  useContractChatMessages,
+  useSendChatMessage,
+  useUpdateChatMessage,
+  useDeleteChatMessage,
+  useChatEstatisticas,
+  useContractChatRealtime,
+} from './use-chat'

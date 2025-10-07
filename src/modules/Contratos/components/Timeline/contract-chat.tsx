@@ -5,11 +5,17 @@ import {
   AlertTriangle,
   FileText,
   Users,
-  Clock,
   CheckCircle2,
   MessageSquare,
+  Loader2,
 } from 'lucide-react'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -17,12 +23,18 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
+import { useAuthStore } from '@/lib/auth/auth-store'
 import { createServiceLogger } from '@/lib/logger'
 import { cn } from '@/lib/utils'
 import {
-  MENSAGENS_MOCK,
-  PARTICIPANTES_MOCK,
-} from '@/modules/Contratos/data/chat-mock'
+  useContractChatMessages,
+  useSendChatMessage,
+  useContractChatRealtime,
+} from '@/modules/Contratos/hooks/use-chat'
+import {
+  CHAT_PAGE_SIZE_DEFAULT,
+  CHAT_SISTEMA_ID,
+} from '@/modules/Contratos/types/chat-api'
 import type {
   ChatMessage,
   ChatParticipante,
@@ -43,60 +55,127 @@ export const ContractChat = ({
   onMarcarComoAlteracao,
   className,
 }: ContractChatProps) => {
-  const [mensagens, setMensagens] = useState<ChatMessage[]>(MENSAGENS_MOCK)
-  const [participantes] = useState<ChatParticipante[]>(PARTICIPANTES_MOCK)
   const [novaMensagem, setNovaMensagem] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const currentUserId = '1' // Simular usuário logado
+  const previousMessageCountRef = useRef(0)
+
+  const { usuario } = useAuthStore()
+
+  const currentUserId = usuario?.id ?? 'usuario-anonimo'
+  const currentUserNome = usuario?.nomeCompleto ?? 'Você'
+  const pageSize = CHAT_PAGE_SIZE_DEFAULT
+
+  const {
+    mensagens,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useContractChatMessages(contratoId, {
+    enabled: Boolean(contratoId),
+    pageSize,
+    sistemaId: CHAT_SISTEMA_ID,
+  })
+
+  const sendMessageMutation = useSendChatMessage(contratoId)
+
+  const realtime = useContractChatRealtime({
+    contratoId,
+    autorId: currentUserId,
+    sistemaId: CHAT_SISTEMA_ID,
+    pageSize,
+  })
+
+  const mensagensOrdenadas = useMemo(() => {
+    return [...mensagens].sort(
+      (a, b) => new Date(a.dataEnvio).getTime() - new Date(b.dataEnvio).getTime(),
+    )
+  }, [mensagens])
+
+  const participantes = useMemo<ChatParticipante[]>(() => {
+    const map = new Map<string, ChatParticipante>()
+
+    mensagens.forEach((mensagem) => {
+      const { id, nome, tipo, avatar } = mensagem.remetente
+      const nomeNormalizado = nome ?? 'Usuário'
+
+      if (!map.has(id)) {
+        map.set(id, {
+          id,
+          nome: nomeNormalizado,
+          email: '',
+          avatar,
+          tipo: tipo ?? 'usuario',
+          status: 'online',
+          ultimoAcesso: mensagem.dataEnvio,
+        })
+      }
+    })
+
+    if (!map.has(currentUserId)) {
+      map.set(currentUserId, {
+        id: currentUserId,
+        nome: currentUserNome,
+        email: usuario?.email ?? '',
+        tipo: 'usuario',
+        status: 'online',
+      })
+    }
+
+    return Array.from(map.values())
+  }, [mensagens, currentUserId, currentUserNome, usuario])
+
+  const currentUserParticipant = useMemo(
+    () => participantes.find((p) => p.id === currentUserId),
+    [participantes, currentUserId],
+  )
 
   // Auto-scroll para nova mensagem
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current.querySelector(
-        '[data-radix-scroll-area-viewport]',
-      )
-      if (scrollElement && typeof scrollElement.scrollTo === 'function') {
-        scrollElement.scrollTo({
-          top: scrollElement.scrollHeight,
-          behavior: 'smooth',
-        })
-      }
+    const mensagensCount = mensagensOrdenadas.length
+    const previousCount = previousMessageCountRef.current
+    previousMessageCountRef.current = mensagensCount
+
+    if (mensagensCount <= previousCount) {
+      return
     }
-  }, [mensagens])
+
+    const viewport = scrollAreaRef.current?.querySelector(
+      '[data-radix-scroll-area-viewport]',
+    ) as HTMLDivElement | null
+
+    if (viewport && typeof viewport.scrollTo === 'function') {
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: 'smooth',
+      })
+    }
+  }, [mensagensOrdenadas])
 
   const handleEnviarMensagem = useCallback(() => {
-    if (!novaMensagem.trim() || isLoading) return
-
-    setIsLoading(true)
+    if (!novaMensagem.trim() || sendMessageMutation.isPending) return
 
     try {
-      const usuarioAtual = participantes.find((p) => p.id === currentUserId)
-      const mensagemId = Date.now().toString()
-
-      const mensagem: ChatMessage = {
-        id: mensagemId,
-        contratoId,
-        remetente: {
-          id: currentUserId,
-          nome: usuarioAtual?.nome ?? 'Usuário',
-          avatar: usuarioAtual?.avatar,
-          tipo: usuarioAtual?.tipo ?? 'usuario',
-        },
+      sendMessageMutation.mutate({
         conteudo: novaMensagem.trim(),
-        tipo: 'texto',
-        dataEnvio: new Date().toISOString(),
-        lida: true,
-      }
-
-      setMensagens((prev) => [...prev, mensagem])
+        autorId: currentUserId,
+        autorNome: currentUserNome,
+      })
       setNovaMensagem('')
+      realtime.stopTyping()
     } catch (error) {
       logger.error('Erro ao enviar mensagem:', error as string)
-    } finally {
-      setIsLoading(false)
     }
-  }, [novaMensagem, isLoading, contratoId, participantes, currentUserId])
+  }, [
+    novaMensagem,
+    sendMessageMutation,
+    currentUserId,
+    currentUserNome,
+    realtime,
+  ])
 
   const handleMarcarComoAlteracao = useCallback(
     (mensagem: ChatMessage) => {
@@ -130,7 +209,7 @@ export const ContractChat = ({
   }
 
   return (
-    <Card className={cn('flex h-full min-h-[700px] flex-col', className)}>
+    <Card className={cn('flex flex-col', className ?? 'h-full min-h-[700px]')}>
       {/* Header do Chat */}
       <CardHeader className="bg-muted/30 border-b">
         <div className="flex items-center justify-between">
@@ -146,7 +225,39 @@ export const ContractChat = ({
 
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">
-              {mensagens.filter((m) => m.tipo !== 'sistema').length} observações
+              {
+                mensagensOrdenadas.filter((m) => m.tipo !== 'sistema').length
+              }{' '}
+              observações
+            </Badge>
+            <Badge
+              variant="outline"
+              className="hidden items-center gap-1 text-xs md:flex"
+            >
+              <Users className="h-3 w-3" />
+              {participantes.length}
+            </Badge>
+            <Badge
+              variant={
+                realtime.isConnected
+                  ? 'outline'
+                  : realtime.connectionState === 'connecting'
+                    ? 'secondary'
+                    : 'destructive'
+              }
+              className="flex items-center gap-1 text-xs"
+            >
+              <Loader2
+                className={cn(
+                  'h-3 w-3',
+                  realtime.isConnecting ? 'animate-spin' : 'hidden',
+                )}
+              />
+              {realtime.connectionState === 'connected'
+                ? 'Tempo real'
+                : realtime.connectionState === 'connecting'
+                  ? 'Conectando'
+                  : 'Offline'}
             </Badge>
           </div>
         </div>
@@ -156,8 +267,80 @@ export const ContractChat = ({
       <div className="to-muted/10 flex-1 overflow-hidden bg-gradient-to-b from-white">
         <ScrollArea ref={scrollAreaRef} className="h-full">
           <div className="space-y-6 p-6">
+            {isError && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                <p className="font-medium">Erro ao carregar o chat</p>
+                <p className="mt-1 opacity-80">
+                  {error instanceof Error
+                    ? error.message
+                    : 'Não foi possível carregar as mensagens. Tente novamente.'}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => {
+                    void refetch()
+                  }}
+                >
+                  Tentar novamente
+                </Button>
+              </div>
+            )}
+
+            {hasNextPage && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    void fetchNextPage()
+                  }}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Carregar mensagens anteriores'
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {realtime.connectionState === 'error' && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                Conexão em tempo real indisponível. Exibindo dados armazenados no
+                cache.
+              </div>
+            )}
+
+            {isLoading && mensagensOrdenadas.length === 0 && (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={`chat-skeleton-${index}`}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="bg-muted h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <div className="bg-muted h-4 w-1/3 rounded" />
+                      <div className="bg-muted h-14 w-full rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!isLoading && mensagensOrdenadas.length === 0 && !isError && (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                Nenhuma observação registrada para este contrato.
+              </div>
+            )}
+
             <AnimatePresence>
-              {mensagens.map((mensagem) => {
+              {mensagensOrdenadas.map((mensagem) => {
+                const remetenteTipo = mensagem.remetente.tipo ?? 'usuario'
+                const remetenteNome = mensagem.remetente.nome ?? 'Usuário'
                 const isOwn = mensagem.remetente.id === currentUserId
 
                 return (
@@ -173,7 +356,6 @@ export const ContractChat = ({
                     )}
                   >
                     {mensagem.tipo === 'sistema' ? (
-                      // Mensagem do sistema
                       <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-center">
                         <p className="flex items-center justify-center gap-2 text-sm font-medium text-blue-700">
                           <CheckCircle2 className="h-4 w-4" />
@@ -185,16 +367,15 @@ export const ContractChat = ({
                       </div>
                     ) : (
                       <>
-                        {/* Avatar (sempre mostrar para identificação) */}
                         {!isOwn && (
                           <div className="mt-1">
                             <Avatar className="h-8 w-8">
                               <AvatarImage
                                 src={mensagem.remetente.avatar}
-                                alt={mensagem.remetente.nome}
+                                alt={remetenteNome}
                               />
                               <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
-                                {mensagem.remetente.nome
+                                {remetenteNome
                                   .split(' ')
                                   .map((n) => n[0])
                                   .join('')
@@ -204,7 +385,6 @@ export const ContractChat = ({
                           </div>
                         )}
 
-                        {/* Conteúdo da mensagem */}
                         <div
                           className={cn(
                             'flex-1',
@@ -214,16 +394,14 @@ export const ContractChat = ({
                           {!isOwn && (
                             <div className="mb-2 flex items-center gap-2">
                               <span className="text-foreground text-sm font-medium">
-                                {mensagem.remetente.nome}
+                                {remetenteNome}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="px-2 py-0.5 text-xs"
+                                className="flex items-center gap-1 px-2 py-0.5 text-xs"
                               >
-                                {getTipoIcon(mensagem.remetente.tipo)}
-                                <span className="ml-1 capitalize">
-                                  {mensagem.remetente.tipo}
-                                </span>
+                                {getTipoIcon(remetenteTipo)}
+                                <span className="capitalize">{remetenteTipo}</span>
                               </Badge>
                             </div>
                           )}
@@ -240,7 +418,6 @@ export const ContractChat = ({
                               {mensagem.conteudo}
                             </div>
 
-                            {/* Botão para marcar como alteração */}
                             {!isOwn && onMarcarComoAlteracao && (
                               <div className="absolute -top-2 -right-2 opacity-0 transition-opacity group-hover:opacity-100">
                                 <Button
@@ -288,12 +465,11 @@ export const ContractChat = ({
           <div className="flex gap-3">
             <Avatar className="mt-1 h-8 w-8">
               <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
-                {participantes
-                  .find((p) => p.id === currentUserId)
-                  ?.nome.split(' ')
+                {currentUserParticipant?.nome
+                  ?.split(' ')
                   .map((n) => n[0])
                   .join('')
-                  .substring(0, 2)}
+                  .substring(0, 2) ?? 'VC'}
               </AvatarFallback>
             </Avatar>
 
@@ -308,6 +484,12 @@ export const ContractChat = ({
                     e.preventDefault()
                     void handleEnviarMensagem()
                   }
+                }}
+                onFocus={() => {
+                  realtime.startTyping()
+                }}
+                onBlur={() => {
+                  realtime.stopTyping()
                 }}
               />
 
@@ -327,12 +509,14 @@ export const ContractChat = ({
                   onClick={() => {
                     void handleEnviarMensagem()
                   }}
-                  disabled={!novaMensagem.trim() || isLoading}
+                  disabled={
+                    !novaMensagem.trim() || sendMessageMutation.isPending
+                  }
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {isLoading ? (
-                    <Clock className="h-4 w-4 animate-spin" />
+                  {sendMessageMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
                       <Send className="mr-2 h-4 w-4" />

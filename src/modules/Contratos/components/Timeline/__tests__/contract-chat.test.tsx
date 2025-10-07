@@ -16,57 +16,83 @@ vi.mock('framer-motion', () => ({
   ),
 }))
 
-// Mock dos dados do chat
-vi.mock('../../../data/chat-mock', () => ({
-  MENSAGENS_MOCK: [
-    {
-      id: '1',
-      contratoId: 'contrato-123',
-      remetente: {
-        id: '2',
-        nome: 'Maria Santos',
-        avatar: '/avatars/maria.jpg',
-        tipo: 'gestor',
-      },
-      conteudo: 'Preciso verificar o cronograma de entregas com o fornecedor.',
-      tipo: 'texto',
-      dataEnvio: '2024-01-15T10:30:00Z',
-      lida: true,
-    },
-    {
-      id: '2',
-      contratoId: 'contrato-123',
-      remetente: {
-        id: 'sistema',
-        nome: 'Sistema',
-        tipo: 'sistema',
-      },
-      conteudo: 'Maria Santos foi designada como gestora do contrato',
-      tipo: 'sistema',
-      dataEnvio: '2024-01-10T09:00:00Z',
-      lida: true,
-    },
-  ],
-  PARTICIPANTES_MOCK: [
-    {
-      id: '1',
-      nome: 'João Silva',
-      email: 'joao@prefeitura.com',
-      avatar: '/avatars/joao.jpg',
-      tipo: 'fiscal',
-      status: 'online',
-      ultimoAcesso: new Date().toISOString(),
-    },
-    {
+const mockMensagens = [
+  {
+    id: '1',
+    contratoId: 'contrato-123',
+    remetente: {
       id: '2',
       nome: 'Maria Santos',
-      email: 'maria@prefeitura.com',
       avatar: '/avatars/maria.jpg',
-      tipo: 'gestor',
-      status: 'online',
-      ultimoAcesso: new Date().toISOString(),
+      tipo: 'gestor' as const,
     },
-  ],
+    conteudo: 'Preciso verificar o cronograma de entregas com o fornecedor.',
+    tipo: 'texto' as const,
+    dataEnvio: '2024-01-15T10:30:00Z',
+    lida: true,
+  },
+  {
+    id: '2',
+    contratoId: 'contrato-123',
+    remetente: {
+      id: 'sistema',
+      nome: 'Sistema',
+      tipo: 'sistema' as const,
+    },
+    conteudo: 'Maria Santos foi designada como gestora do contrato',
+    tipo: 'sistema' as const,
+    dataEnvio: '2024-01-10T09:00:00Z',
+    lida: true,
+  },
+]
+
+const mockUseContractChatMessages = vi.fn(() => ({
+  mensagens: mockMensagens,
+  isLoading: false,
+  isError: false,
+  error: null,
+  refetch: vi.fn(),
+  hasNextPage: false,
+  fetchNextPage: vi.fn(),
+  isFetchingNextPage: false,
+}))
+
+const mockSendMutation = {
+  mutate: vi.fn(),
+  isPending: false,
+}
+
+const mockRealtime = {
+  connectionState: 'connected' as const,
+  isConnected: true,
+  isConnecting: false,
+  error: null,
+  startTyping: vi.fn(),
+  stopTyping: vi.fn(),
+}
+
+vi.mock('@/modules/Contratos/hooks/use-chat', () => ({
+  useContractChatMessages: (...args: unknown[]) =>
+    mockUseContractChatMessages(...args),
+  useSendChatMessage: () => mockSendMutation,
+  useUpdateChatMessage: vi.fn(),
+  useDeleteChatMessage: vi.fn(),
+  useChatEstatisticas: vi.fn(),
+  useContractChatRealtime: () => mockRealtime,
+}))
+
+vi.mock('@/lib/auth/auth-store', () => ({
+  useAuthStore: vi.fn(() => ({
+    usuario: {
+      id: '1',
+      nomeCompleto: 'João Silva',
+      email: 'joao@prefeitura.com',
+      tipoUsuario: 'gestor',
+      precisaTrocarSenha: false,
+      emailConfirmado: true,
+      ativo: true,
+    },
+  })),
 }))
 
 describe('ContractChat', () => {
@@ -78,6 +104,10 @@ describe('ContractChat', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUseContractChatMessages.mockClear()
+    mockSendMutation.mutate.mockClear()
+    mockRealtime.startTyping.mockClear()
+    mockRealtime.stopTyping.mockClear()
   })
 
   describe('Renderização inicial', () => {

@@ -1,0 +1,514 @@
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query'
+import { useCallback, useEffect, useState } from 'react'
+
+import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
+import { createServiceLogger } from '@/lib/logger'
+import {
+  atualizarMensagem,
+  criarMensagem,
+  fetchEstatisticas,
+  fetchMensagensPorContrato,
+  removerMensagem,
+  type AtualizarMensagemPayload,
+  type ChatMensagensPaginadas,
+  type CriarMensagemPayload,
+} from '@/modules/Contratos/services/chat-service'
+import { signalRChatManager } from '@/modules/Contratos/services/signalr-manager'
+import {
+  CHAT_PAGE_SIZE_DEFAULT,
+  CHAT_SISTEMA_ID,
+} from '@/modules/Contratos/types/chat-api'
+import type { ChatMessage } from '@/modules/Contratos/types/timeline'
+
+export const buildChatQueryKey = (
+  contratoId: string,
+  pageSize: number,
+  sistemaId: string,
+) => [...contratoKeys.chat(contratoId), { pageSize, sistemaId }] as const
+
+const generateTempId = () =>
+  globalThis.crypto?.randomUUID?.() ?? 'temp-' + Date.now().toString()
+
+const realtimeLogger = createServiceLogger('contract-chat-realtime')
+
+const updateFirstPage = (
+  data: InfiniteData<ChatMensagensPaginadas>,
+  updater: (page: ChatMensagensPaginadas) => ChatMensagensPaginadas,
+): InfiniteData<ChatMensagensPaginadas> => ({
+  pageParams: data.pageParams,
+  pages: data.pages.map((page, index) =>
+    index === 0 ? updater(page) : page,
+  ),
+})
+
+const replaceMessageInPages = (
+  pages: ChatMensagensPaginadas[],
+  predicate: (mensagem: ChatMessage) => boolean,
+  replacer: (mensagem: ChatMessage) => ChatMessage | null,
+) =>
+  pages.map((page) => {
+    const mensagemIndex = page.mensagens.findIndex(predicate)
+
+    if (mensagemIndex === -1) {
+      return page
+    }
+
+    const mensagens = [...page.mensagens]
+    const payload = replacer(mensagens[mensagemIndex])
+
+    if (payload === null) {
+      mensagens.splice(mensagemIndex, 1)
+
+      return {
+        ...page,
+        mensagens,
+        totalItens: Math.max(0, page.totalItens - 1),
+      }
+    }
+
+    mensagens[mensagemIndex] = payload
+
+    return {
+      ...page,
+      mensagens,
+    }
+  })
+
+export interface UseContractChatMessagesOptions {
+  enabled?: boolean
+  pageSize?: number
+  sistemaId?: string
+  sortDirection?: 'asc' | 'desc'
+}
+
+export const useContractChatMessages = (
+  contratoId: string,
+  options?: UseContractChatMessagesOptions,
+) => {
+  const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
+  const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
+  const sortDirection = options?.sortDirection ?? 'desc'
+
+  const query = useInfiniteQuery({
+    queryKey: buildChatQueryKey(contratoId, pageSize, sistemaId),
+    enabled: options?.enabled ?? !!contratoId,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.temProximaPagina ? pages.length + 1 : undefined,
+    queryFn: ({ pageParam }) =>
+      fetchMensagensPorContrato(contratoId, {
+        sistemaId,
+        page: pageParam,
+        pageSize,
+        sortDirection,
+      }),
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+  })
+
+  const mensagens =
+    query.data?.pages.flatMap((page) => page.mensagens) ?? ([] as ChatMessage[])
+
+  return {
+    ...query,
+    mensagens,
+  }
+}
+
+export interface SendChatMessageInput {
+  conteudo: string
+  autorId: string
+  autorNome?: string
+  sistemaId?: string
+}
+
+export const useSendChatMessage = (
+  contratoId: string,
+  options?: { pageSize?: number; sistemaId?: string },
+) => {
+  const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
+  const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
+  const queryClient = useQueryClient()
+  const { mutation } = useToast()
+  const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
+
+  return useMutation({
+    mutationFn: async (input: SendChatMessageInput) => {
+      const payload: CriarMensagemPayload = {
+        contratoId,
+        conteudo: input.conteudo,
+        autorId: input.autorId,
+        autorNome: input.autorNome,
+        sistemaId: input.sistemaId ?? sistemaId,
+      }
+
+      return criarMensagem(payload)
+    },
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousData = queryClient.getQueryData<
+        InfiniteData<ChatMensagensPaginadas>
+      >(queryKey)
+
+      const tempMessage: ChatMessage = {
+        id: generateTempId(),
+        contratoId,
+        conteudo: input.conteudo,
+        remetente: {
+          id: input.autorId,
+          nome: input.autorNome ?? 'Você',
+          tipo: 'usuario',
+        },
+        tipo: 'texto',
+        dataEnvio: new Date().toISOString(),
+        lida: true,
+      }
+
+      if (previousData) {
+        const nextState = updateFirstPage(previousData, (page) => ({
+          ...page,
+          mensagens: [tempMessage, ...page.mensagens],
+          totalItens: page.totalItens + 1,
+        }))
+
+        queryClient.setQueryData(queryKey, nextState)
+      } else {
+        const nextState: InfiniteData<ChatMensagensPaginadas> = {
+          pageParams: [1],
+          pages: [
+            {
+              mensagens: [tempMessage],
+              totalItens: 1,
+              paginaAtual: 1,
+              tamanhoPagina: pageSize,
+              temProximaPagina: false,
+              temPaginaAnterior: false,
+            },
+          ],
+        }
+
+        queryClient.setQueryData(queryKey, nextState)
+      }
+
+      return { previousData, tempId: tempMessage.id }
+    },
+    onSuccess: (mensagem, _variables, context) => {
+      mutation.success('Mensagem enviada com sucesso!')
+
+      queryClient.setQueryData<InfiniteData<ChatMensagensPaginadas>>(
+        queryKey,
+        (current) => {
+          if (!current) {
+            return current
+          }
+
+          const pages = replaceMessageInPages(
+            current.pages,
+            (item) => item.id === context?.tempId,
+            (_item) => mensagem,
+          )
+
+          const found = pages.some((page) =>
+            page.mensagens.some((item) => item.id === mensagem.id),
+          )
+
+          if (!found && pages.length > 0) {
+            pages[0] = {
+              ...pages[0],
+              mensagens: [mensagem, ...pages[0].mensagens],
+              totalItens: pages[0].totalItens + 1,
+            }
+          }
+
+          return {
+            ...current,
+            pages,
+          }
+        },
+      )
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData)
+      }
+      mutation.error('Enviar mensagem', error)
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
+}
+
+export interface UpdateChatMessageInput {
+  mensagemId: string
+  texto: string
+}
+
+export const useUpdateChatMessage = (
+  contratoId: string,
+  options?: { pageSize?: number; sistemaId?: string },
+) => {
+  const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
+  const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
+  const queryClient = useQueryClient()
+  const { mutation } = useToast()
+  const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
+
+  return useMutation({
+    mutationFn: async (input: UpdateChatMessageInput) => {
+      const payload: AtualizarMensagemPayload = {
+        mensagemId: input.mensagemId,
+        texto: input.texto,
+      }
+
+      await atualizarMensagem(payload)
+      return payload
+    },
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousData = queryClient.getQueryData<
+        InfiniteData<ChatMensagensPaginadas>
+      >(queryKey)
+
+      if (previousData) {
+        const pages = replaceMessageInPages(
+          previousData.pages,
+          (mensagem) => mensagem.id === input.mensagemId,
+          (mensagem) => ({
+            ...mensagem,
+            conteudo: input.texto,
+            editada: true,
+            editadaEm: new Date().toISOString(),
+          }),
+        )
+
+        queryClient.setQueryData(queryKey, {
+          ...previousData,
+          pages,
+        })
+      }
+
+      return { previousData }
+    },
+    onSuccess: () => {
+      mutation.success('Mensagem atualizada')
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData)
+      }
+      mutation.error('Atualizar mensagem', error)
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
+}
+
+export const useDeleteChatMessage = (
+  contratoId: string,
+  options?: { pageSize?: number; sistemaId?: string },
+) => {
+  const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
+  const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
+  const queryClient = useQueryClient()
+  const { mutation } = useToast()
+  const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
+
+  return useMutation({
+    mutationFn: async (mensagemId: string) => {
+      await removerMensagem(mensagemId)
+      return mensagemId
+    },
+    onMutate: async (mensagemId) => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousData = queryClient.getQueryData<
+        InfiniteData<ChatMensagensPaginadas>
+      >(queryKey)
+
+      if (previousData) {
+        const pages = replaceMessageInPages(
+          previousData.pages,
+          (mensagem) => mensagem.id === mensagemId,
+          () => null,
+        )
+
+        queryClient.setQueryData(queryKey, {
+          ...previousData,
+          pages,
+        })
+      }
+
+      return { previousData }
+    },
+    onSuccess: () => {
+      mutation.success('Mensagem removida')
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData)
+      }
+      mutation.error('Remover mensagem', error)
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
+}
+
+export const useChatEstatisticas = (options?: { enabled?: boolean }) => {
+  const { query } = useToast()
+
+  return useQuery({
+    queryKey: contratoKeys.chatEstatisticas(),
+    queryFn: () => fetchEstatisticas(),
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000,
+    onError: (error) => {
+      query.error(error)
+    },
+  })
+}
+
+interface UseContractChatRealtimeParams {
+  contratoId: string
+  autorId: string
+  sistemaId?: string
+  pageSize?: number
+}
+
+export const useContractChatRealtime = ({
+  contratoId,
+  autorId,
+  sistemaId = CHAT_SISTEMA_ID,
+  pageSize = CHAT_PAGE_SIZE_DEFAULT,
+}: UseContractChatRealtimeParams) => {
+  const queryClient = useQueryClient()
+  const [connectionState, setConnectionState] = useState<
+    'idle' | 'connecting' | 'connected' | 'error'
+  >('idle')
+  const [connectionError, setConnectionError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    if (!contratoId || !autorId) {
+      return undefined
+    }
+
+    let isActive = true
+    let unsubscribeMessage: (() => void) | undefined
+
+    const connect = async () => {
+      setConnectionState('connecting')
+      try {
+        await signalRChatManager.initialize()
+        if (!isActive) return
+
+        await signalRChatManager.joinRoom(sistemaId, contratoId)
+        if (!isActive) return
+
+        unsubscribeMessage = signalRChatManager.onMessage(
+          sistemaId,
+          contratoId,
+          (mensagem) => {
+            queryClient.setQueryData<InfiniteData<ChatMensagensPaginadas>>(
+              buildChatQueryKey(contratoId, pageSize, sistemaId),
+              (current) => {
+                if (!current) {
+                  return {
+                    pageParams: [1],
+                    pages: [
+                      {
+                        mensagens: [mensagem],
+                        totalItens: 1,
+                        paginaAtual: 1,
+                        tamanhoPagina: pageSize,
+                        temProximaPagina: false,
+                        temPaginaAnterior: false,
+                      },
+                    ],
+                  }
+                }
+
+                const exists = current.pages.some((page) =>
+                  page.mensagens.some((item) => item.id === mensagem.id),
+                )
+
+                if (exists) {
+                  return current
+                }
+
+                const pages = [...current.pages]
+
+                if (pages.length === 0) {
+                  pages.push({
+                    mensagens: [mensagem],
+                    totalItens: 1,
+                    paginaAtual: 1,
+                    tamanhoPagina: pageSize,
+                    temProximaPagina: false,
+                    temPaginaAnterior: false,
+                  })
+                } else {
+                  pages[0] = {
+                    ...pages[0],
+                    mensagens: [...pages[0].mensagens, mensagem],
+                    totalItens: pages[0].totalItens + 1,
+                  }
+                }
+
+                return {
+                  ...current,
+                  pages,
+                }
+              },
+            )
+          },
+        )
+
+        setConnectionState('connected')
+        setConnectionError(null)
+      } catch (error) {
+        const parsedError =
+          error instanceof Error ? error : new Error(String(error))
+        setConnectionError(parsedError)
+        setConnectionState('error')
+        realtimeLogger.error('Erro ao conectar SignalR', parsedError.message)
+      }
+    }
+
+    void connect()
+
+    return () => {
+      isActive = false
+      unsubscribeMessage?.()
+      void signalRChatManager.leaveRoom(sistemaId, contratoId)
+    }
+  }, [contratoId, sistemaId, autorId, pageSize, queryClient])
+
+  const startTyping = useCallback(() => {
+    void signalRChatManager.startTyping(sistemaId, contratoId)
+  }, [sistemaId, contratoId])
+
+  const stopTyping = useCallback(() => {
+    void signalRChatManager.stopTyping(sistemaId, contratoId)
+  }, [sistemaId, contratoId])
+
+  return {
+    connectionState,
+    isConnected: connectionState === 'connected',
+    isConnecting: connectionState === 'connecting',
+    error: connectionError,
+    startTyping,
+    stopTyping,
+  }
+}
