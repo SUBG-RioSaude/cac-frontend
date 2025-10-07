@@ -126,7 +126,6 @@ export const SearchAndFiltersUnidades = ({
 
   // Estados locais para UI
   const [statusExpanded, setStatusExpanded] = useState(false)
-  const [siglaExpanded, setSiglaExpanded] = useState(false)
   const filtrosBase = useMemo(
     () => sanitizeFiltros(filtrosAtivos),
     [filtrosAtivos],
@@ -198,7 +197,6 @@ export const SearchAndFiltersUnidades = ({
   const contarFiltrosAtivos = useCallback(() => {
     let count = 0
     if (filtrosLocais.ativo !== undefined) count++
-    if (filtrosLocais.sigla) count++
     if (filtrosLocais.cnes) count++
     if (filtrosLocais.bairro) count++
     if (termoPesquisaLocal) count++
@@ -211,7 +209,6 @@ export const SearchAndFiltersUnidades = ({
     setTermoPesquisaLocal('')
     setFiltrosLocais({})
     setStatusExpanded(false)
-    setSiglaExpanded(false)
     // Força o reset enviando apenas paginação
     onFiltrosChange({ pagina: 1, tamanhoPagina: 10, ativo: true })
   }, [onFiltrosChange])
@@ -419,49 +416,6 @@ export const SearchAndFiltersUnidades = ({
                         </Label>
                       </div>
                     ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Separator />
-
-              {/* Sigla - Colapsível */}
-              <Collapsible open={siglaExpanded} onOpenChange={setSiglaExpanded}>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-auto w-full cursor-pointer justify-between p-0 hover:bg-transparent"
-                  >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="text-muted-foreground h-4 w-4" />
-                      <Label className="cursor-pointer text-sm font-medium">
-                        Sigla da Unidade
-                      </Label>
-                    </div>
-                    {siglaExpanded ? (
-                      <ChevronDown className="text-muted-foreground h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="text-muted-foreground h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-3">
-                  <div className="ml-6">
-                    <Input
-                      placeholder="Ex: UBS, CAPS..."
-                      value={filtrosLocais.sigla ?? ''}
-                      onChange={(e) => {
-                        const valor = e.target.value
-                        setFiltrosLocais((prev: FiltrosUnidadesApi) => {
-                          if (valor === '') {
-                            const { sigla: _sigla, ...rest } = prev
-                            return rest as FiltrosUnidadesApi
-                          }
-                          return { ...prev, sigla: valor }
-                        })
-                      }}
-                      className="h-9"
-                    />
                   </div>
                 </CollapsibleContent>
               </Collapsible>

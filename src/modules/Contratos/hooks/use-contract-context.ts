@@ -230,6 +230,8 @@ export function useContractUnits(
     },
     demandingUnit: demandingUnitName,
     managingUnit: managingUnitName,
+    demandingUnitId: unidadeDemandanteId,
+    managingUnitId: unidadeGestoraId,
     linkedUnits: linkedUnitsWithDetails,
     // Informações adicionais para debug
     _debug: {
