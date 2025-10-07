@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Edit, Download, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Download, MoreHorizontal } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
@@ -30,7 +30,6 @@ import {
   getActiveTabs,
   getDefaultTab,
   isTabEnabled,
-  getGridCols,
 } from '../../config/tabs-config'
 import { useContratoDetalhado } from '../../hooks/use-contratos'
 import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
@@ -44,7 +43,6 @@ export const VisualizarContrato = () => {
   const { contratoId: id } = useParams<{ contratoId: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
-  const [modoEdicaoGlobal, setModoEdicaoGlobal] = useState(false)
   const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
 
   // Buscar contrato da API usando React Query
@@ -70,10 +68,6 @@ export const VisualizarContrato = () => {
   //     setEntradasTimeline(prev => [entrada, ...prev])
   //   }
   // })
-
-  const handleEditarGlobal = () => {
-    setModoEdicaoGlobal(!modoEdicaoGlobal)
-  }
 
   const handleExportar = () => {
     // TODO: Implementar funcionalidade de exportação
@@ -301,20 +295,6 @@ export const VisualizarContrato = () => {
                     <Download className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Exportar</span>
                   </Button>
-                  <Button
-                    onClick={handleEditarGlobal}
-                    variant={modoEdicaoGlobal ? 'destructive' : 'default'}
-                    size="sm"
-                    className="text-xs sm:text-sm"
-                  >
-                    <Edit className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
-                    <span className="hidden md:inline">
-                      {modoEdicaoGlobal ? 'Cancelar' : 'Editar Tudo'}
-                    </span>
-                    <span className="md:hidden">
-                      {modoEdicaoGlobal ? 'Cancelar' : 'Editar'}
-                    </span>
-                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
@@ -333,22 +313,17 @@ export const VisualizarContrato = () => {
             </div>
 
             {/* Título e status */}
-            <div className="space-y-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <h1 className="text-xl font-bold break-all sm:text-2xl lg:text-3xl">
-                  {contrato.numeroContrato}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <ContratoStatusBadge
-                    status={parseStatusContrato(contrato.status)}
-                    size="lg"
-                    className="px-3 py-1 text-sm font-semibold"
-                  />
-                </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <h1 className="text-xl font-bold break-all sm:text-2xl lg:text-3xl">
+                {contrato.numeroContrato}
+              </h1>
+              <div className="flex items-center gap-2">
+                <ContratoStatusBadge
+                  status={parseStatusContrato(contrato.status)}
+                  size="lg"
+                  className="px-3 py-1 text-sm font-semibold"
+                />
               </div>
-              <p className="text-muted-foreground text-sm break-words sm:text-base">
-                {contrato.fornecedor.razaoSocial}
-              </p>
             </div>
           </div>
 
@@ -391,31 +366,17 @@ export const VisualizarContrato = () => {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList
-                className={`grid h-auto w-full ${
-                  getGridCols() === 1
-                    ? 'grid-cols-1'
-                    : getGridCols() === 2
-                      ? 'grid-cols-2'
-                      : getGridCols() === 3
-                        ? 'grid-cols-3'
-                        : getGridCols() === 4
-                          ? 'grid-cols-4'
-                          : getGridCols() === 5
-                            ? 'grid-cols-5'
-                            : 'grid-cols-6'
-                } rounded-lg bg-gray-50 p-1`}
-              >
+              <TabsList className="flex h-auto w-full gap-1 overflow-x-auto rounded-lg bg-gray-50 p-1 scrollbar-hide sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 {getActiveTabs().map((tab) => (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className={`flex flex-col items-center gap-1 rounded-md px-2 py-3 text-xs font-medium transition-all duration-200 data-[state=active]:border ${tab.icon.activeBorder} ${tab.icon.activeBg} ${tab.icon.activeText} data-[state=active]:shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm`}
+                    className={`flex min-w-[120px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:border ${tab.icon.activeBorder} ${tab.icon.activeBg} ${tab.icon.activeText} data-[state=active]:shadow-sm sm:min-w-0 sm:flex-row sm:gap-2 sm:px-3 sm:py-3 sm:text-sm`}
                   >
                     <div
-                      className={`h-2 w-2 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
+                      className={`h-2 w-2 shrink-0 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
                     />
-                    <span className="text-center">{tab.label}</span>
+                    <span className="truncate text-center sm:text-left">{tab.label}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>

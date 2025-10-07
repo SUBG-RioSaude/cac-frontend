@@ -134,7 +134,6 @@ describe('SearchAndFiltersUnidades', () => {
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
         nome: 'Hospital',
-        sigla: 'UBS',
         cnes: '12345',
       },
     }
@@ -173,21 +172,6 @@ describe('SearchAndFiltersUnidades', () => {
       expect(screen.getByText('Inativo')).toBeInTheDocument()
     })
 
-    it('deve expandir seção de sigla ao clicar', async () => {
-      const user = userEvent.setup()
-
-      render(<SearchAndFiltersUnidades {...defaultProps} />)
-
-      const filtrosButton = screen.getByText('Filtros')
-      await user.click(filtrosButton)
-
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
-
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInput).toBeInTheDocument()
-    })
-
     it('deve expandir seção de CNES ao clicar', async () => {
       const user = userEvent.setup()
 
@@ -217,22 +201,6 @@ describe('SearchAndFiltersUnidades', () => {
       const checkboxes = screen.getAllByRole('checkbox')
       const ativoCheckbox = checkboxes[0]
       expect(ativoCheckbox).toBeInTheDocument()
-    })
-
-    it('deve permitir digitação no campo sigla', async () => {
-      const user = userEvent.setup()
-
-      render(<SearchAndFiltersUnidades {...defaultProps} />)
-
-      const filtrosButton = screen.getByText('Filtros')
-      await user.click(filtrosButton)
-
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
-
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInput).toBeInTheDocument()
-      expect(siglaInput).toHaveValue('')
     })
 
     it('deve permitir digitação no campo bairro', async () => {
@@ -273,31 +241,6 @@ describe('SearchAndFiltersUnidades', () => {
       await user.click(ativoCheckbox)
 
       expect(mockOnFiltrosChange).toHaveBeenCalled()
-    })
-
-    it('deve chamar onFiltrosChange ao alterar sigla', async () => {
-      const mockOnFiltrosChange = vi.fn()
-      const user = userEvent.setup()
-
-      render(
-        <SearchAndFiltersUnidades
-          filtrosAtivos={defaultProps.filtrosAtivos}
-          onFiltrosChange={mockOnFiltrosChange}
-          isLoading={false}
-        />,
-      )
-
-      const filtrosButton = screen.getByText('Filtros')
-      await user.click(filtrosButton)
-
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
-
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      await user.type(siglaInput, 'U')
-
-      expect(siglaInput).toBeInTheDocument()
-      expect(siglaInput).toHaveAttribute('placeholder')
     })
 
     it('deve chamar onFiltrosChange ao alterar CNES', async () => {
@@ -343,7 +286,7 @@ describe('SearchAndFiltersUnidades', () => {
         filtrosAtivos: {
           ...defaultProps.filtrosAtivos,
           ativo: true,
-          sigla: 'CAPS',
+          cnes: '2269311',
         },
       }
 
@@ -352,12 +295,12 @@ describe('SearchAndFiltersUnidades', () => {
       const filtrosButton = screen.getByText('Filtros')
       await user.click(filtrosButton)
 
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
+      const cnesButton = screen.getByText('CNES')
+      await user.click(cnesButton)
 
-      // Usar getAllByDisplayValue para verificar que existe pelo menos um campo com o valor
-      const capsInputs = screen.getAllByDisplayValue('CAPS')
-      expect(capsInputs.length).toBeGreaterThan(0)
+      // Verificar que o valor do CNES está preenchido
+      const cnesInput = screen.getByDisplayValue('2269311')
+      expect(cnesInput).toBeInTheDocument()
     })
   })
 
@@ -406,7 +349,8 @@ describe('SearchAndFiltersUnidades', () => {
       await user.click(filtrosButton)
 
       expect(screen.getByText('Status da Unidade')).toBeInTheDocument()
-      expect(screen.getByText('Sigla da Unidade')).toBeInTheDocument()
+      expect(screen.getByText('CNES')).toBeInTheDocument()
+      expect(screen.getByText('Bairro')).toBeInTheDocument()
     })
 
     it('deve ter placeholders informativos', () => {
@@ -449,17 +393,17 @@ describe('SearchAndFiltersUnidades', () => {
       const filtrosButton = screen.getByText('Filtros')
       await user.click(filtrosButton)
 
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
+      const cnesButton = screen.getByText('CNES')
+      await user.click(cnesButton)
 
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInput).toBeInTheDocument()
+      const cnesInput = screen.getByPlaceholderText(/ex: 2269311, 7654321/i)
+      expect(cnesInput).toBeInTheDocument()
 
       await user.click(filtrosButton)
       await user.click(filtrosButton)
 
-      const siglaButtonNovamente = screen.getByText('Sigla da Unidade')
-      expect(siglaButtonNovamente).toBeInTheDocument()
+      const cnesButtonNovamente = screen.getByText('CNES')
+      expect(cnesButtonNovamente).toBeInTheDocument()
     })
 
     it('deve limpar todos os filtros ao clicar em "Limpar"', async () => {
@@ -471,7 +415,7 @@ describe('SearchAndFiltersUnidades', () => {
           ...defaultProps.filtrosAtivos,
           nome: 'Hospital',
           ativo: true,
-          sigla: 'UBS',
+          cnes: '2269311',
         },
         onFiltrosChange: mockOnFiltrosChange,
         isLoading: false,

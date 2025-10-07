@@ -156,10 +156,10 @@ export const TabelaContratos = ({
     label: string
     value: React.ReactNode
   }) => (
-    <div className="flex items-center gap-2 text-sm">
-      <Icon className="text-muted-foreground h-4 w-4" />
+    <div className="flex items-center gap-3 text-sm">
+      <Icon className="text-muted-foreground h-4 w-4 shrink-0" />
       <span className="font-semibold">{label}:</span>
-      <span className="text-muted-foreground">{value}</span>
+      <span className="text-muted-foreground truncate">{value}</span>
     </div>
   )
 
@@ -176,8 +176,8 @@ export const TabelaContratos = ({
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Card className="mb-4 overflow-hidden transition-shadow hover:shadow-lg">
-        <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-4">
+      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+        <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-5">
           <div className="flex items-center gap-3">
             <Checkbox
               checked={contratosSelecionados.includes(contrato.id)}
@@ -196,11 +196,11 @@ export const TabelaContratos = ({
           </div>
           <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
         </CardHeader>
-        <CardContent className="space-y-4 p-4">
-          <div>
+        <CardContent className="space-y-4 p-5 sm:p-6">
+          <div className="space-y-2">
             {!hideContratadaColumn && (
               <>
-                <p className="text-lg font-semibold">
+                <p className="truncate text-base font-semibold sm:text-lg" title={contrato.empresaRazaoSocial ?? contrato.contratada?.razaoSocial ?? 'Empresa não informada'}>
                   {contrato.empresaRazaoSocial ??
                     contrato.contratada?.razaoSocial ??
                     'Empresa não informada'}
@@ -221,7 +221,7 @@ export const TabelaContratos = ({
               {contrato.descricaoObjeto ?? 'Objeto não informado'}
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
             <InfoItem
               icon={DollarSign}
               label="Valor Global"
@@ -244,19 +244,20 @@ export const TabelaContratos = ({
               value={contrato.contratacao ?? 'N/A'}
             />
             <div className="flex items-center gap-2 text-sm">
-              <Building className="text-muted-foreground h-4 w-4" />
+              <Building className="text-muted-foreground h-4 w-4 shrink-0" />
               <span className="font-semibold">Unidades:</span>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => handleMostrarUnidades(contrato)}
-                className="hover:bg-muted/50 ml-auto h-auto p-1 font-normal"
+                className="ml-auto h-auto border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
                 disabled={obterTotalUnidades(contrato) === 0}
               >
                 {obterTotalUnidades(contrato) === 0 ? (
-                  <span className="text-muted-foreground text-xs">Nenhuma</span>
+                  <span>Nenhuma</span>
                 ) : (
-                  <span className="text-primary text-xs">
+                  <span className="flex items-center gap-1">
+                    <Building className="h-3 w-3" />
                     Ver ({obterTotalUnidades(contrato)})
                   </span>
                 )}
@@ -273,12 +274,12 @@ export const TabelaContratos = ({
               value={contrato.vinculacaoPCA ?? 'N/A'}
             />
           </div>
-          <div className="flex items-center justify-end border-t pt-3">
+          <div className="flex items-center justify-end border-t pt-4">
             <Button
-              variant="default"
+              variant="outline-premium"
               size="sm"
               onClick={() => handleVisualizarContrato(contrato)}
-              className="h-9 px-4 shadow-sm"
+              className="h-9 px-4"
               title="Abrir contrato"
             >
               <Eye className="mr-2 h-4 w-4" />
@@ -310,10 +311,10 @@ export const TabelaContratos = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="px-4 py-0 sm:px-6">
           {/* Desktop Table (Large screens) */}
           <div className="hidden xl:block">
-            <div className="bg-background/50 mx-4 mb-6 overflow-hidden rounded-lg border sm:mx-6">
+            <div className="bg-background/50 mb-6 overflow-x-auto rounded-lg border scrollbar-hide scroll-smooth">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -478,22 +479,22 @@ export const TabelaContratos = ({
                                 vigenciaFim={contrato.vigenciaFinal}
                               />
                             </TableCell>
-                            <TableCell className="text-right font-medium">
+                            <TableCell className="whitespace-nowrap text-right font-medium">
                               {formatarMoeda(contrato.valorGlobal)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <ContratoStatusBadge
                                 status={parseStatusContrato(contrato.status)}
                               />
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="whitespace-nowrap text-right">
                               <Button
-                                variant="default"
-                                size="sm"
+                                variant="outline-premium"
+                                
                                 onClick={() =>
                                   handleVisualizarContrato(contrato)
                                 }
-                                className="h-8 px-3 shadow-sm"
+                                className="h-8 px-3"
                               >
                                 <Eye className="mr-1 h-4 w-4" />
                                 Abrir
@@ -509,7 +510,7 @@ export const TabelaContratos = ({
 
           {/* Tablet Table (Medium to Large screens) */}
           <div className="hidden lg:block xl:hidden">
-            <div className="bg-background/50 mx-4 mb-6 overflow-x-auto rounded-lg border sm:mx-6">
+            <div className="bg-background/50 mb-6 overflow-x-auto rounded-lg border scrollbar-hide scroll-smooth">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -665,22 +666,22 @@ export const TabelaContratos = ({
                                 compact
                               />
                             </TableCell>
-                            <TableCell className="text-right font-medium">
+                            <TableCell className="whitespace-nowrap text-right font-medium">
                               {formatarMoeda(contrato.valorGlobal)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap">
                               <ContratoStatusBadge
                                 status={parseStatusContrato(contrato.status)}
                               />
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="whitespace-nowrap text-right">
                               <Button
-                                variant="default"
+                                variant="outline-premium"
                                 size="sm"
                                 onClick={() =>
                                   handleVisualizarContrato(contrato)
                                 }
-                                className="h-8 px-3 shadow-sm"
+                                className="h-8 px-3"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -694,11 +695,11 @@ export const TabelaContratos = ({
           </div>
 
           {/* Mobile Cards */}
-          <div className="px-4 sm:px-6 lg:hidden">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 lg:hidden">
             <AnimatePresence>
               {isLoading
                 ? mobileSkeletonCardIds.map((skeletonId) => (
-                    <Card key={skeletonId} className="mb-4">
+                    <Card key={skeletonId}>
                       <CardContent className="p-4">
                         <div className="space-y-3">
                           <Skeleton className="h-4 w-3/4" />
@@ -733,7 +734,7 @@ export const TabelaContratos = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -745,7 +746,7 @@ export const TabelaContratos = ({
                 <span className="hidden sm:inline">Anterior</span>
               </Button>
 
-              <div className="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3">
                 <span className="text-sm font-medium">
                   Página {paginacao.pagina} de {totalPaginas}
                 </span>

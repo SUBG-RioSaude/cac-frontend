@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -130,9 +131,13 @@ export const ContratosPage = () => {
     }
   }
 
+
+  const navigate = useNavigate()
+
   const handleNovoContrato = () => {
+    navigate('/contratos/cadastrar')
     // TODO: Implementar navegação para novo contrato
-  }
+  } 
 
   const textoExportar =
     pageState.contratosSelecionados.length > 0
@@ -140,8 +145,8 @@ export const ContratosPage = () => {
       : 'Exportar Todos'
 
   return (
-    <div className="min-h-screen">
-      <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
+    <div className="min-h-screen overflow-x-hidden">
+      <div className="space-y-6 py-6 sm:space-y-8 sm:py-8">
         {/* Cabeçalho Responsivo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -177,10 +182,11 @@ export const ContratosPage = () => {
               <span className="hidden sm:inline">{textoExportar}</span>
             </Button>
             <Button
+              variant="outline-premium"
               onClick={handleNovoContrato}
-              className="h-10 cursor-pointer shadow-sm sm:h-auto"
+              className="h-10 cursor-pointer shadow-sm sm:h-auto  "
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4 " />
               Novo Contrato
             </Button>
           </motion.div>

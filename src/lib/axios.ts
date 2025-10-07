@@ -16,9 +16,9 @@ export const apiGateway = axios.create({
 
 // Cliente para Microserviço Direto (fallback)
 export const apiDirect = axios.create({
-  baseURL: import.meta.env.VITE_API_URL_CONTRATOS as string,
-  timeout: 10000,
-  withCredentials: false,
+    baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
+    timeout: 30000, // Aumentado para 30s para operações complexas
+    withCredentials: false,
 })
 
 // Interceptador de requisição para adicionar token dos cookies
@@ -47,81 +47,96 @@ apiDirect.interceptors.request.use(authInterceptor)
 api.interceptors.request.use(authInterceptor)
 
 // Função para executar requisição com fallback automático
-export async function executeWithFallback<T>(requestConfig: {
-  method: 'get' | 'post' | 'put' | 'delete' | 'patch'
-  url: string
-  data?: unknown
-  params?: Record<string, unknown>
-  headers?: Record<string, string>
-  baseURL?: string
-}): Promise<AxiosResponse<T>> {
-  const { method, url, data, params, headers, baseURL } = requestConfig
-
-  try {
-    // Primeira tentativa: Gateway ou baseURL específica
-    const clientToUse = baseURL
-      ? axios.create({ baseURL, timeout: 5000 })
-      : apiGateway
-    if (baseURL) {
-      clientToUse.interceptors.request.use(authInterceptor)
+export async function executeWithFallback<T>(
+    requestConfig: {
+        method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+        url: string
+        data?: unknown
+        params?: Record<string, unknown>
+        headers?: Record<string, string>
+        baseURL?: string
+        timeout?: number // Novo parâmetro para timeout customizado
     }
-
-    const response = await clientToUse.request<T>({
-      method,
-      url,
-      data,
-      params,
-      headers,
-    })
-
-    apiMetrics.recordGatewaySuccess()
-    return response
-  } catch (gatewayError) {
-    const error = gatewayError as AxiosError
-
-    // Verificar se deve fazer fallback
-    const shouldFallback =
-      // Erro de rede/timeout
-      !error.response ||
-      // Erro 5xx do gateway
-      error.response.status >= 500 ||
-      // Timeout
-      error.code === 'ECONNABORTED'
-
-    if (shouldFallback) {
-      const failureReason = error.response
-        ? `${error.response.status} ${error.response.statusText}`
-        : error.message
-      apiMetrics.recordGatewayFailure(failureReason)
-
-      try {
-        const fallbackResponse = await apiDirect.request<T>({
-          method,
-          url,
-          data,
-          params,
-          headers,
+): Promise<AxiosResponse<T>> {
+    const { method, url, data, params, headers, baseURL, timeout } = requestConfig
+    
+    try {
+        console.log(`[API] Tentando gateway: ${method.toUpperCase()} ${url}`)
+        
+        // Primeira tentativa: Gateway ou baseURL específica
+        const gatewayTimeout = timeout ?? 5000
+        const clientToUse = baseURL ? axios.create({ baseURL, timeout: gatewayTimeout }) : apiGateway
+        if (baseURL) {
+            clientToUse.interceptors.request.use(authInterceptor)
+        }
+        
+        const response = await clientToUse.request<T>({
+            method,
+            url,
+            data,
+            params,
+            headers
         })
-
-        apiMetrics.recordDirectSuccess()
-        return fallbackResponse
-      } catch (directError) {
-        const directErr = directError as AxiosError
-        const directFailureReason = directErr.response
-          ? `${directErr.response.status} ${directErr.response.statusText}`
-          : directErr.message
-        apiMetrics.recordDirectFailure(directFailureReason)
-        throw directError
-      }
-    } else {
-      // Erro que não deve fazer fallback (4xx, etc)
-      const noFallbackReason = error.response
-        ? `${error.response.status} ${error.response.statusText}`
-        : error.message
-      apiMetrics.recordGatewayFailure(noFallbackReason)
-      throw gatewayError
+        
+        console.log(`[API] ✅ Gateway respondeu: ${response.status}`)
+        apiMetrics.recordGatewaySuccess()
+        return response
+        
+    } catch (gatewayError) {
+        const error = gatewayError as AxiosError
+        
+        // Verificar se deve fazer fallback
+        const shouldFallback = (
+            // Erro de rede/timeout
+            !error.response ||
+            // Erro 5xx do gateway
+            (error.response.status >= 500) ||
+            // Timeout
+            error.code === 'ECONNABORTED'
+        )
+        
+        if (shouldFallback) {
+            const failureReason = error.response ? `${error.response.status} ${error.response.statusText}` : error.message
+            apiMetrics.recordGatewayFailure(failureReason)
+            console.warn(`[API] ⚠️ Gateway falhou: ${error.message}. Tentando microserviço direto...`)
+            
+            try {
+                // Usar timeout customizado se fornecido, senão usar o padrão do apiDirect
+                const directTimeout = timeout ?? 30000
+                const directClient = axios.create({
+                    baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
+                    timeout: directTimeout,
+                    withCredentials: false,
+                })
+                directClient.interceptors.request.use(authInterceptor)
+                
+                const fallbackResponse = await directClient.request<T>({
+                    method,
+                    url,
+                    data,
+                    params,
+                    headers
+                })
+                
+                console.log(`[API] ✅ Microserviço direto respondeu: ${fallbackResponse.status}`)
+                apiMetrics.recordDirectSuccess()
+                return fallbackResponse
+                
+            } catch (directError) {
+                const directErr = directError as AxiosError
+                const directFailureReason = directErr.response ? `${directErr.response.status} ${directErr.response.statusText}` : directErr.message
+                apiMetrics.recordDirectFailure(directFailureReason)
+                console.error(`[API] ❌ Microserviço direto também falhou:`, directError)
+                throw directError
+            }
+        } else {
+            // Erro que não deve fazer fallback (4xx, etc)
+            const noFallbackReason = error.response ? `${error.response.status} ${error.response.statusText}` : error.message
+            apiMetrics.recordGatewayFailure(noFallbackReason)
+            console.error(`[API] ❌ Gateway erro sem fallback: ${error.response?.status}`)
+            throw gatewayError
+        }
     }
-  }
 }
 
 // Interceptador de resposta para renovação automática de token

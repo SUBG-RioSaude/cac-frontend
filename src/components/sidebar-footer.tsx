@@ -1,4 +1,7 @@
+import { Info, GitBranch, Hash, Calendar, Package } from 'lucide-react'
+
 import { NavUser } from '@/components/nav-user'
+import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useSidebar } from '@/components/ui/sidebar'
 import {
@@ -23,31 +26,93 @@ const SidebarFooter = () => {
   const metadata = obterMetadataVersao()
   const { state } = useSidebar()
 
+  // Determinar cor baseado no ambiente
+  const getAmbienteColors = (ambiente: string) => {
+    switch (ambiente) {
+      case 'production':
+        return {
+          badge: 'border-green-600 bg-green-50 text-green-700',
+          arrow: 'bg-green-600 fill-green-600',
+          label: 'Produção',
+        }
+      case 'staging':
+        return {
+          badge: 'border-yellow-600 bg-yellow-50 text-yellow-700',
+          arrow: 'bg-yellow-600 fill-yellow-600',
+          label: 'Staging',
+        }
+      default:
+        return {
+          badge: 'border-blue-600 bg-blue-50 text-blue-700',
+          arrow: 'bg-blue-600 fill-blue-600',
+          label: 'Desenvolvimento',
+        }
+    }
+  }
+
+  const ambienteColors = getAmbienteColors(metadata.ambiente)
+
   // Formatar mensagem do tooltip com metadata
   const tooltipContent = (
-    <div className="space-y-1 text-xs">
-      <div className="font-semibold">Informações do Build</div>
+    <div className="w-64 space-y-2 p-1">
+      {/* Header com título e badge de ambiente */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Info className="h-3.5 w-3.5 text-blue-500" />
+          <span className="text-xs font-semibold">Build Info</span>
+        </div>
+        <Badge className={`${ambienteColors.badge} text-[10px]`}>
+          {ambienteColors.label}
+        </Badge>
+      </div>
+
       <Separator className="my-1" />
-      <div>
-        <span className="text-muted-foreground">Versão:</span> {metadata.versao}
-      </div>
-      <div>
-        <span className="text-muted-foreground">Ambiente:</span>{' '}
-        {metadata.ambiente}
-      </div>
-      <div>
-        <span className="text-muted-foreground">Build #:</span>{' '}
-        {metadata.buildNumber}
-      </div>
-      <div>
-        <span className="text-muted-foreground">Commit:</span>{' '}
-        <code className="bg-muted rounded px-1 font-mono text-xs">
-          {metadata.commitSha}
-        </code>
-      </div>
-      <div>
-        <span className="text-muted-foreground">Data:</span>{' '}
-        {metadata.buildTimestamp}
+
+      {/* Grid de informações */}
+      <div className="space-y-1.5">
+        {/* Versão */}
+        <div className="flex items-center gap-1.5">
+          <Package className="h-3 w-3 text-muted-foreground" />
+          <div className="flex flex-1 items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">Versão:</span>
+            <span className="font-mono text-[11px] font-medium">
+              {metadata.versao}
+            </span>
+          </div>
+        </div>
+
+        {/* Build Number */}
+        <div className="flex items-center gap-1.5">
+          <Hash className="h-3 w-3 text-muted-foreground" />
+          <div className="flex flex-1 items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">Build:</span>
+            <span className="font-mono text-[11px] font-medium">
+              #{metadata.buildNumber}
+            </span>
+          </div>
+        </div>
+
+        {/* Commit SHA */}
+        <div className="flex items-center gap-1.5">
+          <GitBranch className="h-3 w-3 text-muted-foreground" />
+          <div className="flex flex-1 items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">Commit:</span>
+            <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] font-medium text-slate-700">
+              {metadata.commitSha}
+            </code>
+          </div>
+        </div>
+
+        {/* Data do Build */}
+        <div className="flex items-center gap-1.5">
+          <Calendar className="h-3 w-3 text-muted-foreground" />
+          <div className="flex flex-1 items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">Data:</span>
+            <span className="text-[11px] font-medium">
+              {metadata.buildTimestamp}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -66,7 +131,13 @@ const SidebarFooter = () => {
                 </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right">{tooltipContent}</TooltipContent>
+            <TooltipContent
+              side="right"
+              className="border-gray-200 bg-white text-gray-900 shadow-lg"
+              arrowClassName={ambienteColors.arrow}
+            >
+              {tooltipContent}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -89,7 +160,12 @@ const SidebarFooter = () => {
                   v{versaoApp}
                 </div>
               </TooltipTrigger>
-              <TooltipContent>{tooltipContent}</TooltipContent>
+              <TooltipContent
+                className="border-gray-200 bg-white text-gray-900 shadow-lg"
+                arrowClassName={ambienteColors.arrow}
+              >
+                {tooltipContent}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
