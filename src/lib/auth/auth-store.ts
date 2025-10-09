@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 import { createServiceLogger } from '@/lib/logger'
 import type { Usuario } from '@/types/auth'
@@ -62,9 +61,7 @@ const sanitizeMensagem = (
   return mensagemNormalizada.length > 0 ? mensagemNormalizada : fallback
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
       // Estado inicial
       usuario: null,
       estaAutenticado: false,
@@ -326,6 +323,9 @@ export const useAuthStore = create<AuthState>()(
 
         // Limpa dados da sessão
         sessionStorage.clear()
+
+        // Remove dados antigos do localStorage (se existirem)
+        localStorage.removeItem('auth-storage')
       },
 
       // Logout de todas as sessões
@@ -352,6 +352,9 @@ export const useAuthStore = create<AuthState>()(
           })
 
           sessionStorage.clear()
+
+          // Remove dados antigos do localStorage (se existirem)
+          localStorage.removeItem('auth-storage')
         } catch (erro) {
           authLogger.warn(
             { action: 'logout', scope: 'all-sessions' },
@@ -368,8 +371,17 @@ export const useAuthStore = create<AuthState>()(
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
 
           if (!refreshToken || !validarTokenJWT(refreshToken)) {
+            authLogger.warn(
+              { action: 'renovar-token', status: 'invalid-refresh-token' },
+              'Refresh token ausente ou inválido',
+            )
             return false
           }
+
+          authLogger.info(
+            { action: 'renovar-token', status: 'requesting' },
+            'Solicitando renovação de token',
+          )
 
           const resultado = await authService.renovarToken(refreshToken)
 
@@ -394,16 +406,37 @@ export const useAuthStore = create<AuthState>()(
                 usuario,
                 estaAutenticado: true,
               })
+
+              authLogger.info(
+                { action: 'renovar-token', status: 'success' },
+                'Token renovado com sucesso',
+              )
               return true
             } else {
+              authLogger.error(
+                { action: 'renovar-token', status: 'invalid-tokens' },
+                'Tokens recebidos são inválidos',
+              )
               return false
             }
           } else {
             // Token inválido, faz logout
+            const mensagemErro = sanitizeMensagem(
+              resultado.mensagem,
+              'Falha na renovação do token',
+            )
+            authLogger.warn(
+              { action: 'renovar-token', status: 'failed' },
+              mensagemErro,
+            )
             get().logout()
             return false
           }
-        } catch {
+        } catch (erro) {
+          authLogger.error(
+            { action: 'renovar-token', status: 'error' },
+            erro instanceof Error ? erro.message : 'Erro desconhecido na renovação',
+          )
           get().logout()
           return false
         }
@@ -421,36 +454,52 @@ export const useAuthStore = create<AuthState>()(
             !validarTokenJWT(token) ||
             !validarTokenJWT(refreshToken)
           ) {
+            authLogger.info(
+              { action: 'verificar-autenticacao', status: 'no-cookies' },
+              'Cookies de autenticação ausentes ou inválidos',
+            )
             set({ carregando: false, estaAutenticado: false })
             return
           }
+
+          authLogger.info(
+            { action: 'verificar-autenticacao', status: 'checking' },
+            'Verificando token de acesso',
+          )
 
           // Verifica se o token ainda é válido
           const resultado = await authService.verificarAcesso()
 
           if (resultado.sucesso) {
+            authLogger.info(
+              { action: 'verificar-autenticacao', status: 'valid' },
+              'Token de acesso válido',
+            )
             set({ estaAutenticado: true, carregando: false })
           } else {
             // Tenta renovar o token
+            authLogger.info(
+              { action: 'verificar-autenticacao', status: 'expired' },
+              'Token expirado, tentando renovar',
+            )
             const renovado = await get().renovarToken()
             if (!renovado) {
+              authLogger.warn(
+                { action: 'verificar-autenticacao', status: 'renewal-failed' },
+                'Falha na renovação, usuário será desconectado',
+              )
               set({ estaAutenticado: false, carregando: false })
             }
           }
-        } catch {
+        } catch (erro) {
+          authLogger.error(
+            { action: 'verificar-autenticacao', status: 'error' },
+            erro instanceof Error ? erro.message : 'Erro desconhecido na verificação',
+          )
           set({ estaAutenticado: false, carregando: false })
         }
       },
 
       // Limpar erro
       limparErro: () => set({ erro: null }),
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        usuario: state.usuario,
-        estaAutenticado: state.estaAutenticado,
-      }),
-    },
-  ),
-)
+    }))

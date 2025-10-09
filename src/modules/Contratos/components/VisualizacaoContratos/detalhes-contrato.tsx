@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CollapsibleCard } from '@/components/ui/collapsible-card'
 import {
   Dialog,
   DialogContent,
@@ -63,6 +64,7 @@ import {
   useContratoTodosFuncionarios,
   useRemoverFuncionarioContrato,
 } from '../../hooks/use-contratos-funcionarios'
+import { ContractChat } from '../Timeline/contract-chat'
 
 import { AdicionarFuncionarioModal } from './AdicionarFuncionarioModal'
 import { FuncionarioCard } from './FuncionarioCard'
@@ -78,7 +80,9 @@ type ContratoComIds = ContratoDetalhado & {
   unidadeGestoraId?: string
 }
 
-export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
+export const DetalhesContrato = ({
+  contrato,
+}: DetalhesContratoProps) => {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
   const [modalSubstituicao, setModalSubstituicao] = useState<{
     aberto: boolean
@@ -156,6 +160,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
     () => ['unidade-skeleton-0', 'unidade-skeleton-1'],
     [],
   )
+
   const enderecoSkeletonIds = useMemo(
     () => Array.from({ length: 6 }, (_, index) => `endereco-skeleton-${index}`),
     [],
@@ -359,7 +364,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
           >
             {/* Visão Geral */}
             <TabsContent value="visao-geral" className="mt-0">
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                {/* Coluna Esquerda - Informações */}
+                <div className="space-y-6 lg:col-span-7">
+                  {/* Grid interno para Dados Básicos + Vigência */}
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Dados Básicos */}
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
@@ -761,14 +770,17 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     })()}
                   </CardContent>
                 </Card>
+                  </div>
+                  {/* Fim do grid interno */}
 
                 {/* Fiscais Administrativos */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Fiscais Administrativos ({fiscaisAtivos.length})
-                    </CardTitle>
+                <CollapsibleCard
+                  title="Fiscais Administrativos"
+                  icon={<Users className="h-5 w-5" />}
+                  count={fiscaisAtivos.length}
+                  defaultOpen={false}
+                  variant="fiscal"
+                  headerAction={(
                     <Button
                       variant="ghost"
                       size="sm"
@@ -778,7 +790,8 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
-                  </CardHeader>
+                  )}
+                >
                   <CardContent className="space-y-4">
                     {funcionariosLoading ? (
                       <div className="space-y-4">
@@ -820,15 +833,16 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                       ))
                     )}
                   </CardContent>
-                </Card>
+                </CollapsibleCard>
 
                 {/* Gestores */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      Gestores do Contrato ({gestoresAtivos.length})
-                    </CardTitle>
+                <CollapsibleCard
+                  title="Gestores do Contrato"
+                  icon={<User className="h-5 w-5" />}
+                  count={gestoresAtivos.length}
+                  defaultOpen={false}
+                  variant="gestor"
+                  headerAction={(
                     <Button
                       variant="ghost"
                       size="sm"
@@ -838,7 +852,8 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
-                  </CardHeader>
+                  )}
+                >
                   <CardContent className="space-y-4">
                     {funcionariosLoading ? (
                       <div className="space-y-4">
@@ -880,11 +895,11 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                       ))
                     )}
                   </CardContent>
-                </Card>
+                </CollapsibleCard>
 
                 {/* Informações CCon */}
                 {contrato.ccon && (
-                  <Card className="lg:col-span-2">
+                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
                         <Hash className="h-5 w-5" />
@@ -929,6 +944,19 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                     </CardContent>
                   </Card>
                 )}
+                </div>
+                {/* Fim da coluna esquerda */}
+
+                {/* Coluna Direita - Chat */}
+                <div className="lg:col-span-5">
+                  <div className="sticky top-6">
+                    <ContractChat
+                      contratoId={contrato.id}
+                      numeroContrato={contrato.numeroContrato}
+                      className="h-[calc(100vh-8rem)]"
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 

@@ -16,68 +16,97 @@ vi.mock('framer-motion', () => ({
   ),
 }))
 
-// Mock dos dados do chat
-vi.mock('../../../data/chat-mock', () => ({
-  MENSAGENS_MOCK: [
-    {
-      id: '1',
-      contratoId: 'contrato-123',
-      remetente: {
-        id: '2',
-        nome: 'Maria Santos',
-        avatar: '/avatars/maria.jpg',
-        tipo: 'gestor',
-      },
-      conteudo: 'Preciso verificar o cronograma de entregas com o fornecedor.',
-      tipo: 'texto',
-      dataEnvio: '2024-01-15T10:30:00Z',
-      lida: true,
-    },
-    {
-      id: '2',
-      contratoId: 'contrato-123',
-      remetente: {
-        id: 'sistema',
-        nome: 'Sistema',
-        tipo: 'sistema',
-      },
-      conteudo: 'Maria Santos foi designada como gestora do contrato',
-      tipo: 'sistema',
-      dataEnvio: '2024-01-10T09:00:00Z',
-      lida: true,
-    },
-  ],
-  PARTICIPANTES_MOCK: [
-    {
-      id: '1',
-      nome: 'João Silva',
-      email: 'joao@prefeitura.com',
-      avatar: '/avatars/joao.jpg',
-      tipo: 'fiscal',
-      status: 'online',
-      ultimoAcesso: new Date().toISOString(),
-    },
-    {
+const mockMensagens = [
+  {
+    id: '1',
+    contratoId: 'contrato-123',
+    remetente: {
       id: '2',
       nome: 'Maria Santos',
-      email: 'maria@prefeitura.com',
       avatar: '/avatars/maria.jpg',
-      tipo: 'gestor',
-      status: 'online',
-      ultimoAcesso: new Date().toISOString(),
+      tipo: 'gestor' as const,
     },
-  ],
+    conteudo: 'Preciso verificar o cronograma de entregas com o fornecedor.',
+    tipo: 'texto' as const,
+    dataEnvio: '2024-01-15T10:30:00Z',
+    lida: true,
+  },
+  {
+    id: '2',
+    contratoId: 'contrato-123',
+    remetente: {
+      id: 'sistema',
+      nome: 'Sistema',
+      tipo: 'sistema' as const,
+    },
+    conteudo: 'Maria Santos foi designada como gestora do contrato',
+    tipo: 'sistema' as const,
+    dataEnvio: '2024-01-10T09:00:00Z',
+    lida: true,
+  },
+]
+
+const mockUseContractChatMessages = vi.fn(() => ({
+  mensagens: mockMensagens,
+  isLoading: false,
+  isError: false,
+  error: null,
+  refetch: vi.fn(),
+  hasNextPage: false,
+  fetchNextPage: vi.fn(),
+  isFetchingNextPage: false,
+}))
+
+const mockSendMutation = {
+  mutate: vi.fn(),
+  isPending: false,
+}
+
+const mockRealtime = {
+  connectionState: 'connected' as const,
+  isConnected: true,
+  isConnecting: false,
+  error: null,
+  startTyping: vi.fn(),
+  stopTyping: vi.fn(),
+}
+
+vi.mock('@/modules/Contratos/hooks/use-chat', () => ({
+  useContractChatMessages: (...args: unknown[]) =>
+    mockUseContractChatMessages(...args),
+  useSendChatMessage: () => mockSendMutation,
+  useUpdateChatMessage: vi.fn(),
+  useDeleteChatMessage: vi.fn(),
+  useChatEstatisticas: vi.fn(),
+  useContractChatRealtime: () => mockRealtime,
+}))
+
+vi.mock('@/lib/auth/auth-store', () => ({
+  useAuthStore: vi.fn(() => ({
+    usuario: {
+      id: '1',
+      nomeCompleto: 'João Silva',
+      email: 'joao@prefeitura.com',
+      tipoUsuario: 'gestor',
+      precisaTrocarSenha: false,
+      emailConfirmado: true,
+      ativo: true,
+    },
+  })),
 }))
 
 describe('ContractChat', () => {
   const mockProps = {
     contratoId: 'contrato-123',
     numeroContrato: 'CONTR-2024-001',
-    onMarcarComoAlteracao: vi.fn(),
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUseContractChatMessages.mockClear()
+    mockSendMutation.mutate.mockClear()
+    mockRealtime.startTyping.mockClear()
+    mockRealtime.stopTyping.mockClear()
   })
 
   describe('Renderização inicial', () => {
@@ -150,71 +179,6 @@ describe('ContractChat', () => {
     })
   })
 
-  describe('Botão de marcar como alteração', () => {
-    it('deve mostrar botão ao passar mouse sobre mensagem de usuário', async () => {
-      const user = userEvent.setup()
-      render(<ContractChat {...mockProps} />)
-
-      const mensagem = screen.getByText(
-        'Preciso verificar o cronograma de entregas com o fornecedor.',
-      )
-      const container = mensagem.closest('.group')
-
-      if (container) {
-        await user.hover(container)
-
-        // O botão deve aparecer no hover
-        const botaoMarcar = container.querySelector(
-          'button[title="Marcar como alteração contratual"]',
-        )
-        expect(botaoMarcar).toBeInTheDocument()
-      }
-    })
-
-    it('deve chamar callback ao clicar no botão de marcar', async () => {
-      const user = userEvent.setup()
-      render(<ContractChat {...mockProps} />)
-
-      // Simular hover e click no botão
-      const mensagemContainer = screen
-        .getByText(
-          'Preciso verificar o cronograma de entregas com o fornecedor.',
-        )
-        .closest('.group')
-
-      if (mensagemContainer) {
-        const botaoMarcar = mensagemContainer.querySelector('button')
-        if (botaoMarcar) {
-          await user.click(botaoMarcar)
-
-          expect(mockProps.onMarcarComoAlteracao).toHaveBeenCalledTimes(1)
-          expect(mockProps.onMarcarComoAlteracao).toHaveBeenCalledWith(
-            expect.objectContaining({
-              id: '1',
-              conteudo:
-                'Preciso verificar o cronograma de entregas com o fornecedor.',
-            }),
-          )
-        }
-      }
-    })
-
-    it('não deve mostrar botão para mensagens do sistema', () => {
-      render(<ContractChat {...mockProps} />)
-
-      const mensagemSistema = screen.getByText(
-        'Maria Santos foi designada como gestora do contrato',
-      )
-      const container = mensagemSistema.closest('div')
-
-      // Mensagem do sistema não deve ter botão de marcar
-      expect(
-        container?.querySelector(
-          'button[title="Marcar como alteração contratual"]',
-        ),
-      ).not.toBeInTheDocument()
-    })
-  })
 
   describe('Envio de nova observação', () => {
     it('deve permitir digitar nova observação', async () => {
@@ -339,30 +303,6 @@ describe('ContractChat', () => {
     })
   })
 
-  describe('Funcionalidade sem callback', () => {
-    it('deve funcionar sem callback onMarcarComoAlteracao', () => {
-      const propsSemCallback = {
-        contratoId: 'contrato-123',
-        numeroContrato: 'CONTR-2024-001',
-      }
-
-      expect(() => {
-        render(<ContractChat {...propsSemCallback} />)
-      }).not.toThrow()
-
-      // Não deve mostrar botões de marcar
-      const mensagem = screen.getByText(
-        'Preciso verificar o cronograma de entregas com o fornecedor.',
-      )
-      const container = mensagem.closest('.group')
-
-      expect(
-        container?.querySelector(
-          'button[title="Marcar como alteração contratual"]',
-        ),
-      ).not.toBeInTheDocument()
-    })
-  })
 
   describe('Dicas e instruções', () => {
     it('deve mostrar dicas de uso do componente', () => {
@@ -372,9 +312,6 @@ describe('ContractChat', () => {
         screen.getByText(
           /Use este espaço para registrar observações importantes/,
         ),
-      ).toBeInTheDocument()
-      expect(
-        screen.getByText(/Passe o mouse sobre observações de outros usuários/),
       ).toBeInTheDocument()
     })
 

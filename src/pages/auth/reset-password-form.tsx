@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthStore } from '@/lib/auth/auth-store'
+import { useAuth } from '@/lib/auth/auth-context'
+import { usePasswordChangeMutation } from '@/lib/auth/auth-queries'
 
 interface PasswordRequirement {
   text: string
@@ -28,8 +29,10 @@ const ResetPasswordForm = () => {
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const { trocarSenha, carregando, erro, limparErro, estaAutenticado } =
-    useAuthStore()
+  const { estaAutenticado } = useAuth()
+  const passwordChangeMutation = usePasswordChangeMutation()
+  const { isPending: carregando, error, reset: limparErro } = passwordChangeMutation
+  const erro = error?.message ?? null
 
   const requisitosSenha: PasswordRequirement[] = [
     { text: 'Pelo menos 8 caracteres', met: novaSenha.length >= 8 },
@@ -87,23 +90,28 @@ const ResetPasswordForm = () => {
     const tokenTrocaSenha = sessionStorage.getItem('tokenTrocaSenha')
 
     // Executa troca de senha
-    const resultadoSucesso = await trocarSenha(
-      email,
-      novaSenha,
-      tokenTrocaSenha ?? undefined,
-    )
+    try {
+      await passwordChangeMutation.mutateAsync({
+        email,
+        novaSenha,
+        tokenTrocaSenha: tokenTrocaSenha ?? undefined,
+      })
 
-    if (resultadoSucesso) {
       setSucesso('Senha alterada com sucesso!')
 
       // Limpar contexto de recuperação
       sessionStorage.removeItem('auth_context')
       sessionStorage.removeItem('tokenTrocaSenha')
+      sessionStorage.removeItem('auth_email')
 
-      // Redireciona para login após 2 segundos
+      // Redireciona para dashboard ou página inicial
       setTimeout(() => {
-        navigate('/login')
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
+        sessionStorage.removeItem('redirectAfterLogin')
+        navigate(redirectPath)
       }, 2000)
+    } catch {
+      // Erro já capturado pelo mutation
     }
   }
 

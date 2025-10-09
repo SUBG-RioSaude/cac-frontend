@@ -36,14 +36,14 @@ import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
 import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
 import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
 // import { useTimelineIntegration } from '../../hooks/useTimelineIntegration' // Hook temporariamente removido
-import type { TimelineEntry } from '../../types/timeline'
-import type { ChatMessage } from '../../types/timeline'
+// import type { TimelineEntry } from '../../types/timeline' // Removido temporariamente
+// import type { ChatMessage } from '../../types/timeline' // Removido pois não está sendo usado
 
 export const VisualizarContrato = () => {
   const { contratoId: id } = useParams<{ contratoId: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState(() => getDefaultTab())
-  const [entradasTimeline, setEntradasTimeline] = useState<TimelineEntry[]>([])
+  const entradasTimeline: never[] = [] // Temporariamente vazio até integração com timeline
 
   // Buscar contrato da API usando React Query
   const {
@@ -111,35 +111,36 @@ export const VisualizarContrato = () => {
     [handleSalvarAlteracao],
   )
 
-  const handleMarcarChatComoAlteracao = useCallback(
-    (mensagem: ChatMessage) => {
-      // Converter mensagem do chat em entrada do registro de alterações
-      const autor = {
-        id: mensagem.remetente.id,
-        nome: mensagem.remetente.nome,
-        tipo: mensagem.remetente.tipo,
-      }
-
-      const entradaChat = {
-        id: `chat_${mensagem.id}`,
-        contratoId: contrato?.id ?? '',
-        tipo: 'manual' as const,
-        categoria: 'observacao' as const,
-        titulo: `Observação do Chat - ${mensagem.remetente.nome}`,
-        descricao: mensagem.conteudo,
-        dataEvento: mensagem.dataEnvio,
-        autor,
-        status: 'ativo' as const,
-        prioridade: 'media' as const,
-        tags: ['chat', 'observacao'],
-        criadoEm: new Date().toISOString(),
-      }
-
-      // Adicionar à timeline
-      setEntradasTimeline((prev) => [entradaChat, ...prev])
-    },
-    [contrato],
-  )
+  // TODO: Implementar integração chat -> timeline quando necessário
+  // const handleMarcarChatComoAlteracao = useCallback(
+  //   (mensagem: ChatMessage) => {
+  //     // Converter mensagem do chat em entrada do registro de alterações
+  //     const autor = {
+  //       id: mensagem.remetente.id,
+  //       nome: mensagem.remetente.nome,
+  //       tipo: mensagem.remetente.tipo,
+  //     }
+  //
+  //     const entradaChat = {
+  //       id: `chat_${mensagem.id}`,
+  //       contratoId: contrato?.id ?? '',
+  //       tipo: 'manual' as const,
+  //       categoria: 'observacao' as const,
+  //       titulo: `Observação do Chat - ${mensagem.remetente.nome}`,
+  //       descricao: mensagem.conteudo,
+  //       dataEvento: mensagem.dataEnvio,
+  //       autor,
+  //       status: 'ativo' as const,
+  //       prioridade: 'media' as const,
+  //       tags: ['chat', 'observacao'],
+  //       criadoEm: new Date().toISOString(),
+  //     }
+  //
+  //     // Adicionar à timeline
+  //     setEntradasTimeline((prev) => [entradaChat, ...prev])
+  //   },
+  //   [contrato],
+  // )
 
   // Função para validar mudança de aba
   const handleTabChange = useCallback((novaAba: string) => {
@@ -408,7 +409,9 @@ export const VisualizarContrato = () => {
                 {/* Renderizar apenas abas ativas */}
                 {isTabEnabled('detalhes') && (
                   <TabsContent value="detalhes" className="mt-0 w-full">
-                    <DetalhesContrato contrato={contrato} />
+                    <DetalhesContrato
+                      contrato={contrato}
+                    />
                   </TabsContent>
                 )}
 
@@ -479,7 +482,6 @@ export const VisualizarContrato = () => {
                     <ContractChat
                       contratoId={contrato.id}
                       numeroContrato={contrato.numeroContrato}
-                      onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
                       key={`chat-${contrato.id}`}
                     />
                   </TabsContent>

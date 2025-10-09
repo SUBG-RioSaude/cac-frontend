@@ -12,6 +12,11 @@ export const apiGateway = axios.create({
   baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 5000, // Timeout mais curto para fallback rápido
   withCredentials: false,
+  responseType: 'json',
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+  },
 })
 
 // Cliente para Microserviço Direto (fallback)
@@ -19,6 +24,11 @@ export const apiDirect = axios.create({
     baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
     timeout: 30000, // Aumentado para 30s para operações complexas
     withCredentials: false,
+    responseType: 'json',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json',
+    },
 })
 
 // Interceptador de requisição para adicionar token dos cookies
@@ -27,6 +37,11 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 5000,
   withCredentials: false,
+  responseType: 'json',
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+  },
 })
 
 // Interceptor de autenticação para todos os clientes
@@ -39,12 +54,31 @@ const authInterceptor = (config: InternalAxiosRequestConfig) => {
     }
     // Token inválido - não adiciona ao header
   }
+
+  // Garante que sempre envie charset UTF-8
+  config.headers['Content-Type'] ??= 'application/json; charset=utf-8'
+  config.headers.Accept ??= 'application/json'
+
   return config
 }
 
 apiGateway.interceptors.request.use(authInterceptor)
 apiDirect.interceptors.request.use(authInterceptor)
 api.interceptors.request.use(authInterceptor)
+
+// Interceptor de resposta para garantir UTF-8
+const utf8ResponseInterceptor = (response: AxiosResponse) => {
+  // Se a resposta contém dados do tipo string, garante que está decodificado como UTF-8
+  if (response.data && typeof response.data === 'object') {
+    // Axios já decodifica JSON automaticamente, mas podemos garantir o charset
+    response.headers['content-type'] = 'application/json; charset=utf-8'
+  }
+  return response
+}
+
+apiGateway.interceptors.response.use(utf8ResponseInterceptor)
+apiDirect.interceptors.response.use(utf8ResponseInterceptor)
+api.interceptors.response.use(utf8ResponseInterceptor)
 
 // Função para executar requisição com fallback automático
 export async function executeWithFallback<T>(
@@ -139,10 +173,9 @@ export async function executeWithFallback<T>(
     }
 }
 
-// Interceptador de resposta para renovação automática de token
-api.interceptors.response.use(
-  (response) => response,
-  async (erro: AxiosError) => {
+// Interceptador de resposta reutilizável para renovação automática de token
+const createTokenRenewalInterceptor = () => {
+  return async (erro: AxiosError) => {
     const { response, config } = erro
 
     // Se o erro for 401 (não autorizado), tenta renovar o token
@@ -154,7 +187,8 @@ api.interceptors.response.use(
           const token = getToken()
           if (token && token.split('.').length === 3) {
             config.headers.Authorization = `Bearer ${token}`
-            return api.request(config)
+            // Usa o cliente axios que originou a requisição
+            return axios.request(config)
           }
         }
       } catch {
@@ -166,14 +200,21 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(new Error(erro.message || 'Erro na requisição'))
-  },
-)
+  }
+}
+
+// Aplica interceptor de renovação em todos os clientes
+api.interceptors.response.use((response) => response, createTokenRenewalInterceptor())
+apiGateway.interceptors.response.use((response) => response, createTokenRenewalInterceptor())
+apiDirect.interceptors.response.use((response) => response, createTokenRenewalInterceptor())
 
 // API específica para autenticação (sem interceptadores de renovação)
 export const authApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL_AUTH as string,
   timeout: 10000,
+  responseType: 'json',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
   },
 })

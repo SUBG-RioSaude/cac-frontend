@@ -3,13 +3,15 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import type React from 'react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthStore } from '@/lib/auth/auth-store'
+import { useAuth } from '@/lib/auth/auth-context'
+import { useLoginMutation } from '@/lib/auth/auth-queries'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('')
@@ -18,8 +20,10 @@ const LoginForm = () => {
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const { login, carregando, erro, limparErro, estaAutenticado } =
-    useAuthStore()
+  const { estaAutenticado } = useAuth()
+  const loginMutation = useLoginMutation()
+  const { isPending: carregando, error, reset: limparErro } = loginMutation
+  const erro = error?.message ?? null
 
 
   // Redireciona se já estiver autenticado
@@ -30,6 +34,19 @@ const LoginForm = () => {
       navigate(redirectPath, { replace: true })
     }
   }, [estaAutenticado, navigate])
+
+  // Verifica se deve mostrar toast de logout bem-sucedido
+  useEffect(() => {
+    const shouldShowLogoutToast = sessionStorage.getItem('show_logout_success_toast')
+    if (shouldShowLogoutToast === 'true') {
+      // Remove flag imediatamente para não mostrar novamente
+      sessionStorage.removeItem('show_logout_success_toast')
+      // Mostra toast após um pequeno delay para garantir que a página carregou
+      setTimeout(() => {
+        toast.success('Logout realizado com sucesso!')
+      }, 100)
+    }
+  }, [])
 
   const validarEmail = (emailValue: string): boolean => {
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -54,11 +71,16 @@ const LoginForm = () => {
     }
 
     // Executa login
-    const sucesso = await login(email, senha)
+    try {
+      await loginMutation.mutateAsync({ email, senha })
 
-    if (sucesso) {
+      // Salva email para próxima etapa (2FA)
+      sessionStorage.setItem('auth_email', email)
+
       // Redireciona para verificação 2FA
       navigate('/auth/verificar-codigo', { replace: true })
+    } catch {
+      // Erro já capturado pelo mutation
     }
   }
 

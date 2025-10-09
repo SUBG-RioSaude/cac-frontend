@@ -5,13 +5,20 @@ import { ArrowLeft, Loader2, Mail, Check } from 'lucide-react'
 import type React from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthStore } from '@/lib/auth/auth-store'
+import { hasAuthCookies } from '@/lib/auth/auth'
+import { useAuth } from '@/lib/auth/auth-context'
+import { useConfirm2FAMutation, useLoginMutation } from '@/lib/auth/auth-queries'
+import { cookieUtils } from '@/lib/auth/cookie-utils'
+import { createServiceLogger } from '@/lib/logger'
+
+const verifyLogger = createServiceLogger('verify-form')
 
 const VerifyForm = () => {
   const [codigo, setCodigo] = useState(['', '', '', '', '', ''])
@@ -27,8 +34,11 @@ const VerifyForm = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const navigate = useNavigate()
 
-  const { confirmarCodigo2FA, carregando, erro, limparErro, estaAutenticado } =
-    useAuthStore()
+  const { estaAutenticado } = useAuth()
+  const confirm2FAMutation = useConfirm2FAMutation()
+  const loginMutation = useLoginMutation()
+  const { isPending: carregando, error, reset: limparErro } = confirm2FAMutation
+  const erro = error?.message ?? null
 
   useEffect(() => {
     const emailArmazenado = sessionStorage.getItem('auth_email')
@@ -145,28 +155,103 @@ const VerifyForm = () => {
 
     limparErro()
 
-    if (contexto === 'password_recovery' || contexto === 'password_expired') {
-      // Fluxo de recuperação de senha ou senha expirada - apenas verifica código e vai para redefinir senha
-      const sucesso = await confirmarCodigo2FA(email, codigoString)
+    try {
+      verifyLogger.info(
+        { action: 'confirm-2fa', status: 'submitting', email },
+        'Submetendo código 2FA',
+      )
 
-      if (sucesso) {
+      const resultado = await confirm2FAMutation.mutateAsync({ email, codigo: codigoString })
+
+      verifyLogger.debug(
+        {
+          action: 'confirm-2fa',
+          status: 'success',
+          sucesso: resultado.sucesso,
+          requiresPasswordChange: 'requiresPasswordChange' in resultado ? resultado.requiresPasswordChange : false,
+        },
+        'Código 2FA confirmado',
+      )
+
+      // Aguarda 500ms para garantir que cookies foram salvos
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Verifica se cookies foram salvos corretamente
+      const cookiesExistem = hasAuthCookies()
+      const authToken = cookieUtils.getCookie('auth_token')
+      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+
+      verifyLogger.debug(
+        {
+          action: 'confirm-2fa',
+          status: 'cookies-check',
+          cookiesExistem,
+          hasAuthToken: !!authToken,
+          hasRefreshToken: !!refreshToken,
+          authTokenLength: authToken?.length ?? 0,
+        },
+        'Verificação de cookies após 2FA',
+      )
+
+      if (!cookiesExistem) {
+        verifyLogger.error(
+          {
+            action: 'confirm-2fa',
+            status: 'cookies-missing',
+          },
+          'Cookies não foram salvos após confirmação 2FA',
+        )
+      }
+
+      // Verifica se precisa trocar senha
+      if ('requiresPasswordChange' in resultado && resultado.requiresPasswordChange) {
+        verifyLogger.info(
+          { action: 'confirm-2fa', status: 'password-change-required' },
+          'Redirecionando para troca de senha',
+        )
+        sessionStorage.setItem('auth_context', 'password_reset')
+        sessionStorage.setItem('tokenTrocaSenha', resultado.tokenTrocaSenha ?? '')
+        navigate('/auth/trocar-senha', { replace: true })
+        return
+      }
+
+      if (contexto === 'password_recovery' || contexto === 'password_expired') {
+        verifyLogger.info(
+          { action: 'confirm-2fa', status: 'password-recovery' },
+          'Contexto de recuperação de senha',
+        )
         // Código válido, navegar para redefinir senha
         sessionStorage.setItem('auth_context', 'password_reset')
         navigate('/auth/trocar-senha', { replace: true })
-      }
-      // Erros são tratados pelo store
-    } else {
-      // Fluxo normal de login com 2FA
-      const sucesso = await confirmarCodigo2FA(email, codigoString)
-
-      if (sucesso) {
+      } else {
         // Login bem-sucedido, redireciona para a página principal
         const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
+        verifyLogger.info(
+          {
+            action: 'confirm-2fa',
+            status: 'login-success',
+            redirectPath,
+          },
+          'Login bem-sucedido, redirecionando',
+        )
+
+        // Toast de sucesso
+        toast.success('Login realizado com sucesso!')
+
         sessionStorage.removeItem('redirectAfterLogin')
+        sessionStorage.removeItem('auth_email')
         navigate(redirectPath, { replace: true })
       }
-      // Se não foi sucesso, pode ser que precise trocar senha
-      // O store já redirecionará automaticamente se necessário
+    } catch (err) {
+      verifyLogger.error(
+        {
+          action: 'confirm-2fa',
+          status: 'error',
+          error: err instanceof Error ? err.message : String(err),
+        },
+        'Erro ao confirmar código 2FA',
+      )
+      // Erro já capturado pelo mutation
     }
   }
 
@@ -175,11 +260,9 @@ const VerifyForm = () => {
   }
 
   const handleResendCodeAsync = async () => {
-    // Reenvia código através do esqueci senha
-    const { esqueciSenha } = useAuthStore.getState()
-
+    // Reenvia código através do login
     try {
-      await esqueciSenha(email)
+      await loginMutation.mutateAsync({ email, senha: '' })
 
       // Reinicia o timer e estados
       setTempoRestante(300) // 5 minutos
