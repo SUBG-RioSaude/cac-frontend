@@ -56,12 +56,8 @@ const authInterceptor = (config: InternalAxiosRequestConfig) => {
   }
 
   // Garante que sempre envie charset UTF-8
-  if (!config.headers['Content-Type']) {
-    config.headers['Content-Type'] = 'application/json; charset=utf-8'
-  }
-  if (!config.headers['Accept']) {
-    config.headers['Accept'] = 'application/json'
-  }
+  config.headers['Content-Type'] ??= 'application/json; charset=utf-8'
+  config.headers.Accept ??= 'application/json'
 
   return config
 }

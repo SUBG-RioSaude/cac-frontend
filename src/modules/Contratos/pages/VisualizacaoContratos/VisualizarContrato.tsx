@@ -111,7 +111,7 @@ export const VisualizarContrato = () => {
     [handleSalvarAlteracao],
   )
 
-  const handleMarcarChatComoAlteracao = useCallback(
+  const _handleMarcarChatComoAlteracao = useCallback(
     (mensagem: ChatMessage) => {
       // Converter mensagem do chat em entrada do registro de alterações
       const autor = {

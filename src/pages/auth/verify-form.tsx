@@ -242,12 +242,12 @@ const VerifyForm = () => {
         sessionStorage.removeItem('auth_email')
         navigate(redirectPath, { replace: true })
       }
-    } catch (error) {
+    } catch (err) {
       verifyLogger.error(
         {
           action: 'confirm-2fa',
           status: 'error',
-          error: error instanceof Error ? error.message : String(error),
+          error: err instanceof Error ? err.message : String(err),
         },
         'Erro ao confirmar código 2FA',
       )

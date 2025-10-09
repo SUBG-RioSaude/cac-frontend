@@ -84,7 +84,7 @@ export function clearAuthCookies(): void {
 // Função para validar se um token está próximo de expirar
 export function isTokenNearExpiry(token: string): boolean {
   try {
-    const base64Payload = token.split('.')[1]
+    const [, base64Payload] = token.split('.')
     const payloadString = decodeBase64UTF8(base64Payload)
     const payload = JSON.parse(payloadString) as { exp: number }
     const exp = payload.exp * 1000 // Converte para milissegundos
@@ -102,7 +102,7 @@ export function isTokenNearExpiry(token: string): boolean {
 export function getTokenInfo(token: string) {
   try {
     // Decodifica o payload do JWT com suporte correto a UTF-8
-    const base64Payload = token.split('.')[1]
+    const [, base64Payload] = token.split('.')
     const payloadString = decodeBase64UTF8(base64Payload)
     const payload = JSON.parse(payloadString)
 
