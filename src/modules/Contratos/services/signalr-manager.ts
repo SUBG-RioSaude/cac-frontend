@@ -6,8 +6,8 @@ import {
   CHAT_SISTEMA_ID,
   mapMensagemResponseToChatMessage,
 } from '@/modules/Contratos/types/chat-api'
-import type { ChatMessage } from '@/modules/Contratos/types/timeline'
 import type { MensagemResponseDto } from '@/modules/Contratos/types/chat-api'
+import type { ChatMessage } from '@/modules/Contratos/types/timeline'
 
 const logger = createServiceLogger('chat-signalr')
 
@@ -23,7 +23,7 @@ const resolveHubUrl = () => {
     return '/chathub'
   }
 
-  return baseUrl.replace(/\/$/, '') + '/chathub'
+  return `${baseUrl.replace(/\/$/, '')  }/chathub`
 }
 
 export interface TypingEvent {
@@ -166,9 +166,11 @@ class SignalRChatManager {
     }
 
     try {
-      await activeConnection.invoke('JoinContractRoom', sistemaId, contratoId)
-      this.activeRooms.add(roomKey)
-      logger.info('Joined sala do contrato', roomKey)
+      if (activeConnection) {
+        await activeConnection.invoke('JoinContractRoom', sistemaId, contratoId)
+        this.activeRooms.add(roomKey)
+        logger.info('Joined sala do contrato', roomKey)
+      }
     } catch (error) {
       logger.error('Erro ao entrar na sala do contrato', error as string)
       throw error
@@ -176,7 +178,7 @@ class SignalRChatManager {
   }
 
   async leaveRoom(sistemaId: string, contratoId: string) {
-    const connection = this.connection
+    const {connection} = this
     const roomKey = createRoomKey(sistemaId, contratoId)
 
     if (!connection || !this.activeRooms.has(roomKey)) {
@@ -275,19 +277,23 @@ class SignalRChatManager {
     const connection = await this.ensureConnection()
     const sistemaId = params.sistemaId ?? CHAT_SISTEMA_ID
 
-    await connection.invoke('SendMessage', {
-      sistemaId,
-      entidadeOrigemId: params.contratoId,
-      texto: params.texto,
-      autorId: params.autorId,
-      autorNome: params.autorNome ?? null,
-    })
+    if (connection) {
+      await connection.invoke('SendMessage', {
+        sistemaId,
+        entidadeOrigemId: params.contratoId,
+        texto: params.texto,
+        autorId: params.autorId,
+        autorNome: params.autorNome ?? null,
+      })
+    }
   }
 
   async startTyping(sistemaId: string, contratoId: string) {
     try {
       const connection = await this.ensureConnection()
-      await connection.invoke('StartTyping', sistemaId, contratoId)
+      if (connection) {
+        await connection.invoke('StartTyping', sistemaId, contratoId)
+      }
     } catch (error) {
       logger.debug('Falha ao enviar evento de typing', error as string)
     }
@@ -296,7 +302,9 @@ class SignalRChatManager {
   async stopTyping(sistemaId: string, contratoId: string) {
     try {
       const connection = await this.ensureConnection()
-      await connection.invoke('StopTyping', sistemaId, contratoId)
+      if (connection) {
+        await connection.invoke('StopTyping', sistemaId, contratoId)
+      }
     } catch (error) {
       logger.debug('Falha ao encerrar evento de typing', error as string)
     }

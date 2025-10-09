@@ -410,7 +410,6 @@ export const VisualizarContrato = () => {
                   <TabsContent value="detalhes" className="mt-0 w-full">
                     <DetalhesContrato
                       contrato={contrato}
-                      onMarcarChatComoAlteracao={handleMarcarChatComoAlteracao}
                     />
                   </TabsContent>
                 )}
@@ -482,7 +481,6 @@ export const VisualizarContrato = () => {
                     <ContractChat
                       contratoId={contrato.id}
                       numeroContrato={contrato.numeroContrato}
-                      onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
                       key={`chat-${contrato.id}`}
                     />
                   </TabsContent>

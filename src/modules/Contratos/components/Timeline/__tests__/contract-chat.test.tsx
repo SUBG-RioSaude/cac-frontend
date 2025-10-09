@@ -99,7 +99,6 @@ describe('ContractChat', () => {
   const mockProps = {
     contratoId: 'contrato-123',
     numeroContrato: 'CONTR-2024-001',
-    onMarcarComoAlteracao: vi.fn(),
   }
 
   beforeEach(() => {
@@ -180,71 +179,6 @@ describe('ContractChat', () => {
     })
   })
 
-  describe('Botão de marcar como alteração', () => {
-    it('deve mostrar botão ao passar mouse sobre mensagem de usuário', async () => {
-      const user = userEvent.setup()
-      render(<ContractChat {...mockProps} />)
-
-      const mensagem = screen.getByText(
-        'Preciso verificar o cronograma de entregas com o fornecedor.',
-      )
-      const container = mensagem.closest('.group')
-
-      if (container) {
-        await user.hover(container)
-
-        // O botão deve aparecer no hover
-        const botaoMarcar = container.querySelector(
-          'button[title="Marcar como alteração contratual"]',
-        )
-        expect(botaoMarcar).toBeInTheDocument()
-      }
-    })
-
-    it('deve chamar callback ao clicar no botão de marcar', async () => {
-      const user = userEvent.setup()
-      render(<ContractChat {...mockProps} />)
-
-      // Simular hover e click no botão
-      const mensagemContainer = screen
-        .getByText(
-          'Preciso verificar o cronograma de entregas com o fornecedor.',
-        )
-        .closest('.group')
-
-      if (mensagemContainer) {
-        const botaoMarcar = mensagemContainer.querySelector('button')
-        if (botaoMarcar) {
-          await user.click(botaoMarcar)
-
-          expect(mockProps.onMarcarComoAlteracao).toHaveBeenCalledTimes(1)
-          expect(mockProps.onMarcarComoAlteracao).toHaveBeenCalledWith(
-            expect.objectContaining({
-              id: '1',
-              conteudo:
-                'Preciso verificar o cronograma de entregas com o fornecedor.',
-            }),
-          )
-        }
-      }
-    })
-
-    it('não deve mostrar botão para mensagens do sistema', () => {
-      render(<ContractChat {...mockProps} />)
-
-      const mensagemSistema = screen.getByText(
-        'Maria Santos foi designada como gestora do contrato',
-      )
-      const container = mensagemSistema.closest('div')
-
-      // Mensagem do sistema não deve ter botão de marcar
-      expect(
-        container?.querySelector(
-          'button[title="Marcar como alteração contratual"]',
-        ),
-      ).not.toBeInTheDocument()
-    })
-  })
 
   describe('Envio de nova observação', () => {
     it('deve permitir digitar nova observação', async () => {
@@ -369,30 +303,6 @@ describe('ContractChat', () => {
     })
   })
 
-  describe('Funcionalidade sem callback', () => {
-    it('deve funcionar sem callback onMarcarComoAlteracao', () => {
-      const propsSemCallback = {
-        contratoId: 'contrato-123',
-        numeroContrato: 'CONTR-2024-001',
-      }
-
-      expect(() => {
-        render(<ContractChat {...propsSemCallback} />)
-      }).not.toThrow()
-
-      // Não deve mostrar botões de marcar
-      const mensagem = screen.getByText(
-        'Preciso verificar o cronograma de entregas com o fornecedor.',
-      )
-      const container = mensagem.closest('.group')
-
-      expect(
-        container?.querySelector(
-          'button[title="Marcar como alteração contratual"]',
-        ),
-      ).not.toBeInTheDocument()
-    })
-  })
 
   describe('Dicas e instruções', () => {
     it('deve mostrar dicas de uso do componente', () => {
@@ -402,9 +312,6 @@ describe('ContractChat', () => {
         screen.getByText(
           /Use este espaço para registrar observações importantes/,
         ),
-      ).toBeInTheDocument()
-      expect(
-        screen.getByText(/Passe o mouse sobre observações de outros usuários/),
       ).toBeInTheDocument()
     })
 

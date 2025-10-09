@@ -6,10 +6,10 @@ import {
   type InfiniteData,
 } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
-import { useToast } from '@/modules/Contratos/hooks/useToast'
-import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import { createServiceLogger } from '@/lib/logger'
+import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   atualizarMensagem,
   criarMensagem,
@@ -34,7 +34,7 @@ export const buildChatQueryKey = (
 ) => [...contratoKeys.chat(contratoId), { pageSize, sistemaId }] as const
 
 const generateTempId = () =>
-  globalThis.crypto?.randomUUID?.() ?? 'temp-' + Date.now().toString()
+  globalThis.crypto?.randomUUID?.() ?? `temp-${  Date.now().toString()}`
 
 const realtimeLogger = createServiceLogger('contract-chat-realtime')
 
@@ -100,9 +100,9 @@ export const useContractChatMessages = (
     queryKey: buildChatQueryKey(contratoId, pageSize, sistemaId),
     enabled: options?.enabled ?? !!contratoId,
     initialPageParam: 1,
-    getNextPageParam: (lastPage, pages) =>
+    getNextPageParam: (lastPage: ChatMensagensPaginadas, pages) =>
       lastPage.temProximaPagina ? pages.length + 1 : undefined,
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam }: { pageParam: number }) =>
       fetchMensagensPorContrato(contratoId, {
         sistemaId,
         page: pageParam,
@@ -114,7 +114,7 @@ export const useContractChatMessages = (
   })
 
   const mensagens =
-    query.data?.pages.flatMap((page) => page.mensagens) ?? ([] as ChatMessage[])
+    query.data?.pages.flatMap((page: ChatMensagensPaginadas) => page.mensagens) ?? ([] as ChatMessage[])
 
   return {
     ...query,
@@ -136,7 +136,6 @@ export const useSendChatMessage = (
   const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
   const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
   const queryClient = useQueryClient()
-  const { mutation } = useToast()
   const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
 
   return useMutation({
@@ -201,7 +200,7 @@ export const useSendChatMessage = (
       return { previousData, tempId: tempMessage.id }
     },
     onSuccess: (mensagem, _variables, context) => {
-      mutation.success('Mensagem enviada com sucesso!')
+      toast.success('Mensagem enviada com sucesso!')
 
       queryClient.setQueryData<InfiniteData<ChatMensagensPaginadas>>(
         queryKey,
@@ -239,7 +238,9 @@ export const useSendChatMessage = (
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
-      mutation.error('Enviar mensagem', error)
+      toast.error('Erro ao enviar mensagem', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      })
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
@@ -259,7 +260,6 @@ export const useUpdateChatMessage = (
   const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
   const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
   const queryClient = useQueryClient()
-  const { mutation } = useToast()
   const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
 
   return useMutation({
@@ -300,13 +300,15 @@ export const useUpdateChatMessage = (
       return { previousData }
     },
     onSuccess: () => {
-      mutation.success('Mensagem atualizada')
+      toast.success('Mensagem atualizada')
     },
     onError: (error, _variables, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
-      mutation.error('Atualizar mensagem', error)
+      toast.error('Erro ao atualizar mensagem', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      })
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
@@ -321,7 +323,6 @@ export const useDeleteChatMessage = (
   const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
   const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
   const queryClient = useQueryClient()
-  const { mutation } = useToast()
   const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
 
   return useMutation({
@@ -352,13 +353,15 @@ export const useDeleteChatMessage = (
       return { previousData }
     },
     onSuccess: () => {
-      mutation.success('Mensagem removida')
+      toast.success('Mensagem removida')
     },
     onError: (error, _variables, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
-      mutation.error('Remover mensagem', error)
+      toast.error('Erro ao remover mensagem', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      })
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
@@ -367,16 +370,20 @@ export const useDeleteChatMessage = (
 }
 
 export const useChatEstatisticas = (options?: { enabled?: boolean }) => {
-  const { query } = useToast()
-
   return useQuery({
     queryKey: contratoKeys.chatEstatisticas(),
-    queryFn: () => fetchEstatisticas(),
+    queryFn: async () => {
+      try {
+        return await fetchEstatisticas()
+      } catch (error) {
+        toast.error('Erro ao carregar estatísticas', {
+          description: error instanceof Error ? error.message : 'Erro desconhecido',
+        })
+        throw error
+      }
+    },
     enabled: options?.enabled ?? true,
     staleTime: 5 * 60 * 1000,
-    onError: (error) => {
-      query.error(error)
-    },
   })
 }
 

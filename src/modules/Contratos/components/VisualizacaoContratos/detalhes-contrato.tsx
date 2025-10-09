@@ -56,7 +56,6 @@ import {
   getUnidadesDemandantes,
   getUnidadesGestoras,
 } from '@/modules/Contratos/types/contrato'
-import type { ChatMessage } from '@/modules/Contratos/types/timeline'
 import { useEmpresa } from '@/modules/Empresas/hooks/use-empresas'
 import { useUnidadesByIds } from '@/modules/Unidades/hooks/use-unidades'
 import { parseStatusContrato } from '@/types/status'
@@ -73,7 +72,6 @@ import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado
-  onMarcarChatComoAlteracao?: (mensagem: ChatMessage) => void
 }
 
 // Type para acessar campos que vêm da API mas não estão na interface ContratoDetalhado
@@ -84,7 +82,6 @@ type ContratoComIds = ContratoDetalhado & {
 
 export const DetalhesContrato = ({
   contrato,
-  onMarcarChatComoAlteracao,
 }: DetalhesContratoProps) => {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
   const [modalSubstituicao, setModalSubstituicao] = useState<{
@@ -164,12 +161,6 @@ export const DetalhesContrato = ({
     [],
   )
 
-  const handleMarcarChatComoAlteracao = useCallback(
-    (mensagem: ChatMessage) => {
-      onMarcarChatComoAlteracao?.(mensagem)
-    },
-    [onMarcarChatComoAlteracao],
-  )
   const enderecoSkeletonIds = useMemo(
     () => Array.from({ length: 6 }, (_, index) => `endereco-skeleton-${index}`),
     [],
@@ -962,7 +953,6 @@ export const DetalhesContrato = ({
                     <ContractChat
                       contratoId={contrato.id}
                       numeroContrato={contrato.numeroContrato}
-                      onMarcarComoAlteracao={handleMarcarChatComoAlteracao}
                       className="h-[calc(100vh-8rem)]"
                     />
                   </div>

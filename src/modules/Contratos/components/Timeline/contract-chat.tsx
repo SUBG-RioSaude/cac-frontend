@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send,
-  Bookmark,
   AlertTriangle,
   FileText,
   Users,
@@ -45,14 +44,12 @@ const logger = createServiceLogger('contract-chat')
 interface ContractChatProps {
   contratoId: string
   numeroContrato: string
-  onMarcarComoAlteracao?: (mensagem: ChatMessage) => void
   className?: string
 }
 
 export const ContractChat = ({
   contratoId,
   numeroContrato,
-  onMarcarComoAlteracao,
   className,
 }: ContractChatProps) => {
   const [novaMensagem, setNovaMensagem] = useState('')
@@ -108,7 +105,7 @@ export const ContractChat = ({
           nome: nomeNormalizado,
           email: '',
           avatar,
-          tipo: tipo ?? 'usuario',
+          tipo: tipo === 'sistema' ? 'usuario' : (tipo ?? 'usuario'),
           status: 'online',
           ultimoAcesso: mensagem.dataEnvio,
         })
@@ -177,12 +174,6 @@ export const ContractChat = ({
     realtime,
   ])
 
-  const handleMarcarComoAlteracao = useCallback(
-    (mensagem: ChatMessage) => {
-      onMarcarComoAlteracao?.(mensagem)
-    },
-    [onMarcarComoAlteracao],
-  )
 
   const formatarHorario = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR', {
@@ -370,16 +361,13 @@ export const ContractChat = ({
                         {!isOwn && (
                           <div className="mt-1">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage
-                                src={mensagem.remetente.avatar}
-                                alt={remetenteNome}
-                              />
-                              <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
+                              <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-700">
                                 {remetenteNome
                                   .split(' ')
-                                  .map((n) => n[0])
+                                  .map((n: string) => n[0])
                                   .join('')
-                                  .substring(0, 2)}
+                                  .substring(0, 2)
+                                  .toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                           </div>
@@ -418,22 +406,6 @@ export const ContractChat = ({
                               {mensagem.conteudo}
                             </div>
 
-                            {!isOwn && onMarcarComoAlteracao && (
-                              <div className="absolute -top-2 -right-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 w-7 border-orange-200 bg-white p-0 shadow-md hover:border-orange-300 hover:bg-orange-50"
-                                  onClick={() =>
-                                    handleMarcarComoAlteracao(mensagem)
-                                  }
-                                  title="Marcar como alteração contratual"
-                                >
-                                  <Bookmark className="h-3 w-3 text-orange-600" />
-                                </Button>
-                              </div>
-                            )}
-
                             <div
                               className={cn(
                                 'text-muted-foreground mt-1 text-xs',
@@ -464,12 +436,12 @@ export const ContractChat = ({
 
           <div className="flex gap-3">
             <Avatar className="mt-1 h-8 w-8">
-              <AvatarFallback className="bg-blue-100 text-xs text-blue-700">
-                {currentUserParticipant?.nome
+              <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-700">
+                {(currentUserParticipant?.nome
                   ?.split(' ')
                   .map((n) => n[0])
                   .join('')
-                  .substring(0, 2) ?? 'VC'}
+                  .substring(0, 2) ?? 'VC').toUpperCase()}
               </AvatarFallback>
             </Avatar>
 
@@ -534,9 +506,7 @@ export const ContractChat = ({
             <FileText className="mt-0.5 h-3 w-3 flex-shrink-0" />
             <span>
               <strong>Dica:</strong> Use este espaço para registrar observações
-              importantes sobre o contrato. Passe o mouse sobre observações de
-              outros usuários para marcá-las como alterações contratuais
-              relevantes.
+              importantes sobre o contrato.
             </span>
           </p>
         </div>
