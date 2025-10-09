@@ -78,6 +78,7 @@ export const cookieUtils = {
     this.setCookie(name, '', {
       ...options,
       expires,
+      maxAge: 0,
       path,
       domain,
     })
