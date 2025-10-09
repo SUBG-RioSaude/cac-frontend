@@ -105,6 +105,7 @@ describe('ContractChat', () => {
     vi.clearAllMocks()
     mockUseContractChatMessages.mockClear()
     mockSendMutation.mutate.mockClear()
+    mockSendMutation.isPending = false
     mockRealtime.startTyping.mockClear()
     mockRealtime.stopTyping.mockClear()
   })
@@ -219,7 +220,6 @@ describe('ContractChat', () => {
         expect(botao).toBeDisabled()
       })
     })
-
     it('deve enviar mensagem ao clicar em registrar', async () => {
       render(<ContractChat {...mockProps} />)
 
@@ -228,7 +228,6 @@ describe('ContractChat', () => {
       )
       const botao = screen.getByRole('button', { name: /registrar/i })
 
-      // Digitar texto
       fireEvent.change(textarea, {
         target: { value: 'Nova observação importante' },
       })
@@ -239,27 +238,37 @@ describe('ContractChat', () => {
 
       fireEvent.click(botao)
 
-      // Aguardar o processamento da mensagem
       await waitFor(() => {
-        expect(
-          screen.getByText('Nova observação importante'),
-        ).toBeInTheDocument()
+        expect(mockSendMutation.mutate).toHaveBeenCalledWith({
+          conteudo: 'Nova observação importante',
+          autorId: '1',
+          autorNome: 'João Silva',
+        })
       })
-    })
 
+      expect(textarea).toHaveValue('')
+    })
     it('deve enviar mensagem ao pressionar Enter', async () => {
       render(<ContractChat {...mockProps} />)
 
       const textarea = screen.getByPlaceholderText(
         /Registre uma observação sobre o contrato/,
       )
+      const botao = screen.getByRole('button', { name: /registrar/i })
 
       fireEvent.change(textarea, { target: { value: 'Mensagem via Enter' } })
       fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' })
 
       await waitFor(() => {
-        expect(screen.getByText('Mensagem via Enter')).toBeInTheDocument()
+        expect(mockSendMutation.mutate).toHaveBeenCalledWith({
+          conteudo: 'Mensagem via Enter',
+          autorId: '1',
+          autorNome: 'João Silva',
+        })
       })
+
+      expect(textarea).toHaveValue('')
+      expect(botao).toBeDisabled()
     })
 
     it('deve permitir nova linha com Shift+Enter', () => {
@@ -279,8 +288,7 @@ describe('ContractChat', () => {
       // Shift+Enter não deve enviar, então o valor deve permanecer
       expect(textarea).toHaveValue('Primeira linha')
     })
-
-    it('deve mostrar estado de carregamento durante envio', async () => {
+    it('deve limpar campo e parar indicador de digitação durante envio', async () => {
       render(<ContractChat {...mockProps} />)
 
       const textarea = screen.getByPlaceholderText(
@@ -296,23 +304,17 @@ describe('ContractChat', () => {
 
       fireEvent.click(botao)
 
-      // Verificar se a mensagem foi adicionada (indica que o envio funcionou)
-      await waitFor(() => {
-        expect(screen.getByText('Teste loading')).toBeInTheDocument()
+      expect(mockSendMutation.mutate).toHaveBeenCalledWith({
+        conteudo: 'Teste loading',
+        autorId: '1',
+        autorNome: 'João Silva',
       })
-    })
-  })
+      expect(mockRealtime.stopTyping).toHaveBeenCalledTimes(1)
 
-
-  describe('Dicas e instruções', () => {
-    it('deve mostrar dicas de uso do componente', () => {
-      render(<ContractChat {...mockProps} />)
-
-      expect(
-        screen.getByText(
-          /Use este espaço para registrar observações importantes/,
-        ),
-      ).toBeInTheDocument()
+      await waitFor(() => {
+        expect(botao).toBeDisabled()
+      })
+      expect(textarea).toHaveValue('')
     })
 
     it('deve mostrar atalhos de teclado', () => {

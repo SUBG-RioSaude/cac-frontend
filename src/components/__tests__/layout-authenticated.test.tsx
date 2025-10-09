@@ -1,11 +1,24 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 import { LayoutAuthenticated } from '../layout-authenticated'
+
+vi.mock('@/components/app-sidebar', () => ({
+  AppSidebar: () => <div data-testid="app-sidebar">Mock Sidebar</div>,
+}))
+
+vi.mock('@/components/notificacoes-dropdown', () => ({
+  NotificacoesDropdown: () => <div data-testid="notifications">Notifications</div>,
+}))
+
+vi.mock('@/components/page-breadcrumb', () => ({
+  __esModule: true,
+  default: () => <nav data-testid="breadcrumb">Breadcrumb</nav>,
+}))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +67,8 @@ describe('LayoutAuthenticated', () => {
       'bg-white',
       'shadow-sm',
     )
+    expect(screen.getByTestId('breadcrumb')).toBeInTheDocument()
+    expect(screen.getByTestId('notifications')).toBeInTheDocument()
   })
 
   it('deve renderizar o conteúdo principal dentro do ErrorBoundary', () => {
@@ -63,7 +78,6 @@ describe('LayoutAuthenticated', () => {
       </MockedLayoutAuthenticated>,
     )
 
-    // Usar getAllByRole para verificar todos os elementos main
     const mainElements = screen.getAllByRole('main')
     expect(mainElements.length).toBeGreaterThan(0)
     expect(screen.getByTestId('main-content')).toBeInTheDocument()
