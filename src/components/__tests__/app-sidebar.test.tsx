@@ -1,13 +1,18 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 import '@testing-library/jest-dom'
 
 import { AppSidebar } from '../app-sidebar'
 import { SidebarProvider } from '../ui/sidebar'
+
+vi.mock('@/components/sidebar-footer', () => ({
+  __esModule: true,
+  default: () => <div data-testid="sidebar-footer">Sidebar Footer</div>,
+}))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,7 +36,6 @@ describe('AppSidebar', () => {
   it('deve renderizar corretamente', () => {
     render(<MockedAppSidebar />)
 
-    // Verifica se o sidebar está presente através da logo
     expect(screen.getByAltText('Logo Prefeitura')).toBeInTheDocument()
   })
 
@@ -63,7 +67,6 @@ describe('AppSidebar', () => {
   it('deve ter as classes corretas para sidebar', () => {
     render(<MockedAppSidebar />)
 
-    // Verificar através do elemento sidebar que tem o data-slot
     const sidebar = document.querySelector('[data-slot="sidebar"]')
     expect(sidebar).toBeInTheDocument()
   })
@@ -79,14 +82,12 @@ describe('AppSidebar', () => {
       </QueryClientProvider>,
     )
 
-    // Verificar através de elementos presentes
     expect(screen.getByAltText('Logo Prefeitura')).toBeInTheDocument()
   })
 
   it('deve mostrar o separador entre header e conteúdo', () => {
     render(<MockedAppSidebar />)
 
-    // O separador está presente na DOM
     const separator = document.querySelector('.bg-sidebar-border\\/50')
     expect(separator).toBeInTheDocument()
   })

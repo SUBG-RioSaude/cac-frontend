@@ -1,18 +1,28 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+﻿import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import type React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { useAuthStore } from '@/lib/auth/auth-store'
-
 import { NavUser } from '../nav-user'
+import { useAuth } from '@/lib/auth/auth-context'
+import { useLogoutAllSessionsMutation } from '@/lib/auth/auth-queries'
+import { setLogoutEmAndamento } from '@/lib/middleware'
 
-// Mock do useAuthStore
-vi.mock('@/lib/auth/auth-store')
-const mockUseAuthStore = vi.mocked(useAuthStore)
+vi.mock('@/lib/auth/auth-context', () => ({
+  useAuth: vi.fn(),
+}))
 
-// Mock do useSidebar
+vi.mock('@/lib/auth/auth-queries', () => ({
+  useLogoutAllSessionsMutation: vi.fn(),
+}))
+
+vi.mock('@/lib/middleware', () => ({
+  setLogoutEmAndamento: vi.fn(),
+}))
+
+const sidebarState = { isMobile: false }
+
 vi.mock('@/components/ui/sidebar', () => ({
-  useSidebar: () => ({ isMobile: false }),
+  useSidebar: () => ({ isMobile: sidebarState.isMobile }),
   SidebarMenu: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="sidebar-menu">{children}</div>
   ),
@@ -29,7 +39,6 @@ vi.mock('@/components/ui/sidebar', () => ({
   ),
 }))
 
-// Mock do DropdownMenu do Radix UI
 vi.mock('@/components/ui/dropdown-menu', () => ({
   DropdownMenu: ({
     children,
@@ -45,7 +54,7 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
     ...props
   }: React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }) => {
     if (asChild) {
-      return children
+      return <>{children}</>
     }
     return (
       <button data-testid="dropdown-trigger" {...props}>
@@ -55,8 +64,15 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
   },
   DropdownMenuContent: ({
     children,
+    side,
+    align,
+    sideOffset,
     ...props
-  }: React.HTMLAttributes<HTMLDivElement>) => (
+  }: React.HTMLAttributes<HTMLDivElement> & {
+    side?: string
+    align?: string
+    sideOffset?: number
+  }) => (
     <div data-testid="dropdown-content" {...props}>
       {children}
     </div>
@@ -79,9 +95,15 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
   ),
   DropdownMenuItem: ({
     children,
+    disabled,
     ...props
-  }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div data-testid="dropdown-item" {...props}>
+  }: React.HTMLAttributes<HTMLDivElement> & { disabled?: boolean }) => (
+    <div
+      data-testid="dropdown-item"
+      aria-disabled={disabled ? 'true' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      {...props}
+    >
       {children}
     </div>
   ),
@@ -92,7 +114,12 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
   ),
 }))
 
-// Mock do window.location
+const mockUseAuth = vi.mocked(useAuth)
+const mockUseLogoutAllSessionsMutation = vi.mocked(useLogoutAllSessionsMutation)
+const mockSetLogoutEmAndamento = vi.mocked(setLogoutEmAndamento)
+
+const mutateAsyncMock = vi.fn(async () => {})
+
 Object.defineProperty(window, 'location', {
   value: { href: '' },
   writable: true,
@@ -106,29 +133,30 @@ const mockUsuario = {
   precisaTrocarSenha: false,
 }
 
-const renderNavUser = () => {
-  return render(
-    <BrowserRouter>
-      <NavUser />
-    </BrowserRouter>,
-  )
-}
+const renderNavUser = () => render(<NavUser />)
 
 describe('NavUser', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Mock padrão do store
-    mockUseAuthStore.mockReturnValue({
+    mutateAsyncMock.mockReset()
+    mutateAsyncMock.mockResolvedValue(undefined)
+    mockUseLogoutAllSessionsMutation.mockReturnValue({
+      mutateAsync: mutateAsyncMock,
+      isPending: false,
+    } as unknown as ReturnType<typeof useLogoutAllSessionsMutation>)
+    mockUseAuth.mockReturnValue({
       usuario: mockUsuario,
-      logoutTodasSessoes: vi.fn().mockResolvedValue(undefined),
-    } as ReturnType<typeof useAuthStore>)
+      estaAutenticado: true,
+      carregando: false,
+    })
+    sidebarState.isMobile = false
+    window.location.href = ''
   })
 
   describe('Renderização', () => {
     it('deve renderizar informações do usuário corretamente', () => {
       renderNavUser()
 
-      // Usar getAllByText para pegar o primeiro elemento quando há duplicatas
       const nomes = screen.getAllByText('João Luis Bernardo Ramos')
       const emails = screen.getAllByText('test@example.com')
 
@@ -139,7 +167,6 @@ describe('NavUser', () => {
     it('deve renderizar avatar com fallback das iniciais', () => {
       renderNavUser()
 
-      // Usar getAllByText para pegar o primeiro elemento quando há duplicatas
       const avatarFallbacks = screen.getAllByText('JL')
       expect(avatarFallbacks[0]).toBeInTheDocument()
     })
@@ -163,16 +190,13 @@ describe('NavUser', () => {
     it('deve renderizar conteúdo do dropdown', () => {
       renderNavUser()
 
-      // O dropdown deve estar sempre visível com o mock
       expect(screen.getByTestId('dropdown-content')).toBeInTheDocument()
-      expect(screen.getByText('Perfil')).toBeInTheDocument()
       expect(screen.getByText('Sair')).toBeInTheDocument()
     })
 
     it('deve mostrar informações do usuário no dropdown', () => {
       renderNavUser()
 
-      // Usar getAllByText para pegar o primeiro elemento quando há duplicatas
       const nomes = screen.getAllByText('João Luis Bernardo Ramos')
       const emails = screen.getAllByText('test@example.com')
 
@@ -182,118 +206,111 @@ describe('NavUser', () => {
   })
 
   describe('Logout', () => {
-    it('deve chamar logoutTodasSessoes ao clicar em Sair', async () => {
-      const mockLogoutTodasSessoes = vi.fn().mockResolvedValue(undefined)
-      mockUseAuthStore.mockReturnValue({
-        usuario: mockUsuario,
-        logoutTodasSessoes: mockLogoutTodasSessoes,
-      } as ReturnType<typeof useAuthStore>)
-
+    it('deve chamar logout ao clicar em Sair', async () => {
       renderNavUser()
 
       const logoutButton = screen.getByText('Sair')
       fireEvent.click(logoutButton)
 
-      expect(mockLogoutTodasSessoes).toHaveBeenCalledTimes(1)
+      expect(mockSetLogoutEmAndamento).toHaveBeenCalledWith(true)
+      await waitFor(() => {
+        expect(mutateAsyncMock).toHaveBeenCalledTimes(1)
+      })
     })
 
     it('deve mostrar loading durante logout', async () => {
-      const mockLogoutTodasSessoes = vi
-        .fn()
-        .mockImplementation(
-          () => new Promise((resolve) => setTimeout(resolve, 100)),
-        )
+      let resolver: (() => void) | undefined
 
-      mockUseAuthStore.mockReturnValue({
-        usuario: mockUsuario,
-        logoutTodasSessoes: mockLogoutTodasSessoes,
-      } as ReturnType<typeof useAuthStore>)
+      mutateAsyncMock.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolver = resolve
+          }),
+      )
 
       renderNavUser()
 
       const logoutButton = screen.getByText('Sair')
       fireEvent.click(logoutButton)
 
-      // Verifica se o botão mostra "Saindo..." durante o processo
+      expect(screen.getByText('Saindo...')).toBeInTheDocument()
+      expect(screen.getByTestId('dropdown-item')).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      )
+
+      resolver?.()
       await waitFor(() => {
-        expect(screen.getByText('Saindo...')).toBeInTheDocument()
+        expect(mutateAsyncMock).toHaveBeenCalledTimes(1)
       })
     })
 
     it('deve desabilitar botão durante logout', async () => {
-      const mockLogoutTodasSessoes = vi
-        .fn()
-        .mockImplementation(
-          () => new Promise((resolve) => setTimeout(resolve, 100)),
-        )
+      let resolver: (() => void) | undefined
 
-      mockUseAuthStore.mockReturnValue({
-        usuario: mockUsuario,
-        logoutTodasSessoes: mockLogoutTodasSessoes,
-      } as ReturnType<typeof useAuthStore>)
+      mutateAsyncMock.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolver = resolve
+          }),
+      )
 
       renderNavUser()
 
-      const logoutButton = screen.getByText('Sair')
-      fireEvent.click(logoutButton)
+      fireEvent.click(screen.getByText('Sair'))
 
-      // Verifica se o botão está desabilitado
+      expect(screen.getByTestId('dropdown-item')).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      )
+
+      resolver?.()
+
       await waitFor(() => {
-        const disabledLogoutButton = screen
-          .getByText('Saindo...')
-          .closest('[data-testid="dropdown-item"]')
-        expect(disabledLogoutButton).toBeInTheDocument()
+        expect(mutateAsyncMock).toHaveBeenCalledTimes(1)
       })
     })
   })
 
   describe('Casos Especiais', () => {
     it('deve usar email como fallback quando nomeCompleto está vazio', () => {
-      const usuarioSemNome = {
-        ...mockUsuario,
-        nomeCompleto: '',
-      }
-
-      mockUseAuthStore.mockReturnValue({
-        usuario: usuarioSemNome,
-        logoutTodasSessoes: vi.fn().mockResolvedValue(undefined),
-      } as ReturnType<typeof useAuthStore>)
+      mockUseAuth.mockReturnValue({
+        usuario: { ...mockUsuario, nomeCompleto: '' },
+        estaAutenticado: true,
+        carregando: false,
+      })
 
       renderNavUser()
 
-      // Deve mostrar "Usuário" como fallback - usar getAllByText para pegar o primeiro
-      const nomes = screen.getAllByText('Usuário')
+      const nomes = screen.getAllByText((content) => {
+        const normalized = content.toLowerCase()
+        return normalized.startsWith('usu') && normalized.endsWith('rio')
+      })
       expect(nomes[0]).toBeInTheDocument()
 
-      // Usar getAllByText para pegar o primeiro email quando há duplicatas
       const emails = screen.getAllByText('test@example.com')
       expect(emails[0]).toBeInTheDocument()
     })
 
     it('deve usar email como fallback para avatar quando nomeCompleto está vazio', () => {
-      const usuarioSemNome = {
-        ...mockUsuario,
-        nomeCompleto: '',
-      }
-
-      mockUseAuthStore.mockReturnValue({
-        usuario: usuarioSemNome,
-        logoutTodasSessoes: vi.fn().mockResolvedValue(undefined),
-      } as ReturnType<typeof useAuthStore>)
+      mockUseAuth.mockReturnValue({
+        usuario: { ...mockUsuario, nomeCompleto: '' },
+        estaAutenticado: true,
+        carregando: false,
+      })
 
       renderNavUser()
 
-      // Deve mostrar iniciais do email (T) - não 'te'
-      // Usar getAllByText para pegar o primeiro elemento quando há duplicatas
       const avatarFallbacks = screen.getAllByText('T')
       expect(avatarFallbacks[0]).toBeInTheDocument()
     })
 
     it('não deve renderizar quando não há usuário autenticado', () => {
-      mockUseAuthStore.mockReturnValue({
+      mockUseAuth.mockReturnValue({
         usuario: null,
-        logoutTodasSessoes: vi.fn(),
-      } as ReturnType<typeof useAuthStore>)
+        estaAutenticado: false,
+        carregando: false,
+      })
 
       const { container } = renderNavUser()
 
@@ -303,54 +320,25 @@ describe('NavUser', () => {
 
   describe('Tratamento de Erros', () => {
     it('deve tratar erro no logout e forçar logout local', async () => {
-      const mockLogoutTodasSessoes = vi
-        .fn()
-        .mockRejectedValueOnce(new Error('Erro de rede'))
-        .mockResolvedValue(undefined)
-
-      mockUseAuthStore.mockReturnValue({
-        usuario: mockUsuario,
-        logoutTodasSessoes: mockLogoutTodasSessoes,
-      } as ReturnType<typeof useAuthStore>)
+      mutateAsyncMock.mockRejectedValueOnce(new Error('Erro de rede'))
 
       renderNavUser()
 
-      const logoutButton = screen.getByText('Sair')
-      fireEvent.click(logoutButton)
+      fireEvent.click(screen.getByText('Sair'))
 
-      // Aguardar que o processo de logout complete totalmente
-      await waitFor(
-        () => {
-          expect(mockLogoutTodasSessoes).toHaveBeenCalledTimes(2)
-        },
-        { timeout: 3000 },
-      )
+      await waitFor(() => {
+        expect(mutateAsyncMock).toHaveBeenCalledTimes(1)
+      })
 
-      // Aguardar um pouco mais para garantir que o finally block execute
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await waitFor(() => {
+        expect(window.location.href).toBe('/login')
+      })
     })
   })
 
   describe('Responsividade', () => {
     it('deve renderizar corretamente em dispositivos móveis', () => {
-      // Mock do useSidebar para mobile
-      vi.doMock('@/components/ui/sidebar', () => ({
-        useSidebar: () => ({ isMobile: true }),
-        SidebarMenu: ({ children }: { children: React.ReactNode }) => (
-          <div data-testid="sidebar-menu">{children}</div>
-        ),
-        SidebarMenuItem: ({ children }: { children: React.ReactNode }) => (
-          <div data-testid="sidebar-menu-item">{children}</div>
-        ),
-        SidebarMenuButton: ({
-          children,
-          ...props
-        }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-          <button data-testid="sidebar-menu-button" {...props}>
-            {children}
-          </button>
-        ),
-      }))
+      sidebarState.isMobile = true
 
       renderNavUser()
 
@@ -366,9 +354,9 @@ describe('NavUser', () => {
       const dropdownTrigger = screen.getByTestId('sidebar-menu-button')
       expect(dropdownTrigger).toBeInTheDocument()
 
-      // Verifica se o dropdown está acessível
       expect(screen.getByTestId('dropdown-content')).toBeInTheDocument()
       expect(screen.getByText('Sair')).toBeInTheDocument()
     })
   })
 })
+

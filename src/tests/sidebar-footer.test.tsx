@@ -4,6 +4,10 @@ import { describe, it, expect, vi } from 'vitest'
 import SidebarFooter from '@/components/sidebar-footer'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
+vi.mock('@/components/nav-user', () => ({
+  NavUser: () => <div data-testid="nav-user">Mock NavUser</div>,
+}))
+
 // Mock do sistema de versionamento
 vi.mock('@/lib/versao', () => ({
   VERSAO_APP: '1.0.0',
@@ -32,7 +36,7 @@ const renderWithSidebarProvider = (defaultOpen = true) => {
 }
 
 describe('SidebarFooter', () => {
-  it('deve renderizar as informaÃ§Ãµes do desenvolvedor quando expandida', () => {
+  it('deve renderizar as informações do desenvolvedor quando expandida', () => {
     renderWithSidebarProvider(true)
 
     expect(
@@ -41,11 +45,11 @@ describe('SidebarFooter', () => {
     expect(screen.getByText('v1.0.0')).toBeInTheDocument()
   })
 
-  it('deve renderizar apenas a versÃ£o quando colapsada', () => {
+  it('deve renderizar apenas a versão quando colapsada', () => {
     renderWithSidebarProvider(false)
 
     expect(screen.getByText('v1.0.0')).toBeInTheDocument()
-    // NÃ£o deve mostrar o texto do desenvolvedor quando colapsada
+    // Não deve mostrar o texto do desenvolvedor quando colapsada
     expect(
       screen.queryByText('Desenvolvido pelo time de TI 2024'),
     ).not.toBeInTheDocument()
@@ -59,7 +63,7 @@ describe('SidebarFooter', () => {
     ).toBeInTheDocument()
   })
 
-  it('deve ter estilos corretos para o texto da versÃ£o', () => {
+  it('deve ter estilos corretos para o texto da versão', () => {
     renderWithSidebarProvider(true)
 
     const versaoElement = screen.getByText('v1.0.0')
