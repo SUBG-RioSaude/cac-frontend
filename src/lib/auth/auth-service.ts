@@ -30,7 +30,7 @@ interface ApiError {
 
 // Configuração do axios para autenticação
 const authApi = axios.create({
-  baseURL: `${API_URL}/api/Auth`,
+  baseURL: `${API_URL}/api`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -43,11 +43,11 @@ export const authService = {
     const payload: LoginRequest = {
       email,
       senha,
-      sistemaId: import.meta.env.SYSTEM_ID as string,
+      sistemaId: import.meta.env.VITE_SYSTEM_ID as string,
     }
 
     try {
-      const response = await authApi.post<LoginResponse>('/login', payload)
+      const response = await authApi.post<LoginResponse>('/Auth/login', payload)
       return response.data
     } catch (erro: unknown) {
       const apiError = erro as ApiError
@@ -67,7 +67,7 @@ export const authService = {
 
     try {
       const response = await authApi.post<ConfirmarCodigo2FAResponse>(
-        '/confirmar-codigo-2fa',
+        '/Auth/confirmar-codigo-2fa',
         payload,
       )
       return response.data
@@ -90,7 +90,7 @@ export const authService = {
 
     try {
       const response = await authApi.post<TrocarSenhaResponse>(
-        '/trocar-senha',
+        '/Auth/trocar-senha',
         payload,
       )
       return response.data
@@ -109,7 +109,7 @@ export const authService = {
 
     try {
       const response = await authApi.post<EsqueciSenhaResponse>(
-        '/esqueci-senha',
+        '/Auth/esqueci-senha',
         payload,
       )
       return response.data
@@ -128,7 +128,7 @@ export const authService = {
 
     try {
       const response = await authApi.post<RefreshTokenResponse>(
-        '/refresh-token',
+        '/Auth/refresh-token',
         payload,
       )
       return response.data
@@ -146,7 +146,7 @@ export const authService = {
     const payload: LogoutRequest = { refreshToken }
 
     try {
-      const response = await authApi.post<LogoutResponse>('/logout', payload)
+      const response = await authApi.post<LogoutResponse>('/Auth/logout', payload)
       return response.data
     } catch (erro: unknown) {
       const apiError = erro as ApiError
@@ -163,7 +163,7 @@ export const authService = {
 
     try {
       const response = await authApi.post<LogoutResponse>(
-        '/logout-all-sessions',
+        '/Auth/logout-all-sessions',
         payload,
       )
       return response.data
@@ -180,8 +180,8 @@ export const authService = {
   async verificarAcesso(): Promise<VerificarAcessoResponse> {
     try {
       const response = await authApi.get<VerificarAcessoResponse>(
-        `/usuariopermissaosistema/verificar-acesso/${
-          import.meta.env.SYSTEM_ID
+        `/usuario-permissao-sistema/verificar-acesso/${
+          import.meta.env.VITE_SYSTEM_ID
         }`,
       )
       return response.data

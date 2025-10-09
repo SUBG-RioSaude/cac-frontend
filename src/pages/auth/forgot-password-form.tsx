@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthStore } from '@/lib/auth/auth-store'
+import { useAuth } from '@/lib/auth/auth-context'
+import { useForgotPasswordMutation } from '@/lib/auth/auth-queries'
 
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('')
@@ -19,8 +20,10 @@ const ForgotPasswordForm = () => {
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const { esqueciSenha, carregando, erro, limparErro, estaAutenticado } =
-    useAuthStore()
+  const { estaAutenticado } = useAuth()
+  const forgotPasswordMutation = useForgotPasswordMutation()
+  const { isPending: carregando, error, reset: limparErro } = forgotPasswordMutation
+  const erro = error?.message ?? null
 
   // Redireciona se já estiver autenticado
   useEffect(() => {
@@ -56,19 +59,17 @@ const ForgotPasswordForm = () => {
 
     try {
       // Executa esqueci senha
-      const resultadoSucesso = await esqueciSenha(email)
+      await forgotPasswordMutation.mutateAsync({ email })
 
-      if (resultadoSucesso) {
-        // Mantém contexto se veio de senha expirada, senão define como password_recovery
-        const contextoAtual = sessionStorage.getItem('auth_context')
-        if (contextoAtual !== 'password_expired') {
-          sessionStorage.setItem('auth_context', 'password_recovery')
-        }
-        sessionStorage.setItem('auth_email', email)
-
-        // Redirecionar imediatamente para a tela de verificação
-        navigate('/auth/verificar-codigo', { replace: true })
+      // Mantém contexto se veio de senha expirada, senão define como password_recovery
+      const contextoAtual = sessionStorage.getItem('auth_context')
+      if (contextoAtual !== 'password_expired') {
+        sessionStorage.setItem('auth_context', 'password_recovery')
       }
+      sessionStorage.setItem('auth_email', email)
+
+      // Redirecionar imediatamente para a tela de verificação
+      navigate('/auth/verificar-codigo', { replace: true })
     } catch {
       // Erro já tratado pelo store
     }
