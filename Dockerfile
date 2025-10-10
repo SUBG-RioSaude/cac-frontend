@@ -40,8 +40,18 @@ COPY index.html ./
 
 # Definir variáveis de ambiente para build
 ENV NODE_ENV=production
+
+# ARGs para informações de versão e build (injetados pelo CI/CD)
 ARG BUILD_TIME
+ARG COMMIT_SHA
+ARG BUILD_NUMBER
+ARG APP_ENV=production
+
+# Converter ARGs de build em ENVs para o Vite usar durante o build
 ENV VITE_BUILD_TIME=${BUILD_TIME}
+ENV VITE_COMMIT_SHA=${COMMIT_SHA}
+ENV VITE_BUILD_NUMBER=${BUILD_NUMBER}
+ENV VITE_APP_ENV=${APP_ENV}
 
 # ARGs para variáveis de ambiente da aplicação (podem ser passados no build)
 ARG VITE_API_URL=http://devcac:7000/api

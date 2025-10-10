@@ -8,50 +8,54 @@
 import type { LucideIcon } from 'lucide-react'
 
 // Status para Contratos
-export type StatusContrato = 
-  | 'ativo' 
-  | 'vencendo' 
-  | 'vencido' 
-  | 'suspenso' 
+export type StatusContrato =
+  | 'ativo'
+  | 'vencendo'
+  | 'vencido'
+  | 'suspenso'
   | 'encerrado'
   | 'indefinido'
 
 // Status para Fornecedores
-export type StatusFornecedor = 
-  | 'ativo' 
-  | 'inativo' 
-  | 'suspenso'
+export type StatusFornecedor = 'ativo' | 'inativo' | 'suspenso'
 
 // Status para Unidades
-export type StatusUnidade = 
-  | 'ativo' 
-  | 'inativo'
+export type StatusUnidade = 'ativo' | 'inativo'
 
 // Status genérico (união de todos)
 export type Status = StatusContrato | StatusFornecedor | StatusUnidade
 
 // Mapeamento para converter string genérica para status específico
 export function parseStatusContrato(status?: string | null): StatusContrato {
-  const normalizedStatus = status?.toLowerCase() || 'indefinido'
-  const validStatuses: StatusContrato[] = ['ativo', 'vencendo', 'vencido', 'suspenso', 'encerrado', 'indefinido']
-  return validStatuses.includes(normalizedStatus as StatusContrato) 
-    ? (normalizedStatus as StatusContrato) 
+  const normalizedStatus = status?.toLowerCase() ?? 'indefinido'
+  const validStatuses: StatusContrato[] = [
+    'ativo',
+    'vencendo',
+    'vencido',
+    'suspenso',
+    'encerrado',
+    'indefinido',
+  ]
+  return validStatuses.includes(normalizedStatus as StatusContrato)
+    ? (normalizedStatus as StatusContrato)
     : 'indefinido'
 }
 
-export function parseStatusFornecedor(status?: string | null): StatusFornecedor {
-  const normalizedStatus = status?.toLowerCase() || 'ativo'
+export function parseStatusFornecedor(
+  status?: string | null,
+): StatusFornecedor {
+  const normalizedStatus = status?.toLowerCase() ?? 'ativo'
   const validStatuses: StatusFornecedor[] = ['ativo', 'inativo', 'suspenso']
-  return validStatuses.includes(normalizedStatus as StatusFornecedor) 
-    ? (normalizedStatus as StatusFornecedor) 
+  return validStatuses.includes(normalizedStatus as StatusFornecedor)
+    ? (normalizedStatus as StatusFornecedor)
     : 'ativo'
 }
 
 export function parseStatusUnidade(status?: string | null): StatusUnidade {
-  const normalizedStatus = status?.toLowerCase() || 'ativo'
+  const normalizedStatus = status?.toLowerCase() ?? 'ativo'
   const validStatuses: StatusUnidade[] = ['ativo', 'inativo']
-  return validStatuses.includes(normalizedStatus as StatusUnidade) 
-    ? (normalizedStatus as StatusUnidade) 
+  return validStatuses.includes(normalizedStatus as StatusUnidade)
+    ? (normalizedStatus as StatusUnidade)
     : 'ativo'
 }
 

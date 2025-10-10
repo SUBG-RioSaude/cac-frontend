@@ -194,3 +194,15 @@
     animation: spin 8s linear infinite;
   }
 }
+
+@layer utilities {
+  /* Esconde scrollbar mas mantém funcionalidade */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE e Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}

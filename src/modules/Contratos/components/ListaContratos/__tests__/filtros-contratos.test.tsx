@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { FiltrosContratos } from '../filtros-contratos'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
+
+import { FiltrosContratos } from '../filtros-contratos'
 
 // Mock das unidades
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
@@ -14,10 +16,7 @@ vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
       'Secretaria de Administração',
       'Secretaria de Transportes',
     ],
-    gestoras: [
-      'Departamento de Compras',
-      'Departamento de Contratos',
-    ]
+    gestoras: ['Departamento de Compras', 'Departamento de Contratos'],
   },
 }))
 
@@ -46,9 +45,7 @@ const queryClient = new QueryClient({
 
 const renderWithQueryClient = (component: React.ReactElement) => {
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
   )
 }
 

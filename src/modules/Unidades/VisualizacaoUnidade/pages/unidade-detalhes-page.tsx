@@ -1,5 +1,5 @@
 import { VisualizacaoUnidade } from '../components/visualizacao-unidade'
 
-export function UnidadeDetalhesPage() {
+export const UnidadeDetalhesPage = () => {
   return <VisualizacaoUnidade />
 }

@@ -4,9 +4,14 @@
  */
 
 import { useState, useCallback, useMemo } from 'react'
-import { useDebounce } from './useDebounce'
-import type { FiltrosContrato, PaginacaoParams } from '@/modules/Contratos/types/contrato'
+
 import type { ContratoParametros } from '@/modules/Contratos/services/contratos-service'
+import type {
+  FiltrosContrato,
+  PaginacaoParams,
+} from '@/modules/Contratos/types/contrato'
+
+import { useDebounce } from './useDebounce'
 
 export interface ContratosPageState {
   // Estados da UI
@@ -14,17 +19,20 @@ export interface ContratosPageState {
   filtros: FiltrosContrato
   paginacao: PaginacaoParams
   contratosSelecionados: string[]
-  
+
   // Dados derivados
   debouncedSearch: string
   parametrosAPI: ContratoParametros
-  
+
   // Handlers
   setTermoPesquisa: (termo: string) => void
   setFiltros: (filtros: FiltrosContrato) => void
   setPaginacao: (paginacao: PaginacaoParams) => void
   selecionarContrato: (contratoId: string, selecionado: boolean) => void
-  selecionarTodosContratos: (contratoIds: string[], selecionado: boolean) => void
+  selecionarTodosContratos: (
+    contratoIds: string[],
+    selecionado: boolean,
+  ) => void
   limparFiltros: () => void
   resetarSelecao: () => void
 }
@@ -35,7 +43,7 @@ export interface ContratosPageState {
 function mapearFiltrosParaAPI(
   filtros: FiltrosContrato,
   termoPesquisa: string,
-  paginacao: PaginacaoParams
+  paginacao: PaginacaoParams,
 ): ContratoParametros {
   const params: ContratoParametros = {
     pagina: paginacao.pagina,
@@ -78,7 +86,8 @@ function mapearFiltrosParaAPI(
   if (filtros.unidade && filtros.unidade.length > 0) {
     // Para agora, vamos usar o primeiro valor da unidade como string de busca
     // TODO: Implementar mapeamento correto de nomes para IDs quando disponível
-    params.unidadeSaudeId = filtros.unidade[0]
+    const [primeiraUnidade] = filtros.unidade
+    params.unidadeSaudeId = primeiraUnidade
   }
 
   return params
@@ -91,9 +100,11 @@ export function useContratosPageState(): ContratosPageState {
   const [paginacao, setPaginacao] = useState<PaginacaoParams>({
     pagina: 1,
     itensPorPagina: 20,
-    total: 0
+    total: 0,
   })
-  const [contratosSelecionados, setContratosSelecionados] = useState<string[]>([])
+  const [contratosSelecionados, setContratosSelecionados] = useState<string[]>(
+    [],
+  )
 
   // Debounce da pesquisa para evitar muitas requisições
   const debouncedSearch = useDebounce(termoPesquisa, 500)
@@ -107,33 +118,41 @@ export function useContratosPageState(): ContratosPageState {
   const handleSetFiltros = useCallback((novosFiltros: FiltrosContrato) => {
     setFiltros(novosFiltros)
     // Reset página quando filtros mudam
-    setPaginacao(prev => ({ ...prev, pagina: 1 }))
+    setPaginacao((prev) => ({ ...prev, pagina: 1 }))
   }, [])
 
   const handleSetPaginacao = useCallback((novaPaginacao: PaginacaoParams) => {
     setPaginacao(novaPaginacao)
   }, [])
 
-  const handleSelecionarContrato = useCallback((contratoId: string, selecionado: boolean) => {
-    if (selecionado) {
-      setContratosSelecionados(prev => [...prev, contratoId])
-    } else {
-      setContratosSelecionados(prev => prev.filter(id => id !== contratoId))
-    }
-  }, [])
+  const handleSelecionarContrato = useCallback(
+    (contratoId: string, selecionado: boolean) => {
+      if (selecionado) {
+        setContratosSelecionados((prev) => [...prev, contratoId])
+      } else {
+        setContratosSelecionados((prev) =>
+          prev.filter((id) => id !== contratoId),
+        )
+      }
+    },
+    [],
+  )
 
-  const handleSelecionarTodosContratos = useCallback((contratoIds: string[], selecionado: boolean) => {
-    if (selecionado) {
-      setContratosSelecionados(contratoIds)
-    } else {
-      setContratosSelecionados([])
-    }
-  }, [])
+  const handleSelecionarTodosContratos = useCallback(
+    (contratoIds: string[], selecionado: boolean) => {
+      if (selecionado) {
+        setContratosSelecionados(contratoIds)
+      } else {
+        setContratosSelecionados([])
+      }
+    },
+    [],
+  )
 
   const handleLimparFiltros = useCallback(() => {
     setFiltros({})
     setTermoPesquisa('')
-    setPaginacao(prev => ({ ...prev, pagina: 1 }))
+    setPaginacao((prev) => ({ ...prev, pagina: 1 }))
   }, [])
 
   const handleResetarSelecao = useCallback(() => {
@@ -143,7 +162,7 @@ export function useContratosPageState(): ContratosPageState {
   const handleSetTermoPesquisa = useCallback((termo: string) => {
     setTermoPesquisa(termo)
     // Reset página quando termo muda
-    setPaginacao(prev => ({ ...prev, pagina: 1 }))
+    setPaginacao((prev) => ({ ...prev, pagina: 1 }))
   }, [])
 
   return {
@@ -152,11 +171,11 @@ export function useContratosPageState(): ContratosPageState {
     filtros,
     paginacao,
     contratosSelecionados,
-    
+
     // Dados derivados
     debouncedSearch,
     parametrosAPI,
-    
+
     // Handlers
     setTermoPesquisa: handleSetTermoPesquisa,
     setFiltros: handleSetFiltros,
@@ -164,6 +183,6 @@ export function useContratosPageState(): ContratosPageState {
     selecionarContrato: handleSelecionarContrato,
     selecionarTodosContratos: handleSelecionarTodosContratos,
     limparFiltros: handleLimparFiltros,
-    resetarSelecao: handleResetarSelecao
+    resetarSelecao: handleResetarSelecao,
   }
 }

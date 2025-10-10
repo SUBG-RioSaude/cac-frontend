@@ -5,17 +5,20 @@
  * Lista completa de contratos de um fornecedor com filtros e busca
  */
 
+import { Search, Filter, FileText } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Search, 
-  Filter, 
-  FileText
-} from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
@@ -29,50 +32,70 @@ interface FornecedorContratosProps {
 }
 
 type FiltroStatus = 'todos' | 'ativo' | 'vencendo' | 'vencido' | 'suspenso'
-type Ordenacao = 'data_desc' | 'data_asc' | 'valor_desc' | 'valor_asc' | 'numero_asc'
+type Ordenacao =
+  | 'data_desc'
+  | 'data_asc'
+  | 'valor_desc'
+  | 'valor_asc'
+  | 'numero_asc'
 
-export function FornecedorContratos({ contratos, isLoading, empresa }: FornecedorContratosProps) {
+export const FornecedorContratos = ({
+  contratos,
+  isLoading,
+  empresa,
+}: FornecedorContratosProps) => {
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('todos')
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('data_desc')
 
   const contratosFiltrados = useMemo(() => {
-    if (!contratos) return []
+    if (contratos.length === 0) return []
 
     let resultado = [...contratos]
 
     // Aplicar busca
     if (busca.trim()) {
       const termoBusca = busca.toLowerCase().trim()
-      resultado = resultado.filter(contrato =>
-        contrato.numeroContrato?.toLowerCase().includes(termoBusca) ||
-        contrato.descricaoObjeto?.toLowerCase().includes(termoBusca) ||
-        contrato.processoSei?.toLowerCase().includes(termoBusca) ||
-        contrato.processoRio?.toLowerCase().includes(termoBusca)
-      )
+      resultado = resultado.filter((contrato) => {
+        const numeroContrato = contrato.numeroContrato?.toLowerCase() ?? ''
+        const descricaoObjeto = contrato.descricaoObjeto?.toLowerCase() ?? ''
+        const processoSei = contrato.processoSei?.toLowerCase() ?? ''
+        const processoRio = contrato.processoRio?.toLowerCase() ?? ''
+
+        return (
+          numeroContrato.includes(termoBusca) ||
+          descricaoObjeto.includes(termoBusca) ||
+          processoSei.includes(termoBusca) ||
+          processoRio.includes(termoBusca)
+        )
+      })
     }
 
     // Aplicar filtro de status
     if (filtroStatus !== 'todos') {
       const agora = new Date()
       const em30Dias = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      
-      resultado = resultado.filter(contrato => {
+
+      resultado = resultado.filter((contrato) => {
         if (filtroStatus === 'suspenso') {
           return contrato.status === 'suspenso'
         }
-        
+
         if (!contrato.vigenciaFinal) {
           return filtroStatus === 'ativo'
         }
-        
+
         const dataFim = new Date(contrato.vigenciaFinal)
-        
+
         switch (filtroStatus) {
           case 'ativo':
             return dataFim > em30Dias && contrato.status !== 'suspenso'
           case 'vencendo':
-            return dataFim > agora && dataFim <= em30Dias && contrato.status !== 'suspenso'
+            return (
+              dataFim > agora &&
+              dataFim <= em30Dias &&
+              contrato.status !== 'suspenso'
+            )
           case 'vencido':
             return dataFim < agora && contrato.status !== 'suspenso'
           default:
@@ -85,15 +108,21 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
     resultado.sort((a, b) => {
       switch (ordenacao) {
         case 'data_desc':
-          return new Date(b.vigenciaInicial || '').getTime() - new Date(a.vigenciaInicial || '').getTime()
+          return (
+            new Date(b.vigenciaInicial).getTime() -
+            new Date(a.vigenciaInicial).getTime()
+          )
         case 'data_asc':
-          return new Date(a.vigenciaInicial || '').getTime() - new Date(b.vigenciaInicial || '').getTime()
+          return (
+            new Date(a.vigenciaInicial).getTime() -
+            new Date(b.vigenciaInicial).getTime()
+          )
         case 'valor_desc':
-          return (b.valorGlobal || 0) - (a.valorGlobal || 0)
+          return b.valorGlobal - a.valorGlobal
         case 'valor_asc':
-          return (a.valorGlobal || 0) - (b.valorGlobal || 0)
+          return a.valorGlobal - b.valorGlobal
         case 'numero_asc':
-          return (a.numeroContrato || '').localeCompare(b.numeroContrato || '')
+          return (a.numeroContrato ?? '').localeCompare(b.numeroContrato ?? '')
         default:
           return 0
       }
@@ -103,26 +132,33 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
   }, [contratos, busca, filtroStatus, ordenacao])
 
   const contarPorStatus = useMemo(() => {
-    if (!contratos) return { todos: 0, ativo: 0, vencendo: 0, vencido: 0, suspenso: 0 }
+    if (contratos.length === 0)
+      return { todos: 0, ativo: 0, vencendo: 0, vencido: 0, suspenso: 0 }
 
     const agora = new Date()
     const em30Dias = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    
-    const contadores = { todos: contratos.length, ativo: 0, vencendo: 0, vencido: 0, suspenso: 0 }
-    
-    contratos.forEach(contrato => {
+
+    const contadores = {
+      todos: contratos.length,
+      ativo: 0,
+      vencendo: 0,
+      vencido: 0,
+      suspenso: 0,
+    }
+
+    contratos.forEach((contrato) => {
       if (contrato.status === 'suspenso') {
         contadores.suspenso++
         return
       }
-      
+
       if (!contrato.vigenciaFinal) {
         contadores.ativo++
         return
       }
-      
+
       const dataFim = new Date(contrato.vigenciaFinal)
-      
+
       if (dataFim < agora) {
         contadores.vencido++
       } else if (dataFim <= em30Dias) {
@@ -131,7 +167,7 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
         contadores.ativo++
       }
     })
-    
+
     return contadores
   }, [contratos])
 
@@ -150,10 +186,13 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="p-4 border rounded-lg">
-                <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse mb-2" />
-                <div className="h-3 w-1/2 bg-gray-200 rounded animate-pulse" />
+            {Array.from({ length: 3 }, (_, index) => (
+              <div
+                key={`contratos-skeleton-${index}`}
+                className="rounded-lg border p-4"
+              >
+                <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
               </div>
             ))}
           </div>
@@ -170,14 +209,14 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
           Contratos de {empresa.razaoSocial}
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Filtros e busca */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4 flex-1">
+          <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-4">
             {/* Busca */}
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="relative max-w-sm flex-1">
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
               <Input
                 placeholder="Buscar por número, objeto, processo..."
                 value={busca}
@@ -187,22 +226,38 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
             </div>
 
             {/* Filtro de Status */}
-            <Select value={filtroStatus} onValueChange={(value: FiltroStatus) => setFiltroStatus(value)}>
+            <Select
+              value={filtroStatus}
+              onValueChange={(value: FiltroStatus) => setFiltroStatus(value)}
+            >
               <SelectTrigger className="w-48">
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="mr-2 h-4 w-4" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos ({contarPorStatus.todos})</SelectItem>
-                <SelectItem value="ativo">Ativos ({contarPorStatus.ativo})</SelectItem>
-                <SelectItem value="vencendo">Vencendo ({contarPorStatus.vencendo})</SelectItem>
-                <SelectItem value="vencido">Vencidos ({contarPorStatus.vencido})</SelectItem>
-                <SelectItem value="suspenso">Suspensos ({contarPorStatus.suspenso})</SelectItem>
+                <SelectItem value="todos">
+                  Todos ({contarPorStatus.todos})
+                </SelectItem>
+                <SelectItem value="ativo">
+                  Ativos ({contarPorStatus.ativo})
+                </SelectItem>
+                <SelectItem value="vencendo">
+                  Vencendo ({contarPorStatus.vencendo})
+                </SelectItem>
+                <SelectItem value="vencido">
+                  Vencidos ({contarPorStatus.vencido})
+                </SelectItem>
+                <SelectItem value="suspenso">
+                  Suspensos ({contarPorStatus.suspenso})
+                </SelectItem>
               </SelectContent>
             </Select>
 
             {/* Ordenação */}
-            <Select value={ordenacao} onValueChange={(value: Ordenacao) => setOrdenacao(value)}>
+            <Select
+              value={ordenacao}
+              onValueChange={(value: Ordenacao) => setOrdenacao(value)}
+            >
               <SelectTrigger className="w-52">
                 <SelectValue />
               </SelectTrigger>
@@ -219,14 +274,14 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
 
         {/* Badges de status */}
         <div className="flex flex-wrap gap-2">
-          <Badge 
+          <Badge
             variant={filtroStatus === 'todos' ? 'default' : 'secondary'}
             className="cursor-pointer"
             onClick={() => setFiltroStatus('todos')}
           >
             Todos {contarPorStatus.todos}
           </Badge>
-          <Badge 
+          <Badge
             variant={filtroStatus === 'ativo' ? 'default' : 'secondary'}
             className="cursor-pointer bg-green-100 text-green-800 hover:bg-green-200"
             onClick={() => setFiltroStatus('ativo')}
@@ -234,7 +289,7 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
             Ativos {contarPorStatus.ativo}
           </Badge>
           {contarPorStatus.vencendo > 0 && (
-            <Badge 
+            <Badge
               variant={filtroStatus === 'vencendo' ? 'default' : 'secondary'}
               className="cursor-pointer bg-orange-100 text-orange-800 hover:bg-orange-200"
               onClick={() => setFiltroStatus('vencendo')}
@@ -243,7 +298,7 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
             </Badge>
           )}
           {contarPorStatus.vencido > 0 && (
-            <Badge 
+            <Badge
               variant={filtroStatus === 'vencido' ? 'default' : 'secondary'}
               className="cursor-pointer bg-red-100 text-red-800 hover:bg-red-200"
               onClick={() => setFiltroStatus('vencido')}
@@ -255,11 +310,11 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
 
         {/* Lista de contratos */}
         {contratosFiltrados.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              {busca || filtroStatus !== 'todos' 
-                ? 'Nenhum contrato encontrado' 
+          <div className="py-12 text-center">
+            <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-semibold">
+              {busca || filtroStatus !== 'todos'
+                ? 'Nenhum contrato encontrado'
                 : 'Nenhum contrato vinculado'}
             </h3>
             <p className="text-muted-foreground">
@@ -285,16 +340,22 @@ export function FornecedorContratos({ contratos, isLoading, empresa }: Fornecedo
             contratos={contratosFiltrados}
             isLoading={false}
             contratosSelecionados={[]}
-            onSelecionarContrato={() => {}}
-            onSelecionarTodos={() => {}}
+            onSelecionarContrato={() => {
+              // Funcionalidade de seleção será implementada futuramente
+            }}
+            onSelecionarTodos={() => {
+              // Funcionalidade de seleção será implementada futuramente
+            }}
             paginacao={{
               pagina: 1,
               itensPorPagina: contratosFiltrados.length,
-              total: contratosFiltrados.length
+              total: contratosFiltrados.length,
             }}
-            onPaginacaoChange={() => {}}
+            onPaginacaoChange={() => {
+              // Funcionalidade de paginação será implementada futuramente
+            }}
             totalContratos={contratosFiltrados.length}
-            hideContratadaColumn={true}
+            hideContratadaColumn
           />
         )}
       </CardContent>

@@ -5,18 +5,17 @@
  * Sistema de navegação por abas da página do fornecedor
  */
 
+import { BarChart3, FileText } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { Badge } from '@/components/ui/badge'
-import { 
-  BarChart3, 
-  FileText
-} from 'lucide-react'
-import { FornecedorVisaoGeral } from './FornecedorVisaoGeral'
-import { FornecedorContratos } from './FornecedorContratos'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
+
+import { FornecedorContratos } from './FornecedorContratos'
+import { FornecedorVisaoGeral } from './FornecedorVisaoGeral'
 
 interface FornecedorTabsProps {
   fornecedor: EmpresaResponse
@@ -26,14 +25,18 @@ interface FornecedorTabsProps {
 
 type TabValue = 'visao-geral' | 'contratos'
 
-export function FornecedorTabs({ fornecedor, contratos, isLoadingContratos }: FornecedorTabsProps) {
+export const FornecedorTabs = ({
+  fornecedor,
+  contratos,
+  isLoadingContratos,
+}: FornecedorTabsProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<TabValue>('visao-geral')
 
   // Sincronizar com URL
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab') as TabValue
-    if (tabFromUrl && ['visao-geral', 'contratos'].includes(tabFromUrl)) {
+    if (['visao-geral', 'contratos'].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl)
     }
   }, [searchParams])
@@ -41,7 +44,7 @@ export function FornecedorTabs({ fornecedor, contratos, isLoadingContratos }: Fo
   const handleTabChange = (value: string) => {
     const newTab = value as TabValue
     setActiveTab(newTab)
-    
+
     // Atualizar URL
     const newSearchParams = new URLSearchParams(searchParams)
     if (newTab === 'visao-geral') {
@@ -52,7 +55,6 @@ export function FornecedorTabs({ fornecedor, contratos, isLoadingContratos }: Fo
     setSearchParams(newSearchParams, { replace: true })
   }
 
-
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-2">
@@ -61,12 +63,12 @@ export function FornecedorTabs({ fornecedor, contratos, isLoadingContratos }: Fo
           <span className="hidden sm:inline">Visão Geral</span>
           <span className="sm:hidden">Geral</span>
         </TabsTrigger>
-        
+
         <TabsTrigger value="contratos" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
           <span className="hidden sm:inline">Contratos</span>
           <span className="sm:hidden">Contratos</span>
-          {contratos && contratos.length > 0 && (
+          {contratos.length > 0 && (
             <Badge variant="secondary" className="ml-1 text-xs">
               {contratos.length}
             </Badge>
@@ -76,24 +78,23 @@ export function FornecedorTabs({ fornecedor, contratos, isLoadingContratos }: Fo
 
       <div className="mt-6">
         <TabsContent value="visao-geral" className="space-y-6">
-          <FornecedorVisaoGeral 
+          <FornecedorVisaoGeral
             fornecedor={fornecedor}
-            contratos={contratos || []}
+            contratos={contratos}
             isLoading={isLoadingContratos}
           />
         </TabsContent>
 
         <TabsContent value="contratos" className="space-y-6">
           <FornecedorContratos
-            contratos={contratos || []}
+            contratos={contratos}
             isLoading={isLoadingContratos}
             empresa={{
               id: fornecedor.id,
-              razaoSocial: fornecedor.razaoSocial
+              razaoSocial: fornecedor.razaoSocial,
             }}
           />
         </TabsContent>
-
       </div>
     </Tabs>
   )

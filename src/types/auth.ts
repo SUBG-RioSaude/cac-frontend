@@ -51,6 +51,7 @@ export interface ConfirmarCodigo2FAResponse {
     usuario: Usuario
   }
   precisaTrocarSenha?: boolean
+  senhaExpirada?: boolean
   message?: string
   tokenTrocaSenha?: string
   mensagem?: string
@@ -95,6 +96,7 @@ export interface RefreshTokenResponse {
     refreshTokenExpiresIn: number
     usuario: Usuario
   }
+  mensagem?: string
 }
 
 export interface LogoutRequest {
@@ -133,4 +135,15 @@ export interface SessoesAtivasResponse {
     quantidadeSessoes: number
     sessoes: SessaoAtiva[]
   }
+}
+
+export interface JWTPayload {
+  sub: string // email
+  usuarioId: string
+  tipoUsuario: string
+  nomeCompleto: string
+  nomePermissao: string
+  exp: number
+  iss: string
+  aud: string
 }

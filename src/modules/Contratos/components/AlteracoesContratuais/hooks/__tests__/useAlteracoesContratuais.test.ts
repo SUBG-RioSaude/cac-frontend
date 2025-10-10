@@ -1,12 +1,13 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useAlteracoesContratuais } from '../useAlteracoesContratuais'
+
 import {
   TipoAlteracao,
   StatusAlteracao,
   OperacaoVigencia,
   TipoUnidadeTempo,
 } from '../../../../types/alteracoes-contratuais'
+import { useAlteracoesContratuais } from '../useAlteracoesContratuais'
 
 // Mocks simples das mutations da API
 vi.mock('../../../../hooks/useAlteracoesContratuaisApi', () => ({
@@ -38,7 +39,9 @@ describe('useAlteracoesContratuais', () => {
 
   describe('Estado inicial', () => {
     it('deve inicializar com dados padrão', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       expect(result.current.dados.contratoId).toBe('test-contract-id')
       expect(result.current.dados.tiposAlteracao).toEqual([])
@@ -48,14 +51,18 @@ describe('useAlteracoesContratuais', () => {
     })
 
     it('deve inicializar podeSubmeter como false', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
       expect(result.current.podeSubmeter).toBe(false)
     })
   })
 
   describe('Atualização de dados', () => {
     it('deve atualizar dados corretamente', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -64,12 +71,16 @@ describe('useAlteracoesContratuais', () => {
         })
       })
 
-      expect(result.current.dados.tiposAlteracao).toEqual([TipoAlteracao.AditivoPrazo])
+      expect(result.current.dados.tiposAlteracao).toEqual([
+        TipoAlteracao.AditivoPrazo,
+      ])
       expect(result.current.dados.dataEfeito).toBe('2024-12-31')
     })
 
     it('deve manter dados existentes ao atualizar', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -83,7 +94,9 @@ describe('useAlteracoesContratuais', () => {
         })
       })
 
-      expect(result.current.dados.tiposAlteracao).toEqual([TipoAlteracao.AditivoPrazo])
+      expect(result.current.dados.tiposAlteracao).toEqual([
+        TipoAlteracao.AditivoPrazo,
+      ])
       expect(result.current.dados.dataEfeito).toBe('2024-12-31')
       expect(result.current.dados.contratoId).toBe('test-contract-id')
     })
@@ -91,7 +104,9 @@ describe('useAlteracoesContratuais', () => {
 
   describe('Validação de campos obrigatórios', () => {
     it('deve validar campos obrigatórios básicos', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       // Sem dados, deve ser inválido
       let valido = true
@@ -102,7 +117,9 @@ describe('useAlteracoesContratuais', () => {
     })
 
     it('deve ser válido com campos mínimos preenchidos', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -133,7 +150,9 @@ describe('useAlteracoesContratuais', () => {
 
   describe('Blocos obrigatórios', () => {
     it('deve calcular blocos obrigatórios baseado nos tipos', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -145,7 +164,9 @@ describe('useAlteracoesContratuais', () => {
     })
 
     it('deve atualizar blocos quando tipos mudam', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -159,7 +180,9 @@ describe('useAlteracoesContratuais', () => {
 
   describe('Limite legal', () => {
     it('deve calcular limite legal baseado nos tipos', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -171,7 +194,9 @@ describe('useAlteracoesContratuais', () => {
     })
 
     it('deve ter limite 0 para tipos sem limite', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       act(() => {
         result.current.atualizarDados({
@@ -185,7 +210,9 @@ describe('useAlteracoesContratuais', () => {
 
   describe('Estado de loading', () => {
     it('deve reportar isLoading corretamente', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
       // Com mocks padrão, não deve estar loading
       expect(result.current.isLoading).toBe(false)
     })
@@ -193,7 +220,9 @@ describe('useAlteracoesContratuais', () => {
 
   describe('Reset do formulário', () => {
     it('deve resetar para estado inicial', () => {
-      const { result } = renderHook(() => useAlteracoesContratuais(defaultProps))
+      const { result } = renderHook(() =>
+        useAlteracoesContratuais(defaultProps),
+      )
 
       // Preencher dados
       act(() => {
@@ -214,4 +243,3 @@ describe('useAlteracoesContratuais', () => {
     })
   })
 })
-

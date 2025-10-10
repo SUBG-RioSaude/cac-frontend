@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { TipoAlteracao, StatusAlteracao, getBlocosObrigatorios } from '../alteracoes-contratuais'
+
+import {
+  TipoAlteracao,
+  StatusAlteracao,
+  getBlocosObrigatorios,
+} from '../alteracoes-contratuais'
 
 describe('Alteracoes Contratuais Types', () => {
   it('deve ter os tipos de alteração definidos', () => {

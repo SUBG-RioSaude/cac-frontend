@@ -6,8 +6,9 @@
  */
 
 import { Calendar, CalendarCheck, CalendarX, Clock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+
 import { DateDisplay } from '@/components/ui/formatters'
+import { cn } from '@/lib/utils'
 
 interface VigenciaDisplayProps {
   vigenciaInicio?: string | null
@@ -16,21 +17,19 @@ interface VigenciaDisplayProps {
   compact?: boolean
 }
 
-export function VigenciaDisplay({ 
-  vigenciaInicio, 
-  vigenciaFim, 
+export const VigenciaDisplay = ({
+  vigenciaInicio,
+  vigenciaFim,
   className,
-  compact = false 
-}: VigenciaDisplayProps) {
-
-
+  compact = false,
+}: VigenciaDisplayProps) => {
   // Determinar status da vigência para ícone no modo compact
   const agora = new Date()
   const inicio = vigenciaInicio ? new Date(vigenciaInicio) : null
   const fim = vigenciaFim ? new Date(vigenciaFim) : null
-  
+
   let status: 'ativa' | 'futura' | 'expirada' | 'indefinida' = 'indefinida'
-  
+
   if (inicio && fim) {
     if (agora < inicio) {
       status = 'futura'
@@ -58,13 +57,18 @@ export function VigenciaDisplay({
 
   if (compact) {
     return (
-      <div className={cn("flex items-center gap-1", className)}>
+      <div className={cn('flex items-center gap-1', className)}>
         {getStatusIcon()}
-        <span className="text-xs text-muted-foreground">
+        <span className="text-muted-foreground text-xs">
           {vigenciaInicio && vigenciaFim ? (
-            <><DateDisplay value={vigenciaInicio} /> - <DateDisplay value={vigenciaFim} /></>
+            <>
+              <DateDisplay value={vigenciaInicio} /> -{' '}
+              <DateDisplay value={vigenciaFim} />
+            </>
           ) : vigenciaInicio ? (
-            <><DateDisplay value={vigenciaInicio} /> - ∞</>
+            <>
+              <DateDisplay value={vigenciaInicio} /> - ∞
+            </>
           ) : (
             'Não definida'
           )}
@@ -74,24 +78,30 @@ export function VigenciaDisplay({
   }
 
   return (
-    <div className={cn("space-y-0.5", className)}>
+    <div className={cn('space-y-0.5', className)}>
       {vigenciaInicio && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span>Início: <DateDisplay value={vigenciaInicio} /></span>
+        <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <div className="h-2 w-2 rounded-full bg-green-500" />
+          <span>
+            Início: <DateDisplay value={vigenciaInicio} />
+          </span>
         </div>
       )}
-      
+
       {vigenciaFim ? (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-red-500" />
-          <span>Fim: <DateDisplay value={vigenciaFim} /></span>
+        <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <div className="h-2 w-2 rounded-full bg-red-500" />
+          <span>
+            Fim: <DateDisplay value={vigenciaFim} />
+          </span>
         </div>
-      ) : vigenciaInicio && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-blue-500" />
-          <span>Por tempo indeterminado</span>
-        </div>
+      ) : (
+        vigenciaInicio && (
+          <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+            <div className="h-2 w-2 rounded-full bg-blue-500" />
+            <span>Por tempo indeterminado</span>
+          </div>
+        )
       )}
     </div>
   )

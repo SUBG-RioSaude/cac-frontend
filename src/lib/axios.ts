@@ -29,6 +29,7 @@ const authInterceptor = (config: InternalAxiosRequestConfig) => {
     if (token.split('.').length === 3) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    // Token inválido - não adiciona ao header
   }
 
   // Garante que sempre envie charset UTF-8

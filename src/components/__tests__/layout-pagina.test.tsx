@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
 import '@testing-library/jest-dom'
+import { render, screen } from '@testing-library/react'
 import React from 'react'
+import { describe, it, expect } from 'vitest'
+
 import LayoutPagina from '../layout-pagina'
 
 describe('LayoutPagina', () => {
@@ -9,7 +10,7 @@ describe('LayoutPagina', () => {
     render(
       <LayoutPagina>
         <div data-testid="test-content">Test content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.getByTestId('test-content')).toBeInTheDocument()
@@ -17,27 +18,30 @@ describe('LayoutPagina', () => {
 
   it('deve renderizar título quando fornecido', () => {
     const titulo = 'Título da Página'
-    
+
     render(
       <LayoutPagina titulo={titulo}>
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.getByText(titulo)).toBeInTheDocument()
     expect(screen.getByText(titulo)).toHaveClass(
-      'text-2xl', 'font-semibold', 'tracking-tight', 'text-gray-900'
+      'text-2xl',
+      'font-semibold',
+      'tracking-tight',
+      'text-gray-900',
     )
   })
 
   it('deve renderizar descrição quando fornecida', () => {
     const descricao = 'Esta é a descrição da página'
-    
+
     render(
       <LayoutPagina descricao={descricao}>
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.getByText(descricao)).toBeInTheDocument()
@@ -47,11 +51,11 @@ describe('LayoutPagina', () => {
   it('deve renderizar título e descrição juntos', () => {
     const titulo = 'Título da Página'
     const descricao = 'Descrição da página'
-    
+
     render(
       <LayoutPagina titulo={titulo} descricao={descricao}>
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.getByText(titulo)).toBeInTheDocument()
@@ -62,7 +66,7 @@ describe('LayoutPagina', () => {
     render(
       <LayoutPagina>
         <div data-testid="only-content">Only content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
@@ -71,11 +75,11 @@ describe('LayoutPagina', () => {
 
   it('deve aplicar className personalizada', () => {
     const customClassName = 'bg-red-100 p-4'
-    
+
     const { container } = render(
       <LayoutPagina className={customClassName}>
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     const layoutDiv = container.firstChild as HTMLElement
@@ -86,7 +90,7 @@ describe('LayoutPagina', () => {
     const { container } = render(
       <LayoutPagina className="custom-class">
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     const layoutDiv = container.firstChild as HTMLElement
@@ -97,7 +101,7 @@ describe('LayoutPagina', () => {
     render(
       <LayoutPagina titulo="Só título">
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
@@ -108,7 +112,7 @@ describe('LayoutPagina', () => {
     render(
       <LayoutPagina descricao="Só descrição">
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
@@ -119,16 +123,16 @@ describe('LayoutPagina', () => {
     const { container } = render(
       <LayoutPagina titulo="Título" descricao="Descrição">
         <div>Content</div>
-      </LayoutPagina>
+      </LayoutPagina>,
     )
 
     const layoutDiv = container.firstChild as HTMLElement
     expect(layoutDiv).toHaveClass('space-y-6')
-    
+
     // Verifica se existe um div com classe space-y-2 para o cabeçalho
     const header = container.querySelector('.space-y-2')
     expect(header).toBeInTheDocument()
-    
+
     // Verifica se existe um div com classe space-y-6 para o conteúdo
     const content = container.querySelector('.space-y-6:last-child')
     expect(content).toBeInTheDocument()

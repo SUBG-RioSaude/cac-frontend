@@ -4,6 +4,8 @@
  */
 
 import { useQuery, useQueries } from '@tanstack/react-query'
+
+import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
 import {
   getUnidades,
   getUnidadeById,
@@ -13,10 +15,12 @@ import {
   getCapById,
   buscarCapsPorNome,
   getTiposUnidade,
-  getTiposAdministracao
+  getTiposAdministracao,
 } from '@/modules/Unidades/services/unidades-service'
-import { unidadeKeys } from '@/modules/Unidades/lib/query-keys'
-import type { FiltrosUnidadesApi, UnidadeSaudeApi } from '@/modules/Unidades/types/unidade-api'
+import type {
+  FiltrosUnidadesApi,
+  UnidadeSaudeApi,
+} from '@/modules/Unidades/types/unidade-api'
 
 // ========== QUERIES PRINCIPAIS - UNIDADES ==========
 
@@ -27,8 +31,8 @@ interface UseUnidadesOptions {
 }
 
 export function useUnidades(
-  filtros?: FiltrosUnidadesApi, 
-  options?: UseUnidadesOptions
+  filtros?: FiltrosUnidadesApi,
+  options?: UseUnidadesOptions,
 ) {
   return useQuery({
     queryKey: unidadeKeys.list(filtros),
@@ -40,7 +44,7 @@ export function useUnidades(
     staleTime: 2 * 60 * 1000, // 2 minutos
     refetchOnMount: options?.refetchOnMount ?? false,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: 'always'
+    refetchOnReconnect: 'always',
   })
 }
 
@@ -54,11 +58,14 @@ export function useUnidade(id: string, options?: { enabled?: boolean }) {
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: 'always'
+    refetchOnReconnect: 'always',
   })
 }
 
-export function useBuscarUnidades(nome: string, options?: { enabled?: boolean }) {
+export function useBuscarUnidades(
+  nome: string,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: unidadeKeys.search(nome),
     queryFn: async () => {
@@ -67,7 +74,7 @@ export function useBuscarUnidades(nome: string, options?: { enabled?: boolean })
     enabled: (options?.enabled ?? true) && nome.trim().length >= 2,
     staleTime: 1 * 60 * 1000, // 1 minuto
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -75,7 +82,10 @@ export function useBuscarUnidades(nome: string, options?: { enabled?: boolean })
  * Hook para buscar unidades apenas por nome (comportamento original)
  * Mantido para compatibilidade se necessário
  */
-export function useBuscarUnidadesPorNome(nome: string, options?: { enabled?: boolean }) {
+export function useBuscarUnidadesPorNome(
+  nome: string,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: unidadeKeys.search(nome),
     queryFn: async () => {
@@ -84,7 +94,7 @@ export function useBuscarUnidadesPorNome(nome: string, options?: { enabled?: boo
     enabled: (options?.enabled ?? true) && nome.trim().length >= 2,
     staleTime: 1 * 60 * 1000, // 1 minuto
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -99,7 +109,7 @@ export function useCaps(options?: { enabled?: boolean }) {
     enabled: options?.enabled ?? true,
     staleTime: 10 * 60 * 1000, // 10 minutos - dados relativamente estáticos
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -112,7 +122,7 @@ export function useCap(id: string, options?: { enabled?: boolean }) {
     enabled: options?.enabled ?? !!id,
     staleTime: 10 * 60 * 1000, // 10 minutos
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -125,7 +135,7 @@ export function useBuscarCaps(nome: string, options?: { enabled?: boolean }) {
     enabled: (options?.enabled ?? true) && nome.trim().length >= 2,
     staleTime: 2 * 60 * 1000, // 2 minutos
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -140,7 +150,7 @@ export function useTiposUnidade(options?: { enabled?: boolean }) {
     enabled: options?.enabled ?? true,
     staleTime: 30 * 60 * 1000, // 30 minutos - dados muito estáticos
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -153,7 +163,7 @@ export function useTiposAdministracao(options?: { enabled?: boolean }) {
     enabled: options?.enabled ?? true,
     staleTime: 30 * 60 * 1000, // 30 minutos - dados muito estáticos
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -165,10 +175,10 @@ export function useTiposAdministracao(options?: { enabled?: boolean }) {
  */
 export function useUnidadesByIds(
   ids: string[],
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
-  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)))
-  
+  const uniqueIds = Array.from(new Set(ids.filter(Boolean)))
+
   // Usar useQueries com configurações otimizadas para reduzir requests
   const queries = useQueries({
     queries: uniqueIds.map((id) => ({
@@ -183,25 +193,28 @@ export function useUnidadesByIds(
       // Configurações importantes para reduzir requests
       retry: 1, // Reduzir tentativas de retry
       retryDelay: 1000,
-      networkMode: 'online' as const
-    }))
+      networkMode: 'online' as const,
+    })),
   })
 
   // Processar resultados manualmente
-  const map = uniqueIds.reduce<Record<string, UnidadeSaudeApi>>((acc, id, idx) => {
-    const q = queries[idx]
-    if (q?.data) acc[id] = q.data as UnidadeSaudeApi
-    return acc
-  }, {})
+  const map = uniqueIds.reduce<Partial<Record<string, UnidadeSaudeApi>>>(
+    (acc, id, idx) => {
+      const q = queries[idx]
+      if (q.data) acc[id] = q.data
+      return acc
+    },
+    {},
+  )
 
-  const isLoading = queries.some(q => q.isLoading && !q.data)
-  const isFetching = queries.some(q => q.isFetching)
-  const error = queries.find(q => q.error)?.error
+  const isLoading = queries.some((q) => q.isLoading)
+  const isFetching = queries.some((q) => q.isFetching)
+  const error = queries.find((q) => q.error)?.error
 
   return {
     data: map,
     isLoading,
     isFetching,
-    error
+    error,
   }
 }

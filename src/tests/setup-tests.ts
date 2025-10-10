@@ -16,7 +16,7 @@ Object.defineProperty(window, 'matchMedia', {
     media: query,
     onchange: null,
     addListener: () => {},
-    removeListener: () => {}, 
+    removeListener: () => {},
     addEventListener: () => {},
     removeEventListener: () => {},
     dispatchEvent: () => {},
@@ -38,8 +38,8 @@ global.IntersectionObserver = class IntersectionObserver {
   unobserve() {}
   disconnect() {}
   root: Element | null = null
-  rootMargin: string = ''
-  thresholds: ReadonlyArray<number> = []
+  rootMargin = ''
+  thresholds: readonly number[] = []
   takeRecords(): IntersectionObserverEntry[] {
     return []
   }

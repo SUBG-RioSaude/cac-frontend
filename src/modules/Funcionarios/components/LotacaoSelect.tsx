@@ -1,7 +1,13 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useGetLotacoes } from '@/modules/Funcionarios'
 import type { LotacaoApi } from '@/modules/Funcionarios'
-import { Skeleton } from '@/components/ui/skeleton'
 
 interface LotacaoSelectProps {
   value?: string
@@ -10,9 +16,17 @@ interface LotacaoSelectProps {
   disabled?: boolean
 }
 
-export function LotacaoSelect({ value, onChange, placeholder = 'Selecione a lotação...', disabled }: LotacaoSelectProps) {
-  const { data, isLoading } = useGetLotacoes({ tamanhoPagina: 100, ativo: true })
-  const lotacoes: LotacaoApi[] = data?.dados || []
+export const LotacaoSelect = ({
+  value,
+  onChange,
+  placeholder = 'Selecione a lotação...',
+  disabled,
+}: LotacaoSelectProps) => {
+  const { data, isLoading } = useGetLotacoes({
+    tamanhoPagina: 100,
+    ativo: true,
+  })
+  const lotacoes: LotacaoApi[] = data?.dados ?? []
 
   if (isLoading) {
     return <Skeleton className="h-10 w-full" />
@@ -33,4 +47,3 @@ export function LotacaoSelect({ value, onChange, placeholder = 'Selecione a lota
     </Select>
   )
 }
-

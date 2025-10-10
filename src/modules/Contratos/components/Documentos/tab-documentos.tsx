@@ -1,22 +1,3 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   FileText,
   ExternalLink,
@@ -26,25 +7,70 @@ import {
   AlertCircle,
   Loader2,
   RotateCcw,
-} from 'lucide-react';
+} from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { DateDisplay } from '@/components/ui/formatters'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 
 import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
 import type { DocumentoMultiplo } from '../../types/contrato'
-import { DateDisplay } from '@/components/ui/formatters'
 
 interface TabDocumentosProps {
-  contratoId: string;
+  contratoId: string
 }
 
 // Tipos de documento obrigatórios (1-8 conforme API)
 const tiposDeDocumento = [
-  { tipo: 1, nome: 'Termo de Referência/Edital', key: 'termo_referencia', apiName: 'TermoReferencia' },
+  {
+    tipo: 1,
+    nome: 'Termo de Referência/Edital',
+    key: 'termo_referencia',
+    apiName: 'TermoReferencia',
+  },
   { tipo: 2, nome: 'Homologação', key: 'homologacao', apiName: 'Homologacao' },
-  { tipo: 3, nome: 'Ata de Registro de Preços', key: 'ata_registro_precos', apiName: 'AtaRegistroPrecos' },
-  { tipo: 4, nome: 'Garantia Contratual', key: 'garantia_contratual', apiName: 'GarantiaContratual' },
+  {
+    tipo: 3,
+    nome: 'Ata de Registro de Preços',
+    key: 'ata_registro_precos',
+    apiName: 'AtaRegistroPrecos',
+  },
+  {
+    tipo: 4,
+    nome: 'Garantia Contratual',
+    key: 'garantia_contratual',
+    apiName: 'GarantiaContratual',
+  },
   { tipo: 5, nome: 'Contrato', key: 'contrato', apiName: 'Contrato' },
-  { tipo: 6, nome: 'Publicação PNCP', key: 'publicacao_pncp', apiName: 'PublicacaoPNCP' },
-  { tipo: 7, nome: 'Publicação de Extrato Contratual', key: 'publicacao_extrato', apiName: 'PublicacaoExtrato' },
+  {
+    tipo: 6,
+    nome: 'Publicação PNCP',
+    key: 'publicacao_pncp',
+    apiName: 'PublicacaoPNCP',
+  },
+  {
+    tipo: 7,
+    nome: 'Publicação de Extrato Contratual',
+    key: 'publicacao_extrato',
+    apiName: 'PublicacaoExtrato',
+  },
   { tipo: 8, nome: 'Proposta', key: 'proposta', apiName: 'Proposta' },
 ]
 
@@ -59,76 +85,91 @@ interface DocumentoLocal {
   dataEntrega?: string
 }
 
-export function TabDocumentos({ contratoId }: TabDocumentosProps) {
-  const { data: documentosApi = [], isLoading, error } = useDocumentos(contratoId);
-  const updateMutation = useUpdateDocumentosMultiplos();
+export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
+  const {
+    data: documentosApi = [],
+    isLoading,
+    error,
+  } = useDocumentos(contratoId)
+  const updateMutation = useUpdateDocumentosMultiplos()
 
   // Estados para confirmações
-  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   // Estado local dos documentos (todos os 7 tipos sempre)
-  const [documentosLocais, setDocumentosLocais] = useState<DocumentoLocal[]>(() => 
-    tiposDeDocumento.map(tipo => ({
-      tipo: tipo.tipo,
-      nome: tipo.nome,
-      key: tipo.key,
-      apiName: tipo.apiName,
-      selecionado: false,
-      urlDocumento: '',
-      observacoes: '',
-    }))
+  const [documentosLocais, setDocumentosLocais] = useState<DocumentoLocal[]>(
+    () =>
+      tiposDeDocumento.map((tipo) => ({
+        tipo: tipo.tipo,
+        nome: tipo.nome,
+        key: tipo.key,
+        apiName: tipo.apiName,
+        selecionado: false,
+        urlDocumento: '',
+        observacoes: '',
+      })),
   )
 
   // Sincronizar com dados da API quando carregarem
   useMemo(() => {
     if (documentosApi.length > 0) {
-      setDocumentosLocais(prev => 
-        prev.map(local => {
+      setDocumentosLocais((prev) =>
+        prev.map((local) => {
           // Buscar documento da API pelo tipo numérico
-          const docApi = documentosApi.find(d => d.tipo === local.tipo.toString())
+          const docApi = documentosApi.find(
+            (d) => d.tipo === local.tipo.toString(),
+          )
           if (docApi) {
             return {
               ...local,
               selecionado: docApi.status === 'conferido', // baseado no campo 'ativo' da API
-              urlDocumento: docApi.linkExterno && docApi.linkExterno !== 'sem url' ? docApi.linkExterno : '',
-              observacoes: docApi.observacoes || '',
-              dataEntrega: docApi.dataAtualizacao || undefined
+              urlDocumento:
+                docApi.linkExterno && docApi.linkExterno !== 'sem url'
+                  ? docApi.linkExterno
+                  : '',
+              observacoes: docApi.observacoes ?? '',
+              dataEntrega: docApi.dataAtualizacao ?? undefined,
             }
           }
           return local
-        })
+        }),
       )
     }
   }, [documentosApi])
 
   // Calcular progresso
   const progressData = useMemo(() => {
-    const entregues = documentosLocais.filter(doc => doc.selecionado).length
+    const entregues = documentosLocais.filter((doc) => doc.selecionado).length
     const total = documentosLocais.length
     const percentual = total > 0 ? Math.round((entregues / total) * 100) : 0
     return { entregues, total, percentual }
   }, [documentosLocais])
 
   // Atualizar documento local
-  const atualizarDocumento = useCallback((key: string, campo: keyof DocumentoLocal, valor: string | boolean) => {
-    setDocumentosLocais(prev => 
-      prev.map(doc => 
-        doc.key === key 
-          ? { 
-              ...doc, 
-              [campo]: valor,
-              // Quando marca como selecionado, define data automaticamente
-              ...(campo === 'selecionado' && valor === true ? { dataEntrega: new Date().toISOString() } : {})
-            }
-          : doc
+  const atualizarDocumento = useCallback(
+    (key: string, campo: keyof DocumentoLocal, valor: string | boolean) => {
+      setDocumentosLocais((prev) =>
+        prev.map((doc) =>
+          doc.key === key
+            ? {
+                ...doc,
+                [campo]: valor,
+                // Quando marca como selecionado, define data automaticamente
+                ...(campo === 'selecionado' && valor === true
+                  ? { dataEntrega: new Date().toISOString() }
+                  : {}),
+              }
+            : doc,
+        ),
       )
-    )
-    
-    // Marcar como tendo mudanças não salvas
-    setHasUnsavedChanges(true)
-  }, [])
+
+      // Marcar como tendo mudanças não salvas
+      setHasUnsavedChanges(true)
+    },
+    [],
+  )
 
   // Salvar todas as alterações (com confirmação)
   const handleSalvarTodos = useCallback(() => {
@@ -138,13 +179,16 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
   // Confirmar e salvar todas as alterações
   const confirmarSalvarTodos = useCallback(() => {
     const payload = {
-      documentos: documentosLocais.map(doc => ({
-        tipoDocumento: doc.tipo,
-        urlDocumento: doc.urlDocumento || 'sem url',
-        dataEntrega: doc.dataEntrega || new Date().toISOString(),
-        observacoes: doc.observacoes || '',
-        selecionado: doc.selecionado
-      } as DocumentoMultiplo))
+      documentos: documentosLocais.map(
+        (doc) =>
+          ({
+            tipoDocumento: doc.tipo,
+            urlDocumento: doc.urlDocumento || 'sem url',
+            dataEntrega: doc.dataEntrega ?? new Date().toISOString(),
+            observacoes: doc.observacoes,
+            selecionado: doc.selecionado,
+          }) as DocumentoMultiplo,
+      ),
     }
 
     updateMutation.mutate({ contratoId, payload })
@@ -161,16 +205,21 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
   const confirmarResetarAlteracoes = useCallback(() => {
     // Restaurar para o estado original da API
     if (documentosApi.length > 0) {
-      setDocumentosLocais(prev =>
-        prev.map(local => {
-          const docApi = documentosApi.find(d => d.tipo === local.tipo.toString())
+      setDocumentosLocais((prev) =>
+        prev.map((local) => {
+          const docApi = documentosApi.find(
+            (d) => d.tipo === local.tipo.toString(),
+          )
           if (docApi) {
             return {
               ...local,
               selecionado: docApi.status === 'conferido',
-              urlDocumento: docApi.linkExterno && docApi.linkExterno !== 'sem url' ? docApi.linkExterno : '',
-              observacoes: docApi.observacoes || '',
-              dataEntrega: docApi.dataAtualizacao || undefined
+              urlDocumento:
+                docApi.linkExterno && docApi.linkExterno !== 'sem url'
+                  ? docApi.linkExterno
+                  : '',
+              observacoes: docApi.observacoes ?? '',
+              dataEntrega: docApi.dataAtualizacao ?? undefined,
             }
           }
           // Para documentos que não existem na API, resetar para vazio
@@ -179,27 +228,26 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
             selecionado: false,
             urlDocumento: '',
             observacoes: '',
-            dataEntrega: undefined
+            dataEntrega: undefined,
           }
-        })
+        }),
       )
     } else {
       // Se não há dados da API, resetar tudo para vazio
-      setDocumentosLocais(prev =>
-        prev.map(doc => ({
+      setDocumentosLocais((prev) =>
+        prev.map((doc) => ({
           ...doc,
           selecionado: false,
           urlDocumento: '',
           observacoes: '',
-          dataEntrega: undefined
-        }))
+          dataEntrega: undefined,
+        })),
       )
     }
 
     setShowResetConfirm(false)
     setHasUnsavedChanges(false)
   }, [documentosApi])
-
 
   if (isLoading) {
     return (
@@ -239,7 +287,7 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
           </Badge>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Progresso */}
         <div className="space-y-2">
@@ -254,38 +302,50 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
         </div>
 
         {/* Grid de documentos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {documentosLocais.map((documento) => (
-            <div 
-              key={documento.key} 
-              className={`p-3 rounded-lg border transition-colors ${
-                documento.selecionado 
-                  ? 'border-green-200 bg-green-50' 
+            <div
+              key={documento.key}
+              className={`rounded-lg border p-3 transition-colors ${
+                documento.selecionado
+                  ? 'border-green-200 bg-green-50'
                   : 'border-gray-200 bg-white'
               }`}
             >
               {/* Header do documento */}
-              <div className="flex items-start gap-2 mb-3">
-                <Checkbox 
+              <div className="mb-3 flex items-start gap-2">
+                <Checkbox
                   id={documento.key}
                   checked={documento.selecionado}
-                  onCheckedChange={(checked) => 
-                    atualizarDocumento(documento.key, 'selecionado', checked === true)
+                  onCheckedChange={(checked) =>
+                    atualizarDocumento(
+                      documento.key,
+                      'selecionado',
+                      checked === true,
+                    )
                   }
                   className="mt-0.5 shrink-0"
                 />
-                <div className="flex-1 min-w-0">
-                  <Label htmlFor={documento.key} className="text-xs font-medium leading-4 block">
+                <div className="min-w-0 flex-1">
+                  <Label
+                    htmlFor={documento.key}
+                    className="block text-xs leading-4 font-medium"
+                  >
                     {documento.nome}
                   </Label>
                   {documento.selecionado && documento.dataEntrega && (
-                    <div className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                    <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
                       <Calendar className="h-3 w-3 shrink-0" />
-                      <span className="truncate"><DateDisplay value={documento.dataEntrega} options={{
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      }} /></span>
+                      <span className="truncate">
+                        <DateDisplay
+                          value={documento.dataEntrega}
+                          options={{
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          }}
+                        />
+                      </span>
                     </div>
                   )}
                 </div>
@@ -294,22 +354,36 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
               {/* Campos compactos */}
               <div className="space-y-2">
                 <div>
-                  <Label htmlFor={`url-${documento.key}`} className="text-xs text-gray-600 block mb-1">
+                  <Label
+                    htmlFor={`url-${documento.key}`}
+                    className="mb-1 block text-xs text-gray-600"
+                  >
                     URL (opcional)
                   </Label>
                   <div className="flex gap-1">
                     <Input
                       id={`url-${documento.key}`}
                       value={documento.urlDocumento}
-                      onChange={(e) => atualizarDocumento(documento.key, 'urlDocumento', e.target.value)}
+                      onChange={(e) =>
+                        atualizarDocumento(
+                          documento.key,
+                          'urlDocumento',
+                          e.target.value,
+                        )
+                      }
                       placeholder="https://..."
-                      className="text-xs h-8 flex-1"
+                      className="h-8 flex-1 text-xs"
                     />
                     {documento.urlDocumento && (
-                      <Button variant="outline" size="sm" className="h-8 w-8 p-0" asChild>
-                        <a 
-                          href={documento.urlDocumento} 
-                          target="_blank" 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        asChild
+                      >
+                        <a
+                          href={documento.urlDocumento}
+                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           <ExternalLink className="h-3 w-3" />
@@ -320,15 +394,24 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor={`obs-${documento.key}`} className="text-xs text-gray-600 block mb-1">
+                  <Label
+                    htmlFor={`obs-${documento.key}`}
+                    className="mb-1 block text-xs text-gray-600"
+                  >
                     Observações (opcional)
                   </Label>
                   <Textarea
                     id={`obs-${documento.key}`}
                     value={documento.observacoes}
-                    onChange={(e) => atualizarDocumento(documento.key, 'observacoes', e.target.value)}
+                    onChange={(e) =>
+                      atualizarDocumento(
+                        documento.key,
+                        'observacoes',
+                        e.target.value,
+                      )
+                    }
                     placeholder="Observações..."
-                    className="text-xs h-16 resize-none"
+                    className="h-16 resize-none text-xs"
                   />
                 </div>
               </div>
@@ -337,10 +420,10 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
         </div>
 
         {/* Botões de ação */}
-        <div className="flex justify-between items-center pt-4 border-t">
+        <div className="flex items-center justify-between border-t pt-4">
           <div className="flex items-center">
             {hasUnsavedChanges && (
-              <span className="text-sm text-orange-600 flex items-center gap-1">
+              <span className="flex items-center gap-1 text-sm text-orange-600">
                 <AlertCircle className="h-3 w-3" />
                 Há alterações não salvas
               </span>
@@ -354,7 +437,7 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                 onClick={handleResetarAlteracoes}
                 disabled={updateMutation.isPending}
                 variant="outline"
-                className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                className="flex items-center gap-2 border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
               >
                 <RotateCcw className="h-4 w-4" />
                 Cancelar Alterações
@@ -365,7 +448,7 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
             <Button
               onClick={handleSalvarTodos}
               disabled={updateMutation.isPending || !hasUnsavedChanges}
-              variant={hasUnsavedChanges ? "default" : "outline"}
+              variant={hasUnsavedChanges ? 'default' : 'outline'}
               className="flex items-center gap-2"
             >
               {updateMutation.isPending ? (
@@ -384,7 +467,8 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
             <DialogHeader>
               <DialogTitle>Salvar Alterações</DialogTitle>
               <DialogDescription>
-                Deseja salvar todas as alterações nos documentos? Isso incluirá status de entrega, URLs e observações.
+                Deseja salvar todas as alterações nos documentos? Isso incluirá
+                status de entrega, URLs e observações.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -399,7 +483,7 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                 disabled={updateMutation.isPending}
               >
                 {updateMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
                 Salvar Tudo
               </Button>
@@ -416,8 +500,10 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
                 Cancelar Alterações
               </DialogTitle>
               <DialogDescription>
-                Deseja descartar todas as alterações não salvas? Todos os checkboxes, URLs e observações voltarão ao estado original.
-                <br /><br />
+                Deseja descartar todas as alterações não salvas? Todos os
+                checkboxes, URLs e observações voltarão ao estado original.
+                <br />
+                <br />
                 <strong>Esta ação não pode ser desfeita.</strong>
               </DialogDescription>
             </DialogHeader>
@@ -441,5 +527,5 @@ export function TabDocumentos({ contratoId }: TabDocumentosProps) {
         </Dialog>
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function normalizeText(text: string): string {
   if (!text) return ''
-  
+
   return text
     .normalize('NFD') // Decompõe caracteres acentuados
     .replace(/[\u0300-\u036f]/g, '') // Remove marcas diacríticas (acentos)
@@ -400,7 +400,7 @@ export const ieUtils: IEUtils = {
       mask: '###.###.###/####',
       validate: (ie: string) => {
         if (ie.length !== 13) return false
-        const seq = ie.slice(0, 3) + '0' + ie.slice(3, 11)
+        const seq = `${ie.slice(0, 3)}0${ie.slice(3, 11)}`
         const dv1 = ieUtils.mod10(seq, [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2])
         if (parseInt(ie[11]) !== dv1) return false
         const dv2 = ieUtils.mod11(
@@ -643,23 +643,42 @@ export const ieUtils: IEUtils = {
 
     if (!estado) return ieLimpa.length >= 8 && ieLimpa.length <= 14
 
-    const config = ieUtils.estados[estado.toUpperCase()]
-    if (!config) return ieLimpa.length >= 8 && ieLimpa.length <= 14
+    const upperEstado = estado.toUpperCase()
+    const hasConfig = Object.prototype.hasOwnProperty.call(
+      ieUtils.estados,
+      upperEstado,
+    )
 
+    if (!hasConfig) return ieLimpa.length >= 8 && ieLimpa.length <= 14
+
+    const config = ieUtils.estados[upperEstado]
     return config.validate(ieLimpa)
   },
 
   aplicarMascara: (value: string, estado?: string): string => {
     const ieLimpa = ieUtils.limpar(value)
 
-    if (!estado || !ieUtils.estados[estado.toUpperCase()]) {
+    if (!estado) {
       // Máscara padrão
       return ieLimpa.length <= 9
         ? ieLimpa.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3')
         : ieLimpa.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3.$4')
     }
 
-    const { mask } = ieUtils.estados[estado.toUpperCase()]
+    const upperEstado = estado.toUpperCase()
+    const hasConfig = Object.prototype.hasOwnProperty.call(
+      ieUtils.estados,
+      upperEstado,
+    )
+
+    if (!hasConfig) {
+      // Máscara padrão se estado inválido
+      return ieLimpa.length <= 9
+        ? ieLimpa.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3')
+        : ieLimpa.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3.$4')
+    }
+
+    const { mask } = ieUtils.estados[upperEstado]
     let pos = 0
     return mask.replace(/#/g, () =>
       pos < ieLimpa.length ? ieLimpa[pos++] : '',
@@ -850,25 +869,28 @@ export const dateUtils = {
    */
   formatarDataUTC: (dateString: string): string => {
     if (!dateString) return ''
-    
+
     try {
       // Parse a data como UTC para evitar problemas de timezone
       // Se já tem timezone (Z ou +/-), usa como está
       // Se não tem, adiciona 'Z' para forçar UTC
-      const isoString = dateString.includes('Z') || dateString.includes('+') || dateString.includes('-', 10) 
-        ? dateString 
-        : dateString + 'Z'
-      
+      const isoString =
+        dateString.includes('Z') ||
+        dateString.includes('+') ||
+        dateString.includes('-', 10)
+          ? dateString
+          : `${dateString}Z`
+
       const date = new Date(isoString)
-      
+
       // Verifica se a data é válida
       if (isNaN(date.getTime())) {
         return ''
       }
-      
+
       // Formata usando UTC para evitar conversão de timezone
       return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
-    } catch (error) {
+    } catch {
       return ''
     }
   },
@@ -880,34 +902,37 @@ export const dateUtils = {
    * @returns Data formatada
    */
   formatarDataUTCCustom: (
-    dateString: string, 
-    options: Intl.DateTimeFormatOptions = {}
+    dateString: string,
+    options: Intl.DateTimeFormatOptions = {},
   ): string => {
     if (!dateString) return ''
-    
+
     try {
-      const isoString = dateString.includes('Z') || dateString.includes('+') || dateString.includes('-', 10)
-        ? dateString 
-        : dateString + 'Z'
-      
+      const isoString =
+        dateString.includes('Z') ||
+        dateString.includes('+') ||
+        dateString.includes('-', 10)
+          ? dateString
+          : `${dateString}Z`
+
       const date = new Date(isoString)
-      
+
       if (isNaN(date.getTime())) {
         return ''
       }
-      
+
       const defaultOptions: Intl.DateTimeFormatOptions = {
         timeZone: 'UTC',
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
+        year: 'numeric',
       }
-      
+
       return date.toLocaleDateString('pt-BR', { ...defaultOptions, ...options })
-    } catch (error) {
+    } catch {
       return ''
     }
-  }
+  },
 }
 
 export const currencyUtils = {
@@ -953,7 +978,7 @@ export const currencyUtils = {
   aplicarMascara: (value: string): string => {
     // Detectar se há sinal negativo
     const isNegative = value.startsWith('-')
-    
+
     // Remove tudo exceto números
     const apenasNumeros = value.replace(/\D/g, '')
 
@@ -1031,13 +1056,13 @@ export const cepUtils = {
    */
   formatar: (cep: string): string => {
     if (!cep) return ''
-    
+
     const cepLimpo = cepUtils.limpar(cep)
-    
+
     if (cepLimpo.length !== 8) {
       return cep // Retorna original se não tiver 8 dígitos
     }
-    
+
     return cepLimpo.replace(/^(\d{5})(\d{3})/, '$1-$2')
   },
 
@@ -1058,16 +1083,16 @@ export const cepUtils = {
    */
   aplicarMascara: (value: string): string => {
     const cepLimpo = cepUtils.limpar(value)
-    
+
     // Limita a 8 dígitos
     const cepLimitado = cepLimpo.slice(0, 8)
-    
+
     if (cepLimitado.length <= 5) {
       return cepLimitado
     } else {
       return cepLimitado.replace(/^(\d{5})(\d{0,3})/, '$1-$2')
     }
-  }
+  },
 }
 
 export const phoneUtils = {
@@ -1088,19 +1113,19 @@ export const phoneUtils = {
    */
   formatar: (phone: string): string => {
     if (!phone) return ''
-    
+
     const phoneLimpo = phoneUtils.limpar(phone)
-    
+
     // Celular: (XX) 9XXXX-XXXX
     if (phoneLimpo.length === 11) {
       return phoneLimpo.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
     }
-    
+
     // Fixo: (XX) XXXX-XXXX
     if (phoneLimpo.length === 10) {
       return phoneLimpo.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
     }
-    
+
     // Retorna original se não seguir padrão
     return phone
   },
@@ -1122,10 +1147,10 @@ export const phoneUtils = {
    */
   aplicarMascara: (value: string): string => {
     const phoneLimpo = phoneUtils.limpar(value)
-    
+
     // Limita a 11 dígitos
     const phoneLimitado = phoneLimpo.slice(0, 11)
-    
+
     if (phoneLimitado.length <= 2) {
       return phoneLimitado.length > 0 ? `(${phoneLimitado}` : phoneLimitado
     } else if (phoneLimitado.length <= 6) {
@@ -1135,7 +1160,7 @@ export const phoneUtils = {
     } else {
       return phoneLimitado.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
     }
-  }
+  },
 }
 
 /**
@@ -1148,13 +1173,13 @@ export const percentualUtils = {
    * @returns Percentual formatado como string
    */
   formatar: (valor: number): string => {
-    if (isNaN(valor) || valor === null || valor === undefined) {
+    if (Number.isNaN(valor)) {
       return '0'
     }
-    
+
     // Converte para número e formata com até 2 casas decimais
     const numeroFormatado = Number(valor.toFixed(2))
-    
+
     // Remove zeros desnecessários e retorna como string
     return numeroFormatado.toString()
   },
@@ -1167,16 +1192,16 @@ export const percentualUtils = {
   validar: (valor: string | number): boolean => {
     const valorStr = valor.toString().replace(',', '.')
     const numero = parseFloat(valorStr)
-    
+
     if (isNaN(numero)) return false
     if (numero < 0 || numero > 100) return false
-    
+
     // Verifica se tem no máximo 2 casas decimais
-    const partesDecimais = valorStr.split('.')[1]
+    const [, partesDecimais] = valorStr.split('.')
     if (partesDecimais && partesDecimais.length > 2) {
       return false
     }
-    
+
     return true
   },
 
@@ -1186,31 +1211,31 @@ export const percentualUtils = {
    * @returns string vazia se válido, mensagem de erro se inválido
    */
   validarComMensagem: (valor: string | number): string => {
-    if (valor === '' || valor === null || valor === undefined) {
+    if (valor === '') {
       return 'Percentual é obrigatório'
     }
-    
+
     const valorStr = valor.toString().replace(',', '.')
-    const numero = parseFloat(valorStr)
-    
-    if (isNaN(numero)) {
+    const numero = Number.parseFloat(valorStr)
+
+    if (Number.isNaN(numero)) {
       return 'Percentual deve ser um número válido'
     }
-    
+
     if (numero < 0) {
       return 'Percentual não pode ser negativo'
     }
-    
+
     if (numero > 100) {
       return 'Percentual não pode ser maior que 100%'
     }
-    
+
     // Verifica se tem no máximo 2 casas decimais
-    const partesDecimais = valorStr.split('.')[1]
+    const [, partesDecimais] = valorStr.split('.')
     if (partesDecimais && partesDecimais.length > 2) {
       return 'Percentual pode ter no máximo 2 casas decimais'
     }
-    
+
     return ''
   },
 
@@ -1221,32 +1246,32 @@ export const percentualUtils = {
    */
   normalizarEntrada: (valor: string): string => {
     if (!valor) return ''
-    
+
     // Remove caracteres não numéricos exceto vírgula e ponto
     let valorLimpo = valor.replace(/[^0-9.,]/g, '')
-    
+
     // Substitui vírgula por ponto
     valorLimpo = valorLimpo.replace(',', '.')
-    
+
     // Evita múltiplos pontos
     const pontos = valorLimpo.split('.')
     if (pontos.length > 2) {
-      valorLimpo = pontos[0] + '.' + pontos.slice(1).join('')
+      valorLimpo = `${pontos[0]}.${pontos.slice(1).join('')}`
     }
-    
+
     // Limita a 2 casas decimais
     if (valorLimpo.includes('.')) {
       const [inteira, decimal] = valorLimpo.split('.')
       const decimalLimitado = decimal ? decimal.slice(0, 2) : ''
-      valorLimpo = inteira + (decimalLimitado ? '.' + decimalLimitado : '')
+      valorLimpo = inteira + (decimalLimitado ? `.${decimalLimitado}` : '')
     }
-    
+
     // Limita valor máximo a 100
     const numero = parseFloat(valorLimpo)
     if (!isNaN(numero) && numero > 100) {
       return '100'
     }
-    
+
     return valorLimpo
   },
 
@@ -1257,10 +1282,10 @@ export const percentualUtils = {
    */
   paraNumero: (valor: string): number => {
     if (!valor) return 0
-    
+
     const valorNormalizado = valor.replace(',', '.')
     const numero = parseFloat(valorNormalizado)
-    
+
     return isNaN(numero) ? 0 : numero
-  }
+  },
 }

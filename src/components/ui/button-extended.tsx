@@ -15,7 +15,9 @@ import type { VariantProps } from 'class-variance-authority'
 // LOADING BUTTON - Botão com estado de carregamento
 // ==========================================
 
-interface LoadingButtonProps extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
+interface LoadingButtonProps
+  extends React.ComponentProps<'button'>,
+    VariantProps<typeof buttonVariants> {
   loading?: boolean
   loadingText?: string
   asChild?: boolean
@@ -49,7 +51,9 @@ export function LoadingButton({
 // ACTION BUTTON - Botão para ações rápidas em tabelas/cards
 // ==========================================
 
-interface ActionButtonProps extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
+interface ActionButtonProps
+  extends React.ComponentProps<'button'>,
+    VariantProps<typeof buttonVariants> {
   icon?: React.ReactNode
   tooltip?: string
   asChild?: boolean
@@ -81,7 +85,9 @@ export function ActionButton({
 // ICON BUTTON - Botão apenas com ícone
 // ==========================================
 
-interface IconButtonProps extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
+interface IconButtonProps
+  extends React.ComponentProps<'button'>,
+    VariantProps<typeof buttonVariants> {
   icon: React.ReactNode
   'aria-label': string
   asChild?: boolean
@@ -95,12 +101,7 @@ export function IconButton({
   ...props
 }: IconButtonProps) {
   return (
-    <Button
-      variant={variant}
-      size={size}
-      className={className}
-      {...props}
-    >
+    <Button variant={variant} size={size} className={className} {...props}>
       {icon}
     </Button>
   )
@@ -110,7 +111,9 @@ export function IconButton({
 // CONFIRMATION BUTTON - Botão que requer confirmação
 // ==========================================
 
-interface ConfirmationButtonProps extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
+interface ConfirmationButtonProps
+  extends React.ComponentProps<'button'>,
+    VariantProps<typeof buttonVariants> {
   onConfirm: () => void
   confirmText?: string
   cancelText?: string
@@ -151,18 +154,10 @@ export function ConfirmationButton({
   if (showConfirm) {
     return (
       <div className="inline-flex gap-2">
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleConfirm}
-        >
+        <Button variant="destructive" size="sm" onClick={handleConfirm}>
           {confirmText}
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCancel}
-        >
+        <Button variant="outline" size="sm" onClick={handleCancel}>
           {cancelText}
         </Button>
       </div>
@@ -194,13 +189,13 @@ export function ButtonGroup({
 }: ButtonGroupProps) {
   const orientationClasses = {
     horizontal: 'flex-row',
-    vertical: 'flex-col'
+    vertical: 'flex-col',
   }
 
   const spacingClasses = {
     none: 'gap-0',
     sm: 'gap-1',
-    md: 'gap-2'
+    md: 'gap-2',
   }
 
   return (
@@ -211,8 +206,9 @@ export function ButtonGroup({
         orientationClasses[orientation],
         spacingClasses[spacing],
         '[&>button]:rounded-none [&>button:first-child]:rounded-l-md [&>button:last-child]:rounded-r-md',
-        orientation === 'vertical' && '[&>button:first-child]:rounded-t-md [&>button:last-child]:rounded-b-md [&>button:first-child]:rounded-l-none [&>button:last-child]:rounded-l-none',
-        className
+        orientation === 'vertical' &&
+          '[&>button:first-child]:rounded-t-md [&>button:first-child]:rounded-l-none [&>button:last-child]:rounded-l-none [&>button:last-child]:rounded-b-md',
+        className,
       )}
       {...props}
     >
@@ -247,32 +243,26 @@ export function ListButton({
       className={cn(
         'w-full p-3 text-left transition-colors',
         'hover:bg-accent hover:text-accent-foreground',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        'border-b border-border last:border-b-0',
+        'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
+        'border-border border-b last:border-b-0',
         selected && 'bg-accent text-accent-foreground',
-        className
+        className,
       )}
       {...props}
     >
       <div className="flex items-center gap-3">
-        {avatar && (
-          <div className="flex-shrink-0">
-            {avatar}
-          </div>
-        )}
-        
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{title}</h4>
+        {avatar && <div className="flex-shrink-0">{avatar}</div>}
+
+        <div className="min-w-0 flex-1">
+          <h4 className="truncate text-sm font-medium">{title}</h4>
           {description && (
-            <p className="text-muted-foreground text-xs truncate">{description}</p>
+            <p className="text-muted-foreground truncate text-xs">
+              {description}
+            </p>
           )}
         </div>
 
-        {trailing && (
-          <div className="flex-shrink-0">
-            {trailing}
-          </div>
-        )}
+        {trailing && <div className="flex-shrink-0">{trailing}</div>}
       </div>
     </button>
   )
@@ -282,7 +272,9 @@ export function ListButton({
 // FLOATING ACTION BUTTON - Botão flutuante para ação principal
 // ==========================================
 
-interface FloatingActionButtonProps extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
+interface FloatingActionButtonProps
+  extends React.ComponentProps<'button'>,
+    VariantProps<typeof buttonVariants> {
   icon: React.ReactNode
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
   asChild?: boolean
@@ -300,7 +292,7 @@ export function FloatingActionButton({
     'bottom-right': 'bottom-6 right-6',
     'bottom-left': 'bottom-6 left-6',
     'top-right': 'top-6 right-6',
-    'top-left': 'top-6 left-6'
+    'top-left': 'top-6 left-6',
   }
 
   return (
@@ -308,9 +300,9 @@ export function FloatingActionButton({
       variant={variant}
       size={size}
       className={cn(
-        'fixed z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow',
+        'fixed z-50 h-14 w-14 rounded-full shadow-lg transition-shadow hover:shadow-xl',
         positionClasses[position],
-        className
+        className,
       )}
       {...props}
     >

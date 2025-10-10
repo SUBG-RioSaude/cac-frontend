@@ -1,8 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { useForm } from 'react-hook-form'
-import { describe, it, expect } from 'vitest'
-import '@testing-library/jest-dom'
 import React from 'react'
+import { useForm } from 'react-hook-form'
+import '@testing-library/jest-dom'
+import { describe, it, expect } from 'vitest'
+
 import {
   Form,
   FormItem,
@@ -67,14 +68,16 @@ describe('Form Components', () => {
 
       expect(screen.getByTestId('test-form')).toBeInTheDocument()
       expect(screen.getByText('Username')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Digite seu username')).toBeInTheDocument()
+      expect(
+        screen.getByPlaceholderText('Digite seu username'),
+      ).toBeInTheDocument()
     })
   })
 
   describe('FormItem', () => {
     it('deve renderizar com classes padrão', () => {
       render(<FormItem data-testid="form-item" />)
-      
+
       const formItem = screen.getByTestId('form-item')
       expect(formItem).toBeInTheDocument()
       expect(formItem).toHaveClass('grid', 'gap-2')
@@ -82,10 +85,8 @@ describe('Form Components', () => {
     })
 
     it('deve aplicar className personalizada', () => {
-      render(
-        <FormItem className="custom-class" data-testid="form-item" />
-      )
-      
+      render(<FormItem className="custom-class" data-testid="form-item" />)
+
       const formItem = screen.getByTestId('form-item')
       expect(formItem).toHaveClass('grid', 'gap-2', 'custom-class')
     })
@@ -121,9 +122,9 @@ describe('Form Components', () => {
 
     it('deve mostrar estado de erro', () => {
       const TestForm = () => {
-        const form = useForm({ 
+        const form = useForm({
           defaultValues: { test: '' },
-          mode: 'onChange'
+          mode: 'onChange',
         })
 
         return (
@@ -135,7 +136,9 @@ describe('Form Components', () => {
               render={({ fieldState }) => (
                 <FormItem>
                   <FormLabel data-testid="form-label">Test Label</FormLabel>
-                  {fieldState.error && <span data-testid="error-indicator">error</span>}
+                  {fieldState.error && (
+                    <span data-testid="error-indicator">error</span>
+                  )}
                 </FormItem>
               )}
             />
@@ -237,7 +240,9 @@ describe('Form Components', () => {
       expect(description).toBeInTheDocument()
       expect(description).toHaveAttribute('data-slot', 'form-description')
       expect(description).toHaveClass('text-muted-foreground', 'text-sm')
-      expect(screen.getByText('Esta é uma descrição do campo')).toBeInTheDocument()
+      expect(
+        screen.getByText('Esta é uma descrição do campo'),
+      ).toBeInTheDocument()
     })
 
     it('deve aplicar className personalizada', () => {
@@ -251,7 +256,7 @@ describe('Form Components', () => {
               name="test"
               render={() => (
                 <FormItem>
-                  <FormDescription 
+                  <FormDescription
                     className="custom-description"
                     data-testid="form-description"
                   >
@@ -267,7 +272,11 @@ describe('Form Components', () => {
       render(<TestForm />)
 
       const description = screen.getByTestId('form-description')
-      expect(description).toHaveClass('text-muted-foreground', 'text-sm', 'custom-description')
+      expect(description).toHaveClass(
+        'text-muted-foreground',
+        'text-sm',
+        'custom-description',
+      )
     })
   })
 
@@ -333,8 +342,12 @@ describe('Form Components', () => {
 
       expect(screen.getByTestId('hook-error')).toBeInTheDocument()
       // Verifica se contém parte da mensagem de erro
-      expect(screen.getByTestId('hook-error')).toHaveTextContent('Cannot destructure property')
-      expect(screen.getByTestId('hook-error')).toHaveTextContent('useFormContext')
+      expect(screen.getByTestId('hook-error')).toHaveTextContent(
+        'Cannot destructure property',
+      )
+      expect(screen.getByTestId('hook-error')).toHaveTextContent(
+        'useFormContext',
+      )
     })
 
     it('deve retornar dados do campo quando usado no contexto correto', () => {
@@ -360,8 +373,8 @@ describe('Form Components', () => {
 
       const fieldData = screen.getByTestId('form-field-data')
       expect(fieldData).toBeInTheDocument()
-      
-      const data = JSON.parse(fieldData.textContent || '{}')
+
+      const data = JSON.parse(fieldData.textContent ?? '{}')
       expect(data.name).toBe('test')
       expect(data.id).toBeDefined()
       expect(data.formItemId).toBeDefined()

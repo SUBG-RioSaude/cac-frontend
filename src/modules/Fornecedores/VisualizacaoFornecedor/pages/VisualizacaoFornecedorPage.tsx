@@ -1,23 +1,27 @@
-import { useParams } from 'react-router-dom';
-import { useConsultarEmpresaPorCNPJ } from '@/modules/Empresas/hooks/use-empresas';
-import { useContratosPorEmpresa } from '@/modules/Contratos/hooks/use-contratos-empresa';
-import { FornecedorHeader } from '../components/fornecedor-header';
-import { FornecedorTabs } from '../components/FornecedorTabs';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'react-router-dom'
 
-export default function VisualizacaoFornecedorPage() {
-  const { fornecedorId } = useParams<{ fornecedorId: string }>();
-  const { data: fornecedor, isLoading, isError } = useConsultarEmpresaPorCNPJ(fornecedorId!);
-  
+import { Skeleton } from '@/components/ui/skeleton'
+import { useContratosPorEmpresa } from '@/modules/Contratos/hooks/use-contratos-empresa'
+import { useConsultarEmpresaPorCNPJ } from '@/modules/Empresas/hooks/use-empresas'
+
+import { FornecedorHeader } from '../components/fornecedor-header'
+import { FornecedorTabs } from '../components/FornecedorTabs'
+
+const VisualizacaoFornecedorPage = () => {
+  const { fornecedorId } = useParams<{ fornecedorId: string }>()
+  const {
+    data: fornecedor,
+    isLoading,
+    isError,
+  } = useConsultarEmpresaPorCNPJ(fornecedorId!)
+
   // Buscar contratos do fornecedor
-  const { 
-    data: contratosData, 
-    isLoading: isLoadingContratos 
-  } = useContratosPorEmpresa(
-    fornecedor?.id || '',
-    {},
-    { enabled: !!fornecedor?.id }
-  );
+  const { data: contratosData, isLoading: isLoadingContratos } =
+    useContratosPorEmpresa(
+      fornecedor?.id ?? '',
+      {},
+      { enabled: !!fornecedor?.id },
+    )
 
   if (isLoading) {
     return (
@@ -28,14 +32,14 @@ export default function VisualizacaoFornecedorPage() {
           <Skeleton className="h-96 w-full" />
         </div>
       </div>
-    );
+    )
   }
 
   if (isError || !fornecedor) {
-    return <div>Erro ao carregar os dados do fornecedor.</div>;
+    return <div>Erro ao carregar os dados do fornecedor.</div>
   }
 
-  const contratos = contratosData?.dados || []
+  const contratos = contratosData?.dados ?? []
 
   return (
     <div className="space-y-6">
@@ -44,12 +48,14 @@ export default function VisualizacaoFornecedorPage() {
         cnpj={fornecedor.cnpj}
         status={fornecedor.ativo ? 'Ativo' : 'Inativo'}
       />
-      
+
       <FornecedorTabs
         fornecedor={fornecedor}
         contratos={contratos}
         isLoadingContratos={isLoadingContratos}
       />
     </div>
-  );
+  )
 }
+
+export default VisualizacaoFornecedorPage

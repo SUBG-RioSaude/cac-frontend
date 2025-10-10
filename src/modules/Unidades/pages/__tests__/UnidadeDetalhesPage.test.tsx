@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
-import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import { useUnidadeDetalhada } from '../../hooks/use-unidade-detalhada'
+import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
 
 // Mock do hook
 vi.mock('../../hooks/use-unidade-detalhada')
@@ -13,7 +14,7 @@ const mockUseUnidadeDetalhada = vi.mocked(useUnidadeDetalhada)
 // Mock do react-router-dom
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, unknown>
+  const actual = await importOriginal()
   return {
     ...actual,
     useParams: () => ({ unidadeId: 'test-id' }),
@@ -29,7 +30,7 @@ const mockUnidade = {
     nome: 'CAP Temporário',
     uo: '0',
     id: 'd0231632-82c4-4f4d-94d9-d6e9aef8fd2c',
-    ativo: true
+    ativo: true,
   },
   endereco: 'Rua Afonso Cavalcanti, 455',
   bairro: 'Cidade Nova',
@@ -46,15 +47,11 @@ const mockUnidade = {
   tipoAdministracaoId: 1,
   tipoAdministracao: null,
   id: 'f5884390-f61a-4c88-b8ec-bd1e7e305ac5',
-  ativo: true
+  ativo: true,
 }
 
 const renderWithRouter = (component: React.ReactElement) => {
-  return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
-  )
+  return render(<BrowserRouter>{component}</BrowserRouter>)
 }
 
 describe('UnidadeDetalhesPage', () => {
@@ -67,11 +64,11 @@ describe('UnidadeDetalhesPage', () => {
       unidade: null,
       carregando: true,
       erro: null,
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     // Verifica se há elementos de loading (divs com animate-pulse)
     const loadingElements = document.querySelectorAll('.animate-pulse')
     expect(loadingElements.length).toBeGreaterThan(0)
@@ -82,13 +79,15 @@ describe('UnidadeDetalhesPage', () => {
       unidade: null,
       carregando: false,
       erro: 'Erro ao carregar dados da unidade',
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     expect(screen.getByText('Erro ao Carregar Unidade')).toBeInTheDocument()
-    expect(screen.getByText('Erro ao carregar dados da unidade')).toBeInTheDocument()
+    expect(
+      screen.getByText('Erro ao carregar dados da unidade'),
+    ).toBeInTheDocument()
     expect(screen.getByText('Tentar Novamente')).toBeInTheDocument()
   })
 
@@ -97,13 +96,15 @@ describe('UnidadeDetalhesPage', () => {
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     await waitFor(() => {
-      expect(screen.getAllByText('Assessoria de Comunicação Social').length).toBeGreaterThan(0)
+      expect(
+        screen.getAllByText('Assessoria de Comunicação Social').length,
+      ).toBeGreaterThan(0)
       expect(screen.getByText('S/ACS')).toBeInTheDocument()
       expect(screen.getByText('CAP Temporário')).toBeInTheDocument()
     })
@@ -114,26 +115,26 @@ describe('UnidadeDetalhesPage', () => {
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     expect(screen.getByText('Ativo')).toBeInTheDocument()
   })
 
   it('deve mostrar badge inativo quando unidade está inativa', () => {
     const unidadeInativa = { ...mockUnidade, ativo: false }
-    
+
     vi.mocked(mockUseUnidadeDetalhada).mockReturnValue({
       unidade: unidadeInativa,
       carregando: false,
       erro: null,
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     expect(screen.getByText('Inativo')).toBeInTheDocument()
   })
 
@@ -142,14 +143,14 @@ describe('UnidadeDetalhesPage', () => {
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     const botaoVoltar = screen.getByText('Voltar')
     await userEvent.click(botaoVoltar)
-    
+
     expect(mockNavigate).toHaveBeenCalledWith('/unidades')
   })
 
@@ -158,11 +159,11 @@ describe('UnidadeDetalhesPage', () => {
       unidade: mockUnidade,
       carregando: false,
       erro: null,
-      recarregar: vi.fn()
+      recarregar: vi.fn(),
     })
 
     renderWithRouter(<UnidadeDetalhesPage />)
-    
+
     expect(screen.getByText('Informações Gerais')).toBeInTheDocument()
     expect(screen.getByText('Endereço')).toBeInTheDocument()
   })

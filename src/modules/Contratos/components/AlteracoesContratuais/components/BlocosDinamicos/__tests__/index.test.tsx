@@ -1,51 +1,52 @@
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
-import { BlocosDinamicos } from '../index'
+import { describe, it, expect, vi } from 'vitest'
+
 import { TipoAlteracao } from '../../../../../types/alteracoes-contratuais'
+import { BlocosDinamicos } from '../index'
 
 // Mocks básicos
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
   useUnidadesResumo: () => ({
     data: [],
     isLoading: false,
-    error: null
+    error: null,
   }),
   useUnidadesBusca: () => ({
     data: [],
     isLoading: false,
-    error: null
+    error: null,
   }),
   useUnidadesByIds: () => ({
     data: {},
     isLoading: false,
-    error: null
-  })
+    error: null,
+  }),
 }))
 
 vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   useFornecedoresResumo: () => ({
     data: [],
     isLoading: false,
-    error: null
+    error: null,
   }),
   useFornecedoresBusca: () => ({
     data: [],
     isLoading: false,
-    error: null
-  })
+    error: null,
+  }),
 }))
 
 vi.mock('../../../hooks/use-contract-context', () => ({
   useContractSuppliers: () => ({
     mainSupplier: null,
-    suppliers: []
+    suppliers: [],
   }),
   useContractUnits: () => ({
     demandingUnit: null,
     managingUnit: null,
-    linkedUnits: []
-  })
+    linkedUnits: [],
+  }),
 }))
 
 describe('BlocosDinamicos', () => {
@@ -60,26 +61,30 @@ describe('BlocosDinamicos', () => {
       units: {
         demandingUnit: null,
         managingUnit: null,
-        linkedUnits: []
+        linkedUnits: [],
       },
-      isLoading: false
+      isLoading: false,
     },
     onContextChange: vi.fn(),
     errors: {},
-    disabled: false
+    disabled: false,
   }
 
   describe('Renderização básica', () => {
     it('deve renderizar sem erros quando não há tipos selecionados', () => {
       render(<BlocosDinamicos {...defaultProps} />)
-      
+
       expect(screen.getByText('Nenhum tipo selecionado')).toBeInTheDocument()
-      expect(screen.getByText('Selecione um ou mais tipos de alteração para ver os blocos disponíveis')).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Selecione um ou mais tipos de alteração para ver os blocos disponíveis',
+        ),
+      ).toBeInTheDocument()
     })
 
     it('deve renderizar mensagem de tipo selecionado', () => {
       const { container } = render(<BlocosDinamicos {...defaultProps} />)
-      
+
       // Deve renderizar sem crashar
       expect(container).toBeDefined()
     })
@@ -89,35 +94,39 @@ describe('BlocosDinamicos', () => {
     it('deve mostrar bloco de vigência para AditivoPrazo', () => {
       const props = {
         ...defaultProps,
-        tiposSelecionados: [TipoAlteracao.AditivoPrazo]
+        tiposSelecionados: [TipoAlteracao.AditivoPrazo],
       }
 
       render(<BlocosDinamicos {...props} />)
-      
+
       // Bloco de vigência deve estar presente
-      expect(screen.getByRole('heading', { level: 3, name: /vigência/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 3, name: /vigência/i }),
+      ).toBeInTheDocument()
     })
 
     it('deve mostrar bloco de valor para AditivoQuantidade', () => {
       const props = {
         ...defaultProps,
-        tiposSelecionados: [TipoAlteracao.AditivoQuantidade]
+        tiposSelecionados: [TipoAlteracao.AditivoQuantidade],
       }
 
       render(<BlocosDinamicos {...props} />)
-      
+
       // Bloco de valor deve estar presente
-      expect(screen.getByRole('heading', { level: 3, name: /valor/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 3, name: /valor/i }),
+      ).toBeInTheDocument()
     })
 
     it('deve mostrar múltiplos blocos para AditivoQualitativo', () => {
       const props = {
         ...defaultProps,
-        tiposSelecionados: [TipoAlteracao.AditivoQualitativo]
+        tiposSelecionados: [TipoAlteracao.AditivoQualitativo],
       }
 
       render(<BlocosDinamicos {...props} />)
-      
+
       // AditivoQualitativo pode ter vários blocos opcionais
       // Apenas verificar que não crasha
       const { container } = render(<BlocosDinamicos {...props} />)
@@ -131,8 +140,8 @@ describe('BlocosDinamicos', () => {
         ...defaultProps,
         contractContext: {
           ...defaultProps.contractContext,
-          isLoading: true
-        }
+          isLoading: true,
+        },
       }
 
       const { container } = render(<BlocosDinamicos {...props} />)
@@ -144,8 +153,8 @@ describe('BlocosDinamicos', () => {
         ...defaultProps,
         errors: {
           'blocos.vigencia': 'Erro de vigência',
-          'blocos.valor': 'Erro de valor'
-        }
+          'blocos.valor': 'Erro de valor',
+        },
       }
 
       const { container } = render(<BlocosDinamicos {...props} />)
@@ -158,7 +167,7 @@ describe('BlocosDinamicos', () => {
       const props = {
         ...defaultProps,
         disabled: true,
-        tiposSelecionados: [TipoAlteracao.AditivoPrazo]
+        tiposSelecionados: [TipoAlteracao.AditivoPrazo],
       }
 
       const { container } = render(<BlocosDinamicos {...props} />)
@@ -172,13 +181,15 @@ describe('BlocosDinamicos', () => {
       const props = {
         ...defaultProps,
         onChange: mockOnChange,
-        tiposSelecionados: [TipoAlteracao.AditivoPrazo]
+        tiposSelecionados: [TipoAlteracao.AditivoPrazo],
       }
 
       render(<BlocosDinamicos {...props} />)
-      
+
       // Verificar que o componente renderiza (callback será testado em testes de integração)
-      expect(screen.getByRole('heading', { level: 3, name: /vigência/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 3, name: /vigência/i }),
+      ).toBeInTheDocument()
     })
   })
 
@@ -189,16 +200,20 @@ describe('BlocosDinamicos', () => {
         tiposSelecionados: [
           TipoAlteracao.AditivoPrazo,
           TipoAlteracao.AditivoQuantidade,
-          TipoAlteracao.AditivoQualitativo
-        ]
+          TipoAlteracao.AditivoQualitativo,
+        ],
       }
 
       const { container } = render(<BlocosDinamicos {...props} />)
       expect(container).toBeDefined()
-      
+
       // Deve mostrar pelo menos os blocos obrigatórios
-      expect(screen.getByRole('heading', { level: 3, name: /vigência/i })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3, name: /valor/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 3, name: /vigência/i }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 3, name: /valor/i }),
+      ).toBeInTheDocument()
     })
   })
 })

@@ -1,9 +1,11 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { TabDocumentos } from '../tab-documentos'
+
 import type { DocumentoContratoDto } from '@/modules/Contratos/types/contrato'
+
+import { TabDocumentos } from '../tab-documentos'
 
 // Mock do sonner toast
 vi.mock('sonner', () => ({
@@ -40,17 +42,15 @@ function renderWithQueryClient(component: React.ReactNode) {
       mutations: { retry: false },
     },
   })
-  
+
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
   )
 }
 
 describe('TabDocumentos - Testes Essenciais', () => {
   const contratoId = 'contrato-123'
-  
+
   const mockDocumentosApi: DocumentoContratoDto[] = [
     {
       id: 'doc-1',
@@ -63,18 +63,18 @@ describe('TabDocumentos - Testes Essenciais', () => {
       observacoes: 'Documento entregue',
       dataCadastro: '2025-01-01T10:00:00Z',
       dataAtualizacao: '2025-01-02T14:00:00Z',
-    }
+    },
   ]
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     mockUseDocumentos.mockReturnValue({
       data: mockDocumentosApi,
       isLoading: false,
       error: null,
     })
-    
+
     mockUpdateMutation.mockReturnValue({
       mutate: vi.fn(),
       isPending: false,
@@ -96,13 +96,15 @@ describe('TabDocumentos - Testes Essenciais', () => {
       expect(screen.getByText('Garantia Contratual')).toBeInTheDocument()
       expect(screen.getByText('Contrato')).toBeInTheDocument()
       expect(screen.getByText('Publicação PNCP')).toBeInTheDocument()
-      expect(screen.getByText('Publicação de Extrato Contratual')).toBeInTheDocument()
+      expect(
+        screen.getByText('Publicação de Extrato Contratual'),
+      ).toBeInTheDocument()
       expect(screen.getByText('Proposta')).toBeInTheDocument()
     })
 
     it('deve mostrar progresso corretamente', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
-      
+
       expect(screen.getByText('1 de 8 entregues')).toBeInTheDocument()
       expect(screen.getByText('13%')).toBeInTheDocument()
     })
@@ -111,10 +113,14 @@ describe('TabDocumentos - Testes Essenciais', () => {
   describe('Grid Layout', () => {
     it('deve usar layout de grid responsivo', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
-      
+
       const grid = document.querySelector('.grid-cols-1')
       expect(grid).toBeInTheDocument()
-      expect(grid).toHaveClass('md:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+      expect(grid).toHaveClass(
+        'md:grid-cols-2',
+        'lg:grid-cols-3',
+        'xl:grid-cols-4',
+      )
     })
   })
 
@@ -127,7 +133,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
       })
 
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
-      
+
       const skeletons = document.querySelectorAll('[data-slot="skeleton"]')
       expect(skeletons.length).toBeGreaterThan(0)
     })
@@ -140,16 +146,20 @@ describe('TabDocumentos - Testes Essenciais', () => {
       })
 
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
-      
+
       expect(screen.getByText('Erro')).toBeInTheDocument()
-      expect(screen.getByText('Não foi possível carregar o checklist de documentos.')).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Não foi possível carregar o checklist de documentos.',
+        ),
+      ).toBeInTheDocument()
     })
   })
 
   describe('Interação com Checkboxes', () => {
     it('deve ter 8 checkboxes renderizados', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
-      
+
       const checkboxes = screen.getAllByRole('checkbox')
       expect(checkboxes).toHaveLength(8)
     })
@@ -159,7 +169,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
 
       const checkboxes = screen.getAllByRole('checkbox')
       const termoReferenciaCheckbox = checkboxes[0] // Primeiro documento da API
-      
+
       expect(termoReferenciaCheckbox).toBeChecked()
     })
 
@@ -168,8 +178,10 @@ describe('TabDocumentos - Testes Essenciais', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
 
       const checkboxes = screen.getAllByRole('checkbox')
-      const checkboxDesmarcado = checkboxes.find(cb => !cb.getAttribute('aria-checked'))
-      
+      const checkboxDesmarcado = checkboxes.find(
+        (cb) => !cb.getAttribute('aria-checked'),
+      )
+
       if (checkboxDesmarcado) {
         await user.click(checkboxDesmarcado)
         // Após clicar, deve aparecer indicador de mudanças não salvas
@@ -181,7 +193,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
   describe('Botão Salvar', () => {
     it('deve renderizar botão de salvar', () => {
       renderWithQueryClient(<TabDocumentos contratoId={contratoId} />)
-      
+
       expect(screen.getByText('Salvar Alterações')).toBeInTheDocument()
     })
 
@@ -213,7 +225,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
           observacoes: '',
           dataCadastro: '2025-01-01T10:00:00Z',
           dataAtualizacao: '2025-01-01T10:00:00Z',
-        }
+        },
       ]
 
       mockUseDocumentos.mockReturnValue({
@@ -226,7 +238,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
 
       const checkboxes = screen.getAllByRole('checkbox')
       const homologacaoCheckbox = checkboxes[1] // Segunda posição no array
-      
+
       expect(homologacaoCheckbox).toBeChecked()
     })
 
@@ -243,7 +255,7 @@ describe('TabDocumentos - Testes Essenciais', () => {
           observacoes: '',
           dataCadastro: '2025-01-01T10:00:00Z',
           dataAtualizacao: '2025-01-01T10:00:00Z',
-        }
+        },
       ]
 
       mockUseDocumentos.mockReturnValue({

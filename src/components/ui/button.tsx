@@ -15,6 +15,14 @@ const buttonVariants = cva(
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:
           'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
+        'outline-premium':
+          'border-2 border-slate-300 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-slate-400 transition-all duration-200 text-slate-700 hover:text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:border-slate-500',
+        'outline-corporate':
+          'border-2 border-slate-300 bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-slate-50 hover:border-blue-400 shadow-sm text-slate-700 hover:text-blue-700 transition-all duration-300 dark:bg-slate-900 dark:border-slate-600 dark:hover:from-blue-950 dark:hover:to-slate-900',
+        'outline-elevated':
+          'border border-slate-200 bg-white shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 text-slate-700 hover:text-slate-900 hover:border-slate-300 dark:bg-slate-900 dark:border-slate-700 dark:shadow-slate-800/50',
+        'outline-accent':
+          'border-2 border-slate-300 bg-white hover:border-[#43B9EB] hover:shadow-[0_0_0_3px_rgba(67,185,235,0.1)] transition-all duration-300 text-slate-700 hover:text-[#43B9EB] dark:bg-slate-900 dark:border-slate-600 dark:hover:shadow-[0_0_0_3px_rgba(67,185,235,0.2)]',
         secondary:
           'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         ghost:
@@ -24,8 +32,7 @@ const buttonVariants = cva(
           'bg-green-600 text-white shadow-xs hover:bg-green-700 focus-visible:ring-green-600/20 dark:focus-visible:ring-green-400/40',
         warning:
           'bg-yellow-500 text-white shadow-xs hover:bg-yellow-600 focus-visible:ring-yellow-500/20 dark:focus-visible:ring-yellow-400/40',
-        info:
-          'bg-blue-600 text-white shadow-xs hover:bg-blue-700 focus-visible:ring-blue-600/20 dark:focus-visible:ring-blue-400/40',
+        info: 'bg-blue-600 text-white shadow-xs hover:bg-blue-700 focus-visible:ring-blue-600/20 dark:focus-visible:ring-blue-400/40',
         neutral:
           'bg-gray-600 text-white shadow-xs hover:bg-gray-700 focus-visible:ring-gray-600/20 dark:focus-visible:ring-gray-400/40',
       },

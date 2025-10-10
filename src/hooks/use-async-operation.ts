@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useCallback, useState } from 'react'
 
 interface UseAsyncOperationResult<T> {
@@ -24,7 +23,7 @@ interface UseAsyncOperationResult<T> {
  * }
  * ```
  */
-export function useAsyncOperation<T = any>(): UseAsyncOperationResult<T> {
+export function useAsyncOperation<T = unknown>(): UseAsyncOperationResult<T> {
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
@@ -37,9 +36,10 @@ export function useAsyncOperation<T = any>(): UseAsyncOperationResult<T> {
         const result = await operation()
         return result
       } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err))
-        setError(error)
-        throw error
+        const errorInstance =
+          err instanceof Error ? err : new Error(String(err))
+        setError(errorInstance)
+        throw errorInstance
       } finally {
         setIsPending(false)
       }
@@ -62,11 +62,14 @@ export function useAsyncOperation<T = any>(): UseAsyncOperationResult<T> {
 /**
  * Hook específico para operações de formulário
  */
-export function useFormAsyncOperation<T = any>() {
-  const { execute, isPending, error, clearError } = useAsyncOperation<T>()
+export function useFormAsyncOperation<TData = unknown, TResult = unknown>() {
+  const { execute, isPending, error, clearError } = useAsyncOperation<TResult>()
 
   const submitForm = useCallback(
-    async (formData: any, submitFunction: (data: any) => Promise<T>) => {
+    async (
+      formData: TData,
+      submitFunction: (data: TData) => Promise<TResult>,
+    ) => {
       return execute(() => submitFunction(formData))
     },
     [execute],

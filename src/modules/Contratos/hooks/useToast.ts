@@ -1,7 +1,8 @@
-import { toast } from "sonner"
+import { toast } from 'sonner'
+
 import { useErrorHandler } from '@/hooks/use-error-handler'
 
-type ToastOptions = {
+interface ToastOptions {
   title?: string
   description?: string
   duration?: number
@@ -13,51 +14,51 @@ type ToastOptions = {
 
 export function useToast() {
   const { handleApiError } = useErrorHandler()
-  
+
   const success = (message: string | ToastOptions) => {
-    if (typeof message === "string") {
+    if (typeof message === 'string') {
       toast.success(message, { duration: 3000 })
     } else {
-      toast.success(message.title ?? "Sucesso", {
+      toast.success(message.title ?? 'Sucesso', {
         description: message.description,
         duration: message.duration ?? 3000,
-        action: message.action
+        action: message.action,
       })
     }
   }
 
   const error = (message: string | ToastOptions) => {
-    if (typeof message === "string") {
+    if (typeof message === 'string') {
       toast.error(message, { duration: 4000 })
     } else {
-      toast.error(message.title ?? "Erro", {
+      toast.error(message.title ?? 'Erro', {
         description: message.description,
         duration: message.duration ?? 4000,
-        action: message.action
+        action: message.action,
       })
     }
   }
 
   const info = (message: string | ToastOptions) => {
-    if (typeof message === "string") {
+    if (typeof message === 'string') {
       toast.info(message, { duration: 3000 })
     } else {
-      toast.info(message.title ?? "Info", {
+      toast.info(message.title ?? 'Info', {
         description: message.description,
         duration: message.duration ?? 3000,
-        action: message.action
+        action: message.action,
       })
     }
   }
 
   const warning = (message: string | ToastOptions) => {
-    if (typeof message === "string") {
+    if (typeof message === 'string') {
       toast.warning(message, { duration: 3500 })
     } else {
-      toast.warning(message.title ?? "Atenção", {
+      toast.warning(message.title ?? 'Atenção', {
         description: message.description,
         duration: message.duration ?? 3500,
-        action: message.action
+        action: message.action,
       })
     }
   }
@@ -67,7 +68,7 @@ export function useToast() {
     // Toast de loading para mutations
     loading: (operation: string) => {
       return toast.loading(`${operation}...`, {
-        duration: Infinity // Será dismissado manualmente
+        duration: Infinity, // Será dismissado manualmente
       })
     },
 
@@ -75,44 +76,56 @@ export function useToast() {
     success: (operation: string, id?: string) => {
       toast.success(`${operation} realizada com sucesso`, {
         description: id ? `ID: ${id}` : undefined,
-        duration: 3000
+        duration: 3000,
       })
     },
 
     // Toast de erro para mutations com handling automático
-    error: (operation: string, error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      
+    error: (operation: string, errorResponse: unknown) => {
+      const errorMessage =
+        errorResponse instanceof Error
+          ? errorResponse.message
+          : String(errorResponse)
+
       toast.error(`Erro ao ${operation.toLowerCase()}`, {
         description: errorMessage,
-        duration: 5000
+        duration: 5000,
       })
 
       // Se for erro HTTP crítico, redireciona para página de erro
-      if (error && typeof error === 'object' && 'response' in error) {
-        const status = (error as { response: { status: number } }).response?.status
+      if (
+        errorResponse &&
+        typeof errorResponse === 'object' &&
+        'response' in errorResponse
+      ) {
+        const { response } = errorResponse as { response: { status: number } }
+        const { status } = response
         if (status && (status >= 500 || status === 401 || status === 403)) {
-          handleApiError(error)
+          handleApiError(errorResponse)
         }
       }
-    }
+    },
   }
 
   // Toasts para queries
   const query = {
     // Toast para erro de query quando não deve redirecionar
-    error: (error: unknown, fallbackMessage = "Erro ao carregar dados") => {
-      const errorMessage = error instanceof Error ? error.message : fallbackMessage
-      
-      toast.error("Erro de carregamento", {
+    error: (
+      queryError: unknown,
+      fallbackMessage = 'Erro ao carregar dados',
+    ) => {
+      const errorMessage =
+        queryError instanceof Error ? queryError.message : fallbackMessage
+
+      toast.error('Erro de carregamento', {
         description: errorMessage,
         duration: 5000,
         action: {
-          label: "Tentar novamente",
-          onClick: () => window.location.reload()
-        }
+          label: 'Tentar novamente',
+          onClick: () => window.location.reload(),
+        },
       })
-    }
+    },
   }
 
   return {
@@ -121,7 +134,6 @@ export function useToast() {
     info,
     warning,
     mutation,
-    query
+    query,
   }
 }
-

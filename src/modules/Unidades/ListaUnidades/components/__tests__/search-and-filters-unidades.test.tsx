@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { FiltrosUnidadesApi } from '../../types/unidade-api'
+import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
 
 // Mock para Radix UI pointer events
 Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
@@ -29,10 +30,10 @@ const defaultProps = {
   filtrosAtivos: {
     pagina: 1,
     tamanhoPagina: 10,
-    ativo: true
+    ativo: true,
   } as FiltrosUnidadesApi,
   onFiltrosChange: vi.fn(),
-  isLoading: false
+  isLoading: false,
 }
 
 describe('SearchAndFiltersUnidades', () => {
@@ -43,7 +44,9 @@ describe('SearchAndFiltersUnidades', () => {
   it('deve renderizar campo de pesquisa', () => {
     render(<SearchAndFiltersUnidades {...defaultProps} />)
 
-    const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+    const searchInput = screen.getByPlaceholderText(
+      /digite nome ou sigla da unidade/i,
+    )
     expect(searchInput).toBeInTheDocument()
   })
 
@@ -58,8 +61,8 @@ describe('SearchAndFiltersUnidades', () => {
       ...defaultProps,
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
-        nome: 'Hospital'
-      }
+        nome: 'Hospital',
+      },
     }
 
     render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
@@ -77,10 +80,12 @@ describe('SearchAndFiltersUnidades', () => {
         filtrosAtivos={defaultProps.filtrosAtivos}
         onFiltrosChange={mockOnChange}
         isLoading={false}
-      />
+      />,
     )
 
-    const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+    const searchInput = screen.getByPlaceholderText(
+      /digite nome ou sigla da unidade/i,
+    )
     await user.type(searchInput, 't')
 
     expect(searchInput).toBeInTheDocument()
@@ -92,8 +97,8 @@ describe('SearchAndFiltersUnidades', () => {
       ...defaultProps,
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
-        nome: 'Hospital'
-      }
+        nome: 'Hospital',
+      },
     }
 
     render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
@@ -110,9 +115,9 @@ describe('SearchAndFiltersUnidades', () => {
       ...defaultProps,
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
-        nome: 'Hospital'
+        nome: 'Hospital',
       },
-      onFiltrosChange: mockOnChange
+      onFiltrosChange: mockOnChange,
     }
 
     render(<SearchAndFiltersUnidades {...propsComPesquisa} />)
@@ -129,9 +134,8 @@ describe('SearchAndFiltersUnidades', () => {
       filtrosAtivos: {
         ...defaultProps.filtrosAtivos,
         nome: 'Hospital',
-        sigla: 'UBS',
-        cnes: '12345'
-      }
+        cnes: '12345',
+      },
     }
 
     render(<SearchAndFiltersUnidades {...propsComFiltros} />)
@@ -168,21 +172,6 @@ describe('SearchAndFiltersUnidades', () => {
       expect(screen.getByText('Inativo')).toBeInTheDocument()
     })
 
-    it('deve expandir seção de sigla ao clicar', async () => {
-      const user = userEvent.setup()
-
-      render(<SearchAndFiltersUnidades {...defaultProps} />)
-
-      const filtrosButton = screen.getByText('Filtros')
-      await user.click(filtrosButton)
-
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
-
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInput).toBeInTheDocument()
-    })
-
     it('deve expandir seção de CNES ao clicar', async () => {
       const user = userEvent.setup()
 
@@ -214,22 +203,6 @@ describe('SearchAndFiltersUnidades', () => {
       expect(ativoCheckbox).toBeInTheDocument()
     })
 
-    it('deve permitir digitação no campo sigla', async () => {
-      const user = userEvent.setup()
-
-      render(<SearchAndFiltersUnidades {...defaultProps} />)
-
-      const filtrosButton = screen.getByText('Filtros')
-      await user.click(filtrosButton)
-
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
-
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInput).toBeInTheDocument()
-      expect(siglaInput).toHaveValue('')
-    })
-
     it('deve permitir digitação no campo bairro', async () => {
       const user = userEvent.setup()
 
@@ -254,7 +227,7 @@ describe('SearchAndFiltersUnidades', () => {
           filtrosAtivos={defaultProps.filtrosAtivos}
           onFiltrosChange={mockOnFiltrosChange}
           isLoading={false}
-        />
+        />,
       )
 
       const filtrosButton = screen.getByText('Filtros')
@@ -270,31 +243,6 @@ describe('SearchAndFiltersUnidades', () => {
       expect(mockOnFiltrosChange).toHaveBeenCalled()
     })
 
-    it('deve chamar onFiltrosChange ao alterar sigla', async () => {
-      const mockOnFiltrosChange = vi.fn()
-      const user = userEvent.setup()
-
-      render(
-        <SearchAndFiltersUnidades
-          filtrosAtivos={defaultProps.filtrosAtivos}
-          onFiltrosChange={mockOnFiltrosChange}
-          isLoading={false}
-        />
-      )
-
-      const filtrosButton = screen.getByText('Filtros')
-      await user.click(filtrosButton)
-
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
-
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      await user.type(siglaInput, 'U')
-
-      expect(siglaInput).toBeInTheDocument()
-      expect(siglaInput).toHaveAttribute('placeholder')
-    })
-
     it('deve chamar onFiltrosChange ao alterar CNES', async () => {
       const mockOnFiltrosChange = vi.fn()
       const user = userEvent.setup()
@@ -304,7 +252,7 @@ describe('SearchAndFiltersUnidades', () => {
           filtrosAtivos={defaultProps.filtrosAtivos}
           onFiltrosChange={mockOnFiltrosChange}
           isLoading={false}
-        />
+        />,
       )
 
       const filtrosButton = screen.getByText('Filtros')
@@ -323,7 +271,7 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve usar valores padrão quando filtros não são fornecidos', () => {
       const propsSesFiltros = {
         filtrosAtivos: {},
-        onFiltrosChange: vi.fn()
+        onFiltrosChange: vi.fn(),
       }
 
       render(<SearchAndFiltersUnidades {...propsSesFiltros} />)
@@ -338,8 +286,8 @@ describe('SearchAndFiltersUnidades', () => {
         filtrosAtivos: {
           ...defaultProps.filtrosAtivos,
           ativo: true,
-          sigla: 'CAPS'
-        }
+          cnes: '2269311',
+        },
       }
 
       render(<SearchAndFiltersUnidades {...propsComFiltros} />)
@@ -347,12 +295,12 @@ describe('SearchAndFiltersUnidades', () => {
       const filtrosButton = screen.getByText('Filtros')
       await user.click(filtrosButton)
 
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
+      const cnesButton = screen.getByText('CNES')
+      await user.click(cnesButton)
 
-      // Usar getAllByDisplayValue para verificar que existe pelo menos um campo com o valor
-      const capsInputs = screen.getAllByDisplayValue('CAPS')
-      expect(capsInputs.length).toBeGreaterThan(0)
+      // Verificar que o valor do CNES está preenchido
+      const cnesInput = screen.getByDisplayValue('2269311')
+      expect(cnesInput).toBeInTheDocument()
     })
   })
 
@@ -361,7 +309,11 @@ describe('SearchAndFiltersUnidades', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
 
       const containerPrincipal = screen.getByRole('search')
-      expect(containerPrincipal).toHaveClass('flex-col', 'lg:flex-row', 'lg:items-center')
+      expect(containerPrincipal).toHaveClass(
+        'flex-col',
+        'lg:flex-row',
+        'lg:items-center',
+      )
     })
 
     it('deve ter altura apropriada nos botões', () => {
@@ -374,7 +326,9 @@ describe('SearchAndFiltersUnidades', () => {
     it('deve ter campo de pesquisa responsivo', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
 
-      const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+      const searchInput = screen.getByPlaceholderText(
+        /digite nome ou sigla da unidade/i,
+      )
       expect(searchInput).toHaveClass('w-full', 'lg:w-full')
     })
   })
@@ -395,13 +349,16 @@ describe('SearchAndFiltersUnidades', () => {
       await user.click(filtrosButton)
 
       expect(screen.getByText('Status da Unidade')).toBeInTheDocument()
-      expect(screen.getByText('Sigla da Unidade')).toBeInTheDocument()
+      expect(screen.getByText('CNES')).toBeInTheDocument()
+      expect(screen.getByText('Bairro')).toBeInTheDocument()
     })
 
     it('deve ter placeholders informativos', () => {
       render(<SearchAndFiltersUnidades {...defaultProps} />)
 
-      const searchInput = screen.getByPlaceholderText(/digite nome ou sigla da unidade/i)
+      const searchInput = screen.getByPlaceholderText(
+        /digite nome ou sigla da unidade/i,
+      )
       expect(searchInput).toHaveAttribute('placeholder')
     })
 
@@ -436,17 +393,17 @@ describe('SearchAndFiltersUnidades', () => {
       const filtrosButton = screen.getByText('Filtros')
       await user.click(filtrosButton)
 
-      const siglaButton = screen.getByText('Sigla da Unidade')
-      await user.click(siglaButton)
+      const cnesButton = screen.getByText('CNES')
+      await user.click(cnesButton)
 
-      const siglaInput = screen.getByPlaceholderText(/ex: ubs, caps/i)
-      expect(siglaInput).toBeInTheDocument()
+      const cnesInput = screen.getByPlaceholderText(/ex: 2269311, 7654321/i)
+      expect(cnesInput).toBeInTheDocument()
 
       await user.click(filtrosButton)
       await user.click(filtrosButton)
 
-      const siglaButtonNovamente = screen.getByText('Sigla da Unidade')
-      expect(siglaButtonNovamente).toBeInTheDocument()
+      const cnesButtonNovamente = screen.getByText('CNES')
+      expect(cnesButtonNovamente).toBeInTheDocument()
     })
 
     it('deve limpar todos os filtros ao clicar em "Limpar"', async () => {
@@ -458,10 +415,10 @@ describe('SearchAndFiltersUnidades', () => {
           ...defaultProps.filtrosAtivos,
           nome: 'Hospital',
           ativo: true,
-          sigla: 'UBS'
+          cnes: '2269311',
         },
         onFiltrosChange: mockOnFiltrosChange,
-        isLoading: false
+        isLoading: false,
       }
 
       render(<SearchAndFiltersUnidades {...propsComFiltros} />)

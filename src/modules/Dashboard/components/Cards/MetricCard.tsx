@@ -5,12 +5,17 @@
  * Card reutilizável para exibir métricas com comparativo
  */
 
+import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react'
+
 import type { DashboardMetric } from '../../types/dashboard'
-import { formatPercentage, formatLargeNumber } from '../../utils/dashboard-utils'
+import {
+  formatPercentage,
+  formatLargeNumber,
+} from '../../utils/dashboard-utils'
 
 interface MetricCardProps {
   title: string
@@ -25,7 +30,7 @@ interface MetricCardProps {
   description?: string
 }
 
-export function MetricCard({
+export const MetricCard = ({
   title,
   value,
   metric,
@@ -35,12 +40,13 @@ export function MetricCard({
   error = null,
   format = 'number',
   suffix,
-  description
-}: MetricCardProps) {
+  description,
+  ...props
+}: MetricCardProps) => {
   // Formatação do valor principal
   const formatValue = (val: number | string): string => {
     if (typeof val === 'string') return val
-    
+
     switch (format) {
       case 'currency':
         return `R$ ${formatLargeNumber(val)}`
@@ -82,9 +88,7 @@ export function MetricCard({
           <Icon className="h-4 w-4 text-red-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-xs text-red-600">
-            Erro ao carregar dados
-          </div>
+          <div className="text-xs text-red-600">Erro ao carregar dados</div>
         </CardContent>
       </Card>
     )
@@ -99,7 +103,7 @@ export function MetricCard({
     const { text, color } = formatPercentage(metric.percentual)
     trendText = text
     trendColor = color
-    
+
     if (metric.tendencia === 'up') {
       trendIcon = <TrendingUp className="h-3 w-3" />
     } else if (metric.tendencia === 'down') {
@@ -110,48 +114,40 @@ export function MetricCard({
   }
 
   return (
-    <Card className={cn(
-      'transition-all duration-200 hover:shadow-md',
-      className
-    )}>
+    <Card
+      className={cn('transition-all duration-200 hover:shadow-md', className)}
+      {...props}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-muted-foreground text-sm font-medium">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className="text-muted-foreground h-4 w-4" />
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
           {/* Valor Principal */}
           <div className="flex items-baseline gap-1">
-            <div className="text-2xl font-bold">
-              {formatValue(value)}
-            </div>
+            <div className="text-2xl font-bold">{formatValue(value)}</div>
             {suffix && (
-              <div className="text-sm text-muted-foreground">
-                {suffix}
-              </div>
+              <div className="text-muted-foreground text-sm">{suffix}</div>
             )}
           </div>
-          
+
           {/* Comparativo */}
           {metric && (
             <div className="flex items-center gap-1 text-xs">
               <div className={cn('flex items-center gap-0.5', trendColor)}>
                 {trendIcon}
-                <span className="font-medium">
-                  {trendText}
-                </span>
+                <span className="font-medium">{trendText}</span>
               </div>
-              <span className="text-muted-foreground">
-                vs mês anterior
-              </span>
+              <span className="text-muted-foreground">vs mês anterior</span>
             </div>
           )}
-          
+
           {/* Descrição adicional */}
           {description && (
-            <div className="text-xs text-muted-foreground mt-1">
+            <div className="text-muted-foreground mt-1 text-xs">
               {description}
             </div>
           )}
@@ -164,22 +160,23 @@ export function MetricCard({
 /**
  * Componente de card de métrica com loading automático
  */
-interface LoadingMetricCardProps extends Omit<MetricCardProps, 'value' | 'metric'> {
+interface LoadingMetricCardProps
+  extends Omit<MetricCardProps, 'value' | 'metric'> {
   metric: DashboardMetric | null | undefined
   isLoading: boolean
 }
 
-export function LoadingMetricCard({
+export const LoadingMetricCard = ({
   metric,
   isLoading,
   format = 'number',
   ...props
-}: LoadingMetricCardProps) {
+}: LoadingMetricCardProps) => {
   return (
     <MetricCard
       {...props}
-      value={metric?.atual || 0}
-      metric={metric || undefined}
+      value={metric?.atual ?? 0}
+      metric={metric ?? undefined}
       isLoading={isLoading}
       format={format}
     />
@@ -191,12 +188,14 @@ export function LoadingMetricCard({
  */
 
 // Card para valores monetários
-export function CurrencyMetricCard(props: Omit<MetricCardProps, 'format'>) {
+export const CurrencyMetricCard = (props: Omit<MetricCardProps, 'format'>) => {
   return <MetricCard {...props} format="currency" />
 }
 
 // Card para percentuais
-export function PercentageMetricCard(props: Omit<MetricCardProps, 'format'>) {
+export const PercentageMetricCard = (
+  props: Omit<MetricCardProps, 'format'>,
+) => {
   return <MetricCard {...props} format="percentage" />
 }
 
@@ -205,18 +204,19 @@ interface StatusMetricCardProps extends MetricCardProps {
   status: 'success' | 'warning' | 'danger' | 'info'
 }
 
-export function StatusMetricCard({ status, className, ...props }: StatusMetricCardProps) {
+export const StatusMetricCard = ({
+  status,
+  className,
+  ...props
+}: StatusMetricCardProps) => {
   const statusClasses = {
     success: 'border-green-200 bg-green-50/50',
-    warning: 'border-yellow-200 bg-yellow-50/50', 
+    warning: 'border-yellow-200 bg-yellow-50/50',
     danger: 'border-red-200 bg-red-50/50',
-    info: 'border-blue-200 bg-blue-50/50'
+    info: 'border-blue-200 bg-blue-50/50',
   }
-  
+
   return (
-    <MetricCard
-      {...props}
-      className={cn(statusClasses[status], className)}
-    />
+    <MetricCard {...props} className={cn(statusClasses[status], className)} />
   )
 }

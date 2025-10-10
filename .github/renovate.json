@@ -1,0 +1,103 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergeDigest",
+    ":automergeBranch"
+  ],
+  "timezone": "America/Sao_Paulo",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps):",
+  "commitMessageAction": "update",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "prTitle": "chore(deps): update {{depName}} to {{newVersion}}",
+  "prConcurrentLimit": 3,
+  "branchConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "description": "Auto-merge patch updates",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "platformAutomerge": true
+    },
+    {
+      "description": "Auto-merge minor updates for development dependencies",
+      "matchUpdateTypes": ["minor"],
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "platformAutomerge": true
+    },
+    {
+      "description": "Group ESLint packages",
+      "matchPackagePatterns": ["^eslint", "^@eslint"],
+      "groupName": "eslint packages",
+      "commitMessageTopic": "eslint packages"
+    },
+    {
+      "description": "Group TypeScript packages",
+      "matchPackagePatterns": ["^typescript", "^@typescript-eslint"],
+      "groupName": "typescript packages",
+      "commitMessageTopic": "typescript packages"
+    },
+    {
+      "description": "Group React packages",
+      "matchPackagePatterns": ["^react", "^@types/react"],
+      "groupName": "react packages",
+      "commitMessageTopic": "react packages"
+    },
+    {
+      "description": "Group Radix UI packages",
+      "matchPackagePatterns": ["^@radix-ui"],
+      "groupName": "radix ui packages",
+      "commitMessageTopic": "radix ui packages"
+    },
+    {
+      "description": "Group Testing packages",
+      "matchPackagePatterns": ["^@testing-library", "^vitest", "^@vitest"],
+      "groupName": "testing packages",
+      "commitMessageTopic": "testing packages"
+    },
+    {
+      "description": "Major updates require manual review",
+      "matchUpdateTypes": ["major"],
+      "labels": ["dependencies", "major-update"],
+      "automerge": false,
+      "platformAutomerge": false,
+      "reviewers": ["team:frontend"],
+      "commitMessagePrefix": "chore(deps)!:",
+      "prTitle": "chore(deps)!: update {{depName}} to {{newVersion}} (major)"
+    },
+    {
+      "description": "Security updates get high priority",
+      "matchDatasources": ["npm"],
+      "vulnerabilityAlerts": {
+        "labels": ["security", "dependencies"],
+        "automerge": false,
+        "prPriority": 10,
+        "commitMessagePrefix": "fix(security):",
+        "prTitle": "fix(security): update {{depName}} to {{newVersion}}"
+      }
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies"],
+    "automerge": false,
+    "prPriority": 10
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"],
+    "commitMessageAction": "update",
+    "commitMessageTopic": "lock file"
+  },
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🔄 Dependency Dashboard",
+  "dependencyDashboardHeader": "Esta issue lista atualizações de dependências do Renovate Bot.",
+  "dependencyDashboardFooter": "- ✅ = Atualização bem-sucedida\n- ❌ = Atualização falhou\n- ⏳ = Aguardando aprovação",
+  "semanticCommits": "enabled"
+}

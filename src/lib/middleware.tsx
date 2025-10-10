@@ -1,6 +1,20 @@
 import React from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/lib/auth/auth-store'
+
+import { hasAuthCookies } from '@/lib/auth/auth'
+import { useAuth } from '@/lib/auth/auth-context'
+import { useLogoutMutation } from '@/lib/auth/auth-queries'
+import { createServiceLogger } from '@/lib/logger'
+
+const middlewareLogger = createServiceLogger('middleware')
+
+// Flag global para indicar que logout está em andamento
+// Previne múltiplas chamadas de logout simultâneas
+let logoutEmAndamento = false
+
+export const setLogoutEmAndamento = (valor: boolean) => {
+  logoutEmAndamento = valor
+}
 
 interface ProtectedRouteProps {
   requireAuth?: boolean
@@ -11,32 +25,91 @@ interface ProtectedRouteProps {
 }
 
 // Componente para rotas que requerem autenticação completa
-export function ProtectedRoute({ 
-  requireAuth = true, 
-  requireGuest = false, 
+export const ProtectedRoute = ({
+  requireAuth = true,
+  requireGuest = false,
   requirePasswordChange = false,
   require2FA = false,
-  children
-}: ProtectedRouteProps) {
-  const { usuario, estaAutenticado, carregando } = useAuthStore()
+  children,
+}: ProtectedRouteProps) => {
+  const { usuario, estaAutenticado, carregando } = useAuth()
+  const logoutMutation = useLogoutMutation()
   const location = useLocation()
+  const [deveRedirecionar, setDeveRedirecionar] = React.useState(false)
+
+  // Flag para prevenir múltiplas chamadas de logout
+  const logoutEmAndamentoRef = React.useRef(false)
+
+  // Função memorizada para realizar logout (evita recriação a cada render)
+  const realizarLogoutPorInconsistencia = React.useCallback(() => {
+    // Previne múltiplas chamadas se já houver logout em andamento (local ou global)
+    if (logoutEmAndamentoRef.current || logoutMutation.isPending || logoutEmAndamento) {
+      middlewareLogger.debug(
+        { action: 'protected-route', status: 'logout-already-pending' },
+        'Logout já está em andamento, ignorando nova tentativa',
+      )
+      return
+    }
+
+    middlewareLogger.warn(
+      { action: 'protected-route', status: 'inconsistent-state' },
+      'Store indica autenticado mas cookies não existem - fazendo logout',
+    )
+
+    logoutEmAndamentoRef.current = true
+    logoutEmAndamento = true
+
+    // Salva rota para redirecionamento após login
+    sessionStorage.setItem('redirectAfterLogin', location.pathname)
+
+    // Executa logout que fará reload via window.location.href
+    // As flags serão resetadas automaticamente pelo reload
+    logoutMutation.mutate()
+    setDeveRedirecionar(true)
+  }, [logoutMutation, location.pathname])
+
+  // Validação de consistência: se store diz autenticado mas cookies não existem
+  // Movido para useEffect para evitar setState durante render
+  // Com debounce para evitar race condition após login
+  React.useEffect(() => {
+    if (!requireAuth || !estaAutenticado) {
+      // Reseta flag quando não está mais autenticado
+      logoutEmAndamentoRef.current = false
+      return
+    }
+
+    // Aguarda 500ms para garantir que cookies foram salvos no document.cookie
+    // Aumentado de 300ms para 500ms para evitar race conditions
+    const timeoutId = setTimeout(() => {
+      if (!hasAuthCookies()) {
+        realizarLogoutPorInconsistencia()
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [requireAuth, estaAutenticado, realizarLogoutPorInconsistencia])
 
   // Aguarda a verificação inicial de autenticação
   if (carregando) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-teal-600" />
           <p className="text-gray-600">Verificando autenticação...</p>
         </div>
       </div>
     )
   }
 
+  // Redireciona para login se detectada inconsistência
+  if (deveRedirecionar) {
+    return <Navigate to="/login" replace />
+  }
+
   // Rota que requer usuário não autenticado (login, registro, etc.)
   if (requireGuest && estaAutenticado) {
     // Se já está autenticado, redireciona para a página principal
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
     sessionStorage.removeItem('redirectAfterLogin')
     return <Navigate to={redirectPath} replace />
   }
@@ -68,13 +141,11 @@ export function ProtectedRoute({
 }
 
 // Componente para verificação de autenticação ao montar componentes
-export function AuthGuard() {
-  const { estaAutenticado, verificarAutenticacao } = useAuthStore()
+export const AuthGuard = () => {
+  const { estaAutenticado } = useAuth()
 
-  // Verifica autenticação ao montar o componente
-  React.useEffect(() => {
-    verificarAutenticacao()
-  }, [verificarAutenticacao])
+  // Com TanStack Query, não precisa verificar manualmente
+  // O useMeQuery já faz isso automaticamente
 
   if (!estaAutenticado) {
     return null
@@ -84,12 +155,12 @@ export function AuthGuard() {
 }
 
 // Componente para rotas de autenticação (fluxo de login)
-export function AuthFlowRoute() {
-  const { estaAutenticado, usuario } = useAuthStore()
+export const AuthFlowRoute = () => {
+  const { estaAutenticado, usuario } = useAuth()
 
   // Se já está autenticado e não precisa trocar senha, redireciona
   if (estaAutenticado && !usuario?.precisaTrocarSenha) {
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
     sessionStorage.removeItem('redirectAfterLogin')
     return <Navigate to={redirectPath} replace />
   }
@@ -103,8 +174,8 @@ export function AuthFlowRoute() {
 }
 
 // Componente para verificação de fluxo de autenticação
-export function AuthFlowGuard() {
-  const { estaAutenticado, usuario } = useAuthStore()
+export const AuthFlowGuard = () => {
+  const { estaAutenticado, usuario } = useAuth()
   const location = useLocation()
 
   // Se não está autenticado, permite acesso às rotas de auth
@@ -113,7 +184,7 @@ export function AuthFlowGuard() {
   }
 
   // Se está autenticado mas precisa trocar senha
-  if (estaAutenticado && usuario?.precisaTrocarSenha) {
+  if (usuario?.precisaTrocarSenha) {
     // Se não estiver na rota de troca de senha, redireciona
     if (location.pathname !== '/trocar-senha') {
       return <Navigate to="/trocar-senha" replace />
@@ -122,7 +193,7 @@ export function AuthFlowGuard() {
   }
 
   // Se está autenticado e não precisa trocar senha, redireciona para principal
-  const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+  const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
   sessionStorage.removeItem('redirectAfterLogin')
   return <Navigate to={redirectPath} replace />
 }
