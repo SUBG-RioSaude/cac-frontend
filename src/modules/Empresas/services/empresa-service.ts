@@ -30,6 +30,7 @@ export async function cadastrarEmpresa(
   dadosEmpresa: EmpresaRequest,
 ): Promise<EmpresaResponse> {
   logger.info(
+    'Iniciando cadastro de empresa',
     {
       operation: 'cadastrar_empresa',
       empresaData: {
@@ -38,7 +39,6 @@ export async function cadastrarEmpresa(
         hasContacts: dadosEmpresa.contatos.length > 0,
       },
     },
-    'Iniciando cadastro de empresa',
   )
 
   // A API retorna apenas o ID como string, não um objeto
@@ -50,13 +50,13 @@ export async function cadastrarEmpresa(
 
   // Log da resposta da API
   logger.debug(
+    'Response da API de cadastro recebida',
     {
       operation: 'cadastrar_empresa_response',
       responseStatus: response.status,
       responseDataType: typeof response.data,
       hasValidId: !!response.data,
     },
-    'Response da API de cadastro recebida',
   )
 
   // A API retorna o ID como string simples
@@ -64,23 +64,23 @@ export async function cadastrarEmpresa(
 
   if (!empresaId || typeof empresaId !== 'string') {
     logger.error(
+      'ID da empresa não é uma string válida',
       {
         operation: 'cadastrar_empresa_validation',
         receivedValue: empresaId,
         receivedType: typeof empresaId,
         expected: 'string',
       },
-      'ID da empresa não é uma string válida',
     )
     throw new Error('API não retornou um ID válido')
   }
 
   logger.info(
+    'Empresa cadastrada com sucesso',
     {
       operation: 'cadastrar_empresa_success',
       empresaId,
     },
-    'Empresa cadastrada com sucesso',
   )
 
   // Construir objeto EmpresaResponse usando dados enviados + ID retornado
@@ -110,12 +110,12 @@ export async function cadastrarEmpresa(
   }
 
   logger.debug(
+    'Objeto EmpresaResponse construído com sucesso',
     {
       operation: 'cadastrar_empresa_response_built',
       empresaId: empresaResponse.id,
       contatosCount: empresaResponse.contatos.length,
     },
-    'Objeto EmpresaResponse construído com sucesso',
   )
 
   return empresaResponse
