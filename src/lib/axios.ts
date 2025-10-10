@@ -1,166 +1,131 @@
+import type { AxiosError } from 'axios'
+import axios, {
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 
-import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import { getToken, logout, renovarToken } from './auth/auth';
-import { apiMetrics } from './api-metrics';
+import { getToken, logout, renovarToken } from './auth/auth'
 
-// Cliente para Gateway (rota principal)
+// Cliente para Gateway centralizado
 export const apiGateway = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    timeout: 5000, // Timeout mais curto para fallback rápido
-    withCredentials: false,
+  baseURL: import.meta.env.VITE_API_URL as string,
+  timeout: 30000, // Timeout único de 30s para operações
+  withCredentials: false,
+  responseType: 'json',
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+  },
 })
 
-// Cliente para Microserviço Direto (fallback)
-export const apiDirect = axios.create({
-    baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
-    timeout: 10000,
-    withCredentials: false,
-})
+// Cliente principal (alias para apiGateway)
+export const api = apiGateway
 
-// Interceptador de requisição para adicionar token dos cookies
-// Cliente principal com fallback automático
-export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    timeout: 5000,
-    withCredentials: false,
-})
-
-// Interceptor de autenticação para todos os clientes
+// Interceptor de autenticação
 const authInterceptor = (config: InternalAxiosRequestConfig) => {
   const token = getToken()
   if (token) {
     // Valida se o token tem formato JWT válido
     if (token.split('.').length === 3) {
       config.headers.Authorization = `Bearer ${token}`
-    } else {
-      console.warn('Token JWT inválido detectado')
     }
   }
+
+  // Garante que sempre envie charset UTF-8
+  config.headers['Content-Type'] ??= 'application/json; charset=utf-8'
+  config.headers.Accept ??= 'application/json'
+
   return config
 }
 
+// Aplica interceptor de autenticação
 apiGateway.interceptors.request.use(authInterceptor)
-apiDirect.interceptors.request.use(authInterceptor)
-api.interceptors.request.use(authInterceptor)
 
-// Função para executar requisição com fallback automático
-export async function executeWithFallback<T>(
-    requestConfig: {
-        method: 'get' | 'post' | 'put' | 'delete' | 'patch'
-        url: string
-        data?: unknown
-        params?: Record<string, unknown>
-        headers?: Record<string, string>
-        baseURL?: string
-    }
-): Promise<AxiosResponse<T>> {
-    const { method, url, data, params, headers, baseURL } = requestConfig
-    
-    try {
-        console.log(`[API] Tentando gateway: ${method.toUpperCase()} ${url}`)
-        
-        // Primeira tentativa: Gateway ou baseURL específica
-        const clientToUse = baseURL ? axios.create({ baseURL, timeout: 5000 }) : apiGateway
-        if (baseURL) {
-            clientToUse.interceptors.request.use(authInterceptor)
-        }
-        
-        const response = await clientToUse.request<T>({
-            method,
-            url,
-            data,
-            params,
-            headers
-        })
-        
-        console.log(`[API] ✅ Gateway respondeu: ${response.status}`)
-        apiMetrics.recordGatewaySuccess()
-        return response
-        
-    } catch (gatewayError) {
-        const error = gatewayError as AxiosError
-        
-        // Verificar se deve fazer fallback
-        const shouldFallback = (
-            // Erro de rede/timeout
-            !error.response ||
-            // Erro 5xx do gateway
-            (error.response.status >= 500) ||
-            // Timeout
-            error.code === 'ECONNABORTED'
-        )
-        
-        if (shouldFallback) {
-            const failureReason = error.response ? `${error.response.status} ${error.response.statusText}` : error.message
-            apiMetrics.recordGatewayFailure(failureReason)
-            console.warn(`[API] ⚠️ Gateway falhou: ${error.message}. Tentando microserviço direto...`)
-            
-            try {
-                const fallbackResponse = await apiDirect.request<T>({
-                    method,
-                    url,
-                    data,
-                    params,
-                    headers
-                })
-                
-                console.log(`[API] ✅ Microserviço direto respondeu: ${fallbackResponse.status}`)
-                apiMetrics.recordDirectSuccess()
-                return fallbackResponse
-                
-            } catch (directError) {
-                const directErr = directError as AxiosError
-                const directFailureReason = directErr.response ? `${directErr.response.status} ${directErr.response.statusText}` : directErr.message
-                apiMetrics.recordDirectFailure(directFailureReason)
-                console.error(`[API] ❌ Microserviço direto também falhou:`, directError)
-                throw directError
-            }
-        } else {
-            // Erro que não deve fazer fallback (4xx, etc)
-            const noFallbackReason = error.response ? `${error.response.status} ${error.response.statusText}` : error.message
-            apiMetrics.recordGatewayFailure(noFallbackReason)
-            console.error(`[API] ❌ Gateway erro sem fallback: ${error.response?.status}`)
-            throw gatewayError
-        }
-    }
+// Interceptor de resposta para garantir UTF-8
+const utf8ResponseInterceptor = (response: AxiosResponse) => {
+  if (response.data && typeof response.data === 'object') {
+    response.headers['content-type'] = 'application/json; charset=utf-8'
+  }
+  return response
 }
 
-// Interceptador de resposta para renovação automática de token
-api.interceptors.response.use(
-  (response) => response,
-  async (erro) => {
-    const { response } = erro
+apiGateway.interceptors.response.use(utf8ResponseInterceptor)
+
+/**
+ * Função simplificada para requisições via Gateway centralizado
+ * Substitui o antigo sistema de fallback (executeWithFallback)
+ */
+export async function executeWithFallback<T>(
+  requestConfig: {
+    method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+    url: string
+    data?: unknown
+    params?: Record<string, unknown>
+    headers?: Record<string, string>
+    baseURL?: string // Mantido para compatibilidade, mas ignorado
+    timeout?: number
+  },
+): Promise<AxiosResponse<T>> {
+  const { method, url, data, params, headers, timeout } = requestConfig
+
+  console.log(`[API Gateway] ${method.toUpperCase()} ${url}`)
+
+  const response = await apiGateway.request<T>({
+    method,
+    url,
+    data,
+    params,
+    headers,
+    timeout: timeout ?? 30000,
+  })
+
+  console.log(`[API Gateway] ✅ ${response.status}`)
+  return response
+}
+
+// Interceptador de resposta reutilizável para renovação automática de token
+const createTokenRenewalInterceptor = () => {
+  return async (erro: AxiosError) => {
+    const { response, config } = erro
 
     // Se o erro for 401 (não autorizado), tenta renovar o token
     if (response?.status === 401) {
       try {
         const renovado = await renovarToken()
-        if (renovado) {
+        if (renovado && config) {
           // Reexecuta a requisição original com o novo token
           const token = getToken()
           if (token && token.split('.').length === 3) {
-            erro.config.headers.Authorization = `Bearer ${token}`
-            return api.request(erro.config)
+            config.headers.Authorization = `Bearer ${token}`
+            // Usa o cliente axios que originou a requisição
+            return axios.request(config)
           }
         }
-      } catch (renovacaoErro) {
+      } catch {
         // Se não conseguir renovar, faz logout
-        console.error('Erro ao renovar token:', renovacaoErro)
         logout()
         window.location.href = '/login'
-        return Promise.reject(erro)
+        return Promise.reject(new Error('Falha na renovação do token'))
       }
     }
 
-    return Promise.reject(erro)
+    return Promise.reject(new Error(erro.message || 'Erro na requisição'))
   }
+}
+
+// Aplica interceptor de renovação
+apiGateway.interceptors.response.use(
+  (response) => response,
+  createTokenRenewalInterceptor(),
 )
 
 // API específica para autenticação (sem interceptadores de renovação)
 export const authApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL_AUTH,
+  baseURL: import.meta.env.VITE_API_URL_AUTH as string,
   timeout: 10000,
+  responseType: 'json',
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+  },
 })
