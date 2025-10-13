@@ -2,10 +2,11 @@
 import type React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { NavUser } from '../nav-user'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useLogoutAllSessionsMutation } from '@/lib/auth/auth-queries'
 import { setLogoutEmAndamento } from '@/lib/middleware'
+
+import { NavUser } from '../nav-user'
 
 vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: vi.fn(),

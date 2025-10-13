@@ -5,11 +5,10 @@
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
-export interface LogContext {
-  [key: string]: unknown
-}
+export type LogContext = Record<string, unknown>;
 
 export interface Logger {
+  trace: (message: string | LogContext, context?: string | LogContext) => void
   debug: (message: string, context?: LogContext | string) => void
   info: (message: string, context?: LogContext | string) => void
   warn: (message: string, context?: LogContext | string) => void
@@ -36,6 +35,17 @@ export const createServiceLogger = (serviceName: string): Logger => {
   const prefix = `[${serviceName}]`
 
   return {
+    trace: (message: string | LogContext, context?: string | LogContext) => {
+      if (import.meta.env.DEV) {
+        // Suporta duas assinaturas: (message, context) ou (context, message)
+        if (typeof message === 'string') {
+          console.debug(`${prefix} [TRACE] ${message}${formatContext(context)}`)
+        } else {
+          console.debug(`${prefix} [TRACE] ${context as string}${formatContext(message)}`)
+        }
+      }
+    },
+
     debug: (message: string, context?: LogContext | string) => {
       if (import.meta.env.DEV) {
         console.debug(`${prefix} ${message}${formatContext(context)}`)
@@ -60,6 +70,21 @@ export const createServiceLogger = (serviceName: string): Logger => {
       console.error(`${prefix} ❌ ${message}${formatContext(context)}`)
     },
   }
+}
+
+/**
+ * Cria um logger com prefixo de componente
+ */
+export const createComponentLogger = (componentName: string): Logger => {
+  return createServiceLogger(`component:${componentName}`)
+}
+
+/**
+ * Cria um logger com prefixo de hook
+ */
+export const createHookLogger = (hookName: string, module?: string): Logger => {
+  const name = module ? `hook:${module}:${hookName}` : `hook:${hookName}`
+  return createServiceLogger(name)
 }
 
 /**
