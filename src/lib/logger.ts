@@ -104,6 +104,11 @@ export const createHookLogger = (hookName: string, module?: string): Logger => {
 }
 
 /**
+ * Logger global padrão
+ */
+export const logger = createServiceLogger('app')
+
+/**
  * Função auxiliar para logar erros com contexto
  */
 export const logError = (
@@ -118,10 +123,5 @@ export const logError = (
     errorStack: error.stack,
   }
 
-  logger.error(message || error.message, errorContext)
+  logger.error(message ?? error.message, errorContext)
 }
-
-/**
- * Logger global padrão
- */
-export const logger = createServiceLogger('app')
