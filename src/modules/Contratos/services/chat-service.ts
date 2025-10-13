@@ -16,12 +16,6 @@ import {
 
 const logger = createServiceLogger('chat-service')
 
-const CHAT_API_BASE_URL =
-  (import.meta.env.VITE_API_URL_CHAT as string | undefined) ?? undefined
-
-const withChatBaseURL = <T extends Record<string, unknown>>(config: T) =>
-  CHAT_API_BASE_URL ? { ...config, baseURL: CHAT_API_BASE_URL } : config
-
 const serializeBuscarMensagensParams = (
   params: BuscarMensagensParams,
 ): Record<string, string | number> => {
@@ -71,13 +65,11 @@ export const fetchMensagens = async (
 ): Promise<ChatMensagensPaginadas> => {
   const response = await executeWithFallback<
     ResultadoPaginadoDto<MensagemResponseDto>
-  >(
-    withChatBaseURL({
-      method: 'get',
-      url: '/api/Mensagens',
-      params: serializeBuscarMensagensParams(params),
-    }),
-  )
+  >({
+    method: 'get',
+    url: '/Mensagens',
+    params: serializeBuscarMensagensParams(params),
+  })
 
   if (!response.data) {
     throw new Error('Resposta vazia ao consultar mensagens do chat')
@@ -112,12 +104,10 @@ export const fetchMensagensPorContrato = async (
 export const getMensagemById = async (
   mensagemId: string,
 ): Promise<ChatMessage> => {
-  const response = await executeWithFallback<MensagemResponseDto>(
-    withChatBaseURL({
-      method: 'get',
-      url: `/api/Mensagens/${mensagemId}`,
-    }),
-  )
+  const response = await executeWithFallback<MensagemResponseDto>({
+    method: 'get',
+    url: `/Mensagens/${mensagemId}`,
+  })
 
   if (!response.data) {
     throw new Error('Mensagem não encontrada na API de chat')
@@ -144,13 +134,11 @@ export const criarMensagem = async (
   }
 
   try {
-    const response = await executeWithFallback<MensagemResponseDto>(
-      withChatBaseURL({
-        method: 'post',
-        url: '/api/Mensagens',
-        data: dto,
-      }),
-    )
+    const response = await executeWithFallback<MensagemResponseDto>({
+      method: 'post',
+      url: '/Mensagens',
+      data: dto,
+    })
 
     if (!response.data) {
       throw new Error('Resposta vazia ao criar mensagem de chat')
@@ -168,33 +156,27 @@ export const atualizarMensagem = async (
 ): Promise<void> => {
   const dto: AtualizarMensagemDto = { texto: payload.texto }
 
-  await executeWithFallback(
-    withChatBaseURL({
-      method: 'put',
-      url: `/api/Mensagens/${payload.mensagemId}`,
-      data: dto,
-    }),
-  )
+  await executeWithFallback({
+    method: 'put',
+    url: `/Mensagens/${payload.mensagemId}`,
+    data: dto,
+  })
 }
 
 export const removerMensagem = async (mensagemId: string): Promise<void> => {
-  await executeWithFallback(
-    withChatBaseURL({
-      method: 'delete',
-      url: `/api/Mensagens/${mensagemId}`,
-    }),
-  )
+  await executeWithFallback({
+    method: 'delete',
+    url: `/Mensagens/${mensagemId}`,
+  })
 }
 
 export const fetchMensagensPorAutor = async (
   autorId: string,
 ): Promise<ChatMessage[]> => {
-  const response = await executeWithFallback<MensagemResponseDto[]>(
-    withChatBaseURL({
-      method: 'get',
-      url: `/api/Mensagens/autor/${autorId}`,
-    }),
-  )
+  const response = await executeWithFallback<MensagemResponseDto[]>({
+    method: 'get',
+    url: `/Mensagens/autor/${autorId}`,
+  })
 
   return (response.data ?? []).map(mapMensagemResponseToChatMessage)
 }
@@ -203,27 +185,23 @@ export const fetchMensagensPeriodo = async (
   dataInicio?: string,
   dataFim?: string,
 ): Promise<ChatMessage[]> => {
-  const response = await executeWithFallback<MensagemResponseDto[]>(
-    withChatBaseURL({
-      method: 'get',
-      url: '/api/Mensagens/periodo',
-      params: {
-        dataInicio,
-        dataFim,
-      },
-    }),
-  )
+  const response = await executeWithFallback<MensagemResponseDto[]>({
+    method: 'get',
+    url: '/Mensagens/periodo',
+    params: {
+      dataInicio,
+      dataFim,
+    },
+  })
 
   return (response.data ?? []).map(mapMensagemResponseToChatMessage)
 }
 
 export const fetchEstatisticas = async (): Promise<EstatisticasDto> => {
-  const response = await executeWithFallback<EstatisticasDto>(
-    withChatBaseURL({
-      method: 'get',
-      url: '/api/Mensagens/estatisticas',
-    }),
-  )
+  const response = await executeWithFallback<EstatisticasDto>({
+    method: 'get',
+    url: '/Mensagens/estatisticas',
+  })
 
   if (!response.data) {
     throw new Error('Não foi possível obter estatísticas do chat')

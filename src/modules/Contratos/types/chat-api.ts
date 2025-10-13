@@ -1,66 +1,17 @@
-import type { ChatMessage } from '@/modules/Contratos/types/timeline'
+/**
+ * Tipos para integração com a API de Chat
+ * Define estruturas de dados para requisições e respostas da API
+ */
 
-export interface CriarMensagemDto {
-  sistemaId: string
-  entidadeOrigemId: string
-  texto: string
-  autorId: string
-  autorNome?: string | null
-}
+import type { ChatMessage } from './timeline'
 
-export interface AtualizarMensagemDto {
-  texto: string
-}
+// Constante do sistema ID padrão para chat
+export const CHAT_SISTEMA_ID = import.meta.env.SYSTEM_ID as string
 
-export interface MensagemResponseDto {
-  id: string
-  sistemaId: string
-  entidadeOrigemId: string
-  texto: string | null
-  autorId: string | null
-  autorNome: string | null
-  enviadoEm: string
-  atualizadoEm?: string | null
-  criadoEm: string
-}
+// Constante de paginação padrão
+export const CHAT_PAGE_SIZE_DEFAULT = 50
 
-export interface AutorEstatisticaDto {
-  autorId: string | null
-  autorNome: string | null
-  totalMensagens: number
-  ultimaMensagem: string | null
-}
-
-export interface SistemaEstatisticaDto {
-  sistemaId: string
-  totalMensagens: number
-  totalEntidades: number
-  ultimaMensagem: string | null
-}
-
-export interface EstatisticasDto {
-  totalMensagens: number
-  mensagensHoje: number
-  mensagensSemana: number
-  mensagensMes: number
-  totalAutores: number
-  totalSistemas: number
-  totalEntidades: number
-  ultimaMensagem: string | null
-  dataCalculo: string
-  topAutores: AutorEstatisticaDto[] | null
-  topSistemas: SistemaEstatisticaDto[] | null
-}
-
-export interface ResultadoPaginadoDto<TItem> {
-  items: TItem[] | null
-  totalItens: number
-  paginaAtual: number
-  tamanhoPagina: number
-  totalPaginas?: number
-  temProximaPagina?: boolean
-  temPaginaAnterior?: boolean
-}
+// ========== TIPOS DE REQUISIÇÃO ==========
 
 export interface BuscarMensagensParams {
   sistemaId?: string
@@ -77,50 +28,93 @@ export interface BuscarMensagensParams {
   offset?: number
 }
 
-export const CHAT_SISTEMA_ID = '7b8659bb-1aeb-4d74-92c1-110c1d27e576'
-export const CHAT_PAGE_SIZE_DEFAULT = 50
-export const CHAT_TEXTO_MAX_LENGTH = 250
+export interface CriarMensagemDto {
+  sistemaId: string
+  entidadeOrigemId: string
+  texto: string
+  autorId: string
+  autorNome?: string | null
+}
 
-export const mapMensagemResponseToChatMessage = (
+export interface AtualizarMensagemDto {
+  texto: string
+}
+
+// ========== TIPOS DE RESPOSTA ==========
+
+export interface MensagemResponseDto {
+  id: string
+  sistemaId: string
+  entidadeOrigemId: string
+  texto: string
+  autorId: string
+  autorNome?: string | null
+  dataCriacao: string
+  dataAtualizacao?: string | null
+  editada: boolean
+}
+
+export interface ResultadoPaginadoDto<T> {
+  items: T[]
+  totalItens: number
+  paginaAtual: number
+  tamanhoPagina: number
+  totalPaginas?: number
+  temProximaPagina?: boolean
+  temPaginaAnterior?: boolean
+}
+
+export interface EstatisticasDto {
+  totalMensagens: number
+  mensagensHoje: number
+  mensagensUltimaSemana: number
+  mensagensUltimoMes: number
+  participantesAtivos: number
+  mediaMessagensPorDia: number
+}
+
+// ========== FUNÇÕES DE MAPEAMENTO ==========
+
+/**
+ * Converte ChatMessage do frontend para CriarMensagemDto da API
+ */
+export function mapChatMessageToCriarMensagemDto(message: {
+  contratoId: string
+  conteudo: string
+  remetente: {
+    id: string
+    nome: string
+    tipo: 'usuario' | 'fiscal' | 'gestor' | 'fornecedor' | 'sistema'
+  }
+}): CriarMensagemDto {
+  return {
+    sistemaId: CHAT_SISTEMA_ID,
+    entidadeOrigemId: message.contratoId,
+    texto: message.conteudo,
+    autorId: message.remetente.id,
+    autorNome: message.remetente.nome,
+  }
+}
+
+/**
+ * Converte MensagemResponseDto da API para ChatMessage do frontend
+ */
+export function mapMensagemResponseToChatMessage(
   dto: MensagemResponseDto,
-): ChatMessage => {
-  const conteudo = dto.texto ?? ''
-
+): ChatMessage {
   return {
     id: dto.id,
     contratoId: dto.entidadeOrigemId,
     remetente: {
-      id: dto.autorId ?? 'desconhecido',
-      nome: dto.autorNome ?? 'Usuário',
-      tipo:
-        dto.autorId && dto.autorId.toLowerCase() === 'sistema'
-          ? 'sistema'
-          : 'usuario',
+      id: dto.autorId,
+      nome: dto.autorNome ?? dto.autorId,
+      tipo: 'usuario', // Tipo padrão, pode ser enriquecido posteriormente
     },
-    conteudo,
-    tipo:
-      dto.autorId && dto.autorId.toLowerCase() === 'sistema'
-        ? 'sistema'
-        : 'texto',
-    dataEnvio: dto.enviadoEm,
-    lida: false,
-    editada: Boolean(dto.atualizadoEm && dto.atualizadoEm !== dto.criadoEm),
-    editadaEm: dto.atualizadoEm ?? undefined,
-    metadata: {
-      sistemaId: dto.sistemaId,
-      entidadeOrigemId: dto.entidadeOrigemId,
-    },
+    conteudo: dto.texto,
+    tipo: 'texto',
+    dataEnvio: dto.dataCriacao,
+    lida: false, // Será controlado pelo frontend
+    editada: dto.editada,
+    editadaEm: dto.dataAtualizacao ?? undefined,
   }
 }
-
-export const mapChatMessageToCriarMensagemDto = ({
-  contratoId,
-  conteudo,
-  remetente,
-}: Pick<ChatMessage, 'contratoId' | 'conteudo' | 'remetente'>): CriarMensagemDto => ({
-  sistemaId: CHAT_SISTEMA_ID,
-  entidadeOrigemId: contratoId,
-  texto: conteudo,
-  autorId: remetente.id,
-  autorNome: remetente.nome,
-})

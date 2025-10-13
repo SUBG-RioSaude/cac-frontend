@@ -15,15 +15,13 @@ const createRoomKey = (sistemaId: string, contratoId: string) =>
   [sistemaId, contratoId].join(':')
 
 const resolveHubUrl = () => {
-  const baseUrl =
-    (import.meta.env.VITE_API_URL_CHAT as string | undefined) ??
-    (import.meta.env.VITE_API_URL as string | undefined)
+  const baseUrl = import.meta.env.VITE_API_URL as string | undefined
 
   if (!baseUrl) {
-    return '/chathub'
+    throw new Error('VITE_API_URL não configurada para SignalR')
   }
 
-  return `${baseUrl.replace(/\/$/, '')  }/chathub`
+  return `${baseUrl.replace(/\/$/, '')}/chathub`
 }
 
 export interface TypingEvent {

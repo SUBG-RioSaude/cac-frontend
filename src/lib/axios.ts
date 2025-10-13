@@ -4,13 +4,12 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 
-import { apiMetrics } from './api-metrics'
 import { getToken, logout, renovarToken } from './auth/auth'
 
-// Cliente para Gateway (rota principal)
+// Cliente para Gateway centralizado
 export const apiGateway = axios.create({
   baseURL: import.meta.env.VITE_API_URL as string,
-  timeout: 5000, // Timeout mais curto para fallback rápido
+  timeout: 30000, // Timeout único de 30s para operações
   withCredentials: false,
   responseType: 'json',
   headers: {
@@ -19,32 +18,10 @@ export const apiGateway = axios.create({
   },
 })
 
-// Cliente para Microserviço Direto (fallback)
-export const apiDirect = axios.create({
-    baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
-    timeout: 30000, // Aumentado para 30s para operações complexas
-    withCredentials: false,
-    responseType: 'json',
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Accept': 'application/json',
-    },
-})
+// Cliente principal (alias para apiGateway)
+export const api = apiGateway
 
-// Interceptador de requisição para adicionar token dos cookies
-// Cliente principal com fallback automático
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL as string,
-  timeout: 5000,
-  withCredentials: false,
-  responseType: 'json',
-  headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
-  },
-})
-
-// Interceptor de autenticação para todos os clientes
+// Interceptor de autenticação
 const authInterceptor = (config: InternalAxiosRequestConfig) => {
   const token = getToken()
   if (token) {
@@ -62,115 +39,49 @@ const authInterceptor = (config: InternalAxiosRequestConfig) => {
   return config
 }
 
+// Aplica interceptor de autenticação
 apiGateway.interceptors.request.use(authInterceptor)
-apiDirect.interceptors.request.use(authInterceptor)
-api.interceptors.request.use(authInterceptor)
 
 // Interceptor de resposta para garantir UTF-8
 const utf8ResponseInterceptor = (response: AxiosResponse) => {
-  // Se a resposta contém dados do tipo string, garante que está decodificado como UTF-8
   if (response.data && typeof response.data === 'object') {
-    // Axios já decodifica JSON automaticamente, mas podemos garantir o charset
     response.headers['content-type'] = 'application/json; charset=utf-8'
   }
   return response
 }
 
 apiGateway.interceptors.response.use(utf8ResponseInterceptor)
-apiDirect.interceptors.response.use(utf8ResponseInterceptor)
-api.interceptors.response.use(utf8ResponseInterceptor)
 
-// Função para executar requisição com fallback automático
+/**
+ * Função simplificada para requisições via Gateway centralizado
+ * Substitui o antigo sistema de fallback (executeWithFallback)
+ */
 export async function executeWithFallback<T>(
-    requestConfig: {
-        method: 'get' | 'post' | 'put' | 'delete' | 'patch'
-        url: string
-        data?: unknown
-        params?: Record<string, unknown>
-        headers?: Record<string, string>
-        baseURL?: string
-        timeout?: number // Novo parâmetro para timeout customizado
-    }
+  requestConfig: {
+    method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+    url: string
+    data?: unknown
+    params?: Record<string, unknown>
+    headers?: Record<string, string>
+    baseURL?: string // Mantido para compatibilidade, mas ignorado
+    timeout?: number
+  },
 ): Promise<AxiosResponse<T>> {
-    const { method, url, data, params, headers, baseURL, timeout } = requestConfig
-    
-    try {
-        console.log(`[API] Tentando gateway: ${method.toUpperCase()} ${url}`)
-        
-        // Primeira tentativa: Gateway ou baseURL específica
-        const gatewayTimeout = timeout ?? 5000
-        const clientToUse = baseURL ? axios.create({ baseURL, timeout: gatewayTimeout }) : apiGateway
-        if (baseURL) {
-            clientToUse.interceptors.request.use(authInterceptor)
-        }
-        
-        const response = await clientToUse.request<T>({
-            method,
-            url,
-            data,
-            params,
-            headers
-        })
-        
-        console.log(`[API] ✅ Gateway respondeu: ${response.status}`)
-        apiMetrics.recordGatewaySuccess()
-        return response
-        
-    } catch (gatewayError) {
-        const error = gatewayError as AxiosError
-        
-        // Verificar se deve fazer fallback
-        const shouldFallback = (
-            // Erro de rede/timeout
-            !error.response ||
-            // Erro 5xx do gateway
-            (error.response.status >= 500) ||
-            // Timeout
-            error.code === 'ECONNABORTED'
-        )
-        
-        if (shouldFallback) {
-            const failureReason = error.response ? `${error.response.status} ${error.response.statusText}` : error.message
-            apiMetrics.recordGatewayFailure(failureReason)
-            console.warn(`[API] ⚠️ Gateway falhou: ${error.message}. Tentando microserviço direto...`)
-            
-            try {
-                // Usar timeout customizado se fornecido, senão usar o padrão do apiDirect
-                const directTimeout = timeout ?? 30000
-                const directClient = axios.create({
-                    baseURL: import.meta.env.VITE_API_URL_CONTRATOS,
-                    timeout: directTimeout,
-                    withCredentials: false,
-                })
-                directClient.interceptors.request.use(authInterceptor)
-                
-                const fallbackResponse = await directClient.request<T>({
-                    method,
-                    url,
-                    data,
-                    params,
-                    headers
-                })
-                
-                console.log(`[API] ✅ Microserviço direto respondeu: ${fallbackResponse.status}`)
-                apiMetrics.recordDirectSuccess()
-                return fallbackResponse
-                
-            } catch (directError) {
-                const directErr = directError as AxiosError
-                const directFailureReason = directErr.response ? `${directErr.response.status} ${directErr.response.statusText}` : directErr.message
-                apiMetrics.recordDirectFailure(directFailureReason)
-                console.error(`[API] ❌ Microserviço direto também falhou:`, directError)
-                throw directError
-            }
-        } else {
-            // Erro que não deve fazer fallback (4xx, etc)
-            const noFallbackReason = error.response ? `${error.response.status} ${error.response.statusText}` : error.message
-            apiMetrics.recordGatewayFailure(noFallbackReason)
-            console.error(`[API] ❌ Gateway erro sem fallback: ${error.response?.status}`)
-            throw gatewayError
-        }
-    }
+  const { method, url, data, params, headers, timeout } = requestConfig
+
+  console.log(`[API Gateway] ${method.toUpperCase()} ${url}`)
+
+  const response = await apiGateway.request<T>({
+    method,
+    url,
+    data,
+    params,
+    headers,
+    timeout: timeout ?? 30000,
+  })
+
+  console.log(`[API Gateway] ✅ ${response.status}`)
+  return response
 }
 
 // Interceptador de resposta reutilizável para renovação automática de token
@@ -203,10 +114,11 @@ const createTokenRenewalInterceptor = () => {
   }
 }
 
-// Aplica interceptor de renovação em todos os clientes
-api.interceptors.response.use((response) => response, createTokenRenewalInterceptor())
-apiGateway.interceptors.response.use((response) => response, createTokenRenewalInterceptor())
-apiDirect.interceptors.response.use((response) => response, createTokenRenewalInterceptor())
+// Aplica interceptor de renovação
+apiGateway.interceptors.response.use(
+  (response) => response,
+  createTokenRenewalInterceptor(),
+)
 
 // API específica para autenticação (sem interceptadores de renovação)
 export const authApi = axios.create({

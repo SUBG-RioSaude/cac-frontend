@@ -119,7 +119,6 @@ export async function getContratoByNumero(
     const response = await executeWithFallback<Contrato>({
       method: 'get',
       url: `/contratos/numero/${numeroContrato}`,
-      baseURL: import.meta.env.VITE_API_URL_CONTRATOS as string,
     })
 
     return response.data
@@ -257,6 +256,7 @@ export async function criarContrato(
     return response.data
   } catch (error: unknown) {
     logger.error(
+      'Erro ao criar contrato',
       {
         operation: 'criar_contrato',
         payloadType: typeof payload,
@@ -268,7 +268,6 @@ export async function criarContrato(
         errorMessage: (error as { message?: string }).message,
         stack: (error as Error).stack,
       },
-      'Erro ao criar contrato',
     )
 
     // Extrair mensagem específica do backend se disponível
@@ -476,12 +475,12 @@ export async function getContratosVencendo(
     }
   } catch (error) {
     logger.error(
+      'Erro ao buscar contratos vencendo',
       {
         operation: 'buscar_contratos_vencendo',
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       },
-      'Erro ao buscar contratos vencendo',
     )
     throw error
   }
@@ -567,12 +566,12 @@ export async function getContratosVencidos(
     }
   } catch (error) {
     logger.error(
+      'Erro ao buscar contratos vencidos',
       {
         operation: 'buscar_contratos_vencidos',
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       },
-      'Erro ao buscar contratos vencidos',
     )
     throw error
   }
@@ -664,6 +663,7 @@ export async function getContratosPorEmpresa(
     }
   } catch (error) {
     logger.error(
+      'Erro ao buscar contratos da empresa',
       {
         operation: 'buscar_contratos_empresa',
         empresaId,
@@ -671,7 +671,6 @@ export async function getContratosPorEmpresa(
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       },
-      'Erro ao buscar contratos da empresa',
     )
     throw error
   }
