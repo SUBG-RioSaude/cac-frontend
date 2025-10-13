@@ -9,10 +9,10 @@ export type LogContext = Record<string, unknown>;
 
 export interface Logger {
   trace: (message: string | LogContext, context?: string | LogContext) => void
-  debug: (message: string, context?: LogContext | string) => void
-  info: (message: string, context?: LogContext | string) => void
-  warn: (message: string, context?: LogContext | string) => void
-  error: (message: string, context?: LogContext | string) => void
+  debug: (message: string | LogContext, context?: string | LogContext) => void
+  info: (message: string | LogContext, context?: string | LogContext) => void
+  warn: (message: string | LogContext, context?: string | LogContext) => void
+  error: (message: string | LogContext, context?: string | LogContext) => void
 }
 
 /**
@@ -46,9 +46,14 @@ export const createServiceLogger = (serviceName: string): Logger => {
       }
     },
 
-    debug: (message: string, context?: LogContext | string) => {
+    debug: (message: string | LogContext, context?: string | LogContext) => {
       if (import.meta.env.DEV) {
-        console.debug(`${prefix} ${message}${formatContext(context)}`)
+        // Suporta duas assinaturas: (message, context) ou (context, message)
+        if (typeof message === 'string') {
+          console.debug(`${prefix} ${message}${formatContext(context)}`)
+        } else {
+          console.debug(`${prefix} ${context as string}${formatContext(message)}`)
+        }
       }
     },
 
@@ -62,12 +67,22 @@ export const createServiceLogger = (serviceName: string): Logger => {
       }
     },
 
-    warn: (message: string, context?: LogContext | string) => {
-      console.warn(`${prefix} ⚠️ ${message}${formatContext(context)}`)
+    warn: (message: string | LogContext, context?: string | LogContext) => {
+      // Suporta duas assinaturas: (message, context) ou (context, message)
+      if (typeof message === 'string') {
+        console.warn(`${prefix} ⚠️ ${message}${formatContext(context)}`)
+      } else {
+        console.warn(`${prefix} ⚠️ ${context as string}${formatContext(message)}`)
+      }
     },
 
-    error: (message: string, context?: LogContext | string) => {
-      console.error(`${prefix} ❌ ${message}${formatContext(context)}`)
+    error: (message: string | LogContext, context?: string | LogContext) => {
+      // Suporta duas assinaturas: (message, context) ou (context, message)
+      if (typeof message === 'string') {
+        console.error(`${prefix} ❌ ${message}${formatContext(context)}`)
+      } else {
+        console.error(`${prefix} ❌ ${context as string}${formatContext(message)}`)
+      }
     },
   }
 }
@@ -75,8 +90,9 @@ export const createServiceLogger = (serviceName: string): Logger => {
 /**
  * Cria um logger com prefixo de componente
  */
-export const createComponentLogger = (componentName: string): Logger => {
-  return createServiceLogger(`component:${componentName}`)
+export const createComponentLogger = (componentName: string, module?: string): Logger => {
+  const name = module ? `component:${module}:${componentName}` : `component:${componentName}`
+  return createServiceLogger(name)
 }
 
 /**
@@ -85,6 +101,24 @@ export const createComponentLogger = (componentName: string): Logger => {
 export const createHookLogger = (hookName: string, module?: string): Logger => {
   const name = module ? `hook:${module}:${hookName}` : `hook:${hookName}`
   return createServiceLogger(name)
+}
+
+/**
+ * Função auxiliar para logar erros com contexto
+ */
+export const logError = (
+  error: Error,
+  context?: LogContext,
+  message?: string,
+): void => {
+  const errorContext: LogContext = {
+    ...context,
+    errorName: error.name,
+    errorMessage: error.message,
+    errorStack: error.stack,
+  }
+
+  logger.error(message || error.message, errorContext)
 }
 
 /**

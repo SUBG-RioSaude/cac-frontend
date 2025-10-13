@@ -8,6 +8,9 @@ import type { ChatMessage } from './timeline'
 // Constante do sistema ID padrão para chat
 export const CHAT_SISTEMA_ID = import.meta.env.SYSTEM_ID as string
 
+// Constante de paginação padrão
+export const CHAT_PAGE_SIZE_DEFAULT = 50
+
 // ========== TIPOS DE REQUISIÇÃO ==========
 
 export interface BuscarMensagensParams {
