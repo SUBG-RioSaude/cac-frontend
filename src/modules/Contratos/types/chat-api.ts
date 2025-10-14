@@ -6,7 +6,14 @@
 import type { ChatMessage } from './timeline'
 
 // Constante do sistema ID padrão para chat
-export const CHAT_SISTEMA_ID = import.meta.env.SYSTEM_ID as string
+export const CHAT_SISTEMA_ID = import.meta.env.VITE_SYSTEM_ID as string
+
+// Validação de configuração obrigatória
+if (!CHAT_SISTEMA_ID || CHAT_SISTEMA_ID === 'undefined') {
+  throw new Error(
+    'VITE_SYSTEM_ID não está configurado. Adicione VITE_SYSTEM_ID=<seu-guid> no arquivo .env'
+  )
+}
 
 // Constante de paginação padrão
 export const CHAT_PAGE_SIZE_DEFAULT = 50

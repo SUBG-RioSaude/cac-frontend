@@ -1,4 +1,4 @@
-import { executeWithFallback } from '@/lib/axios'
+import { chatApi } from '@/lib/axios'
 import { createServiceLogger } from '@/lib/logger'
 import type { ChatMessage } from '@/modules/Contratos/types/timeline'
 
@@ -63,11 +63,9 @@ export interface AtualizarMensagemPayload {
 export const fetchMensagens = async (
   params: BuscarMensagensParams,
 ): Promise<ChatMensagensPaginadas> => {
-  const response = await executeWithFallback<
+  const response = await chatApi.get<
     ResultadoPaginadoDto<MensagemResponseDto>
-  >({
-    method: 'get',
-    url: '/Mensagens',
+  >('/Mensagens', {
     params: serializeBuscarMensagensParams(params),
   })
 
@@ -104,10 +102,9 @@ export const fetchMensagensPorContrato = async (
 export const getMensagemById = async (
   mensagemId: string,
 ): Promise<ChatMessage> => {
-  const response = await executeWithFallback<MensagemResponseDto>({
-    method: 'get',
-    url: `/Mensagens/${mensagemId}`,
-  })
+  const response = await chatApi.get<MensagemResponseDto>(
+    `/Mensagens/${mensagemId}`,
+  )
 
   if (!response.data) {
     throw new Error('Mensagem não encontrada na API de chat')
@@ -134,11 +131,10 @@ export const criarMensagem = async (
   }
 
   try {
-    const response = await executeWithFallback<MensagemResponseDto>({
-      method: 'post',
-      url: '/Mensagens',
-      data: dto,
-    })
+    const response = await chatApi.post<MensagemResponseDto>(
+      '/Mensagens',
+      dto,
+    )
 
     if (!response.data) {
       throw new Error('Resposta vazia ao criar mensagem de chat')
@@ -156,27 +152,19 @@ export const atualizarMensagem = async (
 ): Promise<void> => {
   const dto: AtualizarMensagemDto = { texto: payload.texto }
 
-  await executeWithFallback({
-    method: 'put',
-    url: `/Mensagens/${payload.mensagemId}`,
-    data: dto,
-  })
+  await chatApi.put(`/Mensagens/${payload.mensagemId}`, dto)
 }
 
 export const removerMensagem = async (mensagemId: string): Promise<void> => {
-  await executeWithFallback({
-    method: 'delete',
-    url: `/Mensagens/${mensagemId}`,
-  })
+  await chatApi.delete(`/Mensagens/${mensagemId}`)
 }
 
 export const fetchMensagensPorAutor = async (
   autorId: string,
 ): Promise<ChatMessage[]> => {
-  const response = await executeWithFallback<MensagemResponseDto[]>({
-    method: 'get',
-    url: `/Mensagens/autor/${autorId}`,
-  })
+  const response = await chatApi.get<MensagemResponseDto[]>(
+    `/Mensagens/autor/${autorId}`,
+  )
 
   return (response.data ?? []).map(mapMensagemResponseToChatMessage)
 }
@@ -185,23 +173,23 @@ export const fetchMensagensPeriodo = async (
   dataInicio?: string,
   dataFim?: string,
 ): Promise<ChatMessage[]> => {
-  const response = await executeWithFallback<MensagemResponseDto[]>({
-    method: 'get',
-    url: '/Mensagens/periodo',
-    params: {
-      dataInicio,
-      dataFim,
+  const response = await chatApi.get<MensagemResponseDto[]>(
+    '/Mensagens/periodo',
+    {
+      params: {
+        dataInicio,
+        dataFim,
+      },
     },
-  })
+  )
 
   return (response.data ?? []).map(mapMensagemResponseToChatMessage)
 }
 
 export const fetchEstatisticas = async (): Promise<EstatisticasDto> => {
-  const response = await executeWithFallback<EstatisticasDto>({
-    method: 'get',
-    url: '/Mensagens/estatisticas',
-  })
+  const response = await chatApi.get<EstatisticasDto>(
+    '/Mensagens/estatisticas',
+  )
 
   if (!response.data) {
     throw new Error('Não foi possível obter estatísticas do chat')
