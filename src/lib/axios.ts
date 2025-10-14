@@ -140,8 +140,6 @@ if (!CHAT_API_BASE_URL || CHAT_API_BASE_URL === 'undefined') {
   )
 }
 
-console.log('[Chat API] Configurando cliente com baseURL:', CHAT_API_BASE_URL)
-
 // Cliente para o ChatHub (bypass do gateway)
 export const chatApi = axios.create({
   baseURL: CHAT_API_BASE_URL,

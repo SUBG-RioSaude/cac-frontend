@@ -4,6 +4,8 @@ import { vi } from 'vitest'
 
 // Configurar variáveis de ambiente para testes Vite
 import.meta.env.VITE_SYSTEM_ID = '7b8659bb-1aeb-4d74-92c1-110c1d27e576'
+import.meta.env.VITE_API_CHAT_SOCKET_URL =
+  import.meta.env.VITE_API_CHAT_SOCKET_URL || 'http://test-chat-api'
 
 // Mock do ResizeObserver para testes
 global.ResizeObserver = class ResizeObserver {
