@@ -14,11 +14,32 @@ const logger = createServiceLogger('chat-signalr')
 const createRoomKey = (sistemaId: string, contratoId: string) =>
   [sistemaId, contratoId].join(':')
 
+const isValidGuid = (value: string): boolean => {
+  if (!value || value.trim().length === 0) {
+    return false
+  }
+  const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return guidRegex.test(value)
+}
+
+const validateGuidParams = (sistemaId: string, contratoId: string) => {
+  if (!isValidGuid(sistemaId)) {
+    throw new Error(
+      `sistemaId inválido: "${sistemaId}". Deve ser um GUID válido (ex: 550e8400-e29b-41d4-a716-446655440000)`
+    )
+  }
+  if (!isValidGuid(contratoId)) {
+    throw new Error(
+      `contratoId inválido: "${contratoId}". Deve ser um GUID válido (ex: 550e8400-e29b-41d4-a716-446655440000)`
+    )
+  }
+}
+
 const resolveHubUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_URL as string | undefined
+  const baseUrl = import.meta.env.VITE_API_CHAT_SOCKET_URL as string | undefined
 
   if (!baseUrl) {
-    throw new Error('VITE_API_URL não configurada para SignalR')
+    throw new Error('VITE_API_CHAT_SOCKET_URL não configurada para SignalR')
   }
 
   return `${baseUrl.replace(/\/$/, '')}/chathub`
@@ -156,6 +177,9 @@ class SignalRChatManager {
   }
 
   async joinRoom(sistemaId: string, contratoId: string) {
+    // Validar GUIDs antes de tentar conectar
+    validateGuidParams(sistemaId, contratoId)
+
     const activeConnection = await this.ensureConnection()
     const roomKey = createRoomKey(sistemaId, contratoId)
 
@@ -176,6 +200,9 @@ class SignalRChatManager {
   }
 
   async leaveRoom(sistemaId: string, contratoId: string) {
+    // Validar GUIDs antes de tentar desconectar
+    validateGuidParams(sistemaId, contratoId)
+
     const {connection} = this
     const roomKey = createRoomKey(sistemaId, contratoId)
 
@@ -288,6 +315,9 @@ class SignalRChatManager {
 
   async startTyping(sistemaId: string, contratoId: string) {
     try {
+      // Validar GUIDs antes de enviar evento
+      validateGuidParams(sistemaId, contratoId)
+
       const connection = await this.ensureConnection()
       if (connection) {
         await connection.invoke('StartTyping', sistemaId, contratoId)
@@ -299,6 +329,9 @@ class SignalRChatManager {
 
   async stopTyping(sistemaId: string, contratoId: string) {
     try {
+      // Validar GUIDs antes de enviar evento
+      validateGuidParams(sistemaId, contratoId)
+
       const connection = await this.ensureConnection()
       if (connection) {
         await connection.invoke('StopTyping', sistemaId, contratoId)
