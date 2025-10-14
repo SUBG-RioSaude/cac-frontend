@@ -1,5 +1,6 @@
 // src/setupTests.ts
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 // Mock do ResizeObserver para testes
 global.ResizeObserver = class ResizeObserver {
@@ -97,3 +98,19 @@ Object.defineProperty(HTMLElement.prototype, 'click', {
   writable: true,
   value: () => {},
 })
+
+// Mock do SignalR Manager para evitar tentativas de conexão em testes
+vi.mock('@/modules/Contratos/services/signalr-manager', () => ({
+  signalRChatManager: {
+    initialize: vi.fn().mockResolvedValue(undefined),
+    joinRoom: vi.fn().mockResolvedValue(undefined),
+    leaveRoom: vi.fn().mockResolvedValue(undefined),
+    onMessage: vi.fn().mockReturnValue(() => {}),
+    onTyping: vi.fn().mockReturnValue(() => {}),
+    onPresence: vi.fn().mockReturnValue(() => {}),
+    sendMessage: vi.fn().mockResolvedValue(undefined),
+    startTyping: vi.fn().mockResolvedValue(undefined),
+    stopTyping: vi.fn().mockResolvedValue(undefined),
+    isConnected: vi.fn().mockReturnValue(false),
+  },
+}))
