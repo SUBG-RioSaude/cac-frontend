@@ -131,9 +131,20 @@ export const authApi = axios.create({
   },
 })
 
+// Validação da variável de ambiente para Chat API
+const CHAT_API_BASE_URL = import.meta.env.VITE_API_CHAT_SOCKET_URL as string
+
+if (!CHAT_API_BASE_URL || CHAT_API_BASE_URL === 'undefined') {
+  throw new Error(
+    'VITE_API_CHAT_SOCKET_URL não configurada. Verifique o arquivo .env',
+  )
+}
+
+console.log('[Chat API] Configurando cliente com baseURL:', CHAT_API_BASE_URL)
+
 // Cliente para o ChatHub (bypass do gateway)
 export const chatApi = axios.create({
-  baseURL: import.meta.env.VITE_API_CHAT_SOCKET_URL as string,
+  baseURL: CHAT_API_BASE_URL,
   timeout: 30000,
   withCredentials: false,
   responseType: 'json',
@@ -143,8 +154,14 @@ export const chatApi = axios.create({
   },
 })
 
-// Aplica interceptores de autenticação e UTF-8 ao chatApi
-chatApi.interceptors.request.use(authInterceptor)
+// Interceptor de debug para Chat API
+chatApi.interceptors.request.use((config) => {
+  const fullUrl = `${config.baseURL ?? ''}${config.url ?? ''}`
+  console.log(`[Chat API] ${config.method?.toUpperCase() ?? 'GET'} ${fullUrl}`)
+  return authInterceptor(config)
+})
+
+// Aplica interceptor UTF-8 ao chatApi
 chatApi.interceptors.response.use(utf8ResponseInterceptor)
 
 // Aplica interceptor de renovação de token ao chatApi

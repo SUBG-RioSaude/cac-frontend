@@ -56,9 +56,9 @@ export interface MensagemResponseDto {
   texto: string
   autorId: string
   autorNome?: string | null
-  dataCriacao: string
-  dataAtualizacao?: string | null
-  editada: boolean
+  enviadoEm: string
+  atualizadoEm?: string | null
+  criadoEm: string
 }
 
 export interface ResultadoPaginadoDto<T> {
@@ -119,9 +119,9 @@ export function mapMensagemResponseToChatMessage(
     },
     conteudo: dto.texto,
     tipo: 'texto',
-    dataEnvio: dto.dataCriacao,
+    dataEnvio: dto.enviadoEm,
     lida: false, // Será controlado pelo frontend
-    editada: dto.editada,
-    editadaEm: dto.dataAtualizacao ?? undefined,
+    editada: !!dto.atualizadoEm, // Se tem data de atualização, foi editada
+    editadaEm: dto.atualizadoEm ?? undefined,
   }
 }
