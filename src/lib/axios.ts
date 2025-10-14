@@ -130,3 +130,25 @@ export const authApi = axios.create({
     'Accept': 'application/json',
   },
 })
+
+// Cliente para o ChatHub (bypass do gateway)
+export const chatApi = axios.create({
+  baseURL: import.meta.env.VITE_API_CHAT_SOCKET_URL as string,
+  timeout: 30000,
+  withCredentials: false,
+  responseType: 'json',
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+  },
+})
+
+// Aplica interceptores de autenticação e UTF-8 ao chatApi
+chatApi.interceptors.request.use(authInterceptor)
+chatApi.interceptors.response.use(utf8ResponseInterceptor)
+
+// Aplica interceptor de renovação de token ao chatApi
+chatApi.interceptors.response.use(
+  (response) => response,
+  createTokenRenewalInterceptor(),
+)
