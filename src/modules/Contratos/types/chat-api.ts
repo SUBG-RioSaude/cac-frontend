@@ -83,6 +83,49 @@ export interface EstatisticasDto {
 // ========== FUNÇÕES DE MAPEAMENTO ==========
 
 /**
+ * Infere o tipo de remetente baseado no autorNome ou autorId
+ * Heurística simples para identificar tipos especiais
+ */
+export function inferirTipoRemetente(
+  autorNome?: string | null,
+  autorId?: string,
+): 'usuario' | 'fiscal' | 'gestor' | 'fornecedor' | 'sistema' {
+  const nome = (autorNome ?? autorId ?? '').toLowerCase()
+
+  // Identificar mensagens do sistema
+  if (
+    nome.includes('sistema') ||
+    nome.includes('system') ||
+    nome.includes('bot') ||
+    nome.includes('automatico')
+  ) {
+    return 'sistema'
+  }
+
+  // Identificar fiscal
+  if (nome.includes('fiscal') || nome.includes('fiscaliza')) {
+    return 'fiscal'
+  }
+
+  // Identificar gestor
+  if (
+    nome.includes('gestor') ||
+    nome.includes('gerente') ||
+    nome.includes('coordenador')
+  ) {
+    return 'gestor'
+  }
+
+  // Identificar fornecedor
+  if (nome.includes('fornecedor') || nome.includes('empresa')) {
+    return 'fornecedor'
+  }
+
+  // Padrão: usuário
+  return 'usuario'
+}
+
+/**
  * Converte ChatMessage do frontend para CriarMensagemDto da API
  */
 export function mapChatMessageToCriarMensagemDto(message: {
@@ -109,16 +152,19 @@ export function mapChatMessageToCriarMensagemDto(message: {
 export function mapMensagemResponseToChatMessage(
   dto: MensagemResponseDto,
 ): ChatMessage {
+  // Inferir tipo de remetente baseado no nome
+  const tipoRemetente = inferirTipoRemetente(dto.autorNome, dto.autorId)
+
   return {
     id: dto.id,
     contratoId: dto.entidadeOrigemId,
     remetente: {
       id: dto.autorId,
       nome: dto.autorNome ?? dto.autorId,
-      tipo: 'usuario', // Tipo padrão, pode ser enriquecido posteriormente
+      tipo: tipoRemetente,
     },
     conteudo: dto.texto,
-    tipo: 'texto',
+    tipo: tipoRemetente === 'sistema' ? 'sistema' : 'texto',
     dataEnvio: dto.enviadoEm,
     lida: false, // Será controlado pelo frontend
     editada: !!dto.atualizadoEm, // Se tem data de atualização, foi editada

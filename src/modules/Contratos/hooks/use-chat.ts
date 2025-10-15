@@ -174,7 +174,7 @@ export const useSendChatMessage = (
       if (previousData) {
         const nextState = updateFirstPage(previousData, (page) => ({
           ...page,
-          mensagens: [tempMessage, ...page.mensagens],
+          mensagens: [...page.mensagens, tempMessage], // Adiciona no final para ordem ASC
           totalItens: page.totalItens + 1,
         }))
 
@@ -222,7 +222,7 @@ export const useSendChatMessage = (
           if (!found && pages.length > 0) {
             pages[0] = {
               ...pages[0],
-              mensagens: [mensagem, ...pages[0].mensagens],
+              mensagens: [...pages[0].mensagens, mensagem], // Adiciona no final para ordem ASC
               totalItens: pages[0].totalItens + 1,
             }
           }
@@ -407,7 +407,28 @@ export const useContractChatRealtime = ({
   const [connectionError, setConnectionError] = useState<Error | null>(null)
 
   useEffect(() => {
+    realtimeLogger.debug('useContractChatRealtime - Inicializando com params:', {
+      contratoId,
+      autorId,
+      sistemaId,
+      pageSize,
+    })
+
     if (!contratoId || !autorId) {
+      realtimeLogger.warn('SignalR NÃO VAI CONECTAR - Parâmetros inválidos:', {
+        contratoId,
+        autorId,
+        motivo: !contratoId
+          ? 'contratoId vazio'
+          : 'autorId vazio (usuário não autenticado)',
+      })
+      return undefined
+    }
+
+    if (autorId === 'usuario-anonimo') {
+      realtimeLogger.error(
+        'SignalR NÃO VAI CONECTAR - autorId é fallback "usuario-anonimo"',
+      )
       return undefined
     }
 
@@ -416,17 +437,33 @@ export const useContractChatRealtime = ({
 
     const connect = async () => {
       setConnectionState('connecting')
+      realtimeLogger.info('Iniciando conexão SignalR...')
+
       try {
         await signalRChatManager.initialize()
         if (!isActive) return
 
+        realtimeLogger.info('SignalR inicializado, entrando na sala:', {
+          sistemaId,
+          contratoId,
+        })
+
         await signalRChatManager.joinRoom(sistemaId, contratoId)
         if (!isActive) return
+
+        realtimeLogger.info('Sala joined com sucesso!')
 
         unsubscribeMessage = signalRChatManager.onMessage(
           sistemaId,
           contratoId,
           (mensagem) => {
+            realtimeLogger.debug('Mensagem recebida via SignalR:', {
+              id: mensagem.id,
+              remetenteId: mensagem.remetente.id,
+              remetenteNome: mensagem.remetente.nome,
+              conteudo: mensagem.conteudo.substring(0, 50),
+            })
+
             queryClient.setQueryData<InfiniteData<ChatMensagensPaginadas>>(
               buildChatQueryKey(contratoId, pageSize, sistemaId),
               (current) => {
@@ -451,8 +488,11 @@ export const useContractChatRealtime = ({
                 )
 
                 if (exists) {
+                  realtimeLogger.debug('Mensagem já existe, ignorando duplicação')
                   return current
                 }
+
+                realtimeLogger.debug('Adicionando nova mensagem ao cache')
 
                 const pages = [...current.pages]
 

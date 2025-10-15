@@ -15,6 +15,7 @@ import {
   useCallback,
   useMemo,
 } from 'react'
+import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
-import { useAuthStore } from '@/lib/auth/auth-store'
+import { getToken, getTokenInfo } from '@/lib/auth/auth'
 import { createServiceLogger } from '@/lib/logger'
 import { cn } from '@/lib/utils'
 import {
@@ -53,11 +54,32 @@ export const ContractChat = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const previousMessageCountRef = useRef(0)
 
-  const { usuario } = useAuthStore()
+  // Obtém dados do usuário diretamente do token JWT
+  const token = getToken()
+  const tokenInfo = token ? getTokenInfo(token) : null
 
-  const currentUserId = usuario?.id ?? 'usuario-anonimo'
-  const currentUserNome = usuario?.nomeCompleto ?? 'Você'
+  const currentUserId = tokenInfo?.usuarioId ?? 'usuario-anonimo'
+  const currentUserNome = tokenInfo?.nomeCompleto ?? 'Você'
+  const currentUserEmail = tokenInfo?.sub ?? ''
   const pageSize = CHAT_PAGE_SIZE_DEFAULT
+
+  // Debug: Log do ID do usuário atual
+  useEffect(() => {
+    if (!tokenInfo) {
+      logger.warn('Token não encontrado ou inválido - usuário não autenticado')
+      return
+    }
+
+    logger.debug('Dados do usuário do token:', {
+      usuarioId: currentUserId,
+      nomeCompleto: currentUserNome,
+      email: currentUserEmail,
+    })
+
+    if (currentUserId === 'usuario-anonimo') {
+      logger.error('ERRO: Usuário usando fallback "usuario-anonimo" - token inválido!')
+    }
+  }, [currentUserId, currentUserNome, currentUserEmail, tokenInfo])
 
   const {
     mensagens,
@@ -76,12 +98,47 @@ export const ContractChat = ({
 
   const sendMessageMutation = useSendChatMessage(contratoId)
 
+  // Só conecta SignalR se tiver token válido
+  const shouldConnectRealtime =
+    !!tokenInfo && currentUserId !== 'usuario-anonimo'
+
   const realtime = useContractChatRealtime({
     contratoId,
-    autorId: currentUserId,
+    autorId: shouldConnectRealtime ? currentUserId : '',
     sistemaId: CHAT_SISTEMA_ID,
     pageSize,
   })
+
+  // Alerta se SignalR não conectar por falta de autenticação
+  useEffect(() => {
+    if (!shouldConnectRealtime) {
+      logger.warn('SignalR desabilitado - Token não disponível ou inválido')
+    }
+  }, [shouldConnectRealtime])
+
+  // Função para normalizar IDs antes de comparar
+  const normalizarId = useCallback((id: string): string => {
+    return id?.trim().toLowerCase() ?? ''
+  }, [])
+
+  // Função para verificar se mensagem é do usuário atual
+  const isMensagemPropria = useCallback(
+    (remetenteId: string): boolean => {
+      const normalizedCurrent = normalizarId(currentUserId)
+      const normalizedRemetente = normalizarId(remetenteId)
+
+      logger.debug('Comparando IDs:', {
+        current: currentUserId,
+        remetente: remetenteId,
+        normalizedCurrent,
+        normalizedRemetente,
+        isOwn: normalizedCurrent === normalizedRemetente,
+      })
+
+      return normalizedCurrent === normalizedRemetente
+    },
+    [currentUserId, normalizarId],
+  )
 
   const mensagensOrdenadas = useMemo(() => {
     return [...mensagens].sort(
@@ -113,14 +170,14 @@ export const ContractChat = ({
       map.set(currentUserId, {
         id: currentUserId,
         nome: currentUserNome,
-        email: usuario?.email ?? '',
+        email: currentUserEmail,
         tipo: 'usuario',
         status: 'online',
       })
     }
 
     return Array.from(map.values())
-  }, [mensagens, currentUserId, currentUserNome, usuario])
+  }, [mensagens, currentUserId, currentUserNome, currentUserEmail])
 
   const currentUserParticipant = useMemo(
     () => participantes.find((p) => p.id === currentUserId),
@@ -152,6 +209,15 @@ export const ContractChat = ({
   const handleEnviarMensagem = useCallback(() => {
     if (!novaMensagem.trim() || sendMessageMutation.isPending) return
 
+    // Validação: não permite enviar sem token válido
+    if (currentUserId === 'usuario-anonimo' || !tokenInfo) {
+      logger.error('Tentativa de envio sem autenticação válida')
+      toast.error('Erro de autenticação', {
+        description: 'Não foi possível identificar o usuário. Faça login novamente.',
+      })
+      return
+    }
+
     try {
       sendMessageMutation.mutate({
         conteudo: novaMensagem.trim(),
@@ -169,6 +235,7 @@ export const ContractChat = ({
     currentUserId,
     currentUserNome,
     realtime,
+    tokenInfo,
   ])
 
 
@@ -295,10 +362,26 @@ export const ContractChat = ({
               </div>
             )}
 
-            {realtime.connectionState === 'error' && (
-              <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-                Conexão em tempo real indisponível. Exibindo dados armazenados no
-                cache.
+            {realtime.connectionState === 'error' && realtime.error && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+                <p className="font-medium">⚠️ Conexão em tempo real indisponível</p>
+                <p className="mt-1 text-xs opacity-80">
+                  {realtime.error.message}
+                </p>
+                <p className="mt-2 text-xs">
+                  Mensagens ainda podem ser enviadas, mas não aparecerão
+                  automaticamente. Recarregue a página após enviar.
+                </p>
+              </div>
+            )}
+
+            {!shouldConnectRealtime && (
+              <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+                <p className="font-medium">🔒 Chat em modo somente leitura</p>
+                <p className="mt-1 text-xs">
+                  Não foi possível autenticar o usuário. Faça login novamente
+                  para enviar mensagens.
+                </p>
               </div>
             )}
 
@@ -329,7 +412,7 @@ export const ContractChat = ({
               {mensagensOrdenadas.map((mensagem) => {
                 const remetenteTipo = mensagem.remetente.tipo ?? 'usuario'
                 const remetenteNome = mensagem.remetente.nome ?? 'Usuário'
-                const isOwn = mensagem.remetente.id === currentUserId
+                const isOwn = isMensagemPropria(mensagem.remetente.id)
 
                 return (
                   <motion.div
