@@ -26,6 +26,15 @@ const validarTokenJWT = (token: string): boolean => {
 // Função para obter o token JWT atual dos cookies
 export function getToken(): string | null {
   const token = cookieUtils.getCookie('auth_token')
+
+  // LOG TEMPORÁRIO PARA DEBUG
+  console.log('🔐 getToken() - Debug:', {
+    tokenExiste: !!token,
+    tokenLength: token?.length,
+    tokenValido: token ? validarTokenJWT(token) : false,
+    primeiros50: token?.substring(0, 50),
+  })
+
   if (token && validarTokenJWT(token)) {
     return token
   }

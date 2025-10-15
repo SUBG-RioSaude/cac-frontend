@@ -148,12 +148,108 @@ class SignalRChatManager {
     this.isConnecting = true
 
     try {
-      const token = authToken ?? getToken() ?? ''
-      const hubUrl = resolveHubUrl()
+      // Verificar validade do token antes de conectar
+      const tokenToValidate = authToken ?? getToken()
+      if (tokenToValidate) {
+        try {
+          const [, base64Payload] = tokenToValidate.split('.')
+          const payload = JSON.parse(atob(base64Payload))
+          const expTimestamp = payload.exp * 1000
+          const now = Date.now()
+          const isExpired = now > expTimestamp // Corrigido: se now > expTimestamp, token expirou
+          const timeUntilExpiry = expTimestamp - now
 
+          console.log('🕐 Validação de Token:', {
+            expiraEm: new Date(expTimestamp).toLocaleString('pt-BR'),
+            agora: new Date(now).toLocaleString('pt-BR'),
+            timestampExp: expTimestamp,
+            timestampNow: now,
+            expirado: isExpired,
+            tempoRestante: isExpired
+              ? `EXPIRADO há ${Math.abs(Math.floor(timeUntilExpiry / 1000 / 60))} minutos`
+              : `${Math.floor(timeUntilExpiry / 1000 / 60)} minutos`,
+          })
+
+          if (isExpired) {
+            logger.error('❌ Token EXPIRADO! Não pode conectar ao SignalR')
+            throw new Error('Token de autenticação expirado. Faça login novamente.')
+          }
+        } catch (error) {
+          logger.error('Erro ao validar token:', error as string)
+          throw error // Re-throw para impedir conexão
+        }
+      }
+
+      const hubUrl = resolveHubUrl()
+      const initialToken = authToken ?? getToken()
+
+      if (!initialToken) {
+        throw new Error('Token de autenticação não encontrado')
+      }
+
+      // Adicionar token na query string para o /negotiate
+      // SignalR tradicionalmente aceita token via query string ou accessTokenFactory
+      const hubUrlWithToken = `${hubUrl}?access_token=${encodeURIComponent(initialToken)}`
+
+      console.log('🔗 URL do Hub:', {
+        urlBase: hubUrl,
+        temToken: !!initialToken,
+        tamanhoToken: initialToken.length,
+      })
+
+      // Usar função dinâmica para sempre pegar token mais recente
       this.connection = new signalR.HubConnectionBuilder()
-        .withUrl(hubUrl, {
-          accessTokenFactory: () => token,
+        .withUrl(hubUrlWithToken, {
+          accessTokenFactory: () => {
+            console.log('🔵 SignalR accessTokenFactory CHAMADO')
+
+            const currentToken = authToken ?? getToken() ?? ''
+
+            console.log('🔵 Token obtido:', {
+              usandoAuthToken: !!authToken,
+              usandoGetToken: !authToken && !!getToken(),
+              tokenVazio: !currentToken,
+              tamanhoOriginal: currentToken.length,
+            })
+
+            // Backend espera "Bearer {token}" em TODOS os requests
+            // Adicionar Bearer tanto no accessTokenFactory quanto no header
+            const tokenWithBearer = currentToken.startsWith('Bearer ')
+              ? currentToken
+              : `Bearer ${currentToken}`
+
+            logger.debug('SignalR accessTokenFactory - Token disponível:', {
+              temToken: !!currentToken,
+              tamanho: tokenWithBearer.length,
+              inicio: `${tokenWithBearer.substring(0, 40)  }...`,
+            })
+
+            console.log('🔵 Token com Bearer:', {
+              jaTemBearer: currentToken.startsWith('Bearer '),
+              tamanhoFinal: tokenWithBearer.length,
+              inicio: tokenWithBearer.substring(0, 50),
+            })
+
+            return tokenWithBearer
+          },
+          headers: (() => {
+            const headerToken = authToken ?? getToken() ?? ''
+            const authHeader = `Bearer ${headerToken}`
+
+            console.log('🔵 Header /negotiate - Token:', {
+              temToken: !!headerToken,
+              tamanhoToken: headerToken.length,
+              tamanhoHeader: authHeader.length,
+              headerCompleto: authHeader.substring(0, 60),
+            })
+
+            console.warn('⚠️ HEADER AUTHORIZATION QUE SERÁ ENVIADO:', authHeader)
+
+            return {
+              // Adicionar Bearer token explicitamente no header para /negotiate
+              Authorization: authHeader,
+            }
+          })(),
         })
         .withAutomaticReconnect([0, 2000, 10000, 30000])
         .configureLogging(
@@ -166,7 +262,7 @@ class SignalRChatManager {
       this.setupEventHandlers(this.connection)
 
       await this.connection.start()
-      logger.info('Conexão SignalR estabelecida')
+      logger.info('Conexão SignalR estabelecida com sucesso')
       return this.connection
     } catch (error) {
       logger.error('Falha ao iniciar conexão SignalR', error as string)
@@ -299,10 +395,33 @@ class SignalRChatManager {
     autorId: string
     autorNome?: string
   }) {
+    // Validar token antes de enviar
+    const token = getToken()
+    if (!token) {
+      const errorMsg = 'Token de autenticação não encontrado. Faça login novamente.'
+      logger.error('sendMessage - Sem token', {
+        autorId: params.autorId,
+        contratoId: params.contratoId,
+      })
+      throw new Error(errorMsg)
+    }
+
+    logger.debug('sendMessage - Enviando mensagem', {
+      autorId: params.autorId,
+      autorNome: params.autorNome,
+      contratoId: params.contratoId,
+      temToken: !!token,
+      tamanhoToken: token.length,
+    })
+
     const connection = await this.ensureConnection()
     const sistemaId = params.sistemaId ?? CHAT_SISTEMA_ID
 
-    if (connection) {
+    if (!connection) {
+      throw new Error('Conexão SignalR não estabelecida')
+    }
+
+    try {
       await connection.invoke('SendMessage', {
         sistemaId,
         entidadeOrigemId: params.contratoId,
@@ -310,6 +429,11 @@ class SignalRChatManager {
         autorId: params.autorId,
         autorNome: params.autorNome ?? null,
       })
+
+      logger.info('Mensagem enviada com sucesso via SignalR')
+    } catch (error) {
+      logger.error('Erro ao invocar SendMessage no hub', error as string)
+      throw error
     }
   }
 
