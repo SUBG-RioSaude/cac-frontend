@@ -95,6 +95,20 @@ vi.mock('@/lib/auth/auth-store', () => ({
   })),
 }))
 
+// Mock das funções de autenticação JWT
+vi.mock('@/lib/auth/auth', () => ({
+  getToken: vi.fn(() => 'mock-jwt-token'),
+  getTokenInfo: vi.fn(() => ({
+    usuarioId: '1',
+    nomeCompleto: 'João Silva',
+    sub: 'joao@prefeitura.com',
+    tipoUsuario: 'gestor',
+    exp: new Date(Date.now() + 3600000), // 1 hora no futuro
+    iss: 'test-issuer',
+    aud: 'test-audience',
+  })),
+}))
+
 describe('ContractChat', () => {
   const mockProps = {
     contratoId: 'contrato-123',

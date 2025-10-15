@@ -12,13 +12,11 @@ import { createServiceLogger } from '@/lib/logger'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   atualizarMensagem,
-  criarMensagem,
   fetchEstatisticas,
   fetchMensagensPorContrato,
   removerMensagem,
   type AtualizarMensagemPayload,
   type ChatMensagensPaginadas,
-  type CriarMensagemPayload,
 } from '@/modules/Contratos/services/chat-service'
 import { signalRChatManager } from '@/modules/Contratos/services/signalr-manager'
 import {
@@ -33,20 +31,7 @@ export const buildChatQueryKey = (
   sistemaId: string,
 ) => [...contratoKeys.chat(contratoId), { pageSize, sistemaId }] as const
 
-const generateTempId = () =>
-  globalThis.crypto?.randomUUID?.() ?? `temp-${  Date.now().toString()}`
-
 const realtimeLogger = createServiceLogger('contract-chat-realtime')
-
-const updateFirstPage = (
-  data: InfiniteData<ChatMensagensPaginadas>,
-  updater: (page: ChatMensagensPaginadas) => ChatMensagensPaginadas,
-): InfiniteData<ChatMensagensPaginadas> => ({
-  pageParams: data.pageParams,
-  pages: data.pages.map((page, index) =>
-    index === 0 ? updater(page) : page,
-  ),
-})
 
 const replaceMessageInPages = (
   pages: ChatMensagensPaginadas[],
@@ -133,117 +118,32 @@ export const useSendChatMessage = (
   contratoId: string,
   options?: { pageSize?: number; sistemaId?: string },
 ) => {
-  const pageSize = options?.pageSize ?? CHAT_PAGE_SIZE_DEFAULT
   const sistemaId = options?.sistemaId ?? CHAT_SISTEMA_ID
-  const queryClient = useQueryClient()
-  const queryKey = buildChatQueryKey(contratoId, pageSize, sistemaId)
 
   return useMutation({
     mutationFn: async (input: SendChatMessageInput) => {
-      const payload: CriarMensagemPayload = {
+      // Envia mensagem via SignalR WebSocket
+      await signalRChatManager.sendMessage({
+        sistemaId: input.sistemaId ?? sistemaId,
         contratoId,
-        conteudo: input.conteudo,
+        texto: input.conteudo,
         autorId: input.autorId,
         autorNome: input.autorNome,
-        sistemaId: input.sistemaId ?? sistemaId,
-      }
+      })
 
-      return criarMensagem(payload)
+      // Retorna objeto vazio para compatibilidade com interface
+      return {
+        success: true,
+        message: 'Mensagem enviada via SignalR',
+      }
     },
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey })
-
-      const previousData = queryClient.getQueryData<
-        InfiniteData<ChatMensagensPaginadas>
-      >(queryKey)
-
-      const tempMessage: ChatMessage = {
-        id: generateTempId(),
-        contratoId,
-        conteudo: input.conteudo,
-        remetente: {
-          id: input.autorId,
-          nome: input.autorNome ?? 'Você',
-          tipo: 'usuario',
-        },
-        tipo: 'texto',
-        dataEnvio: new Date().toISOString(),
-        lida: true,
-      }
-
-      if (previousData) {
-        const nextState = updateFirstPage(previousData, (page) => ({
-          ...page,
-          mensagens: [tempMessage, ...page.mensagens],
-          totalItens: page.totalItens + 1,
-        }))
-
-        queryClient.setQueryData(queryKey, nextState)
-      } else {
-        const nextState: InfiniteData<ChatMensagensPaginadas> = {
-          pageParams: [1],
-          pages: [
-            {
-              mensagens: [tempMessage],
-              totalItens: 1,
-              paginaAtual: 1,
-              tamanhoPagina: pageSize,
-              temProximaPagina: false,
-              temPaginaAnterior: false,
-            },
-          ],
-        }
-
-        queryClient.setQueryData(queryKey, nextState)
-      }
-
-      return { previousData, tempId: tempMessage.id }
+    onSuccess: () => {
+      toast.success('Mensagem enviada!')
     },
-    onSuccess: (mensagem, _variables, context) => {
-      toast.success('Mensagem enviada com sucesso!')
-
-      queryClient.setQueryData<InfiniteData<ChatMensagensPaginadas>>(
-        queryKey,
-        (current) => {
-          if (!current) {
-            return current
-          }
-
-          const pages = replaceMessageInPages(
-            current.pages,
-            (item) => item.id === context?.tempId,
-            (_item) => mensagem,
-          )
-
-          const found = pages.some((page) =>
-            page.mensagens.some((item) => item.id === mensagem.id),
-          )
-
-          if (!found && pages.length > 0) {
-            pages[0] = {
-              ...pages[0],
-              mensagens: [mensagem, ...pages[0].mensagens],
-              totalItens: pages[0].totalItens + 1,
-            }
-          }
-
-          return {
-            ...current,
-            pages,
-          }
-        },
-      )
-    },
-    onError: (error, _variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKey, context.previousData)
-      }
+    onError: (error) => {
       toast.error('Erro ao enviar mensagem', {
         description: error instanceof Error ? error.message : 'Erro desconhecido',
       })
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey })
     },
   })
 }
@@ -407,7 +307,28 @@ export const useContractChatRealtime = ({
   const [connectionError, setConnectionError] = useState<Error | null>(null)
 
   useEffect(() => {
+    realtimeLogger.debug('useContractChatRealtime - Inicializando com params:', {
+      contratoId,
+      autorId,
+      sistemaId,
+      pageSize,
+    })
+
     if (!contratoId || !autorId) {
+      realtimeLogger.warn('SignalR NÃO VAI CONECTAR - Parâmetros inválidos:', {
+        contratoId,
+        autorId,
+        motivo: !contratoId
+          ? 'contratoId vazio'
+          : 'autorId vazio (usuário não autenticado)',
+      })
+      return undefined
+    }
+
+    if (autorId === 'usuario-anonimo') {
+      realtimeLogger.error(
+        'SignalR NÃO VAI CONECTAR - autorId é fallback "usuario-anonimo"',
+      )
       return undefined
     }
 
@@ -416,17 +337,33 @@ export const useContractChatRealtime = ({
 
     const connect = async () => {
       setConnectionState('connecting')
+      realtimeLogger.info('Iniciando conexão SignalR...')
+
       try {
         await signalRChatManager.initialize()
         if (!isActive) return
 
+        realtimeLogger.info('SignalR inicializado, entrando na sala:', {
+          sistemaId,
+          contratoId,
+        })
+
         await signalRChatManager.joinRoom(sistemaId, contratoId)
         if (!isActive) return
+
+        realtimeLogger.info('Sala joined com sucesso!')
 
         unsubscribeMessage = signalRChatManager.onMessage(
           sistemaId,
           contratoId,
           (mensagem) => {
+            realtimeLogger.debug('Mensagem recebida via SignalR:', {
+              id: mensagem.id,
+              remetenteId: mensagem.remetente.id,
+              remetenteNome: mensagem.remetente.nome,
+              conteudo: mensagem.conteudo.substring(0, 50),
+            })
+
             queryClient.setQueryData<InfiniteData<ChatMensagensPaginadas>>(
               buildChatQueryKey(contratoId, pageSize, sistemaId),
               (current) => {
@@ -451,8 +388,11 @@ export const useContractChatRealtime = ({
                 )
 
                 if (exists) {
+                  realtimeLogger.debug('Mensagem já existe, ignorando duplicação')
                   return current
                 }
+
+                realtimeLogger.debug('Adicionando nova mensagem ao cache')
 
                 const pages = [...current.pages]
 
