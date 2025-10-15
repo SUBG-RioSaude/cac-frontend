@@ -428,7 +428,7 @@ export const ContractChat = ({
                   >
                     {mensagem.tipo === 'sistema' ? (
                       <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-center">
-                        <p className="flex items-center justify-center gap-2 text-sm font-medium text-blue-700">
+                        <p className="flex items-center justify-center gap-2 text-sm font-medium text-blue-700 whitespace-pre-wrap">
                           <CheckCircle2 className="h-4 w-4" />
                           {mensagem.conteudo}
                         </p>
@@ -477,7 +477,7 @@ export const ContractChat = ({
                           <div className="group relative">
                             <div
                               className={cn(
-                                'rounded-lg border px-4 py-3 text-sm leading-relaxed shadow-sm',
+                                'rounded-lg border px-4 py-3 text-sm leading-relaxed shadow-sm whitespace-pre-wrap',
                                 isOwn
                                   ? 'border-blue-500 bg-blue-500 text-white'
                                   : 'border-border bg-white transition-shadow hover:shadow-md',
