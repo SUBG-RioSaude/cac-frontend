@@ -55,29 +55,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => unsubscribe()
   }, [queryClient])
 
-  // Verifica cookies periodicamente enquanto carregando (fallback)
-  // Intervalo reduzido de 100ms para 500ms para evitar re-renders excessivos
+  // Verifica cookies periodicamente para detectar mudanças
+  // IMPORTANTE: Roda sempre, não apenas quando isLoading, para detectar
+  // quando tokens são adicionados (ex: após troca de senha)
   useEffect(() => {
-    if (isLoading) {
-      const interval = setInterval(() => {
-        const cookiesExistem = hasAuthCookies()
-        setHasCookies((prev) => {
-          if (cookiesExistem !== prev) {
-            authContextLogger.debug(
-              {
-                cookiesExistem,
-                hasCookiesPrevious: prev,
-              },
-              'Cookies mudaram durante carregamento',
-            )
-            return cookiesExistem
-          }
-          return prev
-        })
-      }, 500) // Aumentado de 100ms para 500ms para melhor performance
+    const interval = setInterval(() => {
+      const cookiesExistem = hasAuthCookies()
+      setHasCookies((prev) => {
+        if (cookiesExistem !== prev) {
+          authContextLogger.debug(
+            {
+              cookiesExistem,
+              hasCookiesPrevious: prev,
+              isLoading,
+            },
+            'Cookies mudaram - polling detectou alteração',
+          )
+          return cookiesExistem
+        }
+        return prev
+      })
+    }, 500)
 
-      return () => clearInterval(interval)
-    }
+    return () => clearInterval(interval)
   }, [isLoading])
 
   const value: AuthContextValue = {
