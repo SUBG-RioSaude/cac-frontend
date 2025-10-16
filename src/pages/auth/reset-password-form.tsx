@@ -59,6 +59,11 @@ const ResetPasswordForm = () => {
       return
     }
 
+    // Se mostrou sucesso, não valida mais contexto (aguardando autenticação)
+    if (sucesso) {
+      return
+    }
+
     // Verifica se veio do fluxo de recuperação ou senha expirada
     const contexto = sessionStorage.getItem('auth_context')
     if (contexto !== 'password_reset' && contexto !== 'password_recovery' && contexto !== 'password_expired') {
@@ -74,7 +79,7 @@ const ResetPasswordForm = () => {
       // Se não houver email, redirecionar para login
       navigate('/login')
     }
-  }, [navigate, estaAutenticado])
+  }, [navigate, estaAutenticado, sucesso])
 
   const handleSubmitAsync = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,19 +102,16 @@ const ResetPasswordForm = () => {
         tokenTrocaSenha: tokenTrocaSenha ?? undefined,
       })
 
-      setSucesso('Senha alterada com sucesso!')
+      setSucesso('Senha alterada com sucesso! Redirecionando...')
 
       // Limpar contexto de recuperação
       sessionStorage.removeItem('auth_context')
       sessionStorage.removeItem('tokenTrocaSenha')
       sessionStorage.removeItem('auth_email')
 
-      // Redireciona para dashboard ou página inicial
-      setTimeout(() => {
-        const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
-        sessionStorage.removeItem('redirectAfterLogin')
-        navigate(redirectPath)
-      }, 2000)
+      // Auto-login: tokens já foram salvos pela mutation
+      // O useEffect detectará estaAutenticado e redirecionará automaticamente
+      // quando o estado de auth for atualizado pela polling do AuthContext
     } catch {
       // Erro já capturado pelo mutation
     }

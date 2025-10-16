@@ -205,23 +205,40 @@ const VerifyForm = () => {
 
       // Verifica se precisa trocar senha
       if ('requiresPasswordChange' in resultado && resultado.requiresPasswordChange) {
+        // Token pode estar em resultado.tokenTrocaSenha OU resultado.dados.tokenTrocaSenha
+        const token = resultado.tokenTrocaSenha ?? resultado.dados?.tokenTrocaSenha ?? ''
+
         verifyLogger.info(
-          { action: 'confirm-2fa', status: 'password-change-required' },
+          {
+            action: 'confirm-2fa',
+            status: 'password-change-required',
+            tokenPresente: !!token,
+            tokenLength: token.length
+          },
           'Redirecionando para troca de senha',
         )
         sessionStorage.setItem('auth_context', 'password_reset')
-        sessionStorage.setItem('tokenTrocaSenha', resultado.tokenTrocaSenha ?? '')
+        sessionStorage.setItem('tokenTrocaSenha', token)
         navigate('/auth/trocar-senha', { replace: true })
         return
       }
 
       if (contexto === 'password_recovery' || contexto === 'password_expired') {
+        // Token pode estar em resultado.tokenTrocaSenha OU resultado.dados.tokenTrocaSenha
+        const token = resultado.tokenTrocaSenha ?? resultado.dados?.tokenTrocaSenha ?? ''
+
         verifyLogger.info(
-          { action: 'confirm-2fa', status: 'password-recovery' },
-          'Contexto de recuperação de senha',
+          {
+            action: 'confirm-2fa',
+            status: 'password-recovery',
+            tokenPresente: !!token,
+            tokenLength: token.length
+          },
+          'Contexto de recuperação de senha - armazenando token',
         )
         // Código válido, navegar para redefinir senha
         sessionStorage.setItem('auth_context', 'password_reset')
+        sessionStorage.setItem('tokenTrocaSenha', token)
         navigate('/auth/trocar-senha', { replace: true })
       } else {
         // Login bem-sucedido, redireciona para a página principal

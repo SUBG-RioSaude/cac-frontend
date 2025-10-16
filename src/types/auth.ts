@@ -49,6 +49,10 @@ export interface ConfirmarCodigo2FAResponse {
     token: string
     refreshToken: string
     usuario: Usuario
+    // Campos adicionais para fluxo de recuperação de senha
+    message?: string
+    precisaTrocarSenha?: boolean
+    tokenTrocaSenha?: string
   }
   precisaTrocarSenha?: boolean
   senhaExpirada?: boolean
