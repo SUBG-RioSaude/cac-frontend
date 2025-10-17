@@ -14,7 +14,7 @@ export interface TimelineEntry {
   }
   status: 'ativo' | 'arquivado'
   prioridade: 'baixa' | 'media' | 'alta' | 'critica'
-  
+
   // Dados específicos para alterações contratuais
   alteracaoContratual?: {
     alteracaoId: string
@@ -26,7 +26,7 @@ export interface TimelineEntry {
     novaVigencia: string
     statusAlteracao: 'rascunho' | 'submetida' | 'aprovada' | 'rejeitada'
   }
-  
+
   // Dados para marcos temporais
   milestone?: {
     etapa: string
@@ -34,12 +34,12 @@ export interface TimelineEntry {
     concluido: boolean
     percentualCompleto?: number
   }
-  
+
   // Metadados adicionais
   metadata?: Record<string, unknown>
   tags?: string[]
   anexos?: TimelineAnexo[]
-  
+
   // Timestamps
   criadoEm: string
   atualizadoEm?: string
@@ -132,7 +132,11 @@ export interface TimelineNotificacao {
   id: string
   contratoId: string
   entradaId: string
-  tipo: 'nova_entrada' | 'alteracao_aprovada' | 'prazo_proximo' | 'milestone_concluido'
+  tipo:
+    | 'nova_entrada'
+    | 'alteracao_aprovada'
+    | 'prazo_proximo'
+    | 'milestone_concluido'
   titulo: string
   descricao: string
   lida: boolean

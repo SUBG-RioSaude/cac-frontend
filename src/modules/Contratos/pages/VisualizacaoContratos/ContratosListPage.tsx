@@ -1,43 +1,45 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
+import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
 import { SearchAndFilters } from '@/modules/Contratos/components/ListaContratos/pesquisa-e-filtros'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
-import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
-import { useContratosPageState } from '@/modules/Contratos/hooks/useContratosPageState'
 import { useContratos } from '@/modules/Contratos/hooks'
+import { useContratosPageState } from '@/modules/Contratos/hooks/useContratosPageState'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
-export function ContratosPage() {
+export const ContratosPage = () => {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
-  
+
   // Estado local da página
   const pageState = useContratosPageState()
-  
+
   // Dados da API via React Query
-  const { 
-    data: contractsResponse, 
-    isLoading, 
+  const {
+    data: contractsResponse,
+    isLoading,
     isPlaceholderData,
     error,
     isError,
-    refetch
+    refetch,
   } = useContratos(pageState.parametrosAPI, {
     keepPreviousData: true, // Mantém dados anteriores durante paginação
-    refetchOnMount: true
+    refetchOnMount: true,
   })
 
   // Extrair dados da resposta ou usar array vazio
-  const contratos: Contrato[] = contractsResponse?.dados || []
-  const totalContratos = contractsResponse?.totalRegistros || 0
-  
+  const contratos: Contrato[] = contractsResponse?.dados ?? []
+  const totalContratos = contractsResponse?.totalRegistros ?? 0
+
   // Atualizar paginação quando receber dados da API
   if (contractsResponse && pageState.paginacao.total !== totalContratos) {
     pageState.setPaginacao({
       ...pageState.paginacao,
-      total: totalContratos
+      total: totalContratos,
     })
   }
 
@@ -54,14 +56,14 @@ export function ContratosPage() {
         'Unidade',
       ],
       ...contratos.map((c) => [
-        c.numeroContrato || 'N/A',
-        c.contratada?.razaoSocial || 'N/A',
-        c.contratada?.cnpj || 'N/A',
-        (c.valor || c.valorGlobal || 0).toString(),
-        c.dataInicial || c.vigenciaInicial,
-        c.dataFinal || c.vigenciaFinal,
-        c.status || 'N/A',
-        c.unidade || c.unidadeDemandante || 'N/A',
+        c.numeroContrato ?? 'N/A',
+        c.contratada?.razaoSocial ?? 'N/A',
+        c.contratada?.cnpj ?? 'N/A',
+        (c.valor ?? c.valorGlobal).toString(),
+        c.dataInicial ?? c.vigenciaInicial,
+        c.dataFinal ?? c.vigenciaFinal,
+        c.status ?? 'N/A',
+        c.unidade ?? c.unidadeDemandante ?? 'N/A',
       ]),
     ]
       .map((row) => row.join(','))
@@ -97,14 +99,14 @@ export function ContratosPage() {
         'Unidade',
       ],
       ...contratosSelecionadosData.map((c) => [
-        c.numeroContrato || 'N/A',
-        c.contratada?.razaoSocial || 'N/A',
-        c.contratada?.cnpj || 'N/A',
-        (c.valor || c.valorGlobal || 0).toString(),
-        c.dataInicial || c.vigenciaInicial,
-        c.dataFinal || c.vigenciaFinal,
-        c.status || 'N/A',
-        c.unidade || c.unidadeDemandante || 'N/A',
+        c.numeroContrato ?? 'N/A',
+        c.contratada?.razaoSocial ?? 'N/A',
+        c.contratada?.cnpj ?? 'N/A',
+        (c.valor ?? c.valorGlobal).toString(),
+        c.dataInicial ?? c.vigenciaInicial,
+        c.dataFinal ?? c.vigenciaFinal,
+        c.status ?? 'N/A',
+        c.unidade ?? c.unidadeDemandante ?? 'N/A',
       ]),
     ]
       .map((row) => row.join(','))
@@ -129,8 +131,13 @@ export function ContratosPage() {
     }
   }
 
+
+  const navigate = useNavigate()
+
   const handleNovoContrato = () => {
-  }
+    navigate('/contratos/cadastrar')
+    // TODO: Implementar navegação para novo contrato
+  } 
 
   const textoExportar =
     pageState.contratosSelecionados.length > 0
@@ -138,8 +145,8 @@ export function ContratosPage() {
       : 'Exportar Todos'
 
   return (
-    <div className="min-h-screen">
-      <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
+    <div className="min-h-screen overflow-x-hidden">
+      <div className="space-y-6 py-6 sm:space-y-8 sm:py-8">
         {/* Cabeçalho Responsivo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -175,10 +182,11 @@ export function ContratosPage() {
               <span className="hidden sm:inline">{textoExportar}</span>
             </Button>
             <Button
+              variant="outline-premium"
               onClick={handleNovoContrato}
-              className="h-10 cursor-pointer shadow-sm sm:h-auto"
+              className="h-10 cursor-pointer shadow-sm sm:h-auto  "
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4 " />
               Novo Contrato
             </Button>
           </motion.div>
@@ -190,7 +198,7 @@ export function ContratosPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <SearchAndFilters 
+          <SearchAndFilters
             termoPesquisa={pageState.termoPesquisa}
             filtros={pageState.filtros}
             onTermoPesquisaChange={pageState.setTermoPesquisa}
@@ -214,12 +222,15 @@ export function ContratosPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-red-700 text-sm">
-                  {(error as Error)?.message || 'Ocorreu um erro inesperado ao carregar os dados.'}
+                <p className="text-sm text-red-700">
+                  {(error as Error).message ||
+                    'Ocorreu um erro inesperado ao carregar os dados.'}
                 </p>
                 <Button
                   variant="outline"
-                  onClick={() => refetch()}
+                  onClick={() => {
+                    void refetch()
+                  }}
                   className="border-red-300 text-red-700 hover:bg-red-100"
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
@@ -232,7 +243,7 @@ export function ContratosPage() {
 
         {/* Tabela */}
         {!isError && (
-          <TabelaContratos 
+          <TabelaContratos
             contratos={contratos}
             isLoading={isLoading}
             paginacao={pageState.paginacao}

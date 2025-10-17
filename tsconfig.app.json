@@ -31,9 +31,9 @@
   },
   "include": ["src"],
   "exclude": [
-    "src/**/*.test.ts", 
-    "src/**/*.test.tsx", 
-    "src/tests/**/*", 
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/tests/**/*",
     "src/**/__tests__/**/*"
   ]
 }

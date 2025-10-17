@@ -1,18 +1,32 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Home, ArrowLeft } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface NotFoundProps {
   error?: string
 }
 
-export default function NotFound({ error: propError }: NotFoundProps) {
+interface LocationState {
+  error?: string
+}
+
+function isValidLocationState(state: unknown): state is LocationState {
+  return typeof state === 'object' && state !== null
+}
+
+const NotFound = ({ error: propError }: NotFoundProps) => {
   const navigate = useNavigate()
   const location = useLocation()
 
   // Buscar erro do state da navegação ou usar prop
-  const error = location.state?.error || propError
+  const locationError =
+    isValidLocationState(location.state) &&
+    typeof location.state.error === 'string'
+      ? location.state.error
+      : undefined
+  const error = locationError ?? propError
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-6">
@@ -73,3 +87,5 @@ export default function NotFound({ error: propError }: NotFoundProps) {
     </div>
   )
 }
+
+export default NotFound

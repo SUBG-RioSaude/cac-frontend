@@ -1,15 +1,17 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@/tests/test-utils'
-import { DetalhesContrato } from '../detalhes-contrato'
+
 import { contratoDetalhadoMock } from '@/modules/Contratos/data/contratos-mock'
+import { render, screen } from '@/tests/test-utils'
+
+import { DetalhesContrato } from '../detalhes-contrato'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   useEmpresa: vi.fn(() => ({
     data: null,
     isLoading: false,
-    error: null
-  }))
+    error: null,
+  })),
 }))
 
 vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
@@ -17,8 +19,8 @@ vi.mock('@/modules/Unidades/hooks/use-unidades-batch', () => ({
     data: {},
     isLoading: false,
     error: null,
-    getNome: vi.fn((id) => `Mock Unidade ${id}`)
-  }))
+    getNome: vi.fn((id) => `Mock Unidade ${id}`),
+  })),
 }))
 
 // Mock do framer-motion para evitar problemas nos testes

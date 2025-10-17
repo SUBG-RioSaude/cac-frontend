@@ -5,11 +5,19 @@
  * Gráfico de linha mostrando evolução dos status nos últimos 6 meses
  */
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart'
-import { Skeleton } from '@/components/ui/skeleton'
 import { TrendingUp } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart'
+import { Skeleton } from '@/components/ui/skeleton'
+
 import { useDashboardCharts } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
@@ -22,29 +30,32 @@ interface StatusTrendChartProps {
 const chartConfig = {
   ativos: {
     label: 'Ativos',
-    color: 'hsl(var(--chart-1))'
+    color: 'hsl(var(--chart-1))',
   },
   pendentes: {
-    label: 'Pendentes', 
-    color: 'hsl(var(--chart-2))'
+    label: 'Pendentes',
+    color: 'hsl(var(--chart-2))',
   },
   encerrados: {
     label: 'Encerrados',
-    color: 'hsl(var(--chart-3))'
+    color: 'hsl(var(--chart-3))',
   },
   suspensos: {
     label: 'Suspensos',
-    color: 'hsl(var(--chart-4))'
-  }
+    color: 'hsl(var(--chart-4))',
+  },
 }
 
-export function StatusTrendChart({ filters, className }: StatusTrendChartProps) {
+export const StatusTrendChart = ({
+  filters,
+  className,
+}: StatusTrendChartProps) => {
   const { statusTrend, isLoading, error } = useDashboardCharts(filters)
 
   // Estados de carregamento e erro
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card className={className} data-testid="status-trend-chart">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -55,7 +66,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
           <div className="space-y-4">
             <Skeleton className="h-64 w-full" />
             <div className="flex justify-center gap-4">
-              {Object.keys(chartConfig).map(key => (
+              {Object.keys(chartConfig).map((key) => (
                 <div key={key} className="flex items-center gap-2">
                   <Skeleton className="h-3 w-3 rounded-sm" />
                   <Skeleton className="h-4 w-20" />
@@ -70,7 +81,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
 
   if (error) {
     return (
-      <Card className={className}>
+      <Card className={className} data-testid="status-trend-chart">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-700">
             <TrendingUp className="h-5 w-5" />
@@ -78,7 +89,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-64 items-center justify-center text-sm">
             Erro ao carregar dados do gráfico
           </div>
         </CardContent>
@@ -88,7 +99,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
 
   if (statusTrend.length === 0) {
     return (
-      <Card className={className}>
+      <Card className={className} data-testid="status-trend-chart">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -96,7 +107,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex h-64 items-center justify-center text-sm">
             Nenhum registro encontrado
           </div>
         </CardContent>
@@ -105,7 +116,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
   }
 
   return (
-    <Card className={className}>
+    <Card className={className} data-testid="status-trend-chart">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
@@ -129,7 +140,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value}
+              tickFormatter={(value: string) => value}
             />
             <YAxis
               tickLine={false}
@@ -147,7 +158,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
               stroke="var(--color-ativos)"
               strokeWidth={2}
               dot={{
-                fill: "var(--color-ativos)",
+                fill: 'var(--color-ativos)',
               }}
               activeDot={{
                 r: 6,
@@ -159,7 +170,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
               stroke="var(--color-pendentes)"
               strokeWidth={2}
               dot={{
-                fill: "var(--color-pendentes)",
+                fill: 'var(--color-pendentes)',
               }}
               activeDot={{
                 r: 6,
@@ -171,7 +182,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
               stroke="var(--color-encerrados)"
               strokeWidth={2}
               dot={{
-                fill: "var(--color-encerrados)",
+                fill: 'var(--color-encerrados)',
               }}
               activeDot={{
                 r: 6,
@@ -183,7 +194,7 @@ export function StatusTrendChart({ filters, className }: StatusTrendChartProps) 
               stroke="var(--color-suspensos)"
               strokeWidth={2}
               dot={{
-                fill: "var(--color-suspensos)",
+                fill: 'var(--color-suspensos)',
               }}
               activeDot={{
                 r: 6,

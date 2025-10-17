@@ -5,7 +5,10 @@
  * Tipos específicos para métricas, filtros e análises do dashboard
  */
 
-import type { ContratoStatus, TipoContrato } from '@/modules/Contratos/types/contrato'
+import type {
+  ContratoStatus,
+  TipoContrato,
+} from '@/modules/Contratos/types/contrato'
 
 // ========== MÉTRICAS DO DASHBOARD ==========
 
@@ -77,7 +80,12 @@ export interface RecentContract {
 
 // ========== ATIVIDADES RECENTES ==========
 
-export type ActivityType = 'cadastrado' | 'aprovado' | 'atualizado' | 'cancelado' | 'renovado'
+export type ActivityType =
+  | 'cadastrado'
+  | 'aprovado'
+  | 'atualizado'
+  | 'cancelado'
+  | 'renovado'
 
 export interface DashboardActivity {
   id: string
@@ -159,7 +167,10 @@ export interface UseDashboardDataResult {
 
 export interface UseFiltersResult {
   filters: DashboardFilters
-  updateFilter: <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => void
+  updateFilter: <K extends keyof DashboardFilters>(
+    key: K,
+    value: DashboardFilters[K],
+  ) => void
   resetFilters: () => void
   hasActiveFilters: boolean
 }

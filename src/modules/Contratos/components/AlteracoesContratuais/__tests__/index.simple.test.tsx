@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
 import React from 'react'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock simples para verificar se os componentes podem ser importados
 vi.mock('../hooks/useAlteracoesContratuais', () => ({
@@ -8,8 +8,8 @@ vi.mock('../hooks/useAlteracoesContratuais', () => ({
     atualizarDados: vi.fn(),
     validarCamposObrigatorios: vi.fn(),
     submeterParaAprovacao: vi.fn(),
-    podeSubmeter: false
-  })
+    podeSubmeter: false,
+  }),
 }))
 
 vi.mock('../../hooks/use-contract-context', () => ({
@@ -17,14 +17,15 @@ vi.mock('../../hooks/use-contract-context', () => ({
   useContractFinancials: () => ({}),
   useContractTerms: () => ({}),
   useContractSuppliers: () => ({}),
-  useContractUnits: () => ({})
+  useContractUnits: () => ({}),
 }))
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: React.ComponentPropsWithoutRef<'div'>) => React.createElement('div', props, children)
+    div: ({ children, ...props }: React.ComponentPropsWithoutRef<'div'>) =>
+      React.createElement('div', props, children),
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => children
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 describe('AlteracoesContratuais - Import Test', () => {

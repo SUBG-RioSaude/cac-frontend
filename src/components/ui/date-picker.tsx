@@ -24,10 +24,10 @@ interface DatePickerProps {
 export function DatePicker({
   date,
   onDateChange,
-  placeholder = "Selecionar data",
+  placeholder = 'Selecionar data',
   disabled = false,
   className,
-  disabledDates
+  disabledDates,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -46,15 +46,15 @@ export function DatePicker({
         <Button
           variant="outline"
           className={cn(
-            "justify-start text-left font-normal",
-            !date && "text-muted-foreground",
-            className
+            'justify-start text-left font-normal',
+            !date && 'text-muted-foreground',
+            className,
           )}
           disabled={disabled}
         >
           <CalendarDays className="mr-2 h-4 w-4" />
           {date ? (
-            format(date, "dd/MM/yyyy", { locale: ptBR })
+            format(date, 'dd/MM/yyyy', { locale: ptBR })
           ) : (
             <span>{placeholder}</span>
           )}

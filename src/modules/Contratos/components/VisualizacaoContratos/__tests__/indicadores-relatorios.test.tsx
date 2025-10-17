@@ -1,10 +1,11 @@
 /// <reference types="vitest/globals" />
 /// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../../../tests/test-utils'
-import { IndicadoresRelatorios } from '../indicadores-relatorios'
-import type { ContratoDetalhado } from '../../../types/contrato'
 import React from 'react'
+import { describe, it, expect, vi } from 'vitest'
+
+import { render, screen } from '../../../../../tests/test-utils'
+import type { ContratoDetalhado } from '../../../types/contrato'
+import { IndicadoresRelatorios } from '../indicadores-relatorios'
 
 // Mock dos hooks de React Query
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
@@ -12,11 +13,11 @@ vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
     data: {
       'unidade-1': { nome: 'Secretaria de Obras' },
       'unidade-2': { nome: 'Secretaria de Educação' },
-      'unidade-3': { nome: 'Secretaria de Saúde' }
+      'unidade-3': { nome: 'Secretaria de Saúde' },
     },
     isLoading: false,
-    error: null
-  }))
+    error: null,
+  })),
 }))
 
 // Mock do framer-motion para evitar problemas nos testes
@@ -29,13 +30,21 @@ vi.mock('framer-motion', () => ({
       children: React.ReactNode
       [key: string]: unknown
     }) => <div {...props}>{children}</div>,
-    span: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-      <span {...props}>{children}</span>
-    ),
-    path: ({ ...props }: { [key: string]: unknown }) => <path {...props} />,
-    svg: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-      <svg {...props}>{children}</svg>
-    ),
+    span: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode
+      [key: string]: unknown
+    }) => <span {...props}>{children}</span>,
+    path: ({ ...props }: Record<string, unknown>) => <path {...props} />,
+    svg: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode
+      [key: string]: unknown
+    }) => <svg {...props}>{children}</svg>,
   },
 }))
 
@@ -119,7 +128,7 @@ const contratoMock: ContratoDetalhado = {
   dataAtualizacao: '2023-05-12T00:00:00Z',
   responsaveis: {
     fiscaisAdministrativos: [],
-    gestores: []
+    gestores: [],
   },
   fornecedor: {
     razaoSocial: 'Empresa Teste LTDA',
@@ -130,13 +139,13 @@ const contratoMock: ContratoDetalhado = {
       logradouro: 'Rua Teste',
       bairro: 'Bairro Teste',
       cidade: 'Rio de Janeiro',
-      uf: 'RJ'
-    }
+      uf: 'RJ',
+    },
   },
   unidades: {
     demandante: 'Unidade Demandante',
     gestora: 'Unidade Gestora',
-    vinculadas: []
+    vinculadas: [],
   },
   alteracoes: [],
   documentos: [],
@@ -147,12 +156,12 @@ const contratoMock: ContratoDetalhado = {
     garantiaContratual: { entregue: false },
     contrato: { entregue: false },
     publicacaoPncp: { entregue: false },
-    publicacaoExtrato: { entregue: false }
+    publicacaoExtrato: { entregue: false },
   },
   indicadores: {
     saldoAtual: 750000,
     percentualExecutado: 40,
-    cronogramaVigencia: []
+    cronogramaVigencia: [],
   },
   unidadesVinculadas: [
     {
@@ -161,7 +170,7 @@ const contratoMock: ContratoDetalhado = {
       unidadeSaudeId: 'unidade-1',
       nomeUnidade: 'Secretaria de Obras',
       valorAtribuido: 750000,
-      ativo: true
+      ativo: true,
     },
     {
       id: '2',
@@ -169,7 +178,7 @@ const contratoMock: ContratoDetalhado = {
       unidadeSaudeId: 'unidade-2',
       nomeUnidade: 'Secretaria de Educação',
       valorAtribuido: 312500,
-      ativo: true
+      ativo: true,
     },
     {
       id: '3',
@@ -177,9 +186,9 @@ const contratoMock: ContratoDetalhado = {
       unidadeSaudeId: 'unidade-3',
       nomeUnidade: 'Secretaria de Saúde',
       valorAtribuido: 187500,
-      ativo: true
-    }
-  ]
+      ativo: true,
+    },
+  ],
 }
 
 describe('IndicadoresRelatorios', () => {
@@ -301,7 +310,9 @@ describe('IndicadoresRelatorios', () => {
     )
 
     // Verifica se há pelo menos um status sendo exibido
-    const statusElements = screen.queryAllByText(/Concluído|Em Andamento|Pendente/)
+    const statusElements = screen.queryAllByText(
+      /Concluído|Em Andamento|Pendente/,
+    )
     expect(statusElements.length).toBeGreaterThan(0)
   })
 
@@ -394,7 +405,7 @@ describe('IndicadoresRelatorios', () => {
 
     const contratoVazio = {
       ...contratoMock,
-      unidadesVinculadas: []
+      unidadesVinculadas: [],
     }
 
     render(
@@ -424,7 +435,13 @@ describe('IndicadoresRelatorios', () => {
 
     // Verifica se as classes de responsividade estão sendo aplicadas
     const gridContainer = screen.getByText('Valor Total').closest('.grid')
-    expect(gridContainer).toHaveClass('grid', 'grid-cols-1', 'gap-3', 'sm:grid-cols-2', 'sm:gap-4')
+    expect(gridContainer).toHaveClass(
+      'grid',
+      'grid-cols-1',
+      'gap-3',
+      'sm:grid-cols-2',
+      'sm:gap-4',
+    )
   })
 
   it('deve exibir ícones corretos para cada seção', () => {

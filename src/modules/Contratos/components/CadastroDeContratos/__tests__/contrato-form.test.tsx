@@ -1,7 +1,8 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 import ContratoForm, {
   type DadosContrato,
 } from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
@@ -16,10 +17,7 @@ vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
       'Secretaria de Administração',
       'Secretaria de Transportes',
     ],
-    gestoras: [
-      'Departamento de Compras',
-      'Departamento de Contratos',
-    ]
+    gestoras: ['Departamento de Compras', 'Departamento de Contratos'],
   },
 }))
 
@@ -36,10 +34,11 @@ global.fetch = vi.fn().mockImplementation((url: string) => {
   if (url.includes('processo-instrutivo')) {
     return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve({
-        prefixos: ['SEI', 'PROC'],
-        sufixos: ['2024', '2025'],
-      }),
+      json: () =>
+        Promise.resolve({
+          prefixos: ['SEI', 'PROC'],
+          sufixos: ['2024', '2025'],
+        }),
     } as Response)
   }
   return Promise.resolve({
@@ -81,9 +80,7 @@ describe('ContratoForm', () => {
     })
 
     return render(
-      <QueryClientProvider client={queryClient}>
-        {ui}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
     )
   }
 
@@ -229,7 +226,7 @@ describe('ContratoForm', () => {
     fireEvent.click(submitButton)
 
     // Aguarda um pouco para que a validação seja processada
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // Verifica se há algum erro relacionado ao prazo
     const errorMessages = screen.getAllByText(/prazo/i)
@@ -248,7 +245,9 @@ describe('ContratoForm', () => {
 
     // Verifica se há erros de validação
     await waitFor(() => {
-      expect(screen.getByText(/número do contrato é obrigatório/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/número do contrato é obrigatório/i),
+      ).toBeInTheDocument()
     })
 
     // Agora preenche o formulário com dados válidos manualmente
@@ -257,15 +256,16 @@ describe('ContratoForm', () => {
 
     // Aguarda o preenchimento
     await waitFor(() => {
-      expect(screen.getByLabelText(/número do contrato/i)).toHaveValue('20240001')
+      expect(screen.getByLabelText(/número do contrato/i)).toHaveValue(
+        '20240001',
+      )
     })
 
     // Aguarda um pouco para garantir que todos os campos foram preenchidos
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // Tenta submeter novamente
     fireEvent.click(botaoProximo)
-
   })
 
   // Removido teste de upload, pois o campo é dinâmico (URL/Texto) e não há input type="file"
@@ -274,7 +274,9 @@ describe('ContratoForm', () => {
     renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const linkInput = screen.getByLabelText(/link do processo\.rio/i)
-    fireEvent.input(linkInput, { target: { value: 'https://processo.rio/processo/12345' } })
+    fireEvent.input(linkInput, {
+      target: { value: 'https://processo.rio/processo/12345' },
+    })
 
     await waitFor(() => {
       expect(linkInput).toHaveValue('https://processo.rio/processo/12345')
@@ -288,7 +290,9 @@ describe('ContratoForm', () => {
     fireEvent.click(screen.getByLabelText(/google drive/i))
 
     const linkInput = screen.getByLabelText(/link do google drive/i)
-    fireEvent.input(linkInput, { target: { value: 'https://drive.google.com/file/abc' } })
+    fireEvent.input(linkInput, {
+      target: { value: 'https://drive.google.com/file/abc' },
+    })
 
     await waitFor(() => {
       expect(linkInput).toHaveValue('https://drive.google.com/file/abc')
@@ -305,13 +309,17 @@ describe('ContratoForm', () => {
       tipoContrato: 'Prestacao_Servico',
     }
 
-    renderWithProviders(<ContratoForm {...defaultProps} dadosIniciais={dadosIniciais} />)
+    renderWithProviders(
+      <ContratoForm {...defaultProps} dadosIniciais={dadosIniciais} />,
+    )
 
     expect(screen.getByDisplayValue('20240002')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Prestação de serviços')).toBeInTheDocument()
+    expect(
+      screen.getByDisplayValue('Prestação de serviços'),
+    ).toBeInTheDocument()
   })
 
-      it('deve validar prazo inicial entre 0 e 72 meses', async () => {
+  it('deve validar prazo inicial entre 0 e 72 meses', async () => {
     renderWithProviders(<ContratoForm {...defaultProps} />)
 
     const prazoMesesInput = screen.getByDisplayValue('12')
@@ -375,7 +383,7 @@ describe('ContratoForm', () => {
     fireEvent.click(submitButton)
 
     // Aguarda um pouco para que a validação seja processada
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // Verifica se há algum erro relacionado à vigência
     const errorMessages = screen.getAllByText(/vigência/i)
@@ -396,7 +404,9 @@ describe('ContratoForm', () => {
       await user.click(screen.getByText('Processo SEI'))
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+        expect(
+          screen.getByPlaceholderText('SEI-123456-2024'),
+        ).toBeInTheDocument()
       })
     })
 
@@ -408,7 +418,9 @@ describe('ContratoForm', () => {
       await user.click(screen.getByText('Processo SEI'))
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+        expect(
+          screen.getByPlaceholderText('SEI-123456-2024'),
+        ).toBeInTheDocument()
       })
 
       // Remover o processo
@@ -416,7 +428,9 @@ describe('ContratoForm', () => {
       await user.click(removeButton)
 
       await waitFor(() => {
-        expect(screen.queryByPlaceholderText('SEI-123456-2024')).not.toBeInTheDocument()
+        expect(
+          screen.queryByPlaceholderText('SEI-123456-2024'),
+        ).not.toBeInTheDocument()
       })
     })
 
@@ -425,11 +439,15 @@ describe('ContratoForm', () => {
       renderWithProviders(<ContratoForm {...defaultProps} />)
 
       // Adicionar primeiro processo SEI
-      const botaoProcessoSEI = screen.getByRole('button', { name: /processo sei/i })
+      const botaoProcessoSEI = screen.getByRole('button', {
+        name: /processo sei/i,
+      })
       await user.click(botaoProcessoSEI)
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+        expect(
+          screen.getByPlaceholderText('SEI-123456-2024'),
+        ).toBeInTheDocument()
       })
 
       // Tentar adicionar segundo processo SEI
@@ -447,7 +465,9 @@ describe('ContratoForm', () => {
       await user.click(screen.getByText('Processo Físico'))
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('LEG-01/123.456/2024')).toBeInTheDocument()
+        expect(
+          screen.getByPlaceholderText('LEG-01/123.456/2024'),
+        ).toBeInTheDocument()
       })
     })
   })

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
-import '@testing-library/jest-dom'
 import React from 'react'
+import '@testing-library/jest-dom'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock simples do componente para testar apenas a estrutura básica
 const MockForgotPasswordForm = () => (
@@ -25,15 +25,21 @@ describe('ForgotPasswordForm', () => {
 
     expect(screen.getByTestId('forgot-password-form')).toBeInTheDocument()
     expect(screen.getByText('Esqueceu sua senha?')).toBeInTheDocument()
-    expect(screen.getByText(/Digite seu e-mail e enviaremos instruções/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Digite seu e-mail e enviaremos instruções/),
+    ).toBeInTheDocument()
   })
 
   it('deve renderizar elementos de formulário', () => {
     render(<MockForgotPasswordForm />)
 
     expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Enviar Instruções/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Voltar ao Login/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Enviar Instruções/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Voltar ao Login/i }),
+    ).toBeInTheDocument()
   })
 
   it('deve renderizar logo e imagens', () => {
@@ -51,9 +57,11 @@ describe('ForgotPasswordForm', () => {
   it('deve ter estrutura de formulário válida', () => {
     render(<MockForgotPasswordForm />)
 
-    const form = screen.getByTestId('forgot-password-form').querySelector('form')
+    const form = screen
+      .getByTestId('forgot-password-form')
+      .querySelector('form')
     expect(form).toBeInTheDocument()
-    
+
     const emailInput = screen.getByLabelText('E-mail')
     expect(emailInput).toHaveAttribute('type', 'email')
   })
@@ -61,10 +69,14 @@ describe('ForgotPasswordForm', () => {
   it('deve ter botões com tipos corretos', () => {
     render(<MockForgotPasswordForm />)
 
-    const submitButton = screen.getByRole('button', { name: /Enviar Instruções/i })
+    const submitButton = screen.getByRole('button', {
+      name: /Enviar Instruções/i,
+    })
     expect(submitButton).toHaveAttribute('type', 'submit')
 
-    const voltarButton = screen.getByRole('button', { name: /Voltar ao Login/i })
+    const voltarButton = screen.getByRole('button', {
+      name: /Voltar ao Login/i,
+    })
     expect(voltarButton).toHaveAttribute('type', 'button')
   })
 })

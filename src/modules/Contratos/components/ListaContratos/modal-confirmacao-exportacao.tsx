@@ -1,3 +1,5 @@
+import { AlertTriangle, FileDown } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -7,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { AlertTriangle, FileDown } from 'lucide-react'
 
 interface ModalConfirmacaoExportacaoProps {
   isOpen: boolean
@@ -16,12 +17,12 @@ interface ModalConfirmacaoExportacaoProps {
   totalContratos: number
 }
 
-export function ModalConfirmacaoExportacao({
+export const ModalConfirmacaoExportacao = ({
   isOpen,
   onClose,
   onConfirm,
   totalContratos,
-}: ModalConfirmacaoExportacaoProps) {
+}: ModalConfirmacaoExportacaoProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">

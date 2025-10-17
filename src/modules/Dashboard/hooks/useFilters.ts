@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react'
+
 import type { DashboardFilters, UseFiltersResult } from '../types/dashboard'
 import { defaultFilters, hasActiveFilters } from '../utils/dashboard-utils'
 
@@ -20,16 +21,26 @@ export const useFilters = (): UseFiltersResult => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY)
       if (saved) {
-        const parsed = JSON.parse(saved)
+        const parsed = JSON.parse(saved) as {
+          periodo: unknown
+          unidades: unknown
+          status: unknown
+          tipos: unknown
+        }
         // Validar estrutura básica
-        if (parsed.periodo && parsed.unidades && parsed.status && parsed.tipos) {
-          return parsed
+        if (
+          parsed.periodo &&
+          parsed.unidades &&
+          parsed.status &&
+          parsed.tipos
+        ) {
+          return parsed as DashboardFilters
         }
       }
-    } catch (error) {
-      console.warn('Erro ao carregar filtros salvos:', error)
+    } catch {
+      // Error loading saved filters
     }
-    
+
     return defaultFilters
   })
 
@@ -37,23 +48,23 @@ export const useFilters = (): UseFiltersResult => {
   useEffect(() => {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
-    } catch (error) {
-      console.warn('Erro ao salvar filtros:', error)
+    } catch {
+      // Error saving filters
     }
   }, [filters])
 
   /**
    * Atualiza um filtro específico
    */
-  const updateFilter = useCallback(<K extends keyof DashboardFilters>(
-    key: K, 
-    value: DashboardFilters[K]
-  ) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }))
-  }, [])
+  const updateFilter = useCallback(
+    <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => {
+      setFilters((prev) => ({
+        ...prev,
+        [key]: value,
+      }))
+    },
+    [],
+  )
 
   /**
    * Reset filtros para valores padrão
@@ -71,6 +82,6 @@ export const useFilters = (): UseFiltersResult => {
     filters,
     updateFilter,
     resetFilters,
-    hasActiveFilters: hasActive
+    hasActiveFilters: hasActive,
   }
 }

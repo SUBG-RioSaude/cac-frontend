@@ -1,24 +1,22 @@
-import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { FileText, ArrowUp, ArrowDown } from 'lucide-react'
+import { useState, useCallback } from 'react'
+
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { DateDisplay } from '@/components/ui/formatters'
-import {
-  FileText,
-  ArrowUp,
-  ArrowDown
-} from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 
 // Importar os componentes originais
-import { AlteracoesContratuais } from './index'
+import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
+import type { AlteracaoContrato } from '../../types/contrato'
+import type { TimelineEntry } from '../../types/timeline'
 import { RegistroAlteracoes } from '../VisualizacaoContratos/registro-alteracoes'
 
+import { AlteracoesContratuais } from './index'
+
 // Types
-import type { AlteracaoContrato } from '../../types/contrato'
-import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
-import type { TimelineEntry } from '../../types/timeline'
 
 interface AlteracoesContratuaisContainerProps {
   contratoId: string
@@ -31,14 +29,23 @@ interface AlteracoesContratuaisContainerProps {
   vigenciaFinal?: string // Mantido para compatibilidade
   alteracoes: AlteracaoContrato[]
   entradasTimeline?: TimelineEntry[]
-  onSaved?: (alteracao: AlteracaoContratualResponse) => void
-  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void
+  onSaved?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
+  onSubmitted?: (alteracao: AlteracaoContratualResponse) => void | Promise<void>
   className?: string
 }
 
 type SubAbaAtiva = 'nova-alteracao' | 'historico'
 
-export function AlteracoesContratuaisContainer({
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'then' in value &&
+    typeof (value as { then?: unknown }).then === 'function'
+  )
+}
+
+export const AlteracoesContratuaisContainer = ({
   contratoId,
   numeroContrato,
   valorOriginal = 0,
@@ -48,43 +55,69 @@ export function AlteracoesContratuaisContainer({
   entradasTimeline = [],
   onSaved,
   onSubmitted,
-  className
-}: AlteracoesContratuaisContainerProps) {
+  className,
+}: AlteracoesContratuaisContainerProps) => {
   const [subabaAtiva, setSubabaAtiva] = useState<SubAbaAtiva>('nova-alteracao')
 
   // Handler para quando uma alteração é salva/submetida - move para histórico
-  const handleAlteracaoSalva = useCallback(async (alteracao: AlteracaoContratualResponse) => {
-    await onSaved?.(alteracao)
-    
-    // Após salvar, navegar para o histórico para ver a alteração criada
-    setSubabaAtiva('historico')
-  }, [onSaved])
+  const handleAlteracaoSalva = useCallback(
+    (alteracao: AlteracaoContratualResponse) => {
+      const resultado = onSaved?.(alteracao)
 
-  const handleAlteracaoSubmetida = useCallback(async (alteracao: AlteracaoContratualResponse) => {
-    await onSubmitted?.(alteracao)
-    
-    // Após submeter, navegar para o histórico
-    setSubabaAtiva('historico')
-  }, [onSubmitted])
+      if (isPromiseLike(resultado)) {
+        resultado
+          .catch(() => {
+            // Evita rejeições não tratadas sem interferir na UX
+          })
+          .finally(() => {
+            setSubabaAtiva('historico')
+          })
+        return
+      }
 
+      // Após salvar, navegar para o histórico para ver a alteração criada
+      setSubabaAtiva('historico')
+    },
+    [onSaved],
+  )
 
+  const handleAlteracaoSubmetida = useCallback(
+    (alteracao: AlteracaoContratualResponse) => {
+      const resultado = onSubmitted?.(alteracao)
 
+      if (isPromiseLike(resultado)) {
+        resultado
+          .catch(() => {
+            // Evita rejeições não tratadas sem interferir na UX
+          })
+          .finally(() => {
+            setSubabaAtiva('historico')
+          })
+        return
+      }
+
+      // Após submeter, navegar para o histórico
+      setSubabaAtiva('historico')
+    },
+    [onSubmitted],
+  )
 
   // Calcular valor atual com base nas alterações aprovadas
   const calcularValorAtual = () => {
-    const alteracoesAprovadas = alteracoes.filter(alt => 
-      String(alt.status) === 'aprovado' || String(alt.status) === 'executado'
+    const alteracoesAprovadas = alteracoes.filter(
+      (alt) =>
+        String(alt.status) === 'aprovado' || String(alt.status) === 'executado',
     )
 
     return alteracoesAprovadas.reduce((valorAtual, alt) => {
       if (alt.valor) {
         switch (alt.valor.operacao) {
           case 1: // Acrescentar
-            return valorAtual + (alt.valor.valorAjuste || 0)
-          case 2: // Diminuir  
-            return valorAtual - (alt.valor.valorAjuste || 0)
+            return valorAtual + (alt.valor.valorAjuste ?? 0)
+          case 2: // Diminuir
+            return valorAtual - (alt.valor.valorAjuste ?? 0)
           case 3: // Substituir
-            return alt.valor.novoValorGlobal || valorAtual
+            return alt.valor.novoValorGlobal ?? valorAtual
           default:
             return valorAtual
         }
@@ -97,16 +130,19 @@ export function AlteracoesContratuaisContainer({
   const calcularVigenciaAtual = () => {
     if (!vigenciaOriginal) return null
 
-    const alteracoesPrazoAprovadas = alteracoes.filter(alt => 
-      (String(alt.status) === 'aprovado' || String(alt.status) === 'executado') && 
-      alt.vigencia
+    const alteracoesPrazoAprovadas = alteracoes.filter(
+      (alt) =>
+        (String(alt.status) === 'aprovado' ||
+          String(alt.status) === 'executado') &&
+        alt.vigencia,
     )
 
     return alteracoesPrazoAprovadas.reduce((dataFimAtual, alt) => {
-      if (alt.vigencia && alt.vigencia.operacao === 1) { // Acrescentar
+      if (alt.vigencia && alt.vigencia.operacao === 1) {
+        // Acrescentar
         const data = new Date(dataFimAtual)
-        const valor = alt.vigencia.valorTempo || 0
-        
+        const valor = alt.vigencia.valorTempo ?? 0
+
         switch (alt.vigencia.tipoUnidade) {
           case 1: // Dias
             data.setDate(data.getDate() + valor)
@@ -118,7 +154,7 @@ export function AlteracoesContratuaisContainer({
             data.setFullYear(data.getFullYear() + valor)
             break
         }
-        
+
         return data.toISOString().split('T')[0]
       }
       return dataFimAtual
@@ -130,11 +166,11 @@ export function AlteracoesContratuaisContainer({
     const valorAtual = calcularValorAtual()
     const diferenca = valorAtual - valorOriginal
     const percentual = valorOriginal > 0 ? (diferenca / valorOriginal) * 100 : 0
-    
+
     return {
       valor: diferenca,
       percentual: Math.round(percentual * 100) / 100,
-      tipo: diferenca > 0 ? 'aumento' : diferenca < 0 ? 'diminuicao' : 'neutro'
+      tipo: diferenca > 0 ? 'aumento' : diferenca < 0 ? 'diminuicao' : 'neutro',
     }
   }
 
@@ -143,15 +179,22 @@ export function AlteracoesContratuaisContainer({
     if (!vigenciaOriginal) return null
 
     const dataOriginal = new Date(vigenciaOriginal.dataFim)
-    const dataAtual = new Date(calcularVigenciaAtual() || vigenciaOriginal.dataFim)
-    
+    const dataAtual = new Date(
+      calcularVigenciaAtual() ?? vigenciaOriginal.dataFim,
+    )
+
     const diferencaMs = dataAtual.getTime() - dataOriginal.getTime()
     const diferencaDias = Math.round(diferencaMs / (1000 * 60 * 60 * 24))
-    
+
     return {
       dias: diferencaDias,
       meses: Math.round(diferencaDias / 30),
-      tipo: diferencaDias > 0 ? 'extensao' : diferencaDias < 0 ? 'reducao' : 'neutro'
+      tipo:
+        diferencaDias > 0
+          ? 'extensao'
+          : diferencaDias < 0
+            ? 'reducao'
+            : 'neutro',
     }
   }
 
@@ -167,7 +210,7 @@ export function AlteracoesContratuaisContainer({
                 <FileText className="h-5 w-5 text-purple-600" />
                 Alterações Contratuais
               </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 {numeroContrato && `Contrato: ${numeroContrato}`}
               </p>
             </div>
@@ -177,33 +220,46 @@ export function AlteracoesContratuaisContainer({
               {/* Linha de Valor */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600 font-medium text-xs">Valor Original:</span>
-                  <span className="font-semibold text-sm">
+                  <span className="text-xs font-medium text-gray-600">
+                    Valor Original:
+                  </span>
+                  <span className="text-sm font-semibold">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
-                      currency: 'BRL'
+                      currency: 'BRL',
                     }).format(valorOriginal)}
                   </span>
                 </div>
                 <span className="text-gray-400">|</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600 font-medium text-xs">Valor Atual:</span>
-                  <span className="font-semibold text-sm">
+                  <span className="text-xs font-medium text-gray-600">
+                    Valor Atual:
+                  </span>
+                  <span className="text-sm font-semibold">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
-                      currency: 'BRL'
+                      currency: 'BRL',
                     }).format(calcularValorAtual())}
                   </span>
                   {(() => {
                     const diferenca = calcularDiferencaValor()
                     if (diferenca.tipo !== 'neutro') {
                       return (
-                        <span className={cn(
-                          "flex items-center gap-1 font-medium text-xs px-1.5 py-0.5 rounded",
-                          diferenca.tipo === 'aumento' ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"
-                        )}>
-                          {diferenca.tipo === 'aumento' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          {diferenca.tipo === 'aumento' ? '+' : ''}{diferenca.percentual.toFixed(1)}%
+                        <span
+                          className={cn(
+                            'flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium',
+                            diferenca.tipo === 'aumento'
+                              ? 'bg-green-50 text-green-700'
+                              : 'bg-red-50 text-red-700',
+                          )}
+                        >
+                          {diferenca.tipo === 'aumento' ? (
+                            <ArrowUp className="h-3 w-3" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3" />
+                          )}
+                          {diferenca.tipo === 'aumento' ? '+' : ''}
+                          {diferenca.percentual.toFixed(1)}%
                         </span>
                       )
                     }
@@ -216,27 +272,46 @@ export function AlteracoesContratuaisContainer({
               {vigenciaOriginal && (
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600 font-medium text-xs">Vigência Original:</span>
-                    <span className="font-semibold text-sm">
-                      <DateDisplay value={vigenciaOriginal.dataInicio} /> - <DateDisplay value={vigenciaOriginal.dataFim} />
+                    <span className="text-xs font-medium text-gray-600">
+                      Vigência Original:
+                    </span>
+                    <span className="text-sm font-semibold">
+                      <DateDisplay value={vigenciaOriginal.dataInicio} /> -{' '}
+                      <DateDisplay value={vigenciaOriginal.dataFim} />
                     </span>
                   </div>
                   <span className="text-gray-400">|</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600 font-medium text-xs">Vigência Atual:</span>
-                    <span className="font-semibold text-sm">
-                      <DateDisplay value={vigenciaOriginal.dataInicio} /> - <DateDisplay value={calcularVigenciaAtual() || vigenciaOriginal.dataFim} />
+                    <span className="text-xs font-medium text-gray-600">
+                      Vigência Atual:
+                    </span>
+                    <span className="text-sm font-semibold">
+                      <DateDisplay value={vigenciaOriginal.dataInicio} /> -{' '}
+                      <DateDisplay
+                        value={
+                          calcularVigenciaAtual() ?? vigenciaOriginal.dataFim
+                        }
+                      />
                     </span>
                     {(() => {
                       const extensao = calcularExtensaoPrazo()
                       if (extensao && extensao.tipo !== 'neutro') {
                         return (
-                          <span className={cn(
-                            "flex items-center gap-1 font-medium text-xs px-1.5 py-0.5 rounded",
-                            extensao.tipo === 'extensao' ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"
-                          )}>
-                            {extensao.tipo === 'extensao' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                            {extensao.tipo === 'extensao' ? '+' : ''}{Math.abs(extensao.meses)}m
+                          <span
+                            className={cn(
+                              'flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium',
+                              extensao.tipo === 'extensao'
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-red-50 text-red-700',
+                            )}
+                          >
+                            {extensao.tipo === 'extensao' ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            )}
+                            {extensao.tipo === 'extensao' ? '+' : ''}
+                            {Math.abs(extensao.meses)}m
                           </span>
                         )
                       }
@@ -246,37 +321,42 @@ export function AlteracoesContratuaisContainer({
                 </div>
               )}
             </div>
-
           </div>
         </CardHeader>
       </Card>
 
       {/* Container das Sub-abas */}
-      <Tabs value={subabaAtiva} onValueChange={(value) => setSubabaAtiva(value as SubAbaAtiva)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 h-auto rounded-lg bg-gray-50 p-1">
-          <TabsTrigger 
+      <Tabs
+        value={subabaAtiva}
+        onValueChange={(value) => setSubabaAtiva(value as SubAbaAtiva)}
+        className="w-full"
+      >
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-lg bg-gray-50 p-1">
+          <TabsTrigger
             value="nova-alteracao"
-            className="flex flex-col sm:flex-row items-center gap-2 rounded-md px-4 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-blue-200 data-[state=active]:text-blue-700"
+            className="flex flex-col items-center gap-2 rounded-md px-4 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:border-blue-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm sm:flex-row"
           >
-            <div className={cn(
-              "h-2 w-2 rounded-full sm:h-3 sm:w-3",
-              subabaAtiva === 'nova-alteracao' 
-                ? "bg-blue-500" 
-                : "bg-gray-400"
-            )}></div>
+            <div
+              className={cn(
+                'h-2 w-2 rounded-full sm:h-3 sm:w-3',
+                subabaAtiva === 'nova-alteracao'
+                  ? 'bg-blue-500'
+                  : 'bg-gray-400',
+              )}
+            />
             <span className="text-center">Nova Alteração</span>
           </TabsTrigger>
-          
-          <TabsTrigger 
+
+          <TabsTrigger
             value="historico"
-            className="flex flex-col sm:flex-row items-center gap-2 rounded-md px-4 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border-green-200 data-[state=active]:text-green-700"
+            className="flex flex-col items-center gap-2 rounded-md px-4 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:border-green-200 data-[state=active]:bg-white data-[state=active]:text-green-700 data-[state=active]:shadow-sm sm:flex-row"
           >
-            <div className={cn(
-              "h-2 w-2 rounded-full sm:h-3 sm:w-3",
-              subabaAtiva === 'historico' 
-                ? "bg-green-500" 
-                : "bg-gray-400"
-            )}></div>
+            <div
+              className={cn(
+                'h-2 w-2 rounded-full sm:h-3 sm:w-3',
+                subabaAtiva === 'historico' ? 'bg-green-500' : 'bg-gray-400',
+              )}
+            />
             <span className="text-center">Histórico</span>
             {alteracoes.length > 0 && (
               <Badge variant="secondary" className="text-xs">
@@ -298,7 +378,7 @@ export function AlteracoesContratuaisContainer({
           >
             {/* Sub-aba: Nova Alteração */}
             <TabsContent value="nova-alteracao" className="mt-0 space-y-0">
-              <AlteracoesContratuais 
+              <AlteracoesContratuais
                 contratoId={contratoId}
                 numeroContrato={numeroContrato}
                 valorOriginal={valorOriginal}

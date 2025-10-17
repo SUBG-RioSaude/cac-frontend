@@ -5,21 +5,7 @@
  * Modal para substituir funcionário vinculado ao contrato
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { DatePicker } from '@/components/ui/date-picker'
 import {
   User,
   ArrowRight,
@@ -30,14 +16,31 @@ import {
   Mail,
   Phone,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react'
-import { BuscaFuncionarioField } from './BuscaFuncionarioField'
+import { useMemo, useState } from 'react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
+
 import { useSubstituirFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
 import { getTipoGerenciaLabel } from '../../services/contratos-funcionarios-service'
-import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
 import type { ContratoFuncionario } from '../../types/contrato'
-import { cn } from '@/lib/utils'
+
+import { BuscaFuncionarioField } from './BuscaFuncionarioField'
 
 // ========== INTERFACES ==========
 
@@ -55,15 +58,17 @@ interface SubstituirFuncionarioModalProps {
 
 // ========== COMPONENTE ==========
 
-export function SubstituirFuncionarioModal({
+export const SubstituirFuncionarioModal = ({
   aberto,
   onFechar,
   contratoId,
   funcionarioAtual,
   tipoGerencia,
-  funcionarioCompleto
-}: SubstituirFuncionarioModalProps) {
-  const [funcionarioNovo, setFuncionarioNovo] = useState<FuncionarioApi | null>(null)
+  funcionarioCompleto,
+}: SubstituirFuncionarioModalProps) => {
+  const [funcionarioNovo, setFuncionarioNovo] = useState<FuncionarioApi | null>(
+    null,
+  )
   const [observacoes, setObservacoes] = useState('')
   const [etapaConfirmacao, setEtapaConfirmacao] = useState(false)
   const [opcaoData, setOpcaoData] = useState<'hoje' | 'personalizada'>('hoje')
@@ -72,6 +77,33 @@ export function SubstituirFuncionarioModal({
   const substituirMutation = useSubstituirFuncionarioContrato()
 
   const tipoLabel = getTipoGerenciaLabel(tipoGerencia)
+
+  const nomeFuncionarioAtual = useMemo(() => {
+    if (funcionarioCompleto?.nomeCompleto) {
+      return funcionarioCompleto.nomeCompleto
+    }
+
+    if (funcionarioAtual.funcionarioNome) {
+      return funcionarioAtual.funcionarioNome
+    }
+
+    return 'Nome não informado'
+  }, [funcionarioCompleto, funcionarioAtual])
+
+  const cargoFuncionarioAtual = useMemo(() => {
+    if (funcionarioCompleto?.cargo) {
+      return funcionarioCompleto.cargo
+    }
+
+    if (
+      'funcionarioCargo' in funcionarioAtual &&
+      funcionarioAtual.funcionarioCargo
+    ) {
+      return funcionarioAtual.funcionarioCargo
+    }
+
+    return 'Cargo não informado'
+  }, [funcionarioCompleto, funcionarioAtual])
 
   // Reset do modal quando fechar
   const handleFechar = () => {
@@ -110,13 +142,13 @@ export function SubstituirFuncionarioModal({
         funcionarioNovoNome: funcionarioNovo.nomeCompleto,
         tipoGerencia,
         dataInicio: dataInicioFinal.toISOString().slice(0, 10), // Formato YYYY-MM-DD
-        observacoes: observacoes.trim() || undefined
+        observacoes: observacoes.trim() || undefined,
       },
       {
         onSuccess: () => {
           handleFechar()
-        }
-      }
+        },
+      },
     )
   }
 
@@ -125,7 +157,7 @@ export function SubstituirFuncionarioModal({
 
   return (
     <Dialog open={aberto} onOpenChange={handleFechar}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <RefreshCw className="h-5 w-5 text-blue-600" />
@@ -136,36 +168,36 @@ export function SubstituirFuncionarioModal({
         <div className="space-y-6">
           {/* Funcionário Atual */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">
+            <Label className="mb-2 block text-sm font-medium">
               {tipoLabel} Atual
             </Label>
-            
-            <div className="p-4 bg-gray-50 rounded-lg border">
+
+            <div className="rounded-lg border bg-gray-50 p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
                   <User className="h-5 w-5 text-gray-600" />
                 </div>
-                
+
                 <div className="flex-1">
-                  <h4 className="font-semibold text-sm">
-                    {funcionarioCompleto?.nomeCompleto || funcionarioAtual.funcionarioNome || 'Nome não informado'}
+                  <h4 className="text-sm font-semibold">
+                    {nomeFuncionarioAtual}
                   </h4>
                   <p className="text-muted-foreground text-xs">
-                    {funcionarioCompleto?.cargo || funcionarioAtual.funcionarioCargo || 'Cargo não informado'}
+                    {cargoFuncionarioAtual}
                   </p>
-                  
+
                   {/* Informações adicionais se disponível */}
                   {funcionarioCompleto && (
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="mt-1 flex items-center gap-2">
                       {funcionarioCompleto.matricula && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="text-muted-foreground flex items-center gap-1 text-xs">
                           <Hash className="h-3 w-3" />
                           {funcionarioCompleto.matricula}
                         </span>
                       )}
-                      
+
                       {funcionarioCompleto.lotacaoSigla && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="text-muted-foreground flex items-center gap-1 text-xs">
                           <Building className="h-3 w-3" />
                           {funcionarioCompleto.lotacaoSigla}
                         </span>
@@ -195,8 +227,9 @@ export function SubstituirFuncionarioModal({
                 <Alert className="border-orange-200 bg-orange-50">
                   <AlertTriangle className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-orange-800">
-                    <strong>Atenção:</strong> Este funcionário está marcado como inativo no sistema.
-                    Você pode prosseguir, mas recomendamos verificar o status antes de confirmar.
+                    <strong>Atenção:</strong> Este funcionário está marcado como
+                    inativo no sistema. Você pode prosseguir, mas recomendamos
+                    verificar o status antes de confirmar.
                   </AlertDescription>
                 </Alert>
               )}
@@ -207,23 +240,28 @@ export function SubstituirFuncionarioModal({
 
                 <RadioGroup
                   value={opcaoData}
-                  onValueChange={(value) => setOpcaoData(value as 'hoje' | 'personalizada')}
+                  onValueChange={(value) =>
+                    setOpcaoData(value as 'hoje' | 'personalizada')
+                  }
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="hoje" id="iniciar-hoje" />
                     <Label
                       htmlFor="iniciar-hoje"
-                      className="text-sm font-normal cursor-pointer"
+                      className="cursor-pointer text-sm font-normal"
                     >
                       Iniciar período hoje
                     </Label>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="personalizada" id="data-personalizada" />
+                    <RadioGroupItem
+                      value="personalizada"
+                      id="data-personalizada"
+                    />
                     <Label
                       htmlFor="data-personalizada"
-                      className="text-sm font-normal cursor-pointer"
+                      className="cursor-pointer text-sm font-normal"
                     >
                       Escolher data específica
                     </Label>
@@ -231,13 +269,13 @@ export function SubstituirFuncionarioModal({
                 </RadioGroup>
 
                 {opcaoData === 'personalizada' && (
-                  <div className="space-y-2 ml-6">
-                    <Label className="text-xs text-muted-foreground">
+                  <div className="ml-6 space-y-2">
+                    <Label className="text-muted-foreground text-xs">
                       Selecione a data de início do período:
                     </Label>
                     <DatePicker
                       date={dataInicio}
-                      onDateChange={(date) => setDataInicio(date || new Date())}
+                      onDateChange={(date) => setDataInicio(date ?? new Date())}
                       placeholder="Selecionar data de início"
                       className="w-full"
                     />
@@ -245,8 +283,9 @@ export function SubstituirFuncionarioModal({
                 )}
 
                 {opcaoData === 'hoje' && (
-                  <p className="text-xs text-muted-foreground ml-6">
-                    O período de {tipoLabel.toLowerCase()} iniciará hoje ({new Date().toLocaleDateString('pt-BR')})
+                  <p className="text-muted-foreground ml-6 text-xs">
+                    O período de {tipoLabel.toLowerCase()} iniciará hoje (
+                    {new Date().toLocaleDateString('pt-BR')})
                   </p>
                 )}
               </div>
@@ -270,55 +309,63 @@ export function SubstituirFuncionarioModal({
             // ETAPA 2: Confirmação
             <>
               <div>
-                <Label className="text-sm font-medium mb-3 block">
+                <Label className="mb-3 block text-sm font-medium">
                   Confirmar Substituição
                 </Label>
-                
+
                 <div className="space-y-4">
                   {/* Comparação visual */}
                   <div className="flex items-center gap-4">
                     {/* Funcionário atual */}
-                    <div className="flex-1 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 rounded-lg border border-red-200 bg-red-50 p-3">
+                      <div className="mb-1 flex items-center gap-2">
                         <XCircle className="h-4 w-4 text-red-600" />
-                        <span className="text-xs font-medium text-red-800">Será removido</span>
+                        <span className="text-xs font-medium text-red-800">
+                          Será removido
+                        </span>
                       </div>
-                      <p className="font-medium text-sm">
-                        {funcionarioCompleto?.nomeCompleto || funcionarioAtual.funcionarioNome}
+                      <p className="text-sm font-medium">
+                        {funcionarioCompleto?.nomeCompleto ??
+                          funcionarioAtual.funcionarioNome}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {funcionarioCompleto?.cargo || funcionarioAtual.funcionarioCargo}
+                      <p className="text-muted-foreground text-xs">
+                        {funcionarioCompleto?.cargo ??
+                          funcionarioAtual.funcionarioCargo}
                       </p>
                     </div>
 
                     {/* Seta */}
-                    <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <ArrowRight className="text-muted-foreground h-5 w-5 flex-shrink-0" />
 
                     {/* Funcionário novo */}
-                    <div className="flex-1 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 rounded-lg border border-green-200 bg-green-50 p-3">
+                      <div className="mb-1 flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-xs font-medium text-green-800">Será adicionado</span>
+                        <span className="text-xs font-medium text-green-800">
+                          Será adicionado
+                        </span>
                       </div>
-                      <p className="font-medium text-sm">
+                      <p className="text-sm font-medium">
                         {funcionarioNovo?.nomeCompleto}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {funcionarioNovo?.cargo}
                       </p>
-                      
+
                       {/* Informações de contato do novo funcionário */}
                       {funcionarioNovo && (
                         <div className="mt-2 space-y-1">
                           {funcionarioNovo.emailInstitucional && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground flex items-center gap-1 text-xs">
                               <Mail className="h-3 w-3" />
-                              <span className="truncate">{funcionarioNovo.emailInstitucional}</span>
+                              <span className="truncate">
+                                {funcionarioNovo.emailInstitucional}
+                              </span>
                             </div>
                           )}
-                          
+
                           {funcionarioNovo.telefone && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground flex items-center gap-1 text-xs">
                               <Phone className="h-3 w-3" />
                               <span>{funcionarioNovo.telefone}</span>
                             </div>
@@ -330,8 +377,10 @@ export function SubstituirFuncionarioModal({
 
                   {/* Observações */}
                   {observacoes.trim() && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-xs font-medium text-blue-800 mb-1">Observações:</p>
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                      <p className="mb-1 text-xs font-medium text-blue-800">
+                        Observações:
+                      </p>
                       <p className="text-sm text-blue-700">{observacoes}</p>
                     </div>
                   )}
@@ -340,8 +389,9 @@ export function SubstituirFuncionarioModal({
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      Esta operação irá remover o {tipoLabel.toLowerCase()} atual e adicionar o novo funcionário.
-                      O processo é automático e não pode ser desfeito facilmente.
+                      Esta operação irá remover o {tipoLabel.toLowerCase()}{' '}
+                      atual e adicionar o novo funcionário. O processo é
+                      automático e não pode ser desfeito facilmente.
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -361,7 +411,7 @@ export function SubstituirFuncionarioModal({
               >
                 Cancelar
               </Button>
-              
+
               <Button
                 type="button"
                 onClick={handleAvancarParaConfirmacao}
@@ -380,25 +430,31 @@ export function SubstituirFuncionarioModal({
               >
                 Voltar
               </Button>
-              
+
               <Button
                 type="button"
                 onClick={handleConfirmarSubstituicao}
                 disabled={substituirMutation.isPending || !funcionarioNovo}
                 className={cn(
-                  "min-w-32",
-                  funcionarioNovoInativo && "bg-orange-600 hover:bg-orange-700"
+                  'min-w-32',
+                  funcionarioNovoInativo && 'bg-orange-600 hover:bg-orange-700',
                 )}
               >
                 {substituirMutation.isPending ? (
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
                   >
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="mr-2 h-4 w-4" />
                   </motion.div>
                 ) : null}
-                {substituirMutation.isPending ? 'Substituindo...' : 'Confirmar Substituição'}
+                {substituirMutation.isPending
+                  ? 'Substituindo...'
+                  : 'Confirmar Substituição'}
               </Button>
             </>
           )}

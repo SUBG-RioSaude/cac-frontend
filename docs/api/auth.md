@@ -332,7 +332,7 @@
         }
       }
     },
-    "/api/Funcoes": {
+    "/api/funcoes": {
       "get": {
         "tags": [
           "Funcoes"
@@ -373,7 +373,7 @@
         }
       }
     },
-    "/api/Funcoes/{id}": {
+    "/api/funcoes/{id}": {
       "get": {
         "tags": [
           "Funcoes"
@@ -468,7 +468,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StringStringDateTimeString<>f__AnonymousType33"
+                  "$ref": "#/components/schemas/StringStringDateTimeString<>f__AnonymousType35"
                 }
               }
             }
@@ -476,7 +476,7 @@
         }
       }
     },
-    "/api/Permissoes": {
+    "/api/permissoes": {
       "get": {
         "tags": [
           "Permissoes"
@@ -560,7 +560,7 @@
         }
       }
     },
-    "/api/Permissoes/{id}": {
+    "/api/permissoes/{id}": {
       "get": {
         "tags": [
           "Permissoes"
@@ -661,7 +661,7 @@
         }
       }
     },
-    "/api/Sistemas": {
+    "/api/sistemas": {
       "get": {
         "tags": [
           "Sistemas"
@@ -745,7 +745,7 @@
         }
       }
     },
-    "/api/Sistemas/{id}": {
+    "/api/sistemas/{id}": {
       "get": {
         "tags": [
           "Sistemas"
@@ -846,7 +846,7 @@
         }
       }
     },
-    "/api/Unidades": {
+    "/api/unidades-auth": {
       "get": {
         "tags": [
           "Unidades"
@@ -887,7 +887,7 @@
         }
       }
     },
-    "/api/Unidades/{id}": {
+    "/api/unidades-auth/{id}": {
       "get": {
         "tags": [
           "Unidades"
@@ -971,7 +971,7 @@
         }
       }
     },
-    "/api/UsuarioPermissaoSistema": {
+    "/api/usuario-permissao-sistema": {
       "get": {
         "tags": [
           "UsuarioPermissaoSistema"
@@ -1049,7 +1049,7 @@
         }
       }
     },
-    "/api/UsuarioPermissaoSistema/{id}": {
+    "/api/usuario-permissao-sistema/{id}": {
       "get": {
         "tags": [
           "UsuarioPermissaoSistema"
@@ -1150,7 +1150,7 @@
         }
       }
     },
-    "/api/UsuarioPermissaoSistema/verificar-acesso/{sistemaId}": {
+    "/api/usuario-permissao-sistema/verificar-acesso/{sistemaId}": {
       "get": {
         "tags": [
           "UsuarioPermissaoSistema"
@@ -1173,7 +1173,7 @@
         }
       }
     },
-    "/api/UsuarioPermissaoSistema/meus-sistemas": {
+    "/api/usuario-permissao-sistema/meus-sistemas": {
       "get": {
         "tags": [
           "UsuarioPermissaoSistema"
@@ -1185,7 +1185,7 @@
         }
       }
     },
-    "/api/Usuarios": {
+    "/api/usuarios": {
       "get": {
         "tags": [
           "Usuarios"
@@ -1246,7 +1246,7 @@
         }
       }
     },
-    "/api/Usuarios/{id}": {
+    "/api/usuarios/{id}": {
       "get": {
         "tags": [
           "Usuarios"
@@ -1330,7 +1330,7 @@
         }
       }
     },
-    "/api/Usuarios/{id}/ativar": {
+    "/api/usuarios/{id}/ativar": {
       "put": {
         "tags": [
           "Usuarios"
@@ -1353,7 +1353,7 @@
         }
       }
     },
-    "/api/Usuarios/{id}/inativar": {
+    "/api/usuarios/{id}/inativar": {
       "put": {
         "tags": [
           "Usuarios"
@@ -1896,7 +1896,7 @@
         },
         "additionalProperties": false
       },
-      "StringStringDateTimeString<>f__AnonymousType33": {
+      "StringStringDateTimeString<>f__AnonymousType35": {
         "type": "object",
         "properties": {
           "status": {

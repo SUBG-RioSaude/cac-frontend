@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+
+import { createHookLogger } from '@/lib/logger'
+
 import { buscarUnidadePorId } from '../services/unidades-service'
 import type { UnidadeDetalhada } from '../types/unidade-api'
 
@@ -7,36 +10,47 @@ interface UseUnidadeDetalhadaProps {
   enabled?: boolean
 }
 
-export const useUnidadeDetalhada = ({ id, enabled = true }: UseUnidadeDetalhadaProps) => {
+export const useUnidadeDetalhada = ({
+  id,
+  enabled = true,
+}: UseUnidadeDetalhadaProps) => {
   const [unidade, setUnidade] = useState<UnidadeDetalhada | null>(null)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const logger = createHookLogger('useUnidadeDetalhada', 'Unidades')
 
   useEffect(() => {
     if (!enabled || !id) {
-      console.log('[DEBUG] Hook desabilitado ou ID vazio:', { enabled, id })
+      logger.debug({ enabled, id }, 'Hook desabilitado ou ID vazio')
       return
     }
 
     const carregarUnidade = async () => {
-      console.log('[DEBUG] Iniciando carregamento da unidade:', id)
+      logger.debug({ unidadeId: id }, 'Iniciando carregamento da unidade')
       setCarregando(true)
       setErro(null)
-      
+
       try {
-        console.log('[DEBUG] Chamando API para buscar unidade:', id)
+        logger.debug({ unidadeId: id }, 'Chamando API para buscar unidade')
         const dados = await buscarUnidadePorId(id)
-        console.log('[DEBUG] Dados recebidos:', dados)
+        logger.debug({ unidadeId: id, dados }, 'Dados recebidos da API')
         setUnidade(dados)
       } catch (error) {
-        console.error('Erro ao carregar unidade:', error)
+        logger.error(
+          {
+            error: error instanceof Error ? error.message : String(error),
+            unidadeId: id,
+          },
+          'Erro ao carregar unidade',
+        )
         setErro('Erro ao carregar dados da unidade')
       } finally {
         setCarregando(false)
       }
     }
 
-    carregarUnidade()
+    void carregarUnidade()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, enabled])
 
   const recarregar = () => {
@@ -46,7 +60,13 @@ export const useUnidadeDetalhada = ({ id, enabled = true }: UseUnidadeDetalhadaP
       buscarUnidadePorId(id)
         .then(setUnidade)
         .catch((error) => {
-          console.error('Erro ao recarregar unidade:', error)
+          logger.error(
+            {
+              error: error instanceof Error ? error.message : String(error),
+              unidadeId: id,
+            },
+            'Erro ao recarregar unidade',
+          )
           setErro('Erro ao recarregar dados da unidade')
         })
         .finally(() => setCarregando(false))
@@ -57,6 +77,6 @@ export const useUnidadeDetalhada = ({ id, enabled = true }: UseUnidadeDetalhadaP
     unidade,
     carregando,
     erro,
-    recarregar
+    recarregar,
   }
 }

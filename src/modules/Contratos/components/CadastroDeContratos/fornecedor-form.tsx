@@ -1,28 +1,4 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useCallback, useEffect, useState, useMemo } from 'react'
-
-import { ButtonLoadingSpinner } from '@/components/ui/loading'
-import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
-import { toast } from 'sonner'
 import {
   ArrowRight,
   ArrowLeft,
@@ -35,9 +11,36 @@ import {
   X,
   ShieldCheck,
 } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
+import { useCallback, useEffect, useState, useMemo } from 'react'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useConsultarEmpresaPorCNPJ, useCadastrarEmpresa } from '@/modules/Empresas/hooks/use-empresas'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ButtonLoadingSpinner } from '@/components/ui/loading'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { cn, cnpjUtils, ieUtils, imUtils } from '@/lib/utils'
+import {
+  useConsultarEmpresaPorCNPJ,
+  useCadastrarEmpresa,
+} from '@/modules/Empresas/hooks/use-empresas'
 import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
 
 interface Contato {
@@ -102,16 +105,31 @@ const validarFormatoCelular = (celular: string) => {
   return celularLimpo.length === 11
 }
 
+interface ViaCepResponse {
+  cep?: string
+  logradouro?: string
+  bairro?: string
+  localidade?: string
+  uf?: string
+  erro?: boolean
+}
+
 const fornecedorSchema = z.object({
   cnpj: z
     .string()
     .min(1, 'CNPJ é obrigatório')
     .refine(cnpjUtils.validar, 'CNPJ inválido'),
-  razaoSocial: z.string().min(6, 'Razão Social deve ter pelo menos 6 caracteres').max(100, 'Razão Social deve ter no máximo 100 caracteres'),
+  razaoSocial: z
+    .string()
+    .min(6, 'Razão Social deve ter pelo menos 6 caracteres')
+    .max(100, 'Razão Social deve ter no máximo 100 caracteres'),
   estadoIE: z.string().optional().or(z.literal('')),
   inscricaoEstadual: z.string().optional().or(z.literal('')),
   inscricaoMunicipal: z.string().optional().or(z.literal('')),
-  endereco: z.string().min(5, 'Logradouro deve ter pelo menos 5 caracteres').max(100, 'Logradouro deve ter no máximo 100 caracteres'),
+  endereco: z
+    .string()
+    .min(5, 'Logradouro deve ter pelo menos 5 caracteres')
+    .max(100, 'Logradouro deve ter no máximo 100 caracteres'),
   numero: z.string().min(1, 'Número é obrigatório'),
   complemento: z.string().optional().or(z.literal('')),
   bairro: z.string().min(1, 'Bairro é obrigatório'),
@@ -162,7 +180,7 @@ interface FornecedorFormProps {
   dadosIniciais?: Partial<DadosFornecedor>
   onAdvanceRequest?: (dados: DadosFornecedor) => void
   onDataChange?: (dados: Partial<DadosFornecedor>) => void
-  onEmpresaCadastrada?: (dados: {cnpj: string, razaoSocial: string}) => void
+  onEmpresaCadastrada?: (dados: { cnpj: string; razaoSocial: string }) => void
 }
 
 const estadosBrasileiros = [
@@ -195,9 +213,38 @@ const estadosBrasileiros = [
   'TO',
 ]
 
+const buildDefaultContatos = (contatos?: Contato[]) =>
+  contatos && contatos.length > 0
+    ? contatos
+    : [
+        {
+          id: '1',
+          nome: '',
+          valor: '',
+          tipo: 'Email' as const,
+          ativo: true,
+        },
+      ]
 
+const buildFormDefaultValues = (dados: Partial<DadosFornecedor>) => ({
+  cnpj: dados.cnpj ? cnpjUtils.formatar(dados.cnpj) : '',
+  razaoSocial: dados.razaoSocial ?? '',
+  estadoIE: dados.estadoIE ?? '',
+  inscricaoEstadual: dados.inscricaoEstadual ?? '',
+  inscricaoMunicipal: dados.inscricaoMunicipal ?? '',
+  endereco: dados.endereco ?? '',
+  numero: dados.numero ?? '',
+  complemento: dados.complemento ?? '',
+  bairro: dados.bairro ?? '',
+  cidade: dados.cidade ?? '',
+  estado: dados.estado ?? '',
+  cep: dados.cep ?? '',
+  ativo: dados.ativo ?? true,
+  contatos: buildDefaultContatos(dados.contatos),
+  empresaId: dados.empresaId ?? '',
+})
 
-export default function FornecedorForm({
+const FornecedorForm = ({
   onSubmit,
   onCancel,
   onPrevious,
@@ -205,7 +252,7 @@ export default function FornecedorForm({
   onAdvanceRequest,
   onDataChange,
   onEmpresaCadastrada,
-}: FornecedorFormProps) {
+}: FornecedorFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
@@ -213,98 +260,147 @@ export default function FornecedorForm({
   const [cepPreenchido, setCepPreenchido] = useState(false)
   const [cepValido, setCepValido] = useState(false)
   const [cnpjParaConsultar, setCnpjParaConsultar] = useState<string>('')
-  const [empresaEncontrada, setEmpresaEncontrada] = useState<EmpresaResponse | null>(null)
+  const [empresaEncontrada, setEmpresaEncontrada] =
+    useState<Partial<EmpresaResponse> | null>(null)
   const [toastJaMostrado, setToastJaMostrado] = useState(false)
 
-  // Hook para consultar empresa por CNPJ
-  const {
-    isLoading: isConsultandoCNPJ,
-    refetch: refetchConsultaCNPJ
-  } = useConsultarEmpresaPorCNPJ(cnpjParaConsultar, {
-    enabled: false, // Só executa quando chamarmos refetch
-    onSuccess: (data) => {
-      // Valida se os dados essenciais existem
-      if (!data || !data.cnpj || !data.razaoSocial) {
-        toast.error('Erro ao carregar dados da empresa', {
-          description: 'Dados incompletos recebidos da API.',
-        })
-        return
-      }
-      
-      // Evita processar a mesma empresa múltiplas vezes
-      if (empresaEncontrada?.id === data.id) {
-        return
-      }
-      
-      // Empresa encontrada - preenche o formulário automaticamente
-      setEmpresaEncontrada(data)
-      
-      // Preenche todos os campos do formulário de uma vez
-      const contatosMapeados = data.contatos?.map((contato, index) => ({
-        id: (index + 1).toString(),
-        nome: contato.nome,
-        valor: contato.valor,
-        tipo: contato.tipo as 'Email' | 'Telefone' | 'Celular',
-        ativo: true,
-      })) || []
+  const defaultValues = useMemo(
+    () => buildFormDefaultValues(dadosIniciais),
+    [dadosIniciais],
+  )
 
-      form.reset({
-        cnpj: cnpjUtils.formatar(data.cnpj),
-        razaoSocial: data.razaoSocial,
-        estadoIE: data.estado,
-        inscricaoEstadual: data.inscricaoEstadual || '',
-        inscricaoMunicipal: data.inscricaoMunicipal || '',
-        endereco: data.endereco,
-        numero: 'S/N', // Número não vem da API, usa "S/N" como padrão
-        complemento: '', // Complemento não vem da API
-        bairro: data.bairro,
-        cidade: data.cidade,
-        estado: data.estado,
-        cep: data.cep,
-        ativo: data.ativo,
-        contatos: contatosMapeados, // Preenche contatos diretamente no reset
-        empresaId: data.id, // Adiciona o ID da empresa para uso posterior
-      })
-
-      // Habilita campos de endereço e marca CEP como válido (empresa existente)
-      setCepPreenchido(true)
-      setCepValido(true)
-      
-      // Só mostra o toast se ainda não foi mostrado para esta empresa
-      if (!toastJaMostrado) {
-        setToastJaMostrado(true)
-        toast.success('Empresa já cadastrada!', {
-          description: 'Formulário preenchido automaticamente com os dados existentes.',
-          icon: <Check className="h-4 w-4" />,
-        })
-      }
-    },
-    onError: (error) => {
-      // Empresa não encontrada - limpa estado
-      setEmpresaEncontrada(null)
-      
-      // Só mostra mensagem se for erro específico de "empresa não encontrada" 
-      // e ainda não foi mostrado para evitar spam
-      if (error instanceof Error && error.message === 'Empresa não encontrada' && !toastJaMostrado) {
-        setToastJaMostrado(true)
-        toast.info('Empresa não cadastrada', {
-          description: 'Continue preenchendo o formulário para cadastrar.',
-        })
-      }
-    }
+  // Definir form e hooks relacionados ANTES das funções que os utilizam
+  const form = useForm({
+    resolver: zodResolver(fornecedorSchema),
+    defaultValues,
   })
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'contatos',
+  })
+
+  // Watch para o estado selecionado para tornar os campos reativos
+  const estadoSelecionado = useWatch({
+    control: form.control,
+    name: 'estadoIE',
+  })
+
+  // Watch apenas para os tipos de contatos para reatividade
+  const watchedContatosRaw = useWatch({
+    control: form.control,
+    name: 'contatos',
+  }) as Contato[] | undefined
+
+  // Memoiza os tipos para evitar re-renders desnecessários
+  const tiposContatosMemo = useMemo(() => {
+    const watchedContatos = watchedContatosRaw ?? []
+    return watchedContatos.map((contato) => contato.tipo)
+  }, [watchedContatosRaw])
+
+  // Hook para consultar empresa por CNPJ
+  const { isLoading: isConsultandoCNPJ, refetch: refetchConsultaCNPJ } =
+    useConsultarEmpresaPorCNPJ(cnpjParaConsultar, {
+      enabled: false, // Só executa quando chamarmos refetch
+      onSuccess: (data) => {
+        // Valida se os dados essenciais existem
+        if (!data.cnpj || !data.razaoSocial) {
+          toast.error('Erro ao carregar dados da empresa', {
+            description: 'Dados incompletos recebidos da API.',
+          })
+          return
+        }
+
+        // Evita processar a mesma empresa múltiplas vezes
+        if (empresaEncontrada?.id === data.id) {
+          return
+        }
+
+        // Empresa encontrada - preenche o formulário automaticamente
+        setEmpresaEncontrada(data)
+
+        // Preenche todos os campos do formulário de uma vez
+        const contatosMapeados = data.contatos.map((contato, index) => ({
+          id: (index + 1).toString(),
+          nome: contato.nome,
+          valor: contato.valor,
+          tipo: contato.tipo,
+          ativo: true,
+        }))
+
+        form.reset({
+          cnpj: cnpjUtils.formatar(data.cnpj),
+          razaoSocial: data.razaoSocial,
+          estadoIE: data.estado,
+          inscricaoEstadual: data.inscricaoEstadual ?? '',
+          inscricaoMunicipal: data.inscricaoMunicipal ?? '',
+          endereco: data.endereco,
+          numero: 'S/N', // Número não vem da API, usa "S/N" como padrão
+          complemento: '', // Complemento não vem da API
+          bairro: data.bairro,
+          cidade: data.cidade,
+          estado: data.estado,
+          cep: data.cep,
+          ativo: data.ativo,
+          contatos: contatosMapeados, // Preenche contatos diretamente no reset
+          empresaId: data.id, // Adiciona o ID da empresa para uso posterior
+        })
+
+        // Habilita campos de endereço e marca CEP como válido (empresa existente)
+        setCepPreenchido(true)
+        setCepValido(true)
+
+        // Só mostra o toast se ainda não foi mostrado para esta empresa
+        if (!toastJaMostrado) {
+          setToastJaMostrado(true)
+          toast.success('Empresa já cadastrada!', {
+            description:
+              'Formulário preenchido automaticamente com os dados existentes.',
+            icon: <Check className="h-4 w-4" />,
+          })
+        }
+      },
+      onError: (error) => {
+        // Empresa não encontrada - limpa estado
+        setEmpresaEncontrada(null)
+
+        // Só mostra mensagem se for erro específico de "empresa não encontrada"
+        // e ainda não foi mostrado para evitar spam
+        if (
+          error instanceof Error &&
+          error.message === 'Empresa não encontrada' &&
+          !toastJaMostrado
+        ) {
+          setToastJaMostrado(true)
+          toast.info('Empresa não cadastrada', {
+            description: 'Continue preenchendo o formulário para cadastrar.',
+          })
+        }
+      },
+    })
 
   // Effect para executar consulta quando cnpjParaConsultar mudar
   useEffect(() => {
     // Só executa a consulta se o CNPJ estiver completo e válido
-    if (cnpjParaConsultar && cnpjParaConsultar.length === 14 && cnpjUtils.validar(cnpjParaConsultar)) {
-      refetchConsultaCNPJ()
+    if (
+      cnpjParaConsultar &&
+      cnpjParaConsultar.length === 14 &&
+      cnpjUtils.validar(cnpjParaConsultar)
+    ) {
+      void refetchConsultaCNPJ()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cnpjParaConsultar]) // Removido refetchConsultaCNPJ das dependências para evitar loops
 
+  // Função para validar formato do CEP
+  const validarFormatoCEP = (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, '')
+    return cepLimpo.length === 8
+  }
+
   // Hook para cadastrar empresa
-  const { mutateAsync: cadastrarEmpresaAsync, resetMutation } = useCadastrarEmpresa()
+  const { mutateAsync: cadastrarEmpresaAsync, resetMutation } =
+    useCadastrarEmpresa()
 
   // Hook para busca de CEP
   const buscarCEP = async (cep: string) => {
@@ -322,7 +418,7 @@ export default function FornecedorForm({
     try {
       const cepLimpo = cep.replace(/\D/g, '')
       const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
-      const data = await response.json()
+      const data = (await response.json()) as ViaCepResponse
 
       if (data.erro) {
         setCepError('CEP não encontrado')
@@ -334,10 +430,10 @@ export default function FornecedorForm({
 
       if (data.cep) {
         // Preenche os campos automaticamente
-        form.setValue('endereco', data.logradouro || '')
-        form.setValue('bairro', data.bairro || '')
-        form.setValue('cidade', data.localidade || '')
-        form.setValue('estado', data.uf || '')
+        form.setValue('endereco', data.logradouro ?? '')
+        form.setValue('bairro', data.bairro ?? '')
+        form.setValue('cidade', data.localidade ?? '')
+        form.setValue('estado', data.uf ?? '')
 
         // Marca CEP como válido e habilita campos
         setCepValido(true)
@@ -345,9 +441,9 @@ export default function FornecedorForm({
 
         // Foca no campo número após preencher
         setTimeout(() => {
-          const numeroField = document.querySelector(
+          const numeroField = document.querySelector<HTMLInputElement>(
             'input[name="numero"]',
-          ) as HTMLInputElement
+          )
           numeroField?.focus()
         }, 100)
       }
@@ -367,16 +463,16 @@ export default function FornecedorForm({
     setCepBypassDisponivel(false)
     setCepPreenchido(true)
     setCepValido(true)
-    
+
     toast.success('CEP liberado para preenchimento manual', {
-      description: 'Você pode preencher o endereço manualmente.'
+      description: 'Você pode preencher o endereço manualmente.',
     })
 
     // Foca no campo de endereço para o usuário preencher manualmente
     setTimeout(() => {
-      const enderecoField = document.querySelector(
+      const enderecoField = document.querySelector<HTMLInputElement>(
         'input[name="endereco"]',
-      ) as HTMLInputElement
+      )
       enderecoField?.focus()
     }, 100)
   }
@@ -385,9 +481,13 @@ export default function FornecedorForm({
   const consultarEmpresaCNPJ = (cnpj: string) => {
     // Garante que o CNPJ está limpo (sem máscara)
     const cnpjLimpo = cnpjUtils.limpar(cnpj)
-    
+
     // Só consulta se o CNPJ estiver completo e válido
-    if (!cnpjLimpo || cnpjLimpo.length !== 14 || !cnpjUtils.validar(cnpjLimpo)) {
+    if (
+      !cnpjLimpo ||
+      cnpjLimpo.length !== 14 ||
+      !cnpjUtils.validar(cnpjLimpo)
+    ) {
       // Limpa o estado se o CNPJ não for válido
       setEmpresaEncontrada(null)
       setToastJaMostrado(false)
@@ -403,161 +503,78 @@ export default function FornecedorForm({
     setCnpjParaConsultar(cnpjLimpo)
   }
 
-  const form = useForm({
-    resolver: zodResolver(fornecedorSchema),
-    defaultValues: {
-      cnpj: dadosIniciais?.cnpj ? cnpjUtils.formatar(dadosIniciais.cnpj) : '',
-      razaoSocial: dadosIniciais?.razaoSocial || '',
-      estadoIE: dadosIniciais?.estadoIE || '',
-      inscricaoEstadual: dadosIniciais?.inscricaoEstadual || '',
-      inscricaoMunicipal: dadosIniciais?.inscricaoMunicipal || '',
-      endereco: dadosIniciais?.endereco || '',
-      numero: dadosIniciais?.numero || '',
-      complemento: dadosIniciais?.complemento || '',
-      bairro: dadosIniciais?.bairro || '',
-      cidade: dadosIniciais?.cidade || '',
-      estado: dadosIniciais?.estado || '',
-      cep: dadosIniciais?.cep || '',
-      ativo: dadosIniciais?.ativo ?? true,
-      contatos: dadosIniciais?.contatos?.length ? dadosIniciais.contatos : [
-        {
-          id: '1',
-          nome: '',
-          valor: '',
-          tipo: 'Email' as const,
-          ativo: true,
-        }
-      ],
-    },
-  })
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'contatos',
-  })
-
-  // Watch para o estado selecionado para tornar os campos reativos
-  const estadoSelecionado = useWatch({
-    control: form.control,
-    name: 'estadoIE',
-  })
-
-  // Watch apenas para os tipos de contatos para reatividade
-  const watchedContatosRaw = useWatch({
-    control: form.control,
-    name: 'contatos',
-  })
-
-  // Memoiza os tipos para evitar re-renders desnecessários
-  const tiposContatosMemo = useMemo(() => {
-    const watchedContatos = watchedContatosRaw || []
-    return watchedContatos.map(contato => contato?.tipo || 'Email')
-  }, [watchedContatosRaw])
-
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {
-    if (dadosIniciais && Object.keys(dadosIniciais).length > 0) {
-      form.reset({
-        cnpj: dadosIniciais?.cnpj ? cnpjUtils.formatar(dadosIniciais.cnpj) : '',
-        razaoSocial: dadosIniciais?.razaoSocial || '',
-        estadoIE: dadosIniciais?.estadoIE || '',
-        inscricaoEstadual: dadosIniciais?.inscricaoEstadual || '',
-        inscricaoMunicipal: dadosIniciais?.inscricaoMunicipal || '',
-        endereco: dadosIniciais?.endereco || '',
-        numero: dadosIniciais?.numero || '',
-        complemento: dadosIniciais?.complemento || '',
-        bairro: dadosIniciais?.bairro || '',
-        cidade: dadosIniciais?.cidade || '',
-        estado: dadosIniciais?.estado || '',
-        cep: dadosIniciais?.cep || '',
-        ativo: dadosIniciais?.ativo ?? true,
-        empresaId: dadosIniciais?.empresaId || '',
-        contatos: dadosIniciais?.contatos?.length ? dadosIniciais.contatos : [
-          {
-            id: '1',
-            nome: '',
-            valor: '',
-            tipo: 'Email' as const,
-            ativo: true,
-          }
-        ],
-      })
+    if (Object.keys(dadosIniciais).length > 0) {
+      form.reset(buildFormDefaultValues(dadosIniciais))
     }
   }, [dadosIniciais, form])
 
   // Restaurar estados do CEP quando dadosIniciais.cep existe (corrige problema ao voltar de outros steps)
   useEffect(() => {
-    if (dadosIniciais?.cep) {
-      const cep = dadosIniciais.cep
-      const cepLimpo = cep.replace(/\D/g, '')
-
-      // Se o CEP tem 8 dígitos, marca como válido e preenchido
-      if (cepLimpo.length === 8) {
-        setCepValido(true)
-        setCepPreenchido(true)
-        setCepError(null)
-
-        // Se há empresa encontrada nos dados iniciais, também marca isso
-        if (dadosIniciais.empresaId) {
-          // Simula empresa encontrada para manter consistência da UI
-          setEmpresaEncontrada({
-            id: dadosIniciais.empresaId,
-            cnpj: dadosIniciais.cnpj || '',
-            razaoSocial: dadosIniciais.razaoSocial || '',
-          } as EmpresaResponse)
-        }
-      }
+    const cepInicial = dadosIniciais.cep
+    if (!cepInicial) {
+      return
     }
-  }, [dadosIniciais?.cep, dadosIniciais?.empresaId, dadosIniciais?.cnpj, dadosIniciais?.razaoSocial])
+
+    const cepLimpo = cepInicial.replace(/\D/g, '')
+    if (cepLimpo.length !== 8) {
+      return
+    }
+
+    setCepValido(true)
+    setCepPreenchido(true)
+    setCepError(null)
+
+    if (!empresaEncontrada && dadosIniciais.empresaId) {
+      setEmpresaEncontrada({
+        id: dadosIniciais.empresaId,
+        cnpj: dadosIniciais.cnpj ?? '',
+        razaoSocial: dadosIniciais.razaoSocial ?? '',
+      })
+    }
+  }, [dadosIniciais, empresaEncontrada])
 
   // Função para notificar mudanças de dados sem watch
-  const handleDataChange = useCallback((dados: Partial<DadosFornecedor>) => {
-    if (onDataChange) {
-      onDataChange(dados)
-    }
-  }, [onDataChange])
+  const handleDataChange = useCallback(
+    (dados: Partial<DadosFornecedor>) => {
+      if (onDataChange) {
+        onDataChange(dados)
+      }
+    },
+    [onDataChange],
+  )
 
   // Função para notificar mudanças chamada nos onChange dos campos
   const notificarMudancas = useCallback(() => {
     if (!onDataChange) return
 
-    const formValues = form.getValues()
-    const empresaIdAtual = formValues.empresaId || empresaEncontrada?.id
-
-    // Debug: Log para monitorar empresaId
-    console.log('🔍 [DEBUG] EmpresaId atual:', {
-      formEmpresaId: formValues.empresaId,
-      empresaEncontradaId: empresaEncontrada?.id,
-      empresaIdFinal: empresaIdAtual,
-      hasEmpresaEncontrada: !!empresaEncontrada
-    })
+    const formValues = form.getValues() as z.infer<typeof fornecedorSchema>
+    const empresaIdAtual = formValues.empresaId ?? empresaEncontrada?.id
 
     const dados: Partial<DadosFornecedor> = {
-      cnpj: formValues.cnpj || '',
-      razaoSocial: formValues.razaoSocial || '',
-      estadoIE: formValues.estadoIE || '',
-      inscricaoEstadual: formValues.inscricaoEstadual || '',
-      inscricaoMunicipal: formValues.inscricaoMunicipal || '',
-      endereco: formValues.endereco || '',
-      numero: formValues.numero || '',
-      complemento: formValues.complemento || '',
-      bairro: formValues.bairro || '',
-      cidade: formValues.cidade || '',
-      estado: formValues.estado || '',
-      cep: formValues.cep || '',
-      ativo: formValues.ativo || false,
+      cnpj: formValues.cnpj,
+      razaoSocial: formValues.razaoSocial,
+      estadoIE: formValues.estadoIE,
+      inscricaoEstadual: formValues.inscricaoEstadual,
+      inscricaoMunicipal: formValues.inscricaoMunicipal,
+      endereco: formValues.endereco,
+      numero: formValues.numero,
+      complemento: formValues.complemento,
+      bairro: formValues.bairro,
+      cidade: formValues.cidade,
+      estado: formValues.estado,
+      cep: formValues.cep,
+      ativo: formValues.ativo,
       empresaId: empresaIdAtual,
-      contatos: (formValues.contatos || []).map((contato) => ({
+      contatos: formValues.contatos.map((contato) => ({
         id: contato.id,
-        nome: contato.nome || '',
-        valor: contato.valor || '',
+        nome: contato.nome,
+        valor: contato.valor,
         tipo: contato.tipo,
         ativo: contato.ativo,
       })),
     }
-
-    // Debug: Log dos dados enviados
-    console.log('📤 [DEBUG] Dados enviados via onDataChange:', dados)
 
     handleDataChange(dados)
   }, [form, handleDataChange, onDataChange, empresaEncontrada?.id])
@@ -568,7 +585,8 @@ export default function FornecedorForm({
     // Validação crítica: CEP deve ser válido para prosseguir
     if (!cepValido) {
       toast.error('CEP inválido ou não encontrado', {
-        description: 'É necessário um CEP válido para prosseguir com o cadastro.',
+        description:
+          'É necessário um CEP válido para prosseguir com o cadastro.',
       })
       return
     }
@@ -579,7 +597,7 @@ export default function FornecedorForm({
     } as DadosFornecedor
 
     // Validações adicionais com feedback ao usuário
-    if (!dadosFornecedor.contatos || dadosFornecedor.contatos.length === 0) {
+    if (dadosFornecedor.contatos.length === 0) {
       toast.error('Pelo menos um contato é obrigatório', {
         description: 'Adicione pelo menos um contato antes de continuar.',
       })
@@ -587,12 +605,16 @@ export default function FornecedorForm({
     }
 
     const contatosValidos = dadosFornecedor.contatos.filter(
-      (contato) => contato.nome && contato.valor && contato.tipo,
+      (contato) =>
+        Boolean(contato.nome) &&
+        Boolean(contato.valor) &&
+        Boolean(contato.tipo),
     )
 
     if (contatosValidos.length !== dadosFornecedor.contatos.length) {
       toast.error('Contatos inválidos', {
-        description: 'Verifique se todos os contatos estão preenchidos corretamente.',
+        description:
+          'Verifique se todos os contatos estão preenchidos corretamente.',
       })
       return
     }
@@ -613,7 +635,7 @@ export default function FornecedorForm({
           estado: dadosFornecedor.estado,
           cep: dadosFornecedor.cep,
           usuarioCadastroId: '3fa85f64-5717-4562-b3fc-2c963f66afa6', // Valor fixo conforme especificação
-          contatos: dadosFornecedor.contatos.map(contato => ({
+          contatos: dadosFornecedor.contatos.map((contato) => ({
             nome: contato.nome,
             valor: contato.valor,
             tipo: contato.tipo,
@@ -622,42 +644,17 @@ export default function FornecedorForm({
 
         const empresaCriada = await cadastrarEmpresaAsync(empresaRequest)
 
-        // Debug: Log completo da resposta do cadastro
-        console.log('🏭 [FORM] Resposta completa do cadastro:', empresaCriada)
-        console.log('🏭 [FORM] Tipo da resposta:', typeof empresaCriada)
-        console.log('🏭 [FORM] EmpresaId recebido:', empresaCriada?.id)
-        console.log('🏭 [FORM] Estrutura completa:', JSON.stringify(empresaCriada, null, 2))
-
         // Validação robusta da empresa criada
-        if (!empresaCriada) {
-          console.error('❌ [FORM] ERRO: Resposta vazia do cadastro de empresa')
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!empresaCriada?.id) {
           toast.error('Erro no cadastro da empresa', {
-            description: 'Resposta vazia do servidor'
+            description: 'Resposta inválida do servidor',
           })
           return
         }
-
-        if (!empresaCriada.id) {
-          console.error('❌ [FORM] ERRO CRÍTICO: Empresa criada mas sem ID!')
-          console.error('❌ [FORM] Dados recebidos:', empresaCriada)
-          toast.error('Erro no cadastro da empresa', {
-            description: 'ID da empresa não foi retornado'
-          })
-          return
-        }
-
-        // Salvar o ID da empresa criada no formulário
-        console.log('✅ [FORM] Empresa criada com sucesso:', {
-          empresaId: empresaCriada.id,
-          cnpj: dados.cnpj,
-          razaoSocial: dados.razaoSocial
-        })
 
         const valoresAtuais = form.getValues()
         form.setValue('empresaId', empresaCriada.id)
-
-        // Debug: Confirmar que o empresaId foi definido no form
-        console.log('💾 [FORM] EmpresaId definido no form:', form.getValues('empresaId'))
 
         // Definir empresa encontrada para consistência da UI
         setEmpresaEncontrada({
@@ -674,29 +671,24 @@ export default function FornecedorForm({
           razaoSocial: empresaCriada.razaoSocial,
         }
 
-        // Debug: Log dos dados atualizados
-        console.log('🔄 [FORM] Dados atualizados com empresaId:', dadosAtualizados)
-
         // Propagar mudança IMEDIATAMENTE
         if (onDataChange) {
           onDataChange(dadosAtualizados)
-          console.log('📤 [FORM] Dados propagados via onDataChange')
         }
 
         // Força notificação das mudanças
         setTimeout(() => {
           notificarMudancas()
-          console.log('⏰ [FORM] Notificação forçada após timeout')
         }, 100)
-        
+
         // Notificar componente pai que uma empresa foi cadastrada
         if (onEmpresaCadastrada) {
           onEmpresaCadastrada({
             cnpj: dadosFornecedor.cnpj,
-            razaoSocial: dadosFornecedor.razaoSocial
+            razaoSocial: dadosFornecedor.razaoSocial,
           })
         }
-        
+
         toast.success('Empresa cadastrada com sucesso!', {
           description: 'Nova empresa foi cadastrada no sistema.',
           icon: <Check className="h-4 w-4" />,
@@ -704,38 +696,29 @@ export default function FornecedorForm({
       }
 
       // Avança para o próximo step
-      const empresaIdFinal = form.getValues('empresaId') || empresaEncontrada?.id
-
-      // Debug: Log do empresaId no submit
-      console.log('🚀 [DEBUG] Submit - EmpresaId:', {
-        formEmpresaId: form.getValues('empresaId'),
-        empresaEncontradaId: empresaEncontrada?.id,
-        empresaIdFinal: empresaIdFinal,
-        dadosFornecedor: dadosFornecedor
-      })
+      const empresaIdFinal =
+        form.getValues('empresaId') ?? empresaEncontrada?.id
 
       if (onAdvanceRequest) {
         // Incluir o empresaId nos dados se disponível
         const dadosCompletos = {
           ...dadosFornecedor,
-          empresaId: empresaIdFinal
+          empresaId: empresaIdFinal,
         }
-        console.log('📤 [DEBUG] onAdvanceRequest - Dados completos:', dadosCompletos)
-        await onAdvanceRequest(dadosCompletos)
+        void onAdvanceRequest(dadosCompletos)
       } else {
         // Incluir o empresaId nos dados se disponível
         const dadosCompletos = {
           ...dadosFornecedor,
-          empresaId: empresaIdFinal
+          empresaId: empresaIdFinal,
         }
-        console.log('📤 [DEBUG] onSubmit - Dados completos:', dadosCompletos)
-        await onSubmit?.(dadosCompletos)
+        onSubmit(dadosCompletos)
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao processar formulário', {
         description: 'Tente novamente ou verifique os dados.',
       })
-      
+
       // Reset da mutation para permitir nova tentativa
       resetMutation()
     } finally {
@@ -755,16 +738,27 @@ export default function FornecedorForm({
     }
   }
 
-  const getPlaceholderPorTipo = (tipo: string) => {
+  const getPlaceholderPorTipo = (tipo: Contato['tipo']) => {
     switch (tipo) {
       case 'Email':
         return 'exemplo@email.com'
-      case 'Fixo':
+      case 'Telefone':
         return '(11) 3333-4444'
       case 'Celular':
-        return '(11) 9 9999-8888'
       default:
-        return ''
+        return '(11) 9 9999-8888'
+    }
+  }
+
+  const getLabelPorTipo = (tipo: Contato['tipo']) => {
+    switch (tipo) {
+      case 'Email':
+        return 'E-mail'
+      case 'Telefone':
+        return 'Telefone Fixo'
+      case 'Celular':
+      default:
+        return 'Celular'
     }
   }
 
@@ -775,12 +769,6 @@ export default function FornecedorForm({
       return apenasNumeros
     }
     return `${apenasNumeros.slice(0, 5)}-${apenasNumeros.slice(5, 8)}`
-  }
-
-  // Função para validar formato do CEP
-  const validarFormatoCEP = (cep: string) => {
-    const cepLimpo = cep.replace(/\D/g, '')
-    return cepLimpo.length === 8
   }
 
   // Função para aplicar máscara no telefone fixo
@@ -816,7 +804,9 @@ export default function FornecedorForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={(e) => {
+          void form.handleSubmit(handleFormSubmit)(e)
+        }}
         className="space-y-8"
       >
         {/* Informações Básicas */}
@@ -854,7 +844,9 @@ export default function FornecedorForm({
 
                   return (
                     <FormItem>
-                      <FormLabel htmlFor="cnpj" className="mb-2">CNPJ *</FormLabel>
+                      <FormLabel htmlFor="cnpj" className="mb-2">
+                        CNPJ *
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
@@ -871,9 +863,10 @@ export default function FornecedorForm({
                               // Só consulta se o CNPJ estiver completo (18 caracteres com máscara)
                               if (valorMascarado.length === 18) {
                                 // Valida e consulta com CNPJ limpo (sem máscara)
-                                const cnpjLimpo = cnpjUtils.limpar(valorMascarado)
+                                const cnpjLimpo =
+                                  cnpjUtils.limpar(valorMascarado)
                                 const isValid = cnpjUtils.validar(cnpjLimpo)
-                                
+
                                 if (isValid) {
                                   consultarEmpresaCNPJ(valorMascarado)
                                 }
@@ -883,23 +876,23 @@ export default function FornecedorForm({
                                 setToastJaMostrado(false)
                                 setCnpjParaConsultar('')
                               }
-                              
+
                               // Notifica mudanças
                               setTimeout(() => notificarMudancas(), 0)
                             }}
                             className={cn(
-                              "w-full",
+                              'w-full',
                               isValidCnpj === true &&
                                 'border-green-500 bg-green-50 pr-10',
                               isValidCnpj === false &&
                                 'border-red-500 bg-red-50 pr-10',
-                              !!empresaEncontrada && 
+                              !!empresaEncontrada &&
                                 'cursor-not-allowed bg-slate-100 opacity-50',
                             )}
                           />
                           {isConsultandoCNPJ && (
                             <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
+                              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
                             </div>
                           )}
                           {isValidCnpj !== null && !isConsultandoCNPJ && (
@@ -927,17 +920,20 @@ export default function FornecedorForm({
                 name="razaoSocial"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="razaoSocial" className="mb-2">Razão Social *</FormLabel>
+                    <FormLabel htmlFor="razaoSocial" className="mb-2">
+                      Razão Social *
+                    </FormLabel>
                     <FormControl>
-                      <Input 
-                        id="razaoSocial" 
-                        placeholder="Digite a razão social" 
+                      <Input
+                        id="razaoSocial"
+                        placeholder="Digite a razão social"
                         className={cn(
-                          "w-full",
-                          !!empresaEncontrada && 'cursor-not-allowed bg-slate-100 opacity-50'
+                          'w-full',
+                          !!empresaEncontrada &&
+                            'cursor-not-allowed bg-slate-100 opacity-50',
                         )}
                         disabled={!!empresaEncontrada}
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -956,7 +952,9 @@ export default function FornecedorForm({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor="inscricaoEstadual" className="mb-2">Inscrição Estadual</FormLabel>
+                      <FormLabel htmlFor="inscricaoEstadual" className="mb-2">
+                        Inscrição Estadual
+                      </FormLabel>
                       <div className="flex gap-2">
                         {/* Dropdown de Estados */}
                         <FormField
@@ -977,11 +975,12 @@ export default function FornecedorForm({
                                 disabled={!!empresaEncontrada}
                               >
                                 <FormControl>
-                                  <SelectTrigger 
-                                    id="estadoIE" 
+                                  <SelectTrigger
+                                    id="estadoIE"
                                     className={cn(
-                                      "w-full",
-                                      !!empresaEncontrada && 'cursor-not-allowed bg-slate-100 opacity-50'
+                                      'w-full',
+                                      !!empresaEncontrada &&
+                                        'cursor-not-allowed bg-slate-100 opacity-50',
                                     )}
                                   >
                                     <SelectValue placeholder="UF" />
@@ -1074,7 +1073,7 @@ export default function FornecedorForm({
                             }}
                             className={cn(
                               (!estadoSelecionado || !!empresaEncontrada) &&
-                                'cursor-not-allowed bg-slate-100 opacity-50'
+                                'cursor-not-allowed bg-slate-100 opacity-50',
                             )}
                           />
                         </div>
@@ -1122,18 +1121,19 @@ export default function FornecedorForm({
 
                             // Só busca CEP quando o formato estiver completo
                             if (valorMascarado) {
-                              buscarCEP(valorMascarado)
+                              void buscarCEP(valorMascarado)
                             }
                           }}
                           className={cn(
                             cepError && 'border-red-500 bg-red-50',
                             cepValido && 'border-green-500 bg-green-50',
-                            !!empresaEncontrada && 'cursor-not-allowed bg-slate-100 opacity-50'
+                            !!empresaEncontrada &&
+                              'cursor-not-allowed bg-slate-100 opacity-50',
                           )}
                         />
                         {isLoadingCEP && (
                           <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600"></div>
+                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
                           </div>
                         )}
                         {!isLoadingCEP && cepValido && (
@@ -1466,24 +1466,23 @@ export default function FornecedorForm({
                         name={`contatos.${index}.valor`}
                         render={({ field: valorField }) => {
                           // Usa o tipo memoizado para evitar re-renders
-                          const tipoContato = tiposContatosMemo[index] || 'Email'
-                          
+                          const tipoContato =
+                            tiposContatosMemo[index] ?? 'Email'
+
                           return (
                             <FormItem>
                               <FormLabel className="mb-2">
-                                {tipoContato === 'Email'
-                                  ? 'E-mail'
-                                  : tipoContato === 'Telefone'
-                                    ? 'Telefone Fixo'
-                                    : tipoContato === 'Celular'
-                                      ? 'Celular'
-                                      : 'Valor'}
+                                {getLabelPorTipo(tipoContato)}
                               </FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Input
-                                    placeholder={getPlaceholderPorTipo(tipoContato)}
-                                    type={tipoContato === 'Email' ? 'email' : 'tel'}
+                                    placeholder={getPlaceholderPorTipo(
+                                      tipoContato,
+                                    )}
+                                    type={
+                                      tipoContato === 'Email' ? 'email' : 'tel'
+                                    }
                                     value={valorField.value || ''}
                                     disabled={!!empresaEncontrada}
                                     className={cn(
@@ -1495,9 +1494,14 @@ export default function FornecedorForm({
 
                                       // Aplica máscara baseada no tipo
                                       if (tipoContato === 'Telefone') {
-                                        valorProcessado = aplicarMascaraTelefoneFixo(e.target.value)
+                                        valorProcessado =
+                                          aplicarMascaraTelefoneFixo(
+                                            e.target.value,
+                                          )
                                       } else if (tipoContato === 'Celular') {
-                                        valorProcessado = aplicarMascaraCelular(e.target.value)
+                                        valorProcessado = aplicarMascaraCelular(
+                                          e.target.value,
+                                        )
                                       }
 
                                       valorField.onChange(valorProcessado)
@@ -1507,8 +1511,11 @@ export default function FornecedorForm({
                                         if (tipoContato === 'Email') {
                                           validarEmail(valorProcessado)
                                         } else if (tipoContato === 'Telefone') {
-                                          validarFormatoTelefoneFixo(valorProcessado)
-                                        } else if (tipoContato === 'Celular') {
+                                          validarFormatoTelefoneFixo(
+                                            valorProcessado,
+                                          )
+                                        } else {
+                                          // Celular
                                           validarFormatoCelular(valorProcessado)
                                         }
                                       }
@@ -1546,8 +1553,7 @@ export default function FornecedorForm({
                   onCheckedChange={field.onChange}
                   disabled={!!empresaEncontrada}
                   className={cn(
-                    !!empresaEncontrada &&
-                      'cursor-not-allowed opacity-50',
+                    !!empresaEncontrada && 'cursor-not-allowed opacity-50',
                   )}
                 />
               </FormControl>
@@ -1620,3 +1626,5 @@ export default function FornecedorForm({
     </Form>
   )
 }
+
+export default FornecedorForm

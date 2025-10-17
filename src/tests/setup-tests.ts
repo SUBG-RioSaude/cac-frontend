@@ -1,5 +1,11 @@
 // src/setupTests.ts
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
+
+// Configurar variáveis de ambiente para testes Vite
+import.meta.env.VITE_SYSTEM_ID = '7b8659bb-1aeb-4d74-92c1-110c1d27e576'
+import.meta.env.VITE_API_CHAT_SOCKET_URL =
+  import.meta.env.VITE_API_CHAT_SOCKET_URL ?? 'http://test-chat-api'
 
 // Mock do ResizeObserver para testes
 global.ResizeObserver = class ResizeObserver {
@@ -16,7 +22,7 @@ Object.defineProperty(window, 'matchMedia', {
     media: query,
     onchange: null,
     addListener: () => {},
-    removeListener: () => {}, 
+    removeListener: () => {},
     addEventListener: () => {},
     removeEventListener: () => {},
     dispatchEvent: () => {},
@@ -38,8 +44,8 @@ global.IntersectionObserver = class IntersectionObserver {
   unobserve() {}
   disconnect() {}
   root: Element | null = null
-  rootMargin: string = ''
-  thresholds: ReadonlyArray<number> = []
+  rootMargin = ''
+  thresholds: readonly number[] = []
   takeRecords(): IntersectionObserverEntry[] {
     return []
   }
@@ -97,3 +103,19 @@ Object.defineProperty(HTMLElement.prototype, 'click', {
   writable: true,
   value: () => {},
 })
+
+// Mock do SignalR Manager para evitar tentativas de conexão em testes
+vi.mock('@/modules/Contratos/services/signalr-manager', () => ({
+  signalRChatManager: {
+    initialize: vi.fn().mockResolvedValue(undefined),
+    joinRoom: vi.fn().mockResolvedValue(undefined),
+    leaveRoom: vi.fn().mockResolvedValue(undefined),
+    onMessage: vi.fn().mockReturnValue(() => {}),
+    onTyping: vi.fn().mockReturnValue(() => {}),
+    onPresence: vi.fn().mockReturnValue(() => {}),
+    sendMessage: vi.fn().mockResolvedValue(undefined),
+    startTyping: vi.fn().mockResolvedValue(undefined),
+    stopTyping: vi.fn().mockResolvedValue(undefined),
+    isConnected: vi.fn().mockReturnValue(false),
+  },
+}))

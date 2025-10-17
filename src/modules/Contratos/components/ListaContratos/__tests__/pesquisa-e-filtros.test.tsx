@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { SearchAndFilters } from '../pesquisa-e-filtros'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 import type { FiltrosContrato } from '@/modules/Contratos/types/contrato'
+
+import { SearchAndFilters } from '../pesquisa-e-filtros'
 
 // Mock do hook useUnidades
 vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
@@ -24,7 +26,7 @@ const mockProps = {
   filtros: {} as FiltrosContrato,
   onTermoPesquisaChange: vi.fn(),
   onFiltrosChange: vi.fn(),
-  onLimparFiltros: vi.fn()
+  onLimparFiltros: vi.fn(),
 }
 
 // Mock do framer-motion para evitar problemas nos testes
@@ -59,10 +61,7 @@ vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
       'Secretaria de Administração',
       'Secretaria de Transportes',
     ],
-    gestoras: [
-      'Departamento de Compras',
-      'Departamento de Contratos',
-    ]
+    gestoras: ['Departamento de Compras', 'Departamento de Contratos'],
   },
 }))
 
@@ -227,7 +226,7 @@ describe('SearchAndFilters', () => {
         dataFinalAte: '',
         valorMinimo: 100000,
         valorMaximo: undefined,
-      }
+      },
     }
 
     render(<SearchAndFilters {...propsComFiltros} />)
@@ -301,7 +300,7 @@ describe('SearchAndFilters', () => {
     const mockOnTermoPesquisaChange = vi.fn()
     const propsComCallback = {
       ...mockProps,
-      onTermoPesquisaChange: mockOnTermoPesquisaChange
+      onTermoPesquisaChange: mockOnTermoPesquisaChange,
     }
 
     render(<SearchAndFilters {...propsComCallback} />)

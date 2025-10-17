@@ -5,15 +5,15 @@ vi.mock('@/modules/Empresas/hooks/use-empresas', () => ({
   useFornecedoresResumo: () => ({
     data: null,
     isLoading: false,
-    error: null
-  })
+    error: null,
+  }),
 }))
 
 vi.mock('../../../hooks/use-contract-context', () => ({
   useContractSuppliers: () => ({
     mainSupplier: null,
-    suppliers: []
-  })
+    suppliers: [],
+  }),
 }))
 
 describe('BlocoFornecedores - Import Test', () => {

@@ -28,12 +28,14 @@ Componentes         (consomem os hooks)
 ### 3. Hooks Implementados
 
 #### Queries (Busca de dados)
+
 - `useContratos(filtros, options)` - Lista paginada com filtros
-- `useContrato(id, options)` - Busca por ID específico  
+- `useContrato(id, options)` - Busca por ID específico
 - `useContratosVencendo(dias, options)` - Contratos vencendo
 - `useContratosVencidos(options)` - Contratos vencidos
 
 #### Mutations (Modificação de dados)
+
 - `useCriarContrato()` - Criar novo contrato
 - `useUpdateContrato()` - Atualizar contrato existente
 - `useDeleteContrato()` - Deletar contrato (soft delete)
@@ -58,7 +60,7 @@ contratoKeys = {
 ### 5. Error Handling Integrado
 
 - **useErrorHandler**: Redireciona para páginas HTTP (400, 401, 403, 404, 500, 503)
-- **useToast melhorado**: 
+- **useToast melhorado**:
   - Toasts específicos para mutations (`mutation.success`, `mutation.error`)
   - Toasts para queries (`query.error`)
   - Integração automática com error handling
@@ -66,37 +68,40 @@ contratoKeys = {
 ### 6. Features Avançadas
 
 #### Optimistic Updates
+
 Mutations fazem atualizações otimistas com rollback automático em caso de erro:
 
 ```typescript
 onMutate: async (data) => {
   // Cancelar queries conflitantes
   await queryClient.cancelQueries({ queryKey: contratoKeys.detail(id) })
-  
+
   // Snapshot para rollback
   const previousData = queryClient.getQueryData(contratoKeys.detail(id))
-  
+
   // Update otimístico
   queryClient.setQueryData(contratoKeys.detail(id), newData)
-  
+
   return { previousData }
 }
 ```
 
 #### Cache Invalidation Inteligente
+
 Cada mutation invalida automaticamente as queries relacionadas:
 
 ```typescript
 onSuccess: (data, variables) => {
   // Invalidar todas as queries relacionadas
   const keysToInvalidate = contratoKeys.invalidateOnUpdate(data.id)
-  keysToInvalidate.forEach(key => {
+  keysToInvalidate.forEach((key) => {
     queryClient.invalidateQueries({ queryKey: key })
   })
 }
 ```
 
 #### Loading States Automáticos
+
 Todos os hooks retornam estados de loading, error e data:
 
 ```typescript
@@ -124,10 +129,11 @@ src/modules/Contratos/
 ## 🎯 Como Usar
 
 ### Exemplo 1: Lista de Contratos
+
 ```typescript
 function ContratosPage() {
   const [filtros, setFiltros] = useState({ pagina: 1, tamanhoPagina: 20 })
-  
+
   const { data, isLoading, error, refetch } = useContratos(filtros, {
     keepPreviousData: true  // Mantém dados durante paginação
   })
@@ -146,10 +152,11 @@ function ContratosPage() {
 ```
 
 ### Exemplo 2: Criar Contrato
+
 ```typescript
 function CreateContratoForm() {
   const createMutation = useCriarContrato()
-  
+
   const handleSubmit = (formData) => {
     // Toast, loading, error handling e redirecionamento são automáticos
     createMutation.mutate(formData)
@@ -167,11 +174,12 @@ function CreateContratoForm() {
 ```
 
 ### Exemplo 3: Controle Avançado
+
 ```typescript
 function ContratoDetail({ id }) {
   const { data: contrato } = useContrato(id)
   const updateMutation = useUpdateContrato()
-  
+
   const handleUpdate = (changes) => {
     updateMutation.mutate({
       id,
@@ -197,7 +205,7 @@ function ContratoDetail({ id }) {
 2. **Loading States**: Estados de loading/error automáticos
 3. **Optimistic Updates**: Interface responsiva com rollback automático
 4. **Error Handling**: Redirecionamento automático para páginas de erro
-5. **Background Refetch**: Dados sempre atualizados em background  
+5. **Background Refetch**: Dados sempre atualizados em background
 6. **DevTools**: Debugging visual do estado das queries
 7. **TypeScript**: Type safety completa end-to-end
 8. **Service Preservado**: Mantém arquitetura existente
@@ -205,22 +213,27 @@ function ContratoDetail({ id }) {
 ## 🔧 Configurações
 
 ### Stale Time: 5 minutos
+
 Dados são considerados "frescos" por 5 minutos
 
-### Garbage Collection: 10 minutos  
+### Garbage Collection: 10 minutos
+
 Dados não utilizados são removidos após 10 minutos
 
 ### Retry Policy
+
 - **Queries**: 3 tentativas para erros de rede, 0 para erros 4xx
 - **Mutations**: 1 tentativa
 
 ### Error Handling
+
 - **Erros críticos (5xx, 401, 403)**: Redirecionamento automático
 - **Outros erros**: Toast notification
 
 ## 📊 DevTools
 
 Em desenvolvimento, acesse as DevTools do React Query para:
+
 - Visualizar estado das queries
 - Ver cache hits/misses
 - Debug de invalidações

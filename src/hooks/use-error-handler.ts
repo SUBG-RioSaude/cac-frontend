@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom'
 import { useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export interface ErrorInfo {
   message?: string
@@ -21,11 +21,12 @@ export function useErrorHandler() {
       if (typeof error === 'string') {
         errorInfo.message = error
       } else if (error instanceof Error) {
-        errorInfo.message = error.message
-        errorInfo.details = error.stack
+        const { message, stack } = error
+        errorInfo.message = message
+        errorInfo.details = stack
       } else if (typeof error === 'object') {
         errorInfo = { ...error }
-        code = code || error.code
+        code = code ?? error.code
       }
 
       // Adicionar informações contextuais
@@ -64,7 +65,7 @@ export function useErrorHandler() {
       navigate(redirectPath, {
         state: {
           error:
-            errorInfo.message || errorInfo.details || 'Erro não especificado',
+            errorInfo.message ?? errorInfo.details ?? 'Erro não especificado',
           fullError: errorInfo,
         },
       })
@@ -77,7 +78,7 @@ export function useErrorHandler() {
       const errorInfo: ErrorInfo = {
         code: response.status,
         message:
-          customMessage ||
+          customMessage ??
           `Erro HTTP ${response.status}: ${response.statusText}`,
         url: response.url,
         timestamp: new Date(),
@@ -102,8 +103,8 @@ export function useErrorHandler() {
             data &&
             typeof data === 'object' &&
             ('message' in data || 'error' in data)
-              ? (data as { message?: string; error?: string }).message ||
-                (data as { message?: string; error?: string }).error
+              ? ((data as { message?: string; error?: string }).message ??
+                (data as { message?: string; error?: string }).error)
               : `Erro ${status}: ${statusText}`,
           details: JSON.stringify(data, null, 2),
           timestamp: new Date(),
@@ -129,14 +130,25 @@ export function useErrorHandler() {
   }
 }
 
+// Interface para o state do history
+interface HistoryStateError {
+  error?: string | null
+  fullError?: unknown
+}
+
+interface HistoryStateWrapper {
+  usr?: HistoryStateError
+}
+
 // Hook para acessar informações de erro na página de erro
 export function useErrorInfo() {
   const navigate = useNavigate()
 
   // Tentar recuperar erro do state da navegação
-  const state = history.state?.usr || {}
-  const error = state.error || null
-  const fullError = state.fullError || null
+  const historyState = history.state as HistoryStateWrapper | null
+  const state = historyState?.usr ?? ({} as HistoryStateError)
+  const error = state.error ?? null
+  const fullError = state.fullError ?? null
 
   return {
     error,

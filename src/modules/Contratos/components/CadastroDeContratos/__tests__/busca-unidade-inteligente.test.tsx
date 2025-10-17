@@ -1,6 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 import type { UnidadeHospitalar } from '@/modules/Contratos/types/unidades'
 
 // Mock dos hooks de unidades
@@ -22,8 +23,8 @@ vi.mock('@/modules/Unidades/hooks/use-unidades', () => ({
 vi.mock('../busca-unidade-inteligente', () => ({
   default: vi.fn(({ onUnidadeSelecionada, unidadeSelecionada, onLimpar }) => (
     <div data-testid="busca-unidade-inteligente">
-      <input 
-        placeholder="Digite o nome da unidade ou CNES..." 
+      <input
+        placeholder="Digite o nome da unidade ou CNES..."
         data-testid="campo-busca"
       />
       <div data-testid="icone-busca">🔍</div>
@@ -39,29 +40,31 @@ vi.mock('../busca-unidade-inteligente', () => ({
       <div data-testid="mensagem-placeholder">
         Digite o nome da unidade ou CNES...
       </div>
-      <button 
-        onClick={() => onUnidadeSelecionada({ 
-          id: '1', 
-          nome: 'Hospital Test',
-          codigo: 'TEST-001',
-          ug: '123',
-          sigla: 'HT',
-          cnpj: '12.345.678/0001-90',
-          cep: '12345-678',
-          endereco: 'Rua Test, 123',
-          cidade: 'São Paulo',
-          estado: 'SP',
-          responsavel: 'Test Manager',
-          telefone: '(11) 1234-5678',
-          email: 'test@hospital.com',
-          ativa: true
-        })}
+      <button
+        onClick={() =>
+          onUnidadeSelecionada({
+            id: '1',
+            nome: 'Hospital Test',
+            codigo: 'TEST-001',
+            ug: '123',
+            sigla: 'HT',
+            cnpj: '12.345.678/0001-90',
+            cep: '12345-678',
+            endereco: 'Rua Test, 123',
+            cidade: 'São Paulo',
+            estado: 'SP',
+            responsavel: 'Test Manager',
+            telefone: '(11) 1234-5678',
+            email: 'test@hospital.com',
+            ativa: true,
+          })
+        }
         data-testid="selecionar-unidade"
       >
         Selecionar Hospital Test
       </button>
     </div>
-  ))
+  )),
 }))
 
 // Função helper para renderizar com QueryClient
@@ -75,9 +78,7 @@ const renderWithProviders = (ui: React.ReactElement) => {
   })
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      {ui}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
   )
 }
 
@@ -97,15 +98,20 @@ describe('BuscaUnidadeInteligente', () => {
   describe('Renderização Inicial', () => {
     it('deve renderizar o campo de busca por padrão', () => {
       renderWithProviders(<BuscaUnidadeInteligente {...defaultProps} />)
-      
-      expect(screen.getByTestId('busca-unidade-inteligente')).toBeInTheDocument()
+
+      expect(
+        screen.getByTestId('busca-unidade-inteligente'),
+      ).toBeInTheDocument()
       expect(screen.getByTestId('campo-busca')).toBeInTheDocument()
-      expect(screen.getByTestId('campo-busca')).toHaveAttribute('placeholder', 'Digite o nome da unidade ou CNES...')
+      expect(screen.getByTestId('campo-busca')).toHaveAttribute(
+        'placeholder',
+        'Digite o nome da unidade ou CNES...',
+      )
     })
 
     it('deve mostrar ícone de busca', () => {
       renderWithProviders(<BuscaUnidadeInteligente {...defaultProps} />)
-      
+
       expect(screen.getByTestId('icone-busca')).toBeInTheDocument()
     })
   })
@@ -120,10 +126,10 @@ describe('BuscaUnidadeInteligente', () => {
 
     it('deve permitir seleção de unidade', () => {
       renderWithProviders(<BuscaUnidadeInteligente {...defaultProps} />)
-      
+
       const botaoSelecionar = screen.getByTestId('selecionar-unidade')
       fireEvent.click(botaoSelecionar)
-      
+
       expect(defaultProps.onUnidadeSelecionada).toHaveBeenCalledWith({
         id: '1',
         nome: 'Hospital Test',
@@ -138,7 +144,7 @@ describe('BuscaUnidadeInteligente', () => {
         responsavel: 'Test Manager',
         telefone: '(11) 1234-5678',
         email: 'test@hospital.com',
-        ativa: true
+        ativa: true,
       })
     })
   })
@@ -159,16 +165,16 @@ describe('BuscaUnidadeInteligente', () => {
         responsavel: 'Dr. João Silva',
         telefone: '(11) 2661-0000',
         email: 'contato@hc.com.br',
-        ativa: true
+        ativa: true,
       }
 
       renderWithProviders(
-        <BuscaUnidadeInteligente 
-          {...defaultProps} 
+        <BuscaUnidadeInteligente
+          {...defaultProps}
           unidadeSelecionada={unidadeSelecionada}
-        />
+        />,
       )
-      
+
       expect(screen.getByTestId('unidade-selecionada')).toBeInTheDocument()
       expect(screen.getByText('Hospital Central')).toBeInTheDocument()
     })
@@ -188,19 +194,19 @@ describe('BuscaUnidadeInteligente', () => {
         responsavel: 'Dr. João Silva',
         telefone: '(11) 2661-0000',
         email: 'contato@hc.com.br',
-        ativa: true
+        ativa: true,
       }
 
       renderWithProviders(
-        <BuscaUnidadeInteligente 
-          {...defaultProps} 
+        <BuscaUnidadeInteligente
+          {...defaultProps}
           unidadeSelecionada={unidadeSelecionada}
-        />
+        />,
       )
-      
+
       const botaoAlterar = screen.getByTestId('botao-alterar')
       fireEvent.click(botaoAlterar)
-      
+
       expect(defaultProps.onLimpar).toHaveBeenCalled()
     })
 
@@ -219,16 +225,16 @@ describe('BuscaUnidadeInteligente', () => {
         responsavel: 'Dr. João Silva',
         telefone: '(11) 2661-0000',
         email: 'contato@hc.com.br',
-        ativa: true
+        ativa: true,
       }
 
       renderWithProviders(
-        <BuscaUnidadeInteligente 
-          {...defaultProps} 
+        <BuscaUnidadeInteligente
+          {...defaultProps}
           unidadeSelecionada={unidadeSelecionada}
-        />
+        />,
       )
-      
+
       expect(screen.getByTestId('icone-check')).toBeInTheDocument()
     })
   })
@@ -236,9 +242,12 @@ describe('BuscaUnidadeInteligente', () => {
   describe('Acessibilidade', () => {
     it('deve ter placeholder descritivo', () => {
       renderWithProviders(<BuscaUnidadeInteligente {...defaultProps} />)
-      
+
       const campo = screen.getByTestId('campo-busca')
-      expect(campo).toHaveAttribute('placeholder', 'Digite o nome da unidade ou CNES...')
+      expect(campo).toHaveAttribute(
+        'placeholder',
+        'Digite o nome da unidade ou CNES...',
+      )
     })
   })
 })

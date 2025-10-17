@@ -1,23 +1,35 @@
+import { Server, RefreshCw, Home, Clock, Mail } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Server, RefreshCw, Home, Clock, Mail } from 'lucide-react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
 
 interface ServiceUnavailableProps {
   error?: string
 }
 
-export default function ServiceUnavailable({
-  error: propError,
-}: ServiceUnavailableProps) {
+interface LocationState {
+  error?: string
+}
+
+function isValidLocationState(state: unknown): state is LocationState {
+  return typeof state === 'object' && state !== null
+}
+
+const ServiceUnavailable = ({ error: propError }: ServiceUnavailableProps) => {
   const navigate = useNavigate()
   const location = useLocation()
   const [isRetrying, setIsRetrying] = useState(false)
   const [countdown, setCountdown] = useState(30)
 
   // Buscar erro do state da navegação ou usar prop
-  const error = location.state?.error || propError
+  const locationError =
+    isValidLocationState(location.state) &&
+    typeof location.state.error === 'string'
+      ? location.state.error
+      : undefined
+  const error = locationError ?? propError
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,7 +39,7 @@ export default function ServiceUnavailable({
     return () => clearInterval(timer)
   }, [])
 
-  const handleRetry = async () => {
+  const handleRetry = () => {
     setIsRetrying(true)
     setTimeout(() => {
       window.location.reload()
@@ -39,7 +51,7 @@ export default function ServiceUnavailable({
       'Serviço Indisponível - Sistema CAC Frontend',
     )
     const body = encodeURIComponent(
-      `Detalhes do erro:\n\nHorário: ${new Date().toLocaleString()}\nURL: ${window.location.href}\nErro técnico: ${error || 'Não especificado'}`,
+      `Detalhes do erro:\n\nHorário: ${new Date().toLocaleString()}\nURL: ${window.location.href}\nErro técnico: ${error ?? 'Não especificado'}`,
     )
     window.location.href = `mailto:admin@sistema.com?subject=${subject}&body=${body}`
   }
@@ -122,3 +134,5 @@ export default function ServiceUnavailable({
     </div>
   )
 }
+
+export default ServiceUnavailable

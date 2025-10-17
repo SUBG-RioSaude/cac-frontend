@@ -12,7 +12,9 @@ export interface Notificacao {
 interface NotificacoesState {
   notificacoes: Notificacao[]
   notificacoesNaoLidas: number
-  adicionarNotificacao: (notificacao: Omit<Notificacao, 'id' | 'data' | 'lida'>) => void
+  adicionarNotificacao: (
+    notificacao: Omit<Notificacao, 'id' | 'data' | 'lida'>,
+  ) => void
   marcarComoLida: (id: string) => void
   marcarTodasComoLidas: () => void
   removerNotificacao: (id: string) => void
@@ -42,7 +44,8 @@ export const useNotificacoesStore = create<NotificacoesState>((set) => ({
     {
       id: '3',
       titulo: 'Relatório gerado',
-      mensagem: 'O relatório mensal de contratos foi gerado e está disponível para download.',
+      mensagem:
+        'O relatório mensal de contratos foi gerado e está disponível para download.',
       tipo: 'info',
       data: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 dia atrás
       lida: true,
@@ -71,7 +74,7 @@ export const useNotificacoesStore = create<NotificacoesState>((set) => ({
 
       return {
         notificacoes: state.notificacoes.map((n) =>
-          n.id === id ? { ...n, lida: true } : n
+          n.id === id ? { ...n, lida: true } : n,
         ),
         notificacoesNaoLidas: Math.max(0, state.notificacoesNaoLidas - 1),
       }
@@ -92,8 +95,8 @@ export const useNotificacoesStore = create<NotificacoesState>((set) => ({
 
       return {
         notificacoes: state.notificacoes.filter((n) => n.id !== id),
-        notificacoesNaoLidas: notificacao.lida 
-          ? state.notificacoesNaoLidas 
+        notificacoesNaoLidas: notificacao.lida
+          ? state.notificacoesNaoLidas
           : Math.max(0, state.notificacoesNaoLidas - 1),
       }
     })

@@ -1,12 +1,9 @@
 'use client'
 
-import {
-  BadgeCheck,
-  ChevronsUpDown,
-  LogOut,
-} from 'lucide-react'
+import { ChevronsUpDown, LogOut } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,50 +19,84 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuthStore } from '@/lib/auth/auth-store'
-import { useState, useRef, useEffect } from 'react'
+import { useAuth } from '@/lib/auth/auth-context'
+import { useLogoutAllSessionsMutation } from '@/lib/auth/auth-queries'
+import { createComponentLogger } from '@/lib/logger'
+import { setLogoutEmAndamento } from '@/lib/middleware'
 
-export function NavUser() {
+export const NavUser = () => {
+  const logger = createComponentLogger('NavUser', 'navigation')
   const { isMobile } = useSidebar()
-  const { usuario, logoutTodasSessoes } = useAuthStore()
+  const { usuario } = useAuth()
+  const logoutAllMutation = useLogoutAllSessionsMutation()
   const [fazendoLogout, setFazendoLogout] = useState(false)
-  const isMountedRef = useRef(true)
 
+  // Log dos dados do usuário
   useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-
-  // Debug: log dos dados do usuário
-  useEffect(() => {
-    console.log('NavUser - Dados do usuário:', usuario)
-  }, [usuario])
+    logger.debug(
+      {
+        userId: usuario?.id,
+        userName: usuario?.nomeCompleto,
+        hasUser: !!usuario,
+      },
+      'NavUser dados do usuário carregados',
+    )
+  }, [logger, usuario])
 
   // Se não há usuário autenticado, não renderiza o componente
   if (!usuario) {
-    console.log('NavUser - Usuário não encontrado, não renderizando componente')
+    logger.debug(
+      {
+        hasUser: false,
+        component: 'not-rendered',
+      },
+      'NavUser usuário não encontrado, componente não renderizado',
+    )
     return null
   }
 
   const handleLogout = async () => {
     try {
       setFazendoLogout(true)
-      
+
+      // Define flag global para prevenir logout simultâneo do middleware
+      setLogoutEmAndamento(true)
+
+      logger.info(
+        {
+          userId: usuario.id,
+          action: 'logout_initiated',
+        },
+        'Logout iniciado pelo usuário',
+      )
+
       // Chama a API de logout para invalidar TODOS os tokens no servidor
-      await logoutTodasSessoes()
-      
-      // O logout já foi tratado no store (limpa cookies, estado, etc.)
-      // Redirecionamento será feito automaticamente pelo middleware
+      // A mutation já faz o redirect via window.location.href no onSettled
+      await logoutAllMutation.mutateAsync()
+
+      logger.info(
+        {
+          userId: usuario.id,
+          action: 'logout_completed',
+        },
+        'Logout completado com sucesso',
+      )
     } catch (erro) {
-      console.error('Erro ao fazer logout:', erro)
-      // Mesmo com erro, força o logout local para garantir segurança
-      logoutTodasSessoes()
+      logger.error(
+        {
+          userId: usuario.id,
+          action: 'logout_error',
+          error: erro instanceof Error ? erro.message : String(erro),
+        },
+        'Erro ao fazer logout',
+      )
+
+      // Mesmo com erro, força redirect para login para garantir segurança
+      window.location.href = '/login'
     } finally {
-      // Só atualiza estado se componente ainda está montado
-      if (isMountedRef.current) {
-        setFazendoLogout(false)
-      }
+      setFazendoLogout(false)
+      // Flag será limpa automaticamente pelo reload da página
+      // Não precisa de setTimeout pois window.location.href força reload completo
     }
   }
 
@@ -76,26 +107,21 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group/user relative overflow-hidden bg-gray-600 h-15 py-4 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01] mt-5 mb-3"
+              className="group/user relative mt-5 mb-3 h-15 overflow-hidden bg-gray-600 py-4 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg data-[state=open]:scale-[1.01]"
             >
               {/* Efeito de brilho animado */}
-              <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full"></div>
+              <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/user:translate-x-full group-data-[state=open]:translate-x-full" />
 
               {/* Efeito de luz ambiente suave */}
-              <div className="from-sidebar-primary/5 to-sidebar-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100"></div>
+              <div className="from-sidebar-primary/5 to-sidebar-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-data-[state=open]:opacity-100" />
 
               {/* Efeito de pulsação no estado ativo */}
-              <div className="absolute inset-0 bg-gradient-to-br opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-br opacity-0 transition-all duration-500 group-data-[state=open]:animate-pulse" />
 
               <div className="relative z-10 flex items-center gap-3">
                 <div className="relative">
-                  <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 group-hover/user:border-sidebar-border/60 h-9 w-9 rounded-xl border-2 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
-                    <AvatarImage
-                      src="/logos-cac/4.png"
-                      alt={usuario.nomeCompleto || usuario.email}
-                      className="object-contain p-1.5 opacity-90 transition-all duration-500 group-hover/user:scale-110 group-hover/user:opacity-100 group-data-[state=open]:scale-110 group-data-[state=open]:opacity-100"
-                    />
-                    <AvatarFallback className="border-sidebar-border/30 bg-sidebar-primary text-sidebar-primary-foreground rounded-xl border font-bold backdrop-blur-sm">
+                  <Avatar className="h-9 w-9 rounded-xl border-2 border-gray-700/40 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:border-gray-700/60 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
+                    <AvatarFallback className="rounded-xl bg-gray-700 text-sm font-bold text-white !bg-gray-700">
                       {(usuario.nomeCompleto || usuario.email)
                         .split(' ')
                         .map((n) => n[0])
@@ -109,13 +135,13 @@ export function NavUser() {
                   <div className="absolute -right-0.5 -bottom-0.5">
                     <div className="relative">
                       {/* Anel externo pulsante */}
-                      <div className="absolute inset-0 h-3 w-3 animate-ping rounded-full bg-green-400/40 group-data-[state=open]:bg-green-300/60"></div>
+                      <div className="absolute inset-0 h-3 w-3 animate-ping rounded-full bg-green-400/40 group-data-[state=open]:bg-green-300/60" />
                       {/* Anel médio */}
-                      <div className="absolute inset-0.5 h-2 w-2 animate-pulse rounded-full bg-green-400/70"></div>
+                      <div className="absolute inset-0.5 h-2 w-2 animate-pulse rounded-full bg-green-400/70" />
                       {/* Núcleo sólido */}
-                      <div className="border-sidebar relative h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40"></div>
+                      <div className="border-sidebar relative h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-lg transition-all duration-300 group-data-[state=open]:scale-110 group-data-[state=open]:shadow-green-400/40" />
                       {/* Brilho interno */}
-                      <div className="absolute inset-0.5 h-1.5 w-1.5 rounded-full bg-green-200/90"></div>
+                      <div className="absolute inset-0.5 h-1.5 w-1.5 rounded-full bg-green-200/90" />
                     </div>
                   </div>
                 </div>
@@ -143,13 +169,8 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="border-sidebar-border/30 bg-sidebar-accent m-1 flex items-center gap-3 rounded-lg border px-2 py-2 text-left text-sm shadow-sm backdrop-blur-sm">
                 <div className="relative">
-                  <Avatar className="border-sidebar-border/40 bg-sidebar-foreground/5 h-9 w-9 rounded-xl border-2 shadow-md backdrop-blur-sm">
-                    <AvatarImage
-                      src="/logos-cac/4.png"
-                      alt={usuario.nomeCompleto || usuario.email}
-                      className="object-contain p-1.5 opacity-90"
-                    />
-                    <AvatarFallback className="border-sidebar-border/30 bg-sidebar-primary text-sidebar-primary-foreground rounded-xl border text-xs font-bold backdrop-blur-sm">
+                  <Avatar className="h-9 w-9 rounded-xl border-2 border-gray-700/40 shadow-md backdrop-blur-sm">
+                    <AvatarFallback className="rounded-xl bg-gray-700 text-xs font-bold text-white !bg-gray-700">
                       {(usuario.nomeCompleto || usuario.email)
                         .split(' ')
                         .map((n) => n[0])
@@ -160,8 +181,8 @@ export function NavUser() {
                   </Avatar>
                   <div className="absolute -right-0.5 -bottom-0.5">
                     <div className="relative">
-                      <div className="border-sidebar h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-md"></div>
-                      <div className="absolute inset-0.5 h-2 w-2 rounded-full bg-green-200/90"></div>
+                      <div className="border-sidebar h-3 w-3 rounded-full border-2 bg-gradient-to-br from-green-400 to-green-500 shadow-md" />
+                      <div className="absolute inset-0.5 h-2 w-2 rounded-full bg-green-200/90" />
                     </div>
                   </div>
                 </div>
@@ -177,16 +198,13 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
-            <DropdownMenuGroup>
-              <DropdownMenuItem className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground">
-                <BadgeCheck />
-                Perfil
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+            <DropdownMenuGroup />
             <DropdownMenuSeparator className="bg-sidebar-border/50" />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground"
-              onClick={handleLogout}
+              onClick={() => {
+                void handleLogout()
+              }}
               disabled={fazendoLogout}
             >
               <LogOut className={fazendoLogout ? 'animate-spin' : ''} />

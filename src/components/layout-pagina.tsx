@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+
 import { cn } from '@/lib/utils'
 
 interface LayoutPaginaProps {
@@ -12,16 +13,16 @@ interface LayoutPaginaProps {
  * Componente de layout padrão para todas as páginas do sistema.
  * Fornece um container responsivo com largura máxima e espaçamento consistente.
  */
-export default function LayoutPagina({
+const LayoutPagina = ({
   children,
   titulo,
   descricao,
   className,
-}: LayoutPaginaProps) {
+}: LayoutPaginaProps) => {
   return (
     <div className={cn('space-y-6', className)}>
       {/* Cabeçalho da página (opcional) */}
-      {(titulo || descricao) && (
+      {(titulo ?? descricao) && (
         <div className="space-y-2">
           {titulo && (
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
@@ -37,3 +38,5 @@ export default function LayoutPagina({
     </div>
   )
 }
+
+export default LayoutPagina

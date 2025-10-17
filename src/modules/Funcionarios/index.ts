@@ -21,7 +21,7 @@ export type {
   BuscaFuncionarioResponse,
   BuscaLotacaoResponse,
   FiltrosFuncionarios,
-  FiltrosLotacoes
+  FiltrosLotacoes,
 } from './types/funcionario-api'
 
 // Enums
@@ -29,7 +29,7 @@ export {
   SituacaoFuncional,
   TipoVinculo,
   mapSituacaoToStatus,
-  mapFuncionarioToUsuario
+  mapFuncionarioToUsuario,
 } from './types/funcionario-api'
 
 // Serviços
@@ -43,7 +43,7 @@ export {
   getLotacoes,
   getLotacaoById,
   getLotacaoByCodigo,
-  buscarLotacoesPorNome
+  buscarLotacoesPorNome,
 } from './services/funcionarios-service'
 
 // Hooks React Query
@@ -60,19 +60,17 @@ export {
   useGetLotacaoByCodigo,
   useBuscarLotacoesPorNome,
   useGetLotacoesAtivas,
-  useFuncionariosParaAtribuicao
+  useFuncionariosParaAtribuicao,
 } from './hooks/use-funcionarios'
 
-export {
-  useCreateFuncionario,
-} from './hooks/use-funcionarios-mutations'
+export { useCreateFuncionario } from './hooks/use-funcionarios-mutations'
 
 // Query keys
 export {
   funcionarioKeys,
   lotacaoKeys,
   type FuncionarioQueryKey,
-  type LotacaoQueryKey
+  type LotacaoQueryKey,
 } from './lib/query-keys'
 
 // Utilitários
@@ -98,5 +96,5 @@ export {
   ordenarPorNome,
   ordenarPorMatricula,
   contarPorSituacao,
-  calcularEstatisticas
+  calcularEstatisticas,
 } from './utils/funcionario-utils'

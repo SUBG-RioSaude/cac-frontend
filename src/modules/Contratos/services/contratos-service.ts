@@ -1,73 +1,94 @@
 import { executeWithFallback } from '@/lib/axios'
-import type { 
-  Contrato, 
+import { createServiceLogger } from '@/lib/logger'
+import type {
+  Contrato,
   ContratoDetalhado,
   CriarContratoPayload,
-  CriarContratoPayloadLegado
+  CriarContratoPayloadLegado,
 } from '@/modules/Contratos/types/contrato'
 import { transformLegacyPayloadToNew } from '@/modules/Contratos/types/contrato'
 
+const logger = createServiceLogger('contratos-service')
 
-export type ContratoParametros = {
-  pagina?: number;
-  tamanhoPagina?: number;
-  filtroStatus?: string; // ex: "ativo,vencendo"
-  dataInicialDe?: string; // iso date yyyy-mm-dd
-  dataInicialAte?: string;
-  dataFinalDe?: string;
-  dataFinalAte?: string;
-  valorMinimo?: number;
-  valorMaximo?: number;
-  empresaId?: string; // uuid
-  unidadeSaudeId?: string; // uuid
-  termoPesquisa?: string; // pesquisa em múltiplos campos
+export interface ContratoParametros {
+  pagina?: number
+  tamanhoPagina?: number
+  filtroStatus?: string // ex: "ativo,vencendo"
+  dataInicialDe?: string // iso date yyyy-mm-dd
+  dataInicialAte?: string
+  dataFinalDe?: string
+  dataFinalAte?: string
+  valorMinimo?: number
+  valorMaximo?: number
+  empresaId?: string // uuid
+  unidadeSaudeId?: string // uuid
+  termoPesquisa?: string // pesquisa em múltiplos campos
 }
-
 
 export interface PaginacaoResponse<T> {
-  dados: T[];
-  paginaAtual: number;
-  tamanhoPagina: number;
-  totalRegistros: number;
-  totalPaginas: number;
-  temProximaPagina: boolean;
-  temPaginaAnterior: boolean;
+  dados: T[]
+  paginaAtual: number
+  tamanhoPagina: number
+  totalRegistros: number
+  totalPaginas: number
+  temProximaPagina: boolean
+  temPaginaAnterior: boolean
 }
 
-
-
-
-export async function getContratos (
-  filtros: ContratoParametros
+export async function getContratos(
+  filtros: ContratoParametros,
 ): Promise<PaginacaoResponse<Contrato>> {
-  const response = await executeWithFallback<PaginacaoResponse<Contrato> | { dados: Contrato[] }>({ 
+  const response = await executeWithFallback<
+    PaginacaoResponse<Contrato> | { dados: Contrato[] }
+  >({
     method: 'get',
     url: '/contratos',
-    params: filtros
+    params: filtros as Record<string, unknown>,
   })
+
+  // Verificar se response.data existe
+  if (!response.data) {
+    throw new Error('Formato de resposta da API não reconhecido')
+  }
 
   // Normalizar resposta da API
   // Se a API retorna { "dados": [...] } sem metadados de paginação
-  if (response.data && 'dados' in response.data && Array.isArray(response.data.dados)) {
-    const dados = response.data.dados as Contrato[]
-    
+  if ('dados' in response.data && Array.isArray(response.data.dados)) {
+    const { dados } = response.data
+
     // Usar metadados de paginação se existirem, senão criar defaults
     const paginatedResponse: PaginacaoResponse<Contrato> = {
       dados,
-      paginaAtual: ('paginaAtual' in response.data ? response.data.paginaAtual : filtros.pagina) || 1,
-      tamanhoPagina: ('tamanhoPagina' in response.data ? response.data.tamanhoPagina : filtros.tamanhoPagina) || dados.length,
-      totalRegistros: ('totalRegistros' in response.data ? response.data.totalRegistros : dados.length) || dados.length,
-      totalPaginas: ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
-      temProximaPagina: ('temProximaPagina' in response.data ? response.data.temProximaPagina : false) || false,
-      temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
+      paginaAtual:
+        'paginaAtual' in response.data
+          ? response.data.paginaAtual
+          : (filtros.pagina ?? 1),
+      tamanhoPagina:
+        'tamanhoPagina' in response.data
+          ? response.data.tamanhoPagina
+          : (filtros.tamanhoPagina ?? dados.length),
+      totalRegistros:
+        'totalRegistros' in response.data
+          ? response.data.totalRegistros
+          : dados.length,
+      totalPaginas:
+        'totalPaginas' in response.data ? response.data.totalPaginas : 1,
+      temProximaPagina:
+        'temProximaPagina' in response.data
+          ? response.data.temProximaPagina
+          : false,
+      temPaginaAnterior:
+        'temPaginaAnterior' in response.data
+          ? response.data.temPaginaAnterior
+          : false,
     }
-    
+
     return paginatedResponse
   }
 
   // Se já está no formato esperado, retornar como está
-  if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-    return response.data as PaginacaoResponse<Contrato>
+  if ('dados' in response.data && 'totalRegistros' in response.data) {
+    return response.data
   }
 
   // Fallback para array direto (caso a API mude no futuro)
@@ -79,84 +100,99 @@ export async function getContratos (
       totalRegistros: response.data.length,
       totalPaginas: 1,
       temProximaPagina: false,
-      temPaginaAnterior: false
+      temPaginaAnterior: false,
     }
   }
 
   throw new Error('Formato de resposta da API não reconhecido')
 }
 
-
 /**
  * Verifica se um número de contrato já existe na base de dados
  * @param numeroContrato - Número do contrato a ser verificado
  * @returns Contrato existente ou null se não encontrado
  */
-export async function getContratoByNumero(numeroContrato: string): Promise<Contrato | null> {
+export async function getContratoByNumero(
+  numeroContrato: string,
+): Promise<Contrato | null> {
   try {
     const response = await executeWithFallback<Contrato>({
       method: 'get',
       url: `/contratos/numero/${numeroContrato}`,
-      baseURL: import.meta.env.VITE_API_URL_CONTRATOS
     })
-    
+
     return response.data
   } catch (error: unknown) {
     // 404 significa que o número está disponível (não é erro)
-    if (error && typeof error === 'object' && 'response' in error &&
-        typeof error.response === 'object' && error.response &&
-        'status' in error.response && error.response.status === 404) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'response' in error &&
+      typeof error.response === 'object' &&
+      error.response &&
+      'status' in error.response &&
+      error.response.status === 404
+    ) {
       return null
     }
-    
+
     // Re-throw outros erros para tratamento no hook
     throw error
   }
 }
 
 // Função para buscar contrato detalhado por ID
-export async function getContratoDetalhado(id: string): Promise<ContratoDetalhado> {
-  
+export async function getContratoDetalhado(
+  id: string,
+): Promise<ContratoDetalhado> {
   const response = await executeWithFallback<Contrato>({
     method: 'get',
-    url: `/contratos/${id}`
+    url: `/contratos/${id}`,
   })
 
-
-  // TEMPORÁRIO: bypass do mapeamento complexo para debug
+  // Verificar se response.data existe
   if (!response.data) {
-    console.error('❌ Response.data é null/undefined')
     throw new Error('Dados não recebidos da API')
   }
+
+  // TEMPORÁRIO: bypass do mapeamento complexo para debug
+  // executeWithFallback garante que response.data existe
 
   // Mapeamento simplificado temporário
   const contratoSimples: Record<string, unknown> = {
     ...response.data,
-    numeroContrato: response.data.numeroContrato || response.data.id || 'Sem número',
-    objeto: response.data.descricaoObjeto || response.data.objeto || 'Sem descrição',
+    numeroContrato:
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      response.data.numeroContrato ?? response.data.id ?? 'Sem número',
+    objeto:
+      response.data.descricaoObjeto ?? response.data.objeto ?? 'Sem descrição',
     dataInicio: response.data.vigenciaInicial,
     dataTermino: response.data.vigenciaFinal,
     valorTotal: response.data.valorGlobal,
-    empresaId: (response.data as { empresaId?: string; contratada?: { id: string } }).empresaId || 
-               (response.data as { empresaId?: string; contratada?: { id: string } })?.contratada?.id || '',
+    empresaId:
+      (response.data as { empresaId?: string; contratada?: { id: string } })
+        .empresaId ??
+      (response.data as { empresaId?: string; contratada?: { id: string } })
+        .contratada?.id ??
+      '',
     // Mapeamento dos novos campos da API
     processoSei: response.data.processoSei,
     processoRio: response.data.processoRio,
     processoLegado: response.data.processoLegado,
     numeroProcesso: response.data.numeroProcesso,
-    valorGlobalOriginal: response.data.valorGlobalOriginal || 0,
+    valorGlobalOriginal: response.data.valorGlobalOriginal ?? 0,
     vigenciaOriginalInicial: response.data.vigenciaOriginalInicial,
     vigenciaOriginalFinal: response.data.vigenciaOriginalFinal,
     prazoOriginalMeses: response.data.prazoOriginalMeses,
-    
+
     // Campos obrigatórios com defaults seguros
     responsaveis: {
       fiscaisAdministrativos: [],
       gestores: [],
     },
     fornecedor: {
-      razaoSocial: response.data.contratada?.razaoSocial || 'Não informado',
-      cnpj: response.data.contratada?.cnpj || '',
+      razaoSocial: response.data.contratada?.razaoSocial ?? 'Não informado',
+      cnpj: response.data.contratada?.cnpj ?? '',
       contatos: [],
       endereco: {
         logradouro: '',
@@ -164,19 +200,23 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
         bairro: '',
         cidade: '',
         uf: '',
-        cep: ''
-      }
+        cep: '',
+      },
     },
     // Preservar IDs das unidades para busca posterior de nomes
-    unidadeDemandanteId: (response.data as { unidadeDemandanteId?: string }).unidadeDemandanteId || response.data.unidadeDemandante,
-    unidadeGestoraId: (response.data as { unidadeGestoraId?: string }).unidadeGestoraId || response.data.unidadeGestora,
+    unidadeDemandanteId:
+      (response.data as { unidadeDemandanteId?: string }).unidadeDemandanteId ??
+      response.data.unidadeDemandante,
+    unidadeGestoraId:
+      (response.data as { unidadeGestoraId?: string }).unidadeGestoraId ??
+      response.data.unidadeGestora,
     unidades: {
-      demandante: response.data.unidadeDemandante || null, // Será resolvido pelo hook
-      gestora: response.data.unidadeGestora || null, // Será resolvido pelo hook  
+      demandante: response.data.unidadeDemandante ?? null, // Será resolvido pelo hook
+      gestora: response.data.unidadeGestora ?? null, // Será resolvido pelo hook
       vinculadas: [],
     },
     // Preservar unidadesResponsaveis da API (nova estrutura)
-    unidadesResponsaveis: response.data.unidadesResponsaveis || [],
+    unidadesResponsaveis: response.data.unidadesResponsaveis ?? [],
     alteracoes: [],
     documentos: [],
     documentosChecklist: {
@@ -194,62 +234,87 @@ export async function getContratoDetalhado(id: string): Promise<ContratoDetalhad
       cronogramaVigencia: [],
     },
     // Preservar unidadesVinculadas da API
-    unidadesVinculadas: response.data.unidadesVinculadas || [],
+    unidadesVinculadas: response.data.unidadesVinculadas ?? [],
   }
-  
-  
+
   return contratoSimples as unknown as ContratoDetalhado
 }
 
 /**
  * Criar novo contrato (versão atualizada com unidadesResponsaveis)
  */
-export async function criarContrato(payload: CriarContratoPayload): Promise<Contrato> {
-  
+export async function criarContrato(
+  payload: CriarContratoPayload,
+): Promise<Contrato> {
   try {
     const response = await executeWithFallback<Contrato>({
       method: 'post',
       url: '/Contratos', // Endpoint da API para criação
-      data: payload
+      data: payload,
     })
 
     return response.data
   } catch (error: unknown) {
-    console.error('❌ [SERVIÇO] Erro ao criar contrato:', error)
-    console.error('❌ [SERVIÇO] Detalhes do erro:', {
-      status: (error as { response?: { status?: number } })?.response?.status,
-      statusText: (error as { response?: { statusText?: string } })?.response?.statusText,
-      data: (error as { response?: { data?: unknown } })?.response?.data,
-      message: (error as { message?: string })?.message
-    })
-    
+    logger.error(
+      'Erro ao criar contrato',
+      {
+        operation: 'criar_contrato',
+        payloadType: typeof payload,
+        status: (error as { response?: { status?: number } }).response?.status,
+        statusText: (error as { response?: { statusText?: string } }).response
+          ?.statusText,
+        responseData: (error as { response?: { data?: unknown } }).response
+          ?.data,
+        errorMessage: (error as { message?: string }).message,
+        stack: (error as Error).stack,
+      },
+    )
+
     // Extrair mensagem específica do backend se disponível
     let errorMessage = 'Erro ao criar contrato'
-    
-    const errorResponse = error as { response?: { data?: { message?: string; erros?: string[]; errors?: string[]; title?: string }; status?: number } }
-    
-    if (errorResponse?.response?.data?.message) {
+
+    const errorResponse = error as {
+      response?: {
+        data?: {
+          message?: string
+          erros?: string[]
+          errors?: string[]
+          title?: string
+        }
+        status?: number
+      }
+    }
+
+    if (errorResponse.response?.data?.message) {
       errorMessage = errorResponse.response.data.message
-    } else if (errorResponse?.response?.data?.erros && Array.isArray(errorResponse.response.data.erros)) {
+    } else if (
+      errorResponse.response?.data?.erros &&
+      Array.isArray(errorResponse.response.data.erros)
+    ) {
       errorMessage = errorResponse.response.data.erros.join(', ')
-    } else if (errorResponse?.response?.data?.errors && Array.isArray(errorResponse.response.data.errors)) {
+    } else if (
+      errorResponse.response?.data?.errors &&
+      Array.isArray(errorResponse.response.data.errors)
+    ) {
       errorMessage = errorResponse.response.data.errors.join(', ')
-    } else if (errorResponse?.response?.data?.title) {
+    } else if (errorResponse.response?.data?.title) {
       errorMessage = errorResponse.response.data.title
-    } else if (errorResponse?.response?.status === 409) {
+    } else if (errorResponse.response?.status === 409) {
       errorMessage = 'Já existe um contrato com este número ou dados duplicados'
-    } else if (errorResponse?.response?.status === 400) {
-      errorMessage = 'Dados inválidos fornecidos. Verifique se todos os campos obrigatórios estão preenchidos corretamente.'
-    } else if (errorResponse?.response?.status === 422) {
+    } else if (errorResponse.response?.status === 400) {
+      errorMessage =
+        'Dados inválidos fornecidos. Verifique se todos os campos obrigatórios estão preenchidos corretamente.'
+    } else if (errorResponse.response?.status === 422) {
       errorMessage = 'Dados não processáveis. Verifique a validação dos campos.'
     }
-    
+
     // Criar erro customizado com mensagem específica
     const customError = new Error(errorMessage)
     customError.name = 'ContratoCreationError'
-    ;(customError as unknown as Record<string, unknown>).status = errorResponse?.response?.status
+    ;(customError as unknown as Record<string, unknown>).status =
+      errorResponse.response?.status
     ;(customError as unknown as Record<string, unknown>).originalError = error
-    
+
     throw customError
   }
 }
@@ -258,12 +323,12 @@ export async function criarContrato(payload: CriarContratoPayload): Promise<Cont
  * Criar novo contrato (versão legado para compatibilidade)
  * Converte automaticamente dados legados para novo formato com unidadesResponsaveis
  */
-export async function criarContratoLegado(payloadLegado: CriarContratoPayloadLegado): Promise<Contrato> {
-  
+export async function criarContratoLegado(
+  payloadLegado: CriarContratoPayloadLegado,
+): Promise<Contrato> {
   // Converter payload legado para novo formato
   const novoPayload = transformLegacyPayloadToNew(payloadLegado)
-  
-  
+
   // Usar a função principal com o novo formato
   return criarContrato(novoPayload)
 }
@@ -271,17 +336,20 @@ export async function criarContratoLegado(payloadLegado: CriarContratoPayloadLeg
 /**
  * Função helper para calcular prazo em meses entre duas datas
  */
-export function calcularPrazoMeses(vigenciaInicial: string, vigenciaFinal: string): number {
+export function calcularPrazoMeses(
+  vigenciaInicial: string,
+  vigenciaFinal: string,
+): number {
   const dataInicial = new Date(vigenciaInicial)
   const dataFinal = new Date(vigenciaFinal)
-  
+
   if (isNaN(dataInicial.getTime()) || isNaN(dataFinal.getTime())) {
     throw new Error('Datas inválidas fornecidas para cálculo de prazo')
   }
-  
+
   const diferencaMs = dataFinal.getTime() - dataInicial.getTime()
   const diferencaDias = Math.floor(diferencaMs / (1000 * 60 * 60 * 24))
-  
+
   // Converter para meses (aproximação)
   return Math.ceil(diferencaDias / 30)
 }
@@ -294,18 +362,18 @@ export function converterDataParaISO(data: string | undefined): string {
   if (!data) {
     return ''
   }
-  
+
   // Se já é ISO string, retorna como está
   if (data.includes('T')) {
     return data
   }
-  
+
   // Se é apenas data (YYYY-MM-DD), converte para ISO
   const dataObj = new Date(data)
   if (isNaN(dataObj.getTime())) {
     throw new Error(`Data inválida: ${data}`)
   }
-  
+
   return dataObj.toISOString()
 }
 
@@ -318,7 +386,7 @@ export function gerarNumeroContratoUnico(): string {
   const mes = String(agora.getMonth() + 1).padStart(2, '0')
   const dia = String(agora.getDate()).padStart(2, '0')
   const timestamp = agora.getTime().toString().slice(-6) // Últimos 6 dígitos do timestamp
-  
+
   return `CONTRATO-${ano}${mes}${dia}-${timestamp}`
 }
 
@@ -326,42 +394,60 @@ export function gerarNumeroContratoUnico(): string {
  * Buscar contratos vencendo (endpoint específico)
  */
 export async function getContratosVencendo(
-  diasAntecipados: number = 30,
-  filtros?: Omit<ContratoParametros, 'filtroStatus' | 'tamanhoPagina' | 'pagina'>
+  diasAntecipados = 30,
+  filtros?: Omit<
+    ContratoParametros,
+    'filtroStatus' | 'tamanhoPagina' | 'pagina'
+  >,
 ): Promise<PaginacaoResponse<Contrato>> {
-  
   const parametros = {
     ...filtros,
-    diasAntecipados
+    diasAntecipados,
   }
-  
+
   try {
-    const response = await executeWithFallback<PaginacaoResponse<Contrato> | { dados: Contrato[] }>({ 
+    const response = await executeWithFallback<
+      PaginacaoResponse<Contrato> | { dados: Contrato[] }
+    >({
       method: 'get',
       url: '/contratos/vencendo',
-      params: parametros
+      params: parametros,
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (response.data && 'dados' in response.data && Array.isArray(response.data.dados)) {
-      const dados = response.data.dados as Contrato[]
-      
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
+
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
-        paginaAtual: ('paginaAtual' in response.data ? response.data.paginaAtual : 1) || 1,
-        tamanhoPagina: ('tamanhoPagina' in response.data ? response.data.tamanhoPagina : dados.length) || dados.length,
-        totalRegistros: ('totalRegistros' in response.data ? response.data.totalRegistros : dados.length) || dados.length,
-        totalPaginas: ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
-        temProximaPagina: ('temProximaPagina' in response.data ? response.data.temProximaPagina : false) || false,
-        temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
+        paginaAtual:
+          'paginaAtual' in response.data ? response.data.paginaAtual : 1,
+        tamanhoPagina:
+          'tamanhoPagina' in response.data
+            ? response.data.tamanhoPagina
+            : dados.length,
+        totalRegistros:
+          'totalRegistros' in response.data
+            ? response.data.totalRegistros
+            : dados.length,
+        totalPaginas:
+          'totalPaginas' in response.data ? response.data.totalPaginas : 1,
+        temProximaPagina:
+          'temProximaPagina' in response.data
+            ? response.data.temProximaPagina
+            : false,
+        temPaginaAnterior:
+          'temPaginaAnterior' in response.data
+            ? response.data.temPaginaAnterior
+            : false,
       }
-      
+
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
-    if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-      return response.data as PaginacaoResponse<Contrato>
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
+      return response.data
     }
 
     // Fallback para array direto
@@ -373,7 +459,7 @@ export async function getContratosVencendo(
         totalRegistros: response.data.length,
         totalPaginas: 1,
         temProximaPagina: false,
-        temPaginaAnterior: false
+        temPaginaAnterior: false,
       }
     }
 
@@ -385,10 +471,17 @@ export async function getContratosVencendo(
       totalRegistros: 0,
       totalPaginas: 0,
       temProximaPagina: false,
-      temPaginaAnterior: false
+      temPaginaAnterior: false,
     }
   } catch (error) {
-    console.error('❌ [SERVIÇO] Erro ao buscar contratos vencendo:', error)
+    logger.error(
+      'Erro ao buscar contratos vencendo',
+      {
+        operation: 'buscar_contratos_vencendo',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    )
     throw error
   }
 }
@@ -397,40 +490,55 @@ export async function getContratosVencendo(
  * Buscar contratos vencidos (endpoint específico)
  */
 export async function getContratosVencidos(
-  filtros?: Omit<ContratoParametros, 'tamanhoPagina' | 'pagina'>
+  filtros?: Omit<ContratoParametros, 'tamanhoPagina' | 'pagina'>,
 ): Promise<PaginacaoResponse<Contrato>> {
-  
   const parametros = {
-    ...filtros
+    ...filtros,
   }
-  
+
   try {
-    const response = await executeWithFallback<PaginacaoResponse<Contrato> | { dados: Contrato[] }>({ 
+    const response = await executeWithFallback<
+      PaginacaoResponse<Contrato> | { dados: Contrato[] }
+    >({
       method: 'get',
       url: '/contratos/vencidos',
-      params: parametros
+      params: parametros,
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (response.data && 'dados' in response.data && Array.isArray(response.data.dados)) {
-      const dados = response.data.dados as Contrato[]
-      
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
+
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
-        paginaAtual: ('paginaAtual' in response.data ? response.data.paginaAtual : 1) || 1,
-        tamanhoPagina: ('tamanhoPagina' in response.data ? response.data.tamanhoPagina : dados.length) || dados.length,
-        totalRegistros: ('totalRegistros' in response.data ? response.data.totalRegistros : dados.length) || dados.length,
-        totalPaginas: ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
-        temProximaPagina: ('temProximaPagina' in response.data ? response.data.temProximaPagina : false) || false,
-        temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
+        paginaAtual:
+          'paginaAtual' in response.data ? response.data.paginaAtual : 1,
+        tamanhoPagina:
+          'tamanhoPagina' in response.data
+            ? response.data.tamanhoPagina
+            : dados.length,
+        totalRegistros:
+          'totalRegistros' in response.data
+            ? response.data.totalRegistros
+            : dados.length,
+        totalPaginas:
+          'totalPaginas' in response.data ? response.data.totalPaginas : 1,
+        temProximaPagina:
+          'temProximaPagina' in response.data
+            ? response.data.temProximaPagina
+            : false,
+        temPaginaAnterior:
+          'temPaginaAnterior' in response.data
+            ? response.data.temPaginaAnterior
+            : false,
       }
-      
+
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
-    if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-      return response.data as PaginacaoResponse<Contrato>
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
+      return response.data
     }
 
     // Fallback para array direto
@@ -442,7 +550,7 @@ export async function getContratosVencidos(
         totalRegistros: response.data.length,
         totalPaginas: 1,
         temProximaPagina: false,
-        temPaginaAnterior: false
+        temPaginaAnterior: false,
       }
     }
 
@@ -454,10 +562,17 @@ export async function getContratosVencidos(
       totalRegistros: 0,
       totalPaginas: 0,
       temProximaPagina: false,
-      temPaginaAnterior: false
+      temPaginaAnterior: false,
     }
   } catch (error) {
-    console.error('❌ [SERVIÇO] Erro ao buscar contratos vencidos:', error)
+    logger.error(
+      'Erro ao buscar contratos vencidos',
+      {
+        operation: 'buscar_contratos_vencidos',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    )
     throw error
   }
 }
@@ -467,43 +582,60 @@ export async function getContratosVencidos(
  */
 export async function getContratosPorEmpresa(
   empresaId: string,
-  filtros?: Omit<ContratoParametros, 'empresaId'>
+  filtros?: Omit<ContratoParametros, 'empresaId'>,
 ): Promise<PaginacaoResponse<Contrato>> {
-  
   const parametros: ContratoParametros = {
     ...filtros,
     empresaId,
-    tamanhoPagina: filtros?.tamanhoPagina || 20,
-    pagina: filtros?.pagina || 1
+    tamanhoPagina: filtros?.tamanhoPagina ?? 20,
+    pagina: filtros?.pagina ?? 1,
   }
-  
+
   try {
-    const response = await executeWithFallback<PaginacaoResponse<Contrato> | { dados: Contrato[] }>({ 
+    const response = await executeWithFallback<
+      PaginacaoResponse<Contrato> | { dados: Contrato[] }
+    >({
       method: 'get',
       url: `/contratos/empresa/${empresaId}`,
-      params: parametros
+      params: parametros as Record<string, unknown>,
     })
 
     // Usar mesma lógica de normalização do getContratos
-    if (response.data && 'dados' in response.data && Array.isArray(response.data.dados)) {
-      const dados = response.data.dados as Contrato[]
-      
+    if ('dados' in response.data && Array.isArray(response.data.dados)) {
+      const { dados } = response.data
+
       const paginatedResponse: PaginacaoResponse<Contrato> = {
         dados,
-        paginaAtual: ('paginaAtual' in response.data ? response.data.paginaAtual : parametros.pagina) || 1,
-        tamanhoPagina: ('tamanhoPagina' in response.data ? response.data.tamanhoPagina : parametros.tamanhoPagina) || dados.length,
-        totalRegistros: ('totalRegistros' in response.data ? response.data.totalRegistros : dados.length) || dados.length,
-        totalPaginas: ('totalPaginas' in response.data ? response.data.totalPaginas : 1) || 1,
-        temProximaPagina: ('temProximaPagina' in response.data ? response.data.temProximaPagina : false) || false,
-        temPaginaAnterior: ('temPaginaAnterior' in response.data ? response.data.temPaginaAnterior : false) || false
+        paginaAtual:
+          'paginaAtual' in response.data
+            ? response.data.paginaAtual
+            : (parametros.pagina ?? 1),
+        tamanhoPagina:
+          'tamanhoPagina' in response.data
+            ? response.data.tamanhoPagina
+            : (parametros.tamanhoPagina ?? dados.length),
+        totalRegistros:
+          'totalRegistros' in response.data
+            ? response.data.totalRegistros
+            : dados.length,
+        totalPaginas:
+          'totalPaginas' in response.data ? response.data.totalPaginas : 1,
+        temProximaPagina:
+          'temProximaPagina' in response.data
+            ? response.data.temProximaPagina
+            : false,
+        temPaginaAnterior:
+          'temPaginaAnterior' in response.data
+            ? response.data.temPaginaAnterior
+            : false,
       }
-      
+
       return paginatedResponse
     }
 
     // Fallback para resposta já formatada
-    if (response.data && 'dados' in response.data && 'totalRegistros' in response.data) {
-      return response.data as PaginacaoResponse<Contrato>
+    if ('dados' in response.data && 'totalRegistros' in response.data) {
+      return response.data
     }
 
     // Fallback para array direto
@@ -515,7 +647,7 @@ export async function getContratosPorEmpresa(
         totalRegistros: response.data.length,
         totalPaginas: 1,
         temProximaPagina: false,
-        temPaginaAnterior: false
+        temPaginaAnterior: false,
       }
     }
 
@@ -523,14 +655,23 @@ export async function getContratosPorEmpresa(
     return {
       dados: [],
       paginaAtual: 1,
-      tamanhoPagina: parametros.tamanhoPagina || 20,
+      tamanhoPagina: parametros.tamanhoPagina ?? 20,
       totalRegistros: 0,
       totalPaginas: 0,
       temProximaPagina: false,
-      temPaginaAnterior: false
+      temPaginaAnterior: false,
     }
   } catch (error) {
-    console.error('❌ [SERVIÇO] Erro ao buscar contratos da empresa:', error)
+    logger.error(
+      'Erro ao buscar contratos da empresa',
+      {
+        operation: 'buscar_contratos_empresa',
+        empresaId,
+        filtros,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+    )
     throw error
   }
 }

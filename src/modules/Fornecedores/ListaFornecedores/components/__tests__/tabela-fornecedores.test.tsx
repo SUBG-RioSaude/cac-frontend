@@ -1,7 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import type {
+  Fornecedor,
+  PaginacaoParamsFornecedor,
+} from '../../types/fornecedor'
 import { TabelaFornecedores } from '../tabela-fornecedores'
-import type { Fornecedor, PaginacaoParamsFornecedor } from '../../types/fornecedor'
 
 // Mock do store
 vi.mock('../../store/fornecedores-store', () => ({
@@ -15,20 +19,53 @@ vi.mock('../../store/fornecedores-store', () => ({
 // Mock do framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: React.ComponentProps<'div'>) => <div {...props}>{children}</div>,
-    tr: ({ children, ...props }: React.ComponentProps<'tr'>) => <tr {...props}>{children}</tr>,
-    td: ({ children, ...props }: React.ComponentProps<'td'>) => <td {...props}>{children}</td>,
+    div: ({ children, ...props }: React.ComponentProps<'div'>) => (
+      <div {...props}>{children}</div>
+    ),
+    tr: ({ children, ...props }: React.ComponentProps<'tr'>) => (
+      <tr {...props}>{children}</tr>
+    ),
+    td: ({ children, ...props }: React.ComponentProps<'td'>) => (
+      <td {...props}>{children}</td>
+    ),
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }))
 
 // Mock do DropdownMenu para garantir que o conteúdo seja renderizado
 vi.mock('@/components/ui/dropdown-menu', () => ({
-  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuItem: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <div onClick={onClick} role="menuitem">{children}</div>
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuItem: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => (
+    <div
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+      role="menuitem"
+      tabIndex={0}
+    >
+      {children}
+    </div>
   ),
 }))
 
@@ -39,7 +76,7 @@ const mockFornecedores: Fornecedor[] = [
     cnpj: '11222333000181',
     contratosAtivos: 5,
     status: 'ativo',
-    valorTotalContratos: 150000.00,
+    valorTotalContratos: 150000.0,
     endereco: {
       logradouro: 'Rua Teste',
       numero: '123',
@@ -61,7 +98,7 @@ const mockFornecedores: Fornecedor[] = [
     cnpj: '22333444000192',
     contratosAtivos: 3,
     status: 'inativo',
-    valorTotalContratos: 75000.00,
+    valorTotalContratos: 75000.0,
     endereco: {
       logradouro: 'Av. Outra',
       numero: '456',
@@ -101,16 +138,16 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText('Empresa Teste LTDA')).toBeInTheDocument()
     expect(screen.getByText('Outra Empresa SA')).toBeInTheDocument()
-    
+
     // Verifica CNPJs (versão mobile e desktop)
     const cnpjs1 = screen.getAllByText('11.222.333/0001-81')
     expect(cnpjs1).toHaveLength(2)
-    
+
     const cnpjs2 = screen.getAllByText('22.333.444/0001-92')
     expect(cnpjs2).toHaveLength(2)
   })
@@ -121,36 +158,36 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     // Verifica dados do primeiro fornecedor
     expect(screen.getByText('Empresa Teste LTDA')).toBeInTheDocument()
-    
+
     const cnpjs1 = screen.getAllByText('11.222.333/0001-81')
     expect(cnpjs1).toHaveLength(2)
-    
+
     const contratos1 = screen.getAllByText('5')
     expect(contratos1).toHaveLength(2)
-    
+
     const valores1 = screen.getAllByText('R$ 150.000,00')
     expect(valores1).toHaveLength(2)
-    
+
     const enderecos1 = screen.getAllByText('São Paulo - SP')
     expect(enderecos1).toHaveLength(2)
 
     // Verifica dados do segundo fornecedor
     expect(screen.getByText('Outra Empresa SA')).toBeInTheDocument()
-    
+
     const cnpjs2 = screen.getAllByText('22.333.444/0001-92')
     expect(cnpjs2).toHaveLength(2)
-    
+
     const contratos2 = screen.getAllByText('3')
     expect(contratos2).toHaveLength(2)
-    
+
     const valores2 = screen.getAllByText('R$ 75.000,00')
     expect(valores2).toHaveLength(2)
-    
+
     const enderecos2 = screen.getAllByText('Rio de Janeiro - RJ')
     expect(enderecos2).toHaveLength(2)
   })
@@ -161,12 +198,12 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     const statusAtivo = screen.getAllByText('Ativo')
     expect(statusAtivo).toHaveLength(2) // Versão mobile e desktop
-    
+
     const statusInativo = screen.getAllByText('Inativo')
     expect(statusInativo).toHaveLength(2) // Versão mobile e desktop
   })
@@ -177,12 +214,12 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     const enderecos1 = screen.getAllByText('São Paulo - SP')
     expect(enderecos1).toHaveLength(2) // Versão mobile e desktop
-    
+
     const enderecos2 = screen.getAllByText('Rio de Janeiro - RJ')
     expect(enderecos2).toHaveLength(2) // Versão mobile e desktop
   })
@@ -193,7 +230,7 @@ describe('TabelaFornecedores', () => {
         fornecedores={[]}
         paginacao={{ ...mockPaginacao, total: 0 }}
         {...mockHandlers}
-      />
+      />,
     )
 
     // Quando não há fornecedores, o componente não exibe mensagem específica
@@ -207,11 +244,13 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     // O componente mostra "Mostrando 1 a 2 de 2 fornecedores"
-    expect(screen.getByText('Mostrando 1 a 2 de 2 fornecedores')).toBeInTheDocument()
+    expect(
+      screen.getByText('Mostrando 1 a 2 de 2 fornecedores'),
+    ).toBeInTheDocument()
   })
 
   it('deve chamar onAbrirFornecedor ao clicar no botão abrir', async () => {
@@ -220,16 +259,18 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     const botoesAbrir = screen.getAllByLabelText('Abrir fornecedor')
     expect(botoesAbrir).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
-    
+
     fireEvent.click(botoesAbrir[0])
 
     await waitFor(() => {
-      expect(mockHandlers.onAbrirFornecedor).toHaveBeenCalledWith(mockFornecedores[0])
+      expect(mockHandlers.onAbrirFornecedor).toHaveBeenCalledWith(
+        mockFornecedores[0],
+      )
     })
   })
 
@@ -239,17 +280,19 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     // Encontra e clica na opção "Abrir" do dropdown (com o mock, ela está sempre visível)
     const opcoesAbrir = screen.getAllByText('Abrir')
     expect(opcoesAbrir).toHaveLength(4) // 2 fornecedores × 2 versões (mobile + desktop)
-    
+
     fireEvent.click(opcoesAbrir[0])
 
     await waitFor(() => {
-      expect(mockHandlers.onAbrirFornecedor).toHaveBeenCalledWith(mockFornecedores[0])
+      expect(mockHandlers.onAbrirFornecedor).toHaveBeenCalledWith(
+        mockFornecedores[0],
+      )
     })
   })
 
@@ -259,12 +302,12 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     const valoresMonetarios = screen.getAllByText('R$ 150.000,00')
     expect(valoresMonetarios).toHaveLength(2) // Versão mobile e desktop
-    
+
     const valoresMonetarios2 = screen.getAllByText('R$ 75.000,00')
     expect(valoresMonetarios2).toHaveLength(2) // Versão mobile e desktop
   })
@@ -275,12 +318,12 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     const cnpjs = screen.getAllByText('11.222.333/0001-81')
     expect(cnpjs).toHaveLength(2) // Versão mobile e desktop
-    
+
     const cnpjs2 = screen.getAllByText('22.333.444/0001-92')
     expect(cnpjs2).toHaveLength(2) // Versão mobile e desktop
   })
@@ -291,12 +334,12 @@ describe('TabelaFornecedores', () => {
         fornecedores={mockFornecedores}
         paginacao={mockPaginacao}
         {...mockHandlers}
-      />
+      />,
     )
 
     const enderecos1 = screen.getAllByText('São Paulo - SP')
     expect(enderecos1).toHaveLength(2) // Versão mobile e desktop
-    
+
     const enderecos2 = screen.getAllByText('Rio de Janeiro - RJ')
     expect(enderecos2).toHaveLength(2) // Versão mobile e desktop
   })

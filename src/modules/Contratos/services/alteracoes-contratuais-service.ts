@@ -5,6 +5,7 @@
  */
 
 import { executeWithFallback } from '@/lib/axios'
+
 import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,
@@ -12,7 +13,7 @@ import type {
   TipoAlteracaoConfig,
   FiltrosAlteracoesContratuais,
   WorkflowStatusResponse,
-  AlertaLimiteLegal
+  AlertaLimiteLegal,
 } from '../types/alteracoes-contratuais'
 import { transformToApiPayload } from '../types/alteracoes-contratuais'
 import { StatusAlteracaoContratual } from '../types/alteracoes-contratuais'
@@ -39,12 +40,12 @@ interface CriarAlteracaoRequest {
   }
   blocos: {
     clausulas?: {
-      clausulasAlteradas: Array<{
+      clausulasAlteradas: {
         numeroClausula: string
         textoOriginal: string
         textoAlterado: string
         tipoAlteracao: 'substituir' | 'incluir' | 'excluir'
-      }>
+      }[]
     }
     vigencia?: {
       operacao: number // OperacaoVigencia
@@ -62,19 +63,19 @@ interface CriarAlteracaoRequest {
     }
     fornecedores?: {
       operacao: number // OperacaoFornecedor
-      fornecedoresAfetados: Array<{
+      fornecedoresAfetados: {
         id: string
         nome: string
         cnpj: string
-      }>
+      }[]
     }
     unidades?: {
       operacao: number // OperacaoUnidade
-      unidadesAfetadas: Array<{
+      unidadesAfetadas: {
         id: string
         nome: string
         codigo: string
-      }>
+      }[]
     }
   }
 }
@@ -91,22 +92,24 @@ interface AtualizarAlteracaoRequest extends Partial<CriarAlteracaoRequest> {
  */
 export async function getAlteracoesContratuais(
   contratoId: string,
-  filtros?: FiltrosAlteracoesContratuais
+  filtros?: FiltrosAlteracoesContratuais,
 ): Promise<PaginacaoResponse<AlteracaoContratualResponse>> {
-  const response = await executeWithFallback<PaginacaoResponse<AlteracaoContratualResponse>>({
+  const response = await executeWithFallback<
+    PaginacaoResponse<AlteracaoContratualResponse>
+  >({
     method: 'get',
     url: `/contratos/${contratoId}/alteracoes`,
     params: {
-      pagina: filtros?.pagina || 1,
-      tamanhoPagina: filtros?.tamanhoPagina || 10,
+      pagina: filtros?.pagina ?? 1,
+      tamanhoPagina: filtros?.tamanhoPagina ?? 10,
       status: filtros?.status,
       tipoAlteracao: filtros?.tipoAlteracao,
       dataInicio: filtros?.dataInicio,
       dataFim: filtros?.dataFim,
-      ordenarPor: filtros?.ordenarPor || 'dataCriacao',
-      direcaoOrdenacao: filtros?.direcaoOrdenacao || 'desc'
+      ordenarPor: filtros?.ordenarPor ?? 'dataCriacao',
+      direcaoOrdenacao: filtros?.direcaoOrdenacao ?? 'desc',
     },
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -117,12 +120,12 @@ export async function getAlteracoesContratuais(
  * GET /api/alteracoes-contratuais/{id}
  */
 export async function getAlteracaoContratualById(
-  id: string
+  id: string,
 ): Promise<AlteracaoContratualResponse> {
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'get',
     url: `/alteracoes-contratuais/${id}`,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -135,7 +138,7 @@ export async function getAlteracaoContratualById(
  */
 export async function criarAlteracaoContratual(
   _contratoId: string,
-  dados: AlteracaoContratualForm
+  dados: AlteracaoContratualForm,
 ): Promise<{
   alteracao: AlteracaoContratualResponse
   alertaLimiteLegal?: AlertaLimiteLegal
@@ -143,13 +146,12 @@ export async function criarAlteracaoContratual(
 }> {
   // Usar transformação para converter dados do frontend para payload da API
   const payload = transformToApiPayload(dados)
-  
 
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'post',
     url: `/alteracoes-contratuais`,
     data: payload,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   // Status 202 indica alerta de limite legal
@@ -159,15 +161,15 @@ export async function criarAlteracaoContratual(
       alteracao: response.data,
       alertaLimiteLegal: {
         limites: [],
-        fundamentacaoLegal: 'Limite legal excedido - consulte a documentação.'
+        fundamentacaoLegal: 'Limite legal excedido - consulte a documentação.',
       },
-      status: 202
+      status: 202,
     }
   }
 
   return {
     alteracao: response.data,
-    status: 201
+    status: 201,
   }
 }
 
@@ -180,13 +182,13 @@ export async function confirmarLimiteLegal(
   confirmacao: {
     confirmado: boolean
     justificativaAdicional?: string
-  }
+  },
 ): Promise<AlteracaoContratualResponse> {
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'post',
     url: `/alteracoes-contratuais/${id}/confirmar-limite`,
     data: confirmacao,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -198,48 +200,66 @@ export async function confirmarLimiteLegal(
  */
 export async function atualizarAlteracaoContratual(
   id: string,
-  dados: Partial<AlteracaoContratualForm>
+  dados: Partial<AlteracaoContratualForm>,
 ): Promise<AlteracaoContratualResponse> {
   // Transform blocos structure to match API expectations
-  const transformedBlocos = dados.blocos ? {
-    clausulas: dados.blocos.clausulas && typeof dados.blocos.clausulas.clausulasAlteradas === 'object' ? {
-      clausulasAlteradas: Array.isArray(dados.blocos.clausulas.clausulasAlteradas) ? dados.blocos.clausulas.clausulasAlteradas : []
-    } : undefined,
-    vigencia: dados.blocos.vigencia,
-    valor: dados.blocos.valor ? {
-      operacao: dados.blocos.valor.operacao,
-      valor: dados.blocos.valor.valorAjuste || 0,
-      percentual: dados.blocos.valor.percentualAjuste
-    } : undefined,
-    fornecedores: dados.blocos.fornecedores ? {
-      operacao: 1, // Operacao padrão
-      fornecedoresAfetados: dados.blocos.fornecedores.fornecedoresVinculados?.map(f => ({
-        id: f.empresaId,
-        nome: f.empresaId, // Usar empresaId como nome por enquanto
-        cnpj: f.empresaId // Usar empresaId como cnpj por enquanto
-      })) || []
-    } : undefined,
-    unidades: dados.blocos.unidades ? {
-      operacao: 1, // Operacao padrão
-      unidadesAfetadas: dados.blocos.unidades.unidadesVinculadas?.map(u => ({
-        id: u.unidadeSaudeId,
-        nome: u.unidadeSaudeId,
-        codigo: u.unidadeSaudeId
-      })) || []
-    } : undefined
-  } : undefined
+  const transformedBlocos = dados.blocos
+    ? {
+        clausulas:
+          dados.blocos.clausulas &&
+          typeof dados.blocos.clausulas.clausulasAlteradas === 'object'
+            ? {
+                clausulasAlteradas: Array.isArray(
+                  dados.blocos.clausulas.clausulasAlteradas,
+                )
+                  ? dados.blocos.clausulas.clausulasAlteradas
+                  : [],
+              }
+            : undefined,
+        vigencia: dados.blocos.vigencia,
+        valor: dados.blocos.valor
+          ? {
+              operacao: dados.blocos.valor.operacao,
+              valor: dados.blocos.valor.valorAjuste ?? 0,
+              percentual: dados.blocos.valor.percentualAjuste,
+            }
+          : undefined,
+        fornecedores: dados.blocos.fornecedores
+          ? {
+              operacao: 1, // Operacao padrão
+              fornecedoresAfetados:
+                dados.blocos.fornecedores.fornecedoresVinculados?.map((f) => ({
+                  id: f.empresaId,
+                  nome: f.empresaId, // Usar empresaId como nome por enquanto
+                  cnpj: f.empresaId, // Usar empresaId como cnpj por enquanto
+                })) ?? [],
+            }
+          : undefined,
+        unidades: dados.blocos.unidades
+          ? {
+              operacao: 1, // Operacao padrão
+              unidadesAfetadas:
+                dados.blocos.unidades.unidadesVinculadas?.map((u) => ({
+                  id: u.unidadeSaudeId,
+                  nome: u.unidadeSaudeId,
+                  codigo: u.unidadeSaudeId,
+                })) ?? [],
+            }
+          : undefined,
+      }
+    : undefined
 
   const payload: AtualizarAlteracaoRequest = {
     id,
     ...dados,
-    blocos: transformedBlocos
+    blocos: transformedBlocos,
   }
 
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'put',
     url: `/alteracoes-contratuais/${id}`,
     data: payload,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -253,7 +273,7 @@ export async function excluirAlteracaoContratual(id: string): Promise<void> {
   await executeWithFallback({
     method: 'delete',
     url: `/alteracoes-contratuais/${id}`,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 }
 
@@ -268,13 +288,13 @@ export async function submeterParaAprovacao(
   dados: {
     comentarios?: string
     documentosAnexos?: string[]
-  }
+  },
 ): Promise<AlteracaoContratualResponse> {
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'post',
     url: `/alteracoes-contratuais/${id}/submeter`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -289,13 +309,13 @@ export async function aprovarAlteracao(
   dados: {
     comentarios?: string
     condicoes?: string[]
-  }
+  },
 ): Promise<AlteracaoContratualResponse> {
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'post',
     url: `/alteracoes-contratuais/${id}/aprovar`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -310,13 +330,13 @@ export async function rejeitarAlteracao(
   dados: {
     motivo: string
     comentarios?: string
-  }
+  },
 ): Promise<AlteracaoContratualResponse> {
   const response = await executeWithFallback<AlteracaoContratualResponse>({
     method: 'post',
     url: `/alteracoes-contratuais/${id}/rejeitar`,
     data: dados,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -326,11 +346,13 @@ export async function rejeitarAlteracao(
  * Busca histórico do workflow
  * GET /api/alteracoes-contratuais/{id}/workflow
  */
-export async function getWorkflowStatus(id: string): Promise<WorkflowStatusResponse[]> {
+export async function getWorkflowStatus(
+  id: string,
+): Promise<WorkflowStatusResponse[]> {
   const response = await executeWithFallback<WorkflowStatusResponse[]>({
     method: 'get',
     url: `/alteracoes-contratuais/${id}/workflow`,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -344,16 +366,16 @@ export async function getWorkflowStatus(id: string): Promise<WorkflowStatusRespo
  */
 export async function gerarResumoAlteracao(
   contratoId: string,
-  dados: AlteracaoContratualForm
+  dados: AlteracaoContratualForm,
 ): Promise<ResumoAlteracaoResponse> {
   const response = await executeWithFallback<ResumoAlteracaoResponse>({
     method: 'post',
     url: '/alteracoes-contratuais/preview',
     data: {
       ...dados,
-      contratoId
+      contratoId,
     },
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -363,11 +385,15 @@ export async function gerarResumoAlteracao(
  * Busca configuração dos tipos de alteração disponíveis
  * GET /api/alteracoes-contratuais/tipos
  */
-export async function getTiposAlteracaoConfig(): Promise<Record<number, TipoAlteracaoConfig>> {
-  const response = await executeWithFallback<Record<number, TipoAlteracaoConfig>>({
+export async function getTiposAlteracaoConfig(): Promise<
+  Record<number, TipoAlteracaoConfig>
+> {
+  const response = await executeWithFallback<
+    Record<number, TipoAlteracaoConfig>
+  >({
     method: 'get',
     url: '/alteracoes-contratuais/tipos',
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -378,28 +404,28 @@ export async function getTiposAlteracaoConfig(): Promise<Record<number, TipoAlte
  * GET /api/alteracoes-contratuais/{id}/documentos
  */
 export async function getDocumentosAlteracao(id: string): Promise<{
-  documentos: Array<{
+  documentos: {
     id: string
     nome: string
     tipo: string
     tamanho: number
     url: string
     dataCriacao: string
-  }>
+  }[]
 }> {
   const response = await executeWithFallback<{
-    documentos: Array<{
+    documentos: {
       id: string
       nome: string
       tipo: string
       tamanho: number
       url: string
       dataCriacao: string
-    }>
+    }[]
   }>({
     method: 'get',
     url: `/alteracoes-contratuais/${id}/documentos`,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
@@ -413,12 +439,12 @@ export async function getDocumentosAlteracao(id: string): Promise<{
 export async function getAlteracoesPorStatus(
   contratoId: string,
   status: StatusAlteracaoContratual,
-  limite = 10
+  limite = 10,
 ): Promise<AlteracaoContratualResponse[]> {
   const response = await getAlteracoesContratuais(contratoId, {
     status,
     tamanhoPagina: limite,
-    pagina: 1
+    pagina: 1,
   })
 
   return response.dados
@@ -428,16 +454,19 @@ export async function getAlteracoesPorStatus(
  * Busca alterações pendentes de aprovação
  */
 export async function getAlteracoesPendentes(
-  contratoId: string
+  contratoId: string,
 ): Promise<AlteracaoContratualResponse[]> {
-  return getAlteracoesPorStatus(contratoId, StatusAlteracaoContratual.AguardandoAprovacao)
+  return getAlteracoesPorStatus(
+    contratoId,
+    StatusAlteracaoContratual.AguardandoAprovacao,
+  )
 }
 
 /**
  * Busca alterações ativas/vigentes
  */
 export async function getAlteracoesAtivas(
-  contratoId: string
+  contratoId: string,
 ): Promise<AlteracaoContratualResponse[]> {
   return getAlteracoesPorStatus(contratoId, StatusAlteracaoContratual.Ativa)
 }
@@ -447,12 +476,12 @@ export async function getAlteracoesAtivas(
  * GET /api/alteracoes-contratuais/contrato/{contratoId}/historico
  */
 export async function getHistoricoAlteracoesContrato(
-  contratoId: string
+  contratoId: string,
 ): Promise<AlteracaoContratualResponse[]> {
   const response = await executeWithFallback<AlteracaoContratualResponse[]>({
     method: 'get',
     url: `/alteracoes-contratuais/contrato/${contratoId}/historico`,
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL as string,
   })
 
   return response.data
