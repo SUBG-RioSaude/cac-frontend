@@ -80,7 +80,7 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('metrics')
 
   return (
-    <div className="from-background to-muted/20 min-h-screen bg-gradient-to-br py-6">
+    <div className="py-6">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Cabeçalho Melhorado */}
         <div className="from-primary/10 via-primary/5 border-primary/10 relative overflow-hidden rounded-2xl border bg-gradient-to-r to-transparent">

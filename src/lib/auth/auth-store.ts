@@ -105,11 +105,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           const resultado = await authService.confirmarCodigo2FA(email, codigo)
 
           // Se a API indica que precisa trocar senha, mesmo com 200 OK, trata como sucesso para redirecionamento
-          if (resultado.precisaTrocarSenha) {
+          if (resultado.dados?.precisaTrocarSenha) {
             sessionStorage.setItem('auth_email', email)
             sessionStorage.setItem(
               'tokenTrocaSenha',
-              resultado.tokenTrocaSenha ?? '',
+              resultado.dados.tokenTrocaSenha ?? '',
             )
             sessionStorage.setItem('auth_context', 'password_reset')
             set({ carregando: false, erro: null })
@@ -117,14 +117,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             return false
           }
 
-          // Se a API indica que senha expirada (nova resposta da API)
-          if (resultado.senhaExpirada) {
+          // Se a API indica que senha expirou (dados.senhaExpirada: true)
+          if (resultado.dados?.senhaExpirada) {
             sessionStorage.setItem('auth_email', email)
             sessionStorage.setItem(
               'tokenTrocaSenha',
-              resultado.tokenTrocaSenha ?? '',
+              resultado.dados.tokenTrocaSenha ?? '',
             )
-            sessionStorage.setItem('auth_context', 'password_reset')
+            sessionStorage.setItem('auth_context', 'password_expired')
             set({ carregando: false, erro: null })
             window.location.href = '/auth/trocar-senha'
             return false

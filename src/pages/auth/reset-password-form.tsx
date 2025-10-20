@@ -27,6 +27,7 @@ const ResetPasswordForm = () => {
   const [sucesso, setSucesso] = useState('')
   const [email, setEmail] = useState('')
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
+  const [contexto, setContexto] = useState<'password_reset' | 'password_recovery' | 'password_expired'>('password_reset')
   const navigate = useNavigate()
 
   const { estaAutenticado } = useAuth()
@@ -65,10 +66,15 @@ const ResetPasswordForm = () => {
     }
 
     // Verifica se veio do fluxo de recuperação ou senha expirada
-    const contexto = sessionStorage.getItem('auth_context')
-    if (contexto !== 'password_reset' && contexto !== 'password_recovery' && contexto !== 'password_expired') {
+    const contextoArmazenado = sessionStorage.getItem('auth_context')
+    if (contextoArmazenado !== 'password_reset' && contextoArmazenado !== 'password_recovery' && contextoArmazenado !== 'password_expired') {
       navigate('/login')
       return
+    }
+
+    // Define o contexto no estado
+    if (contextoArmazenado === 'password_expired' || contextoArmazenado === 'password_recovery') {
+      setContexto(contextoArmazenado)
     }
 
     // Obtém email da sessão
@@ -233,16 +239,32 @@ const ResetPasswordForm = () => {
                   <Lock className="h-8 w-8 text-teal-600" />
                 </motion.div>
                 <motion.h1 className="text-2xl font-bold text-gray-900">
-                  Redefinir Senha
+                  {contexto === 'password_expired' ? 'Senha Expirada' : 'Redefinir Senha'}
                 </motion.h1>
                 <motion.p className="text-sm text-gray-600">
-                  Crie uma nova senha segura para
+                  {contexto === 'password_expired'
+                    ? 'Sua senha expirou. Crie uma nova senha segura para'
+                    : 'Crie uma nova senha segura para'}
                   <br />
                   <span className="font-medium">{email}</span>
                 </motion.p>
               </CardHeader>
 
               <CardContent className="space-y-6">
+                {/* Alerta informativo sobre senha expirada */}
+                {contexto === 'password_expired' && (
+                  <motion.div
+                    className="rounded-lg bg-orange-50 border border-orange-200 p-3"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <p className="text-sm text-orange-800">
+                      Sua senha expirou por motivos de segurança. Por favor, defina uma nova senha para continuar acessando o sistema.
+                    </p>
+                  </motion.div>
+                )}
+
                 <AnimatePresence mode="wait">
                   {erro && (
                     <motion.div
