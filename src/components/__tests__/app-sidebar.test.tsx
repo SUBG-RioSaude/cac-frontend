@@ -54,7 +54,9 @@ describe('AppSidebar', () => {
     const cacLogo = screen.getByAltText('Logo CAC')
     expect(cacLogo).toBeInTheDocument()
     expect(cacLogo).toHaveAttribute('src', '/logos-cac/3.png')
-    expect(screen.getByText('CAC')).toBeInTheDocument()
+    // Texto real é "CAC 360", não apenas "CAC"
+    expect(screen.getByText('CAC 360')).toBeInTheDocument()
+    expect(screen.getByText('Análise de Contratos')).toBeInTheDocument()
   })
 
   it('deve renderizar o link para a página inicial na logo', () => {

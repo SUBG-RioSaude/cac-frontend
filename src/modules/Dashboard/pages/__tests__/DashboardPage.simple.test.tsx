@@ -116,19 +116,23 @@ describe('DashboardPage - Testes Essenciais', () => {
     it('deve ter layout principal correto', () => {
       const { container } = render(<DashboardPage />, { wrapper: Wrapper })
 
-      expect(container.querySelector('.min-h-screen')).toBeInTheDocument()
+      // Verifica container principal com padding
+      expect(container.querySelector('.py-6')).toBeInTheDocument()
+      // Verifica container com max-width
       expect(container.querySelector('.max-w-7xl')).toBeInTheDocument()
     })
 
     it('deve ter cabeçalho com gradiente', () => {
       const { container } = render(<DashboardPage />, { wrapper: Wrapper })
 
+      // Verifica cabeçalho com gradiente
       expect(container.querySelector('.bg-gradient-to-r')).toBeInTheDocument()
     })
 
     it('deve ter tabs container', () => {
       const { container } = render(<DashboardPage />, { wrapper: Wrapper })
 
+      // Verifica se tabs estão presentes
       expect(container.querySelector('[role="tablist"]')).toBeInTheDocument()
     })
   })
