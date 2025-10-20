@@ -118,21 +118,29 @@ export const AppSidebar = ({
                 </Link>
 
                 {/* Badge CAC redesenhada com ícone maior */}
-                <div className="group-data-[state=collapsed]:hidden">
-                  <div className="relative inline-flex items-center gap-3 overflow-hidden rounded-xl bg-gray-600 px-4 py-2 opacity-80 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-105 hover:opacity-95">
+                <div className="group-data-[state=collapsed]:hidden w-full">
+                  <div className="px-4 py-3">
+                    <Separator className="bg-sidebar-border/50" />
+                  </div>
+                  <div className="flex gap-8 items-center overflow-hidden rounded-md bg-gray-600 px-4 py-2 opacity-80 transition-all duration-300 hover:scale-105 hover:opacity-95">
                     {/* Ícone CAC maior */}
                     <div className="flex h-[45px] items-center justify-center">
                       <img
                         src="/logos-cac/3.png"
                         alt="Logo CAC"
-                        className="h-25 w-25 object-contain opacity-95 drop-shadow-sm"
+                        className="h-10 w-10 object-contain opacity-95 drop-shadow-sm"
                         style={{ animationDuration: '6s' }}
                       />
                     </div>
                     {/* Texto CAC */}
-                    <span className="text-sidebar-foreground ml-[-20px] text-lg font-bold tracking-wider uppercase drop-shadow-sm">
-                      CAC
-                    </span>
+                    <div className='flex flex-col'>
+                      <span className="text-sidebar-foreground ml-[-20px] text-md font-bold tracking-wider uppercase drop-shadow-sm">
+                        CAC 360
+                      </span>
+                      <span className="text-sidebar-foreground ml-[-20px] text-sm tracking-wider drop-shadow-sm">
+                        Análise de Contratos
+                      </span>
+                    </div>
                     {/* Efeito de brilho animado */}
                     <div className="via-sidebar-foreground/10 absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent transition-transform duration-1000 ease-out group-hover/cac:translate-x-full" />
                   </div>

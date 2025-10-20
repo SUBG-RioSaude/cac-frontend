@@ -475,9 +475,8 @@ describe('DashboardPage', () => {
         wrapper: createWrapper(),
       })
 
-      const mainContainer = container.querySelector(
-        '.min-h-screen.bg-gradient-to-br',
-      )
+      // Verifica container principal com padding
+      const mainContainer = container.querySelector('.py-6')
       const maxWContainer = container.querySelector('.mx-auto.max-w-7xl')
 
       expect(mainContainer).toBeInTheDocument()

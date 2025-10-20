@@ -163,14 +163,14 @@ describe('AuthStore', () => {
   })
 
   describe('confirmarCodigo2FA', () => {
+    const mockUsuario = { id: 1, email: 'test@email.com', nome: 'Test User' }
+    const mockToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+    const mockRefreshToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+
     it('deve confirmar c�digo 2FA com sucesso', async () => {
       const { result } = renderHook(() => useAuthStore())
-
-      const mockUsuario = { id: 1, email: 'test@email.com', nome: 'Test User' }
-      const mockToken =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
-      const mockRefreshToken =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
       mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
@@ -210,8 +210,13 @@ describe('AuthStore', () => {
 
       mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
-        precisaTrocarSenha: true,
-        tokenTrocaSenha: 'token_troca_senha_123',
+        dados: {
+          token: 'mock_token',
+          refreshToken: 'mock_refresh_token',
+          usuario: mockUsuario,
+          precisaTrocarSenha: true,
+          tokenTrocaSenha: 'token_troca_senha_123',
+        },
       })
 
       let resultado: boolean
@@ -230,6 +235,41 @@ describe('AuthStore', () => {
       expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
         'auth_context',
         'password_reset',
+      )
+      expect(mockedLocation.href).toBe('/auth/trocar-senha')
+    })
+
+    it('deve lidar com senha expirada', async () => {
+      const { result } = renderHook(() => useAuthStore())
+
+      mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
+        sucesso: true,
+        dados: {
+          token: 'mock_token',
+          refreshToken: 'mock_refresh_token',
+          usuario: mockUsuario,
+          senhaExpirada: true,
+          tokenTrocaSenha: 'token_senha_expirada_456',
+          mensagem: 'Senha expirada detectada. Confirmação de código realizada. Prossiga com a redefinição da senha.',
+        },
+      })
+
+      let resultado: boolean
+      await act(async () => {
+        resultado = await result.current.confirmarCodigo2FA(
+          'test@email.com',
+          '123456',
+        )
+      })
+
+      expect(resultado!).toBe(false) // Retorna false pois senha expirada
+      expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
+        'tokenTrocaSenha',
+        'token_senha_expirada_456',
+      )
+      expect(mockedSessionStorage.setItem).toHaveBeenCalledWith(
+        'auth_context',
+        'password_expired',
       )
       expect(mockedLocation.href).toBe('/auth/trocar-senha')
     })

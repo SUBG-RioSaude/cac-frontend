@@ -203,10 +203,31 @@ const VerifyForm = () => {
         )
       }
 
-      // Verifica se precisa trocar senha
+      // Verifica se a senha expirou (dados.senhaExpirada: true)
+      if (resultado.dados?.senhaExpirada) {
+        // Token está em dados.tokenTrocaSenha
+        const token = resultado.dados.tokenTrocaSenha ?? ''
+
+        verifyLogger.info(
+          {
+            action: 'confirm-2fa',
+            status: 'password-expired',
+            tokenPresente: !!token,
+            tokenLength: token.length,
+            mensagem: resultado.dados.mensagem
+          },
+          'Senha expirada detectada - redirecionando para redefinição',
+        )
+        sessionStorage.setItem('auth_context', 'password_expired')
+        sessionStorage.setItem('tokenTrocaSenha', token)
+        navigate('/auth/trocar-senha', { replace: true })
+        return
+      }
+
+      // Verifica se precisa trocar senha (requiresPasswordChange: true)
       if ('requiresPasswordChange' in resultado && resultado.requiresPasswordChange) {
-        // Token pode estar em resultado.tokenTrocaSenha OU resultado.dados.tokenTrocaSenha
-        const token = resultado.tokenTrocaSenha ?? resultado.dados?.tokenTrocaSenha ?? ''
+        // Token está em dados.tokenTrocaSenha
+        const token = resultado.dados?.tokenTrocaSenha ?? ''
 
         verifyLogger.info(
           {
@@ -224,8 +245,8 @@ const VerifyForm = () => {
       }
 
       if (contexto === 'password_recovery' || contexto === 'password_expired') {
-        // Token pode estar em resultado.tokenTrocaSenha OU resultado.dados.tokenTrocaSenha
-        const token = resultado.tokenTrocaSenha ?? resultado.dados?.tokenTrocaSenha ?? ''
+        // Token está em dados.tokenTrocaSenha
+        const token = resultado.dados?.tokenTrocaSenha ?? ''
 
         verifyLogger.info(
           {

@@ -152,11 +152,16 @@ export const useConfirm2FAMutation = () => {
 
       const resultado = await authService.confirmarCodigo2FA(email, codigo)
 
-      // Verifica se precisa trocar senha
-      if (resultado.precisaTrocarSenha || resultado.senhaExpirada) {
+      // Verifica se precisa trocar senha ou se senha expirou
+      if (resultado.dados?.precisaTrocarSenha || resultado.dados?.senhaExpirada) {
         authLogger.info(
-          { action: 'confirm-2fa', status: 'password-change-required' },
-          'Troca de senha obrigatória detectada',
+          {
+            action: 'confirm-2fa',
+            status: resultado.dados?.senhaExpirada ? 'password-expired' : 'password-change-required',
+            senhaExpirada: resultado.dados?.senhaExpirada,
+            precisaTrocarSenha: resultado.dados?.precisaTrocarSenha
+          },
+          resultado.dados?.senhaExpirada ? 'Senha expirada detectada' : 'Troca de senha obrigatória detectada',
         )
 
         // Salva tokens se fornecidos

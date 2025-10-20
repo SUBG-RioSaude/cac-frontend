@@ -49,16 +49,13 @@ export interface ConfirmarCodigo2FAResponse {
     token: string
     refreshToken: string
     usuario: Usuario
-    // Campos adicionais para fluxo de recuperação de senha
-    message?: string
+    // Campos adicionais para fluxo de recuperação de senha e senha expirada
+    mensagem?: string
     precisaTrocarSenha?: boolean
+    senhaExpirada?: boolean
     tokenTrocaSenha?: string
   }
-  precisaTrocarSenha?: boolean
-  senhaExpirada?: boolean
-  message?: string
-  tokenTrocaSenha?: string
-  mensagem?: string
+  mensagem?: string | null
 }
 
 export interface TrocarSenhaRequest {
