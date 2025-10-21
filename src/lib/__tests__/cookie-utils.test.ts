@@ -242,7 +242,7 @@ describe('authCookieConfig', () => {
       path: '/',
       secure: expect.any(Boolean), // Pode variar baseado no ambiente
       sameSite: 'lax',
-      maxAge: 2 * 60 * 60, // 2 horas
+      maxAge: 15 * 60, // 15 minutos
     })
   })
 
@@ -251,7 +251,7 @@ describe('authCookieConfig', () => {
       path: '/',
       secure: expect.any(Boolean), // Pode variar baseado no ambiente
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 dias
+      maxAge: 30 * 24 * 60 * 60, // 30 dias
     })
   })
 
