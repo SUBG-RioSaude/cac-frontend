@@ -5,6 +5,7 @@ import {
   Settings2,
   Truck,
   Users,
+  ShieldUser,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -74,6 +75,17 @@ const data = {
       title: 'Funcionários',
       url: '/funcionarios',
       icon: Users,
+      items: [
+        {
+          title: 'Cadastro de Funcionários',
+          url: '/funcionarios/cadastrar',
+        },
+      ],
+    },
+    {
+      title: 'Gestão de Usuários',
+      url: '/gestao-usuarios',
+      icon: ShieldUser,
       items: [
         {
           title: 'Cadastro de Funcionários',

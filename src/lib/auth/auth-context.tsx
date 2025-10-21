@@ -7,6 +7,7 @@ import { createServiceLogger } from '../logger'
 
 import { hasAuthCookies } from './auth'
 import { useMeQuery } from './auth-queries'
+import { useAuthStore } from './auth-store'
 
 const authContextLogger = createServiceLogger('auth-context')
 
@@ -79,6 +80,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => clearInterval(interval)
   }, [isLoading])
+
+  // Renovação proativa de token a cada 12 minutos (80% do tempo de vida de 15min)
+  useEffect(() => {
+    // Só ativa se estiver autenticado
+    if (!hasCookies || !usuario) return
+
+    authContextLogger.info(
+      { action: 'token-renewal-timer', status: 'started' },
+      'Timer de renovação proativa iniciado (12 minutos)',
+    )
+
+    const interval = setInterval(() => {
+      authContextLogger.info(
+        { action: 'token-renewal-timer', status: 'executing' },
+        '🔄 Renovação proativa de token',
+      )
+      void useAuthStore.getState().renovarToken()
+    }, 12 * 60 * 1000) // 12 minutos
+
+    return () => {
+      authContextLogger.info(
+        { action: 'token-renewal-timer', status: 'stopped' },
+        'Timer de renovação proativa encerrado',
+      )
+      clearInterval(interval)
+    }
+  }, [hasCookies, usuario])
 
   const value: AuthContextValue = {
     usuario: usuario ?? null,

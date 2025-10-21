@@ -91,7 +91,7 @@ export function clearAuthCookies(): void {
 }
 
 // Função para validar se um token está próximo de expirar
-export function isTokenNearExpiry(token: string): boolean {
+export function isTokenNearExpiry(token: string, minutesThreshold = 5): boolean {
   try {
     const [, base64Payload] = token.split('.')
     const payloadString = decodeBase64UTF8(base64Payload)
@@ -100,8 +100,8 @@ export function isTokenNearExpiry(token: string): boolean {
     const now = Date.now()
     const timeUntilExpiry = exp - now
 
-    // Retorna true se faltar menos de 5 minutos para expirar
-    return timeUntilExpiry < 5 * 60 * 1000
+    // Retorna true se faltar menos de X minutos para expirar (padrão: 5min)
+    return timeUntilExpiry < minutesThreshold * 60 * 1000
   } catch {
     return true // Se não conseguir decodificar, considera como próximo de expirar
   }

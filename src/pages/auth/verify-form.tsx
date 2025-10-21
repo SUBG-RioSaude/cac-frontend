@@ -111,35 +111,28 @@ const VerifyForm = () => {
     }
   }
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    // Funcionalidade Ctrl+V para colar código automaticamente
-    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-      e.preventDefault()
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
 
-      navigator.clipboard
-        .readText()
-        .then((text) => {
-          // Remove espaços e caracteres especiais, mantém apenas números
-          const cleanText = text.replace(/\D/g, '')
+    // Obtém o texto colado do clipboard
+    const pastedText = e.clipboardData.getData('text')
 
-          // Verifica se o texto tem exatamente 6 dígitos
-          if (cleanText.length === 6) {
-            const novoCodigo = cleanText.split('')
-            setCodigo(novoCodigo)
+    // Remove espaços e caracteres especiais, mantém apenas números
+    const cleanText = pastedText.replace(/\D/g, '')
 
-            // Foca no último campo após colar
-            setTimeout(() => {
-              inputRefs.current[5]?.focus()
-            }, 0)
-          }
-        })
-        .catch(() => {
-          // Ignora erros silenciosamente (caso não tenha permissão para clipboard)
-        })
+    // Verifica se o texto tem exatamente 6 dígitos
+    if (cleanText.length === 6) {
+      const novoCodigo = cleanText.split('')
+      setCodigo(novoCodigo)
 
-      return
+      // Foca no último campo após colar
+      setTimeout(() => {
+        inputRefs.current[5]?.focus()
+      }, 0)
     }
+  }
 
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === 'Backspace' && !codigo[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
@@ -515,6 +508,7 @@ const VerifyForm = () => {
                                   handleCodeChange(index, e.target.value)
                                 }
                                 onKeyDown={(e) => handleKeyDown(index, e)}
+                                onPaste={handlePaste}
                                 onFocus={() => setIndiceFocado(index)}
                                 onBlur={() => setIndiceFocado(null)}
                                 disabled={codigoExpirado}

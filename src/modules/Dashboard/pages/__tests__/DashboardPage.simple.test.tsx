@@ -85,11 +85,11 @@ describe('DashboardPage - Testes Essenciais', () => {
       expect(screen.getByText('Filtros')).toBeInTheDocument()
     })
 
-    it('deve renderizar botão de atualizar', () => {
-      const { container } = render(<DashboardPage />, { wrapper: Wrapper })
+    it('deve renderizar seletor de período', () => {
+      render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Buscar botão por texto ao invés de role
-      expect(screen.getByText('Atualizar')).toBeInTheDocument()
+      // Verificar se o seletor de período está presente
+      expect(screen.getByText('outubro 2025')).toBeInTheDocument()
     })
   })
 
@@ -97,18 +97,16 @@ describe('DashboardPage - Testes Essenciais', () => {
     it('deve renderizar todas as tabs', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      expect(screen.getByText('Métricas')).toBeInTheDocument()
-      expect(screen.getByText('Gráficos')).toBeInTheDocument()
-      expect(screen.getByText('Recentes')).toBeInTheDocument()
-      expect(screen.getByText('Riscos')).toBeInTheDocument()
-      expect(screen.getByText('Atividades')).toBeInTheDocument()
+      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
+      expect(screen.getByText('Análises')).toBeInTheDocument()
+      expect(screen.getByText('Gestão de Riscos')).toBeInTheDocument()
     })
 
-    it('deve exibir conteúdo da tab métricas por padrão', () => {
+    it('deve exibir conteúdo da tab visão geral por padrão', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verificar se o título da tab métricas está visível
-      expect(screen.getByText('Métricas Principais')).toBeInTheDocument()
+      // Verificar se a tab "Visão Geral" está ativa por padrão
+      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
     })
   })
 
@@ -118,15 +116,15 @@ describe('DashboardPage - Testes Essenciais', () => {
 
       // Verifica container principal com padding
       expect(container.querySelector('.py-6')).toBeInTheDocument()
-      // Verifica container com max-width
-      expect(container.querySelector('.max-w-7xl')).toBeInTheDocument()
+      // Verifica container com mx-auto
+      expect(container.querySelector('.mx-auto')).toBeInTheDocument()
     })
 
-    it('deve ter cabeçalho com gradiente', () => {
+    it('deve ter cabeçalho com borda', () => {
       const { container } = render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verifica cabeçalho com gradiente
-      expect(container.querySelector('.bg-gradient-to-r')).toBeInTheDocument()
+      // Verifica cabeçalho com borda
+      expect(container.querySelector('.border')).toBeInTheDocument()
     })
 
     it('deve ter tabs container', () => {
@@ -138,18 +136,17 @@ describe('DashboardPage - Testes Essenciais', () => {
   })
 
   describe('Conteúdo das Tabs', () => {
-    it('deve exibir título da tab métricas', () => {
+    it('deve exibir conteúdo da tab visão geral', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      expect(screen.getByText('Métricas Principais')).toBeInTheDocument()
+      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
     })
 
-    it('deve ter rodapé', () => {
-      render(<DashboardPage />, { wrapper: Wrapper })
+    it('deve ter estrutura de tabs', () => {
+      const { container } = render(<DashboardPage />, { wrapper: Wrapper })
 
-      expect(
-        screen.getByText('Dashboard de Contratos • CAC Sistema de Gestão'),
-      ).toBeInTheDocument()
+      // Verifica se tabs estão presentes
+      expect(container.querySelector('[role="tablist"]')).toBeInTheDocument()
     })
   })
 

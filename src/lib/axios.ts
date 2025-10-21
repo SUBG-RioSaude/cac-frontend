@@ -101,16 +101,29 @@ const createTokenRenewalInterceptor = () => {
             // Usa o cliente axios que originou a requisição
             return axios.request(config)
           }
+          // Se renovou mas token inválido, faz logout
+          console.error('❌ Token renovado é inválido')
+          logout()
+          window.location.href = '/login'
+          return Promise.reject(new Error('Token renovado inválido'))
+        } else {
+          // Renovação falhou, faz logout
+          console.error('❌ Falha na renovação do token')
+          logout()
+          window.location.href = '/login'
+          return Promise.reject(new Error('Falha na renovação do token'))
         }
-      } catch {
-        // Se não conseguir renovar, faz logout
+      } catch (erroRenovacao) {
+        // Log mais detalhado do erro
+        console.error('❌ Erro ao renovar token:', erroRenovacao)
         logout()
         window.location.href = '/login'
         return Promise.reject(new Error('Falha na renovação do token'))
       }
     }
 
-    return Promise.reject(new Error(erro.message || 'Erro na requisição'))
+    // Para outros erros, apenas rejeita sem fazer logout
+    return Promise.reject(erro)
   }
 }
 
@@ -130,6 +143,12 @@ export const authApi = axios.create({
     'Accept': 'application/json',
   },
 })
+
+// Aplica interceptor de autenticação ao authApi (MAS SEM renovação automática)
+authApi.interceptors.request.use(authInterceptor)
+
+// Aplica interceptor UTF-8 ao authApi
+authApi.interceptors.response.use(utf8ResponseInterceptor)
 
 // Validação da variável de ambiente para Chat API
 const CHAT_API_BASE_URL = import.meta.env.VITE_API_CHAT_SOCKET_URL as string
