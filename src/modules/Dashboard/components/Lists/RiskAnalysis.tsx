@@ -125,12 +125,17 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
           return (
             <Card key={riskLevel} className="bg-card">
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Icon className={`h-5 w-5 ${config.color}`} />
-                  <CardTitle className="text-foreground">{config.label}</CardTitle>
-                  <Badge variant="secondary">{contracts.length}</Badge>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Icon className={`h-5 w-5 ${config.color}`} />
+                      <CardTitle className="text-foreground">{config.label}</CardTitle>
+                      <Badge variant="secondary">{contracts.length}</Badge>
+                    </div>
+                    <CardDescription>{config.description}</CardDescription>
+                  </div>
+                  <p>Ver mais</p>
                 </div>
-                <CardDescription>{config.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
