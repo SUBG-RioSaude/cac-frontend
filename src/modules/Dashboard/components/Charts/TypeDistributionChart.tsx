@@ -143,7 +143,8 @@ export const TypeDistributionChart = ({
             <ChartTooltip
               cursor={false}
               content={({ active, payload }) => {
-                if (active && payload?.length) {
+                if (active && payload.length > 0) {
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                   const data = payload[0].payload as {
                     tipo: string
                     quantidade: number

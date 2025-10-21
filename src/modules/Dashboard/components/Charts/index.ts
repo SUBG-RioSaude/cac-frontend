@@ -7,3 +7,4 @@
 export { StatusDistributionChart } from './StatusDistributionChart'
 export { StatusTrendChart } from './StatusTrendChart'
 export { TypeDistributionChart } from './TypeDistributionChart'
+export { ContractsCharts } from './ContractsCharts'

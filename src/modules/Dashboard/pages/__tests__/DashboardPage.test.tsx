@@ -1,116 +1,59 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+/**
+ * ==========================================
+ * TESTES DO DASHBOARD PAGE
+ * ==========================================
+ * Testes para a página principal do dashboard
+ */
+
+/* eslint-disable import/order */
 import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock dos hooks ANTES de qualquer import
+// Mock dos hooks
 const mockFilters = {
-  status: ['ativo'],
-  tipos: [],
-  unidades: [],
-  periodo: { ano: 2024, mes: 1 },
+  periodo: { mes: 10, ano: 2025 },
+  statusSelecionado: null,
+  tipoSelecionado: null,
+  unidadeSelecionada: null,
 }
-const mockUpdateFilter = vi.fn()
+
 const mockResetFilters = vi.fn()
-const mockRefetch = vi.fn()
 
 vi.mock('../hooks/useFilters', () => ({
   useFilters: () => ({
     filters: mockFilters,
-    updateFilter: mockUpdateFilter,
     resetFilters: mockResetFilters,
-    hasActiveFilters: true,
   }),
 }))
 
-// Mock do dashboard service em vez do hook
-vi.mock('../../services/dashboard-service', () => ({
-  fetchDashboardData: vi.fn().mockResolvedValue({
-    lastUpdated: new Date('2023-12-01T10:30:00Z'),
+const mockDashboardData = {
+  metricas: {
     totalContratos: 150,
     contratosAtivos: 120,
-    metrics: {
-      totalContratos: {
-        atual: 150,
-        anterior: 140,
-        percentual: 7.1,
-        tendencia: 'up',
-      },
-      contratosAtivos: {
-        atual: 120,
-        anterior: 110,
-        percentual: 9.1,
-        tendencia: 'up',
-      },
-      valorTotal: {
-        atual: 5000000,
-        anterior: 4500000,
-        percentual: 11.1,
-        tendencia: 'up',
-      },
-    },
-  }),
-  fetchUnidadesForFilters: vi.fn().mockResolvedValue([]),
-}))
+    contratosVencendo: 15,
+    valorTotal: 5000000,
+  },
+  contratosPorStatus: [
+    { status: 'ativo', quantidade: 120 },
+    { status: 'vencendo', quantidade: 15 },
+    { status: 'vencido', quantidade: 10 },
+    { status: 'encerrado', quantidade: 5 },
+  ],
+  contratosRecentes: [],
+  atividadesRecentes: [],
+}
 
 vi.mock('../hooks/useDashboardData', () => ({
   useDashboardData: () => ({
-    data: {
-      lastUpdated: new Date('2023-12-01T10:30:00Z'),
-      totalContratos: 150,
-      contratosAtivos: 120,
-    },
+    data: mockDashboardData,
     isLoading: false,
-    refetch: mockRefetch,
-  }),
-  useDashboardCharts: () => ({
-    statusDistribution: [
-      { name: 'Ativo', value: 80, color: '#10b981' },
-      { name: 'Vencendo', value: 15, color: '#f59e0b' },
-      { name: 'Vencido', value: 5, color: '#ef4444' },
-    ],
-    statusTrend: [
-      { date: '2024-01', ativos: 70, vencendo: 10, vencidos: 3 },
-      { date: '2024-02', ativos: 75, vencendo: 12, vencidos: 4 },
-      { date: '2024-03', ativos: 80, vencendo: 15, vencidos: 5 },
-    ],
-    typeDistribution: [
-      { type: 'Serviços', count: 50, value: 2000000 },
-      { type: 'Suprimentos', count: 30, value: 1200000 },
-      { type: 'Obras', count: 20, value: 800000 },
-    ],
-    isLoading: false,
-    error: null,
-  }),
-  useRiskAnalysis: () => ({
-    riskAnalysis: {
-      riskScore: 7.5,
-      riskFactors: [
-        {
-          factor: 'Contratos próximos do vencimento',
-          severity: 'high',
-          impact: 8,
-        },
-        { factor: 'Fornecedores com atraso', severity: 'medium', impact: 6 },
-      ],
-      recommendations: [
-        'Revisar contratos com vencimento em 30 dias',
-        'Avaliar performance dos fornecedores',
-      ],
-    },
-    isLoading: false,
-    error: null,
   }),
 }))
 
-// Mock das dependências
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  },
-}))
-
-// Criar um wrapper para testes com QueryClient
+// Criar wrapper para testes
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -124,84 +67,7 @@ const createWrapper = () => {
   )
 }
 
-// Mock dos componentes complexos
-vi.mock('../components/Filters/GlobalFilters', () => ({
-  GlobalFilters: ({
-    filters,
-    onFiltersChange,
-    onReset,
-    hasActiveFilters,
-  }: any) => (
-    <div data-testid="global-filters">
-      <button onClick={() => onFiltersChange('status', ['ativo'])}>
-        Update Filters
-      </button>
-      <button onClick={onReset}>Reset Filters</button>
-      <span>{hasActiveFilters ? 'Has filters' : 'No filters'}</span>
-      <span>
-        Total:{' '}
-        {JSON.stringify({
-          status: filters?.status?.[0] ?? 'ativo',
-          periodo: '30d',
-        })}
-      </span>
-      <span>
-        Status Chart:{' '}
-        {JSON.stringify({
-          status: filters?.status?.[0] ?? 'ativo',
-          periodo: '30d',
-        })}
-      </span>
-    </div>
-  ),
-}))
-
-vi.mock('../components/Cards', () => ({
-  TotalContractsCard: ({ filters }: any) => (
-    <div data-testid="total-contracts-card">
-      Total: {JSON.stringify(filters)}
-    </div>
-  ),
-  ActiveContractsCard: ({ filters }: any) => (
-    <div data-testid="active-contracts-card">
-      Active: {JSON.stringify(filters)}
-    </div>
-  ),
-  ExpiringContractsCard: ({ filters }: any) => (
-    <div data-testid="expiring-contracts-card">
-      Expiring: {JSON.stringify(filters)}
-    </div>
-  ),
-  TotalValueCard: ({ filters }: any) => (
-    <div data-testid="total-value-card">Value: {JSON.stringify(filters)}</div>
-  ),
-}))
-
-vi.mock('../components/Charts/StatusDistributionChart', () => ({
-  StatusDistributionChart: ({ filters }: any) => (
-    <div data-testid="status-distribution-chart">
-      Status Chart: {JSON.stringify(filters)}
-    </div>
-  ),
-}))
-
-vi.mock('../components/Charts/StatusTrendChart', () => ({
-  StatusTrendChart: ({ filters }: any) => (
-    <div data-testid="status-trend-chart">
-      Trend Chart: {JSON.stringify(filters)}
-    </div>
-  ),
-}))
-
-vi.mock('../components/Charts/TypeDistributionChart', () => ({
-  TypeDistributionChart: ({ filters }: any) => (
-    <div data-testid="type-distribution-chart">
-      Type Chart: {JSON.stringify(filters)}
-    </div>
-  ),
-}))
-
-// Importar DashboardPage após todos os mocks
+// Importar componente
 import { DashboardPage } from '../DashboardPage'
 
 describe('DashboardPage', () => {
@@ -209,418 +75,138 @@ describe('DashboardPage', () => {
     vi.clearAllMocks()
   })
 
-  describe('Renderização', () => {
-    it('deve renderizar o cabeçalho principal', () => {
+  describe('Renderização Básica', () => {
+    it('deve renderizar o título principal', () => {
       render(<DashboardPage />, { wrapper: createWrapper() })
 
       expect(screen.getByText('Dashboard de Contratos')).toBeInTheDocument()
+    })
+
+    it('deve renderizar o subtítulo', () => {
+      render(<DashboardPage />, { wrapper: createWrapper() })
+
       expect(
-        screen.getByText(
-          'Visão executiva e operacional do portfólio de contratos',
-        ),
+        screen.getByText('Visão executiva e operacional do portfólio de contratos'),
       ).toBeInTheDocument()
     })
 
-    it('deve renderizar o botão de atualizar', () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
+    it('deve renderizar o ícone do dashboard', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
 
-      const refreshButton = screen.getByRole('button', { name: /atualizar/i })
-      expect(refreshButton).toBeInTheDocument()
+      const icon = container.querySelector('svg')
+      expect(icon).toBeInTheDocument()
     })
+  })
 
+  describe('Tabs', () => {
     it('deve renderizar todas as tabs', () => {
       render(<DashboardPage />, { wrapper: createWrapper() })
 
-      expect(screen.getByText('Métricas')).toBeInTheDocument()
-      expect(screen.getByText('Gráficos')).toBeInTheDocument()
-      expect(screen.getByText('Recentes')).toBeInTheDocument()
-      expect(screen.getByText('Riscos')).toBeInTheDocument()
-      expect(screen.getByText('Atividades')).toBeInTheDocument()
-    })
-
-    it('deve renderizar os filtros globais', () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      expect(screen.getByTestId('global-filters')).toBeInTheDocument()
-    })
-
-    it('deve exibir timestamp da última atualização', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      // Aguardar que os dados sejam carregados
-      await waitFor(() => {
-        expect(screen.getByText(/última atualização/i)).toBeInTheDocument()
-      })
-
-      // Verificar se existe algum horário (formato HH:MM:SS)
-      expect(screen.getByText(/\d{2}:\d{2}:\d{2}/)).toBeInTheDocument()
+      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
+      expect(screen.getByText('Análises')).toBeInTheDocument()
+      expect(screen.getByText('Gestão de Riscos')).toBeInTheDocument()
     })
   })
 
-  describe('Tabs e Navegação', () => {
-    it('deve começar na tab Métricas por padrão', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      // Aguardar que os cards sejam renderizados
-      await waitFor(() => {
-        expect(screen.getByTestId('total-contracts-card')).toBeInTheDocument()
-      })
-
-      expect(screen.getByTestId('active-contracts-card')).toBeInTheDocument()
-      expect(screen.getByTestId('expiring-contracts-card')).toBeInTheDocument()
-      expect(screen.getByTestId('total-value-card')).toBeInTheDocument()
-    })
-
-    it.skip('deve trocar para tab Gráficos ao clicar', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      // Aguardar que a página seja renderizada
-      await waitFor(() => {
-        expect(screen.getByText('Gráficos')).toBeInTheDocument()
-      })
-
-      const graficosTab = screen.getByText('Gráficos')
-      fireEvent.click(graficosTab)
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('status-distribution-chart'),
-        ).toBeInTheDocument()
-      })
-
-      expect(screen.getByTestId('status-trend-chart')).toBeInTheDocument()
-      expect(screen.getByTestId('type-distribution-chart')).toBeInTheDocument()
-    })
-
-    it.skip('deve trocar para tab Riscos ao clicar', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      const riscosTab = screen.getByText('Riscos')
-      fireEvent.click(riscosTab)
-
-      await waitFor(() => {
-        expect(screen.getByText('Alto Risco')).toBeInTheDocument()
-        expect(screen.getByText('Médio Risco')).toBeInTheDocument()
-        expect(screen.getByText('Baixo Risco')).toBeInTheDocument()
-      })
-    })
-
-    it.skip('deve mostrar conteúdo placeholder para tabs em desenvolvimento', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      // Tab Recentes
-      const recentesTab = screen.getByText('Recentes')
-      fireEvent.click(recentesTab)
-
-      await waitFor(() => {
-        expect(screen.getByText('Em desenvolvimento')).toBeInTheDocument()
-        expect(
-          screen.getByText('Tabela dos últimos 5 contratos formalizados'),
-        ).toBeInTheDocument()
-      })
-
-      // Tab Atividades
-      const atividadesTab = screen.getByText('Atividades')
-      fireEvent.click(atividadesTab)
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Timeline das últimas 5 atividades do sistema'),
-        ).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('Interações', () => {
-    it.skip('deve chamar refetch ao clicar no botão atualizar', () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      const refreshButton = screen.getByRole('button', { name: /atualizar/i })
-      fireEvent.click(refreshButton)
-
-      expect(mockRefetch).toHaveBeenCalledOnce()
-    })
-
-    it.skip('deve interagir com filtros globais', () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      const updateButton = screen.getByText('Update Filters')
-      const resetButton = screen.getByText('Reset Filters')
-
-      fireEvent.click(updateButton)
-      expect(mockUpdateFilter).toHaveBeenCalledOnce()
-
-      fireEvent.click(resetButton)
-      expect(mockResetFilters).toHaveBeenCalledOnce()
-    })
-
-    it.skip('deve exibir estado de filtros ativos', () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      expect(screen.getByText('Has filters')).toBeInTheDocument()
-    })
-  })
-
-  describe('Cards de Métricas', () => {
-    it.skip('deve passar filtros para todos os cards', () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      const expectedFilters = JSON.stringify(mockFilters)
-
-      expect(screen.getByText(`Total: ${expectedFilters}`)).toBeInTheDocument()
-      expect(screen.getByText(`Active: ${expectedFilters}`)).toBeInTheDocument()
-      expect(
-        screen.getByText(`Expiring: ${expectedFilters}`),
-      ).toBeInTheDocument()
-      expect(screen.getByText(`Value: ${expectedFilters}`)).toBeInTheDocument()
-    })
-
-    it('deve ter grid responsivo para cards', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      const cardsContainer = container.querySelector(
-        '.grid.gap-4.md\\:grid-cols-2.lg\\:grid-cols-4',
-      )
-      expect(cardsContainer).toBeInTheDocument()
-    })
-  })
-
-  describe('Gráficos', () => {
-    it.skip('deve passar filtros para todos os gráficos', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      const graficosTab = screen.getByText('Gráficos')
-      fireEvent.click(graficosTab)
-
-      const expectedFilters = JSON.stringify(mockFilters)
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(`Status Chart: ${expectedFilters}`),
-        ).toBeInTheDocument()
-        expect(
-          screen.getByText(`Trend Chart: ${expectedFilters}`),
-        ).toBeInTheDocument()
-        expect(
-          screen.getByText(`Type Chart: ${expectedFilters}`),
-        ).toBeInTheDocument()
-      })
-    })
-
-    it.skip('deve ter layout em grid para gráficos', async () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      const graficosTab = screen.getByText('Gráficos')
-      fireEvent.click(graficosTab)
-
-      await waitFor(() => {
-        const chartsContainer = container.querySelector(
-          '.grid.gap-6.lg\\:grid-cols-2',
-        )
-        expect(chartsContainer).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('Cards de Risco', () => {
-    it.skip('deve exibir métricas de risco coloridas', async () => {
-      render(<DashboardPage />, { wrapper: createWrapper() })
-
-      const riscosTab = screen.getByText('Riscos')
-      fireEvent.click(riscosTab)
-
-      await waitFor(() => {
-        expect(screen.getByText('12')).toBeInTheDocument() // Alto risco
-        expect(screen.getByText('34')).toBeInTheDocument() // Médio risco
-        expect(screen.getByText('199')).toBeInTheDocument() // Baixo risco
-      })
-    })
-
-    it('deve ter cards com cores específicas para riscos', async () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      // Aguardar que a página seja renderizada
-      await waitFor(() => {
-        expect(screen.getByText('Riscos')).toBeInTheDocument()
-      })
-
-      const riscosTab = screen.getByText('Riscos')
-      fireEvent.click(riscosTab)
-
-      // Como o sistema de tabs pode não estar funcionando nos testes,
-      // vamos procurar pelos elementos de risco que devem estar no DOM
-      await waitFor(() => {
-        // Primeiro, vamos verificar se existe algum texto que contenha risco
-        const riscoElements = container.querySelectorAll('*')
-        let foundRisk = false
-        riscoElements.forEach((el) => {
-          if (el.textContent?.includes('Risco')) {
-            foundRisk = true
-          }
-        })
-        expect(foundRisk).toBe(true)
-      })
-    })
-  })
-
-  describe('Layout e Estilo', () => {
+  describe('Layout', () => {
     it('deve ter estrutura de container responsivo', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
 
-      // Verifica container principal com padding
-      const mainContainer = container.querySelector('.py-6')
-      const maxWContainer = container.querySelector('.mx-auto.max-w-7xl')
-
+      const mainContainer = container.querySelector('.container')
       expect(mainContainer).toBeInTheDocument()
-      expect(maxWContainer).toBeInTheDocument()
     })
 
-    it('deve ter cabeçalho com gradiente', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
+    it('deve ter cabeçalho com borda', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
 
-      const header = container.querySelector(
-        '.bg-gradient-to-r.from-primary\\/10',
-      )
+      const header = container.querySelector('.border')
       expect(header).toBeInTheDocument()
     })
 
-    it('deve ter tabs com estilo apropriado', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
+    it('deve ter grid responsivo para contratos e riscos', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
 
-      const tabsList = container.querySelector('.grid.w-full.grid-cols-5')
-      expect(tabsList).toBeInTheDocument()
+      const grid = container.querySelector('.lg\\:grid-cols-2')
+      expect(grid).toBeInTheDocument()
     })
 
-    it('deve ter rodapé com separador', () => {
+    it('deve ter estrutura principal com min-h-screen', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+
+      const mainDiv = container.querySelector('.min-h-screen')
+      expect(mainDiv).toBeInTheDocument()
+    })
+  })
+
+  describe('Acessibilidade', () => {
+    it('deve ter heading principal com nível correto', () => {
       render(<DashboardPage />, { wrapper: createWrapper() })
 
-      expect(
-        screen.getByText('Dashboard de Contratos • CAC Sistema de Gestão'),
-      ).toBeInTheDocument()
-    })
-  })
-
-  describe('Ícones e Elementos Visuais', () => {
-    it('deve ter ícones nas tabs', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
+      const heading = screen.getByRole('heading', {
+        name: /Dashboard de Contratos/i,
+        level: 1,
       })
-
-      // Verificar se há ícones (elementos SVG) nas tabs
-      const icons = container.querySelectorAll('.h-5.w-5')
-      expect(icons.length).toBeGreaterThan(0)
+      expect(heading).toBeInTheDocument()
     })
 
-    it('deve ter ícone no cabeçalho principal', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
+    it('deve ter estrutura semântica com main', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
 
-      const headerIcon = container.querySelector('.h-6.w-6.text-primary')
-      expect(headerIcon).toBeInTheDocument()
-    })
-
-    it('deve ter ícone no botão de refresh', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      const refreshIcon = container.querySelector('.h-4.w-4')
-      expect(refreshIcon).toBeInTheDocument()
-    })
-  })
-
-  describe('Responsividade', () => {
-    it('deve ter layout flexível no cabeçalho', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      const headerFlex = container.querySelector(
-        '.flex.flex-col.gap-4.md\\:flex-row',
-      )
-      expect(headerFlex).toBeInTheDocument()
-    })
-
-    it('deve ter grid responsivo para cards de métricas', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      const responsiveGrid = container.querySelector(
-        '.grid.gap-4.md\\:grid-cols-2.lg\\:grid-cols-4',
-      )
-      expect(responsiveGrid).toBeInTheDocument()
-    })
-
-    it('deve ter tabs responsivas', () => {
-      const { container } = render(<DashboardPage />, {
-        wrapper: createWrapper(),
-      })
-
-      const responsiveTabs = container.querySelector('.grid-cols-5')
-      expect(responsiveTabs).toBeInTheDocument()
-    })
-  })
-
-  describe('Estados de Loading', () => {
-    it.skip('deve desabilitar botão refresh quando loading', () => {
-      // Test skipped due to vi.importActual issues
+      const mainElement = container.querySelector('main')
+      expect(mainElement).toBeInTheDocument()
     })
   })
 
   describe('Performance', () => {
-    it('deve renderizar rapidamente', () => {
-      // Mock mais leve para teste de performance
-      const mockDashboardPage = () => (
-        <div data-testid="dashboard-performance-test">
-          <h1>Dashboard de Contratos</h1>
-          <div data-testid="global-filters">Filtros</div>
-          <div>Conteúdo do Dashboard</div>
-        </div>
-      )
-
-      const startTime = performance.now()
-      render(mockDashboardPage(), { wrapper: createWrapper() })
-      const endTime = performance.now()
-
-      // Teste de performance com componente simplificado
-      expect(endTime - startTime).toBeLessThan(50)
-    })
-
-    it('deve renderizar o componente completo em tempo aceitável', () => {
+    it('deve renderizar em tempo aceitável', () => {
       const startTime = performance.now()
       render(<DashboardPage />, { wrapper: createWrapper() })
       const endTime = performance.now()
 
-      // Threshold mais realista para componente complexo com múltiplos hooks e componentes
       expect(endTime - startTime).toBeLessThan(500)
     })
 
-    it('deve manter estado entre renders', () => {
+    it('deve manter estrutura entre re-renders', () => {
       const { container, rerender } = render(<DashboardPage />, {
         wrapper: createWrapper(),
       })
-      const initialHTML = container.innerHTML
+      const initialStructure = container.querySelector('.min-h-screen')
 
-      rerender(<DashboardPage />, { wrapper: createWrapper() })
+      rerender(<DashboardPage />)
 
-      // HTML pode diferir devido ao estado interno, mas estrutura deve ser similar
-      expect(
-        container.querySelector('[data-testid="global-filters"]'),
-      ).toBeInTheDocument()
+      expect(container.querySelector('.min-h-screen')).toBeInTheDocument()
+      expect(initialStructure).toBeTruthy()
+    })
+  })
+
+  describe('Componentes de Filtro', () => {
+    it('deve renderizar seletor de data', () => {
+      render(<DashboardPage />, { wrapper: createWrapper() })
+
+      expect(screen.getByText('outubro 2025')).toBeInTheDocument()
+    })
+
+    it('deve renderizar botão de filtros', () => {
+      render(<DashboardPage />, { wrapper: createWrapper() })
+
+      expect(screen.getByText('Filtros')).toBeInTheDocument()
+    })
+  })
+
+  describe('Estrutura de Tabs', () => {
+    it('deve renderizar sistema de abas', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+
+      // Verifica se existe a estrutura de tabs do Radix UI
+      const tabsList = container.querySelector('[role="tablist"]')
+      expect(tabsList).toBeInTheDocument()
+    })
+
+    it('deve ter três triggers de tab', () => {
+      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+
+      const tabTriggers = container.querySelectorAll('[role="tab"]')
+      expect(tabTriggers).toHaveLength(3)
     })
   })
 })
