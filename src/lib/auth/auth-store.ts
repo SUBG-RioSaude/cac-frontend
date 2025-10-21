@@ -323,9 +323,6 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
         // Limpa dados da sessão
         sessionStorage.clear()
-
-        // Remove dados antigos do localStorage (se existirem)
-        localStorage.removeItem('auth-storage')
       },
 
       // Logout de todas as sessões
@@ -352,9 +349,6 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           })
 
           sessionStorage.clear()
-
-          // Remove dados antigos do localStorage (se existirem)
-          localStorage.removeItem('auth-storage')
         } catch (erro) {
           authLogger.warn(
             { action: 'logout', scope: 'all-sessions' },
@@ -448,6 +442,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           const token = cookieUtils.getCookie('auth_token')
           const refreshToken = cookieUtils.getCookie('auth_refresh_token')
 
+          // Se não há cookies, usuário não está autenticado
           if (
             !token ||
             !refreshToken ||
@@ -462,22 +457,38 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             return
           }
 
+          // Verifica se token está próximo de expirar (menos de 5min)
+          const { isTokenNearExpiry } = await import('./auth')
+          if (isTokenNearExpiry(token)) {
+            authLogger.info(
+              { action: 'verificar-autenticacao', status: 'near-expiry' },
+              'Token próximo de expirar, renovando proativamente',
+            )
+            const renovado = await get().renovarToken()
+            if (renovado) {
+              set({ estaAutenticado: true, carregando: false })
+            } else {
+              set({ estaAutenticado: false, carregando: false })
+            }
+            return
+          }
+
           authLogger.info(
             { action: 'verificar-autenticacao', status: 'checking' },
             'Verificando token de acesso',
           )
 
-          // Verifica se o token ainda é válido
+          // Verifica se o token ainda é válido no backend
           const resultado = await authService.verificarAcesso()
 
-          if (resultado.sucesso) {
+          if (resultado.sucesso && resultado.dados?.temAcesso) {
             authLogger.info(
               { action: 'verificar-autenticacao', status: 'valid' },
               'Token de acesso válido',
             )
             set({ estaAutenticado: true, carregando: false })
           } else {
-            // Tenta renovar o token
+            // Token inválido/expirado, tenta renovar
             authLogger.info(
               { action: 'verificar-autenticacao', status: 'expired' },
               'Token expirado, tentando renovar',
@@ -494,8 +505,24 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         } catch (erro) {
           authLogger.error(
             { action: 'verificar-autenticacao', status: 'error' },
-            erro instanceof Error ? erro.message : 'Erro desconhecido na verificação',
+            erro instanceof Error
+              ? erro.message
+              : 'Erro desconhecido na verificação',
           )
+
+          // Se erro for de rede, tenta renovar antes de deslogar
+          if (erro instanceof Error && erro.message.includes('Network Error')) {
+            authLogger.warn(
+              { action: 'verificar-autenticacao', status: 'network-error' },
+              'Erro de rede, tentando renovar token',
+            )
+            const renovado = await get().renovarToken()
+            if (renovado) {
+              set({ estaAutenticado: true, carregando: false })
+              return
+            }
+          }
+
           set({ estaAutenticado: false, carregando: false })
         }
       },

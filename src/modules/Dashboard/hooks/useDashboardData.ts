@@ -25,8 +25,8 @@ const isTestEnvironment = () => {
       process.env.VITEST === 'true' ||
       import.meta.env.MODE === 'test' ||
       // Fallback: detecta se há funções de teste globais
-      typeof vi !== 'undefined' ||
-      typeof describe !== 'undefined')
+      (typeof globalThis !== 'undefined' &&
+        ('vi' in globalThis || 'describe' in globalThis)))
   )
 }
 

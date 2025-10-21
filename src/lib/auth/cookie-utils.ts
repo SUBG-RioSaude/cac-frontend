@@ -124,12 +124,12 @@ export const authCookieConfig = {
     path: '/',
     secure: false,
     sameSite: 'lax' as const,
-    maxAge: 2 * 60 * 60, // 2 horas (JWT token)
+    maxAge: 15 * 60, // 15 minutos (JWT token)
   },
   refreshToken: {
     path: '/',
     secure: false,
     sameSite: 'lax' as const,
-    maxAge: 7 * 24 * 60 * 60, // 7 dias (Refresh token)
+    maxAge: 30 * 24 * 60 * 60, // 30 dias (Refresh token)
   },
 }
