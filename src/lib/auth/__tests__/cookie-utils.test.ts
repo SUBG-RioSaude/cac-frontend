@@ -223,7 +223,7 @@ describe('cookieUtils', () => {
   describe('authCookieConfig', () => {
     it('deve ter configurações corretas para token', () => {
       expect(authCookieConfig.token).toMatchObject({
-        maxAge: 2 * 60 * 60, // 2 horas
+        maxAge: 15 * 60, // 15 minutos
         path: '/',
         sameSite: 'lax',
       })
@@ -231,7 +231,7 @@ describe('cookieUtils', () => {
 
     it('deve ter configurações corretas para refreshToken', () => {
       expect(authCookieConfig.refreshToken).toMatchObject({
-        maxAge: 7 * 24 * 60 * 60, // 7 dias
+        maxAge: 30 * 24 * 60 * 60, // 30 dias
         path: '/',
         sameSite: 'lax',
       })

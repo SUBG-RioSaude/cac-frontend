@@ -544,6 +544,9 @@ describe('AuthStore', () => {
 
       mockedAuthService.verificarAcesso.mockResolvedValue({
         sucesso: true,
+        dados: {
+          temAcesso: true,
+        },
       })
 
       await act(async () => {
