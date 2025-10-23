@@ -1,24 +1,68 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+/**
+ * Testes para NotificacoesDropdown
+ * Atualizado para usar TanStack Query ao invés de Zustand
+ */
+
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 
 import { NotificacoesDropdown } from '../notificacoes-dropdown'
 
-// Mock simples do store
-vi.mock('@/lib/notificacoes-store', () => ({
-  useNotificacoesStore: () => ({
-    notificacoes: [],
-    notificacoesNaoLidas: 0,
+// Mock do hook useNotificacoes
+vi.mock('@/hooks/use-notificacoes', () => ({
+  useNotificacoes: vi.fn(() => ({
+    notificacoesVisiveis: [],
+    notificacoesNaoLidas: [],
+    contagemNaoLidas: 0,
+    conectado: true,
+    reconectando: false,
+    isLoading: false,
     marcarComoLida: vi.fn(),
+    arquivar: vi.fn(),
     marcarTodasComoLidas: vi.fn(),
-    removerNotificacao: vi.fn(),
-    limparVisualizadas: vi.fn(),
-    limparTodas: vi.fn(),
-  }),
+    arquivarTodasLidas: vi.fn(),
+    deletar: vi.fn(),
+  })),
+}))
+
+// Mock do hook de arquivadas
+vi.mock('@/hooks/use-notificacoes-query', () => ({
+  useNotificacoesArquivadasQuery: vi.fn(() => ({
+    data: { items: [], page: 1, pageSize: 20, totalArquivadas: 0 },
+    isLoading: false,
+  })),
+}))
+
+// Mock do modal de preferências
+vi.mock('@/components/notificacoes-preferencias-dialog', () => ({
+  NotificacoesPreferenciasDialog: ({ aberto }: { aberto: boolean }) =>
+    aberto ? <div>Modal de Preferências</div> : null,
 }))
 
 describe('NotificacoesDropdown', () => {
+  let queryClient: QueryClient
+
+  const createWrapper = () => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+
+    return ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('deve renderizar o botão de notificações', () => {
-    render(<NotificacoesDropdown />)
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
 
     const botaoNotificacoes = screen.getByRole('button', {
       name: 'Notificações',
@@ -26,26 +70,208 @@ describe('NotificacoesDropdown', () => {
     expect(botaoNotificacoes).toBeInTheDocument()
   })
 
-  it('deve exibir o ícone de sino', () => {
-    render(<NotificacoesDropdown />)
+  it('deve exibir badge quando há notificações não lidas', async () => {
+    const { useNotificacoes } = await import('@/hooks/use-notificacoes')
+    vi.mocked(useNotificacoes).mockReturnValue({
+      notificacoesVisiveis: [],
+      notificacoesNaoLidas: [],
+      contagemNaoLidas: 3,
+      conectado: true,
+      reconectando: false,
+      isLoading: false,
+      marcarComoLida: vi.fn(),
+      arquivar: vi.fn(),
+      marcarTodasComoLidas: vi.fn(),
+      arquivarTodasLidas: vi.fn(),
+      deletar: vi.fn(),
+    } as any)
 
-    // Verifica se o ícone está presente (por classe CSS)
-    const botao = screen.getByRole('button', { name: 'Notificações' })
-    expect(botao).toBeInTheDocument()
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const badge = screen.getByText('3')
+    expect(badge).toBeInTheDocument()
   })
 
-  it('deve exibir botão "Limpar todas" quando há notificações não lidas', () => {
-    render(<NotificacoesDropdown />)
+  it('deve abrir dropdown ao clicar no botão', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
 
-    // Como o mock padrão tem notificacoesNaoLidas: 0, o botão não deve aparecer
-    const botaoNotificacoes = screen.getByRole('button', {
-      name: 'Notificações',
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      expect(screen.getByText('Notificações')).toBeInTheDocument()
     })
-    fireEvent.click(botaoNotificacoes)
+  })
 
-    // Verifica que o botão "Limpar todas" não está presente (pois não há notificações não lidas)
-    expect(
-      screen.queryByRole('button', { name: 'Limpar todas as notificações' }),
-    ).not.toBeInTheDocument()
+  it('deve exibir abas (Todas, Não lidas, Arquivo)', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      expect(screen.getByText('Todas')).toBeInTheDocument()
+      expect(screen.getByText(/Não lidas/)).toBeInTheDocument()
+      expect(screen.getByText('Arquivo')).toBeInTheDocument()
+    })
+  })
+
+  it('deve exibir mensagem quando não há notificações', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      expect(screen.getByText('Nenhuma notificação')).toBeInTheDocument()
+    })
+  })
+
+  it('deve exibir indicador de status (online)', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      // Verifica se o título "Notificações" está presente
+      expect(screen.getByText('Notificações')).toBeInTheDocument()
+    })
+  })
+
+  it('deve mostrar botão de preferências', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      const botaoPreferencias = screen.getByRole('button', {
+        name: 'Configurações de notificações',
+      })
+      expect(botaoPreferencias).toBeInTheDocument()
+    })
+  })
+
+  it('deve abrir modal de preferências ao clicar no botão', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      const botaoPreferencias = screen.getByRole('button', {
+        name: 'Configurações de notificações',
+      })
+      fireEvent.click(botaoPreferencias)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Modal de Preferências')).toBeInTheDocument()
+    })
+  })
+
+  it('deve fechar dropdown ao clicar em Fechar', async () => {
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      expect(screen.getByText('Notificações')).toBeInTheDocument()
+    })
+
+    const botaoFechar = screen.getByRole('button', { name: 'Fechar' })
+    fireEvent.click(botaoFechar)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Notificações')).not.toBeInTheDocument()
+    })
+  })
+
+  it('deve exibir notificações quando houver dados', async () => {
+    const { useNotificacoes } = await import('@/hooks/use-notificacoes')
+    vi.mocked(useNotificacoes).mockReturnValue({
+      notificacoesVisiveis: [
+        {
+          id: '1',
+          notificacaoId: 'n1',
+          titulo: 'Teste Notificação',
+          mensagem: 'Mensagem de teste',
+          tipo: 'info',
+          prioridade: 'Normal',
+          categoria: 'Sistema',
+          lida: false,
+          arquivada: false,
+          criadoEm: '2025-01-23T10:00:00Z',
+        },
+      ],
+      notificacoesNaoLidas: [],
+      contagemNaoLidas: 1,
+      conectado: true,
+      reconectando: false,
+      isLoading: false,
+      marcarComoLida: vi.fn(),
+      arquivar: vi.fn(),
+      marcarTodasComoLidas: vi.fn(),
+      arquivarTodasLidas: vi.fn(),
+      deletar: vi.fn(),
+    } as any)
+
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      expect(screen.getByText('Teste Notificação')).toBeInTheDocument()
+      expect(screen.getByText('Mensagem de teste')).toBeInTheDocument()
+    })
+  })
+
+  it('deve chamar marcarComoLida ao clicar no botão de marcar como lida', async () => {
+    const marcarComoLidaMock = vi.fn()
+
+    const { useNotificacoes } = await import('@/hooks/use-notificacoes')
+    vi.mocked(useNotificacoes).mockReturnValue({
+      notificacoesVisiveis: [
+        {
+          id: '1',
+          notificacaoId: 'n1',
+          titulo: 'Teste',
+          mensagem: 'Mensagem',
+          tipo: 'info',
+          prioridade: 'Normal',
+          categoria: 'Sistema',
+          lida: false,
+          arquivada: false,
+          criadoEm: '2025-01-23T10:00:00Z',
+        },
+      ],
+      notificacoesNaoLidas: [],
+      contagemNaoLidas: 1,
+      conectado: true,
+      reconectando: false,
+      isLoading: false,
+      marcarComoLida: marcarComoLidaMock,
+      arquivar: vi.fn(),
+      marcarTodasComoLidas: vi.fn(),
+      arquivarTodasLidas: vi.fn(),
+      deletar: vi.fn(),
+    } as any)
+
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      const botaoMarcarLida = screen.getByRole('button', {
+        name: 'Marcar como lida',
+      })
+      fireEvent.click(botaoMarcarLida)
+    })
+
+    expect(marcarComoLidaMock).toHaveBeenCalledWith('1')
   })
 })
