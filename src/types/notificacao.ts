@@ -355,9 +355,89 @@ export interface StatusSeguimentoResponse {
 export type EventoSignalR =
   | 'ReceberNotificacao'
   | 'NotificacaoLida'
+  | 'ReceiveBroadcast'
   | 'reconectado'
   | 'reconectando'
   | 'desconectado'
+
+// ============================================================================
+// BROADCASTS (Alertas Globais Temporários)
+// ============================================================================
+
+/**
+ * Broadcast (alerta global temporário)
+ * Endpoint: POST /api/notificacoes/broadcast (microserviços apenas)
+ * Evento SignalR: ReceiveBroadcast
+ *
+ * Diferenças de notificação normal:
+ * - Não persiste no banco de dados
+ * - Não pode ser marcado como lido ou arquivado
+ * - Enviado para TODOS os usuários conectados no sistema
+ * - Temporário (existe apenas enquanto exibido)
+ */
+export interface Broadcast {
+  /**
+   * ID do sistema que enviou o broadcast
+   */
+  sistemaId: string
+
+  /**
+   * Título do broadcast
+   */
+  titulo: string
+
+  /**
+   * Mensagem do broadcast
+   */
+  mensagem: string
+
+  /**
+   * Prioridade do broadcast
+   * 0 = Info, 1 = Normal, 2 = Urgente
+   */
+  prioridade: 0 | 1 | 2
+
+  /**
+   * Categoria do broadcast
+   */
+  categoria?: string
+
+  /**
+   * URL de ação (link para mais detalhes)
+   */
+  urlAcao?: string
+
+  /**
+   * Data/hora de criação do broadcast (ISO 8601)
+   */
+  criadoEm: string
+
+  /**
+   * Quantidade de usuários conectados que receberam
+   */
+  usuariosConectados: number
+
+  /**
+   * Informação adicional retornada pela API
+   */
+  info: string
+}
+
+/**
+ * Broadcast temporário com ID local
+ * Usado para gerenciar broadcasts no estado local do cliente
+ */
+export interface BroadcastTemporario extends Broadcast {
+  /**
+   * ID local gerado pelo cliente (usado para remover da lista)
+   */
+  id: string
+
+  /**
+   * Data/hora em que foi recebido pelo cliente
+   */
+  recebidoEm: string
+}
 
 /**
  * Callback de evento SignalR

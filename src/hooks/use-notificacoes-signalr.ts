@@ -8,7 +8,11 @@ import { useEffect, useState } from 'react'
 
 import { getToken } from '@/lib/auth/auth'
 import { notificacaoSignalR } from '@/services/notificacao-signalr'
-import type { NotificacaoUsuario, StatusConexao } from '@/types/notificacao'
+import type {
+  Broadcast,
+  NotificacaoUsuario,
+  StatusConexao,
+} from '@/types/notificacao'
 
 import { notificacoesQueryKeys } from './use-notificacoes-query'
 
@@ -30,6 +34,11 @@ interface OpcoesSignalR {
    * Callback chamado ao receber nova notificação
    */
   aoReceberNotificacao?: (notificacao: NotificacaoUsuario) => void
+
+  /**
+   * Callback chamado ao receber broadcast (alerta global)
+   */
+  aoReceberBroadcast?: (broadcast: Broadcast) => void
 
   /**
    * Callback chamado quando reconectar
@@ -62,6 +71,7 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
   const {
     autoConectar = true,
     aoReceberNotificacao,
+    aoReceberBroadcast,
     aoReconectar,
     aoDesconectar,
   } = opcoes
@@ -104,12 +114,29 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
    * Effect: Conectar/desconectar ao montar/desmontar
    */
   useEffect(() => {
-    if (autoConectar) {
-      conectar()
+    let montado = true
+
+    const iniciarConexao = async () => {
+      if (autoConectar && montado) {
+        // Só conecta se já não estiver conectado/conectando
+        if (notificacaoSignalR.estaConectado) {
+          console.log('[SignalR Hook] Já está conectado, pulando nova conexão')
+          setStatus('conectado')
+          return
+        }
+
+        await conectar()
+      }
     }
 
+    iniciarConexao()
+
     return () => {
-      desconectar()
+      montado = false
+      // Só desconecta se estiver realmente conectado
+      if (notificacaoSignalR.estaConectado) {
+        desconectar()
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -149,6 +176,16 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
       })
     }
 
+    // Handler: Broadcast recebido (alerta global temporário)
+    const handleBroadcast = (broadcast: Broadcast) => {
+      console.log('[SignalR Hook] Broadcast recebido:', broadcast.titulo)
+
+      // Callback customizado
+      if (aoReceberBroadcast) {
+        aoReceberBroadcast(broadcast)
+      }
+    }
+
     // Handler: Reconectado
     const handleReconectado = () => {
       console.log('[SignalR Hook] Reconectado ao Hub')
@@ -185,6 +222,7 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
     // Registrar listeners
     notificacaoSignalR.on('ReceberNotificacao', handleNovaNotificacao)
     notificacaoSignalR.on('NotificacaoLida', handleNotificacaoLida)
+    notificacaoSignalR.on('ReceiveBroadcast', handleBroadcast)
     notificacaoSignalR.on('reconectado', handleReconectado)
     notificacaoSignalR.on('reconectando', handleReconectando)
     notificacaoSignalR.on('desconectado', handleDesconectado)
@@ -193,6 +231,7 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
     return () => {
       notificacaoSignalR.off('ReceberNotificacao', handleNovaNotificacao)
       notificacaoSignalR.off('NotificacaoLida', handleNotificacaoLida)
+      notificacaoSignalR.off('ReceiveBroadcast', handleBroadcast)
       notificacaoSignalR.off('reconectado', handleReconectado)
       notificacaoSignalR.off('reconectando', handleReconectando)
       notificacaoSignalR.off('desconectado', handleDesconectado)
@@ -200,6 +239,7 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
   }, [
     queryClient,
     aoReceberNotificacao,
+    aoReceberBroadcast,
     aoReconectar,
     aoDesconectar,
   ])

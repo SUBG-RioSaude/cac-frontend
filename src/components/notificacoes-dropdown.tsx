@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Archive,
   Settings,
+  Megaphone,
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -26,7 +27,11 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNotificacoes } from '@/hooks/use-notificacoes'
 import { useNotificacoesArquivadasQuery } from '@/hooks/use-notificacoes-query'
 import { cn } from '@/lib/utils'
-import type { TipoNotificacao } from '@/types/notificacao'
+import type {
+  BroadcastTemporario,
+  NotificacaoUsuario,
+  TipoNotificacao,
+} from '@/types/notificacao'
 
 import { NotificacoesPreferenciasDialog } from './notificacoes-preferencias-dialog'
 
@@ -42,6 +47,7 @@ export const NotificacoesDropdown = () => {
   const {
     notificacoesVisiveis,
     notificacoesNaoLidas,
+    itensExibicao,
     contagemNaoLidas,
     conectado,
     reconectando,
@@ -51,6 +57,7 @@ export const NotificacoesDropdown = () => {
     marcarTodasComoLidas,
     arquivarTodasLidas,
     deletar,
+    descartarBroadcast,
   } = useNotificacoes()
 
   // Query para notificações arquivadas (carrega apenas se aba ativa)
@@ -109,17 +116,33 @@ export const NotificacoesDropdown = () => {
   }
 
   /**
+   * Verifica se um item é broadcast
+   */
+  const isBroadcast = (
+    item:
+      | (NotificacaoUsuario & { tipo_item?: 'notificacao' })
+      | (BroadcastTemporario & { tipo_item: 'broadcast' }),
+  ): item is BroadcastTemporario & { tipo_item: 'broadcast' } => {
+    return 'tipo_item' in item && item.tipo_item === 'broadcast'
+  }
+
+  /**
    * Filtra notificações baseado na aba ativa
    */
   const notificacoesFiltradas = () => {
     if (abaAtiva === 'nao-lidas') {
-      return notificacoesNaoLidas.slice(0, 20)
+      // Não lidas: apenas notificações não lidas + broadcasts (broadcasts são sempre "não lidos")
+      return [
+        ...itensExibicao.filter((item) => isBroadcast(item)),
+        ...notificacoesNaoLidas.slice(0, 20),
+      ]
     }
     if (abaAtiva === 'arquivo') {
+      // Arquivadas: apenas notificações arquivadas (broadcasts não são arquiváveis)
       return arquivadas?.items ?? []
     }
-    // 'todas'
-    return notificacoesVisiveis
+    // 'todas': broadcasts + notificações
+    return itensExibicao
   }
 
   const lista = notificacoesFiltradas()
@@ -246,95 +269,178 @@ export const NotificacoesDropdown = () => {
                 </p>
               </div>
             ) : (
-              // Lista de notificações
+              // Lista de notificações e broadcasts
               <div className="divide-y divide-gray-100">
-                {lista.map((notificacao) => (
-                  <div
-                    key={notificacao.id}
-                    className={cn(
-                      'p-4 transition-colors hover:bg-gray-50',
-                      !notificacao.lida &&
-                        !notificacao.arquivada &&
-                        'bg-blue-50/50',
-                    )}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Ícone do tipo */}
-                      <div className="mt-0.5 flex-shrink-0">
-                        {obterIconePorTipo(notificacao.tipo)}
-                      </div>
+                {lista.map((item) => {
+                  const ehBroadcast = isBroadcast(item)
 
-                      {/* Conteúdo */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <h4
-                            className={cn(
-                              'text-sm font-medium text-gray-900',
-                              !notificacao.lida && 'font-semibold',
-                            )}
-                          >
-                            {notificacao.titulo}
-                          </h4>
-
-                          {/* Ações */}
-                          <div className="flex items-center gap-1">
-                            {!notificacao.lida && !notificacao.arquivada && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => marcarComoLida(notificacao.id)}
-                                className="h-6 w-6 p-0 hover:bg-green-100 hover:text-green-700"
-                                aria-label="Marcar como lida"
-                                title="Marcar como lida"
-                              >
-                                <Check className="h-3 w-3" />
-                              </Button>
-                            )}
-                            {!notificacao.arquivada && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => arquivar(notificacao.id)}
-                                className="h-6 w-6 p-0 hover:bg-orange-100 hover:text-orange-700"
-                                aria-label="Arquivar"
-                                title="Arquivar"
-                              >
-                                <Archive className="h-3 w-3" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deletar(notificacao.id)}
-                              className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-700"
-                              aria-label="Remover notificação"
-                              title="Remover"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        'p-4 transition-colors hover:bg-gray-50',
+                        // Broadcast: fundo roxo/lilás
+                        ehBroadcast && 'bg-purple-50/70',
+                        // Broadcast urgente (prioridade 2): borda vermelha
+                        ehBroadcast &&
+                          item.prioridade === 2 &&
+                          'border-l-4 border-red-500',
+                        // Notificação não lida: fundo azul
+                        !ehBroadcast &&
+                          !item.lida &&
+                          !item.arquivada &&
+                          'bg-blue-50/50',
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Ícone do tipo */}
+                        <div className="mt-0.5 flex-shrink-0">
+                          {ehBroadcast ? (
+                            <Megaphone
+                              className={cn(
+                                'h-4 w-4',
+                                item.prioridade === 2
+                                  ? 'text-red-500'
+                                  : 'text-purple-500',
+                              )}
+                            />
+                          ) : (
+                            obterIconePorTipo(item.tipo)
+                          )}
                         </div>
 
-                        <p
-                          className={cn(
-                            'mt-1 line-clamp-2 text-sm text-gray-600',
-                            !notificacao.lida && 'text-gray-700',
-                          )}
-                        >
-                          {notificacao.mensagem}
-                        </p>
+                        {/* Conteúdo */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <h4
+                                className={cn(
+                                  'text-sm font-medium text-gray-900',
+                                  !ehBroadcast &&
+                                    !item.lida &&
+                                    'font-semibold',
+                                  ehBroadcast && 'font-semibold',
+                                )}
+                              >
+                                {item.titulo}
+                              </h4>
 
-                        {/* Timestamp */}
-                        <p className="mt-2 text-xs text-gray-400">
-                          {formatDistanceToNow(new Date(notificacao.criadoEm), {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
-                        </p>
+                              {/* Indicador de visualização (estilo WhatsApp) */}
+                              {!ehBroadcast && (
+                                <div className="flex items-center">
+                                  {item.lida ? (
+                                    // Dois checks azuis para lida
+                                    <div className="relative flex">
+                                      <Check className="h-3 w-3 text-blue-500" />
+                                      <Check className="h-3 w-3 -ml-1.5 text-blue-500" />
+                                    </div>
+                                  ) : (
+                                    // Um check cinza para não lida
+                                    <Check className="h-3 w-3 text-gray-400" />
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Badge BROADCAST */}
+                              {ehBroadcast && (
+                                <Badge
+                                  variant={
+                                    item.prioridade === 2
+                                      ? 'destructive'
+                                      : 'secondary'
+                                  }
+                                  className="text-xs"
+                                >
+                                  {item.prioridade === 2
+                                    ? '🚨 URGENTE'
+                                    : '📢 BROADCAST'}
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Ações */}
+                            <div className="flex items-center gap-1">
+                              {ehBroadcast ? (
+                                // Broadcast: apenas botão de descartar
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => descartarBroadcast(item.id)}
+                                  className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-700"
+                                  aria-label="Descartar broadcast"
+                                  title="Descartar"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              ) : (
+                                // Notificação: botões normais
+                                <>
+                                  {!item.lida && !item.arquivada && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => marcarComoLida(item.id)}
+                                      className="h-6 w-6 p-0 hover:bg-green-100 hover:text-green-700"
+                                      aria-label="Marcar como lida"
+                                      title="Marcar como lida"
+                                    >
+                                      <Check className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                  {!item.arquivada && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => arquivar(item.id)}
+                                      className="h-6 w-6 p-0 hover:bg-orange-100 hover:text-orange-700"
+                                      aria-label="Arquivar"
+                                      title="Arquivar"
+                                    >
+                                      <Archive className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => deletar(item.id)}
+                                    className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-700"
+                                    aria-label="Remover notificação"
+                                    title="Remover"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          <p
+                            className={cn(
+                              'mt-1 line-clamp-2 text-sm text-gray-600',
+                              !ehBroadcast &&
+                                !item.lida &&
+                                'text-gray-700',
+                              ehBroadcast && 'text-gray-700 font-medium',
+                            )}
+                          >
+                            {item.mensagem}
+                          </p>
+
+                          {/* Timestamp */}
+                          <p className="mt-2 text-xs text-gray-400">
+                            {formatDistanceToNow(new Date(item.criadoEm), {
+                              addSuffix: true,
+                              locale: ptBR,
+                            })}
+                            {ehBroadcast && item.categoria && (
+                              <span className="ml-2">· {item.categoria}</span>
+                            )}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>

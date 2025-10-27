@@ -3,9 +3,9 @@
  * Integra com egestao-micro-notificacao-api
  */
 
-import type { AxiosResponse } from 'axios'
+import axios, { type AxiosResponse } from 'axios'
 
-import { apiGateway } from '@/lib/axios'
+import { getToken } from '@/lib/auth/auth'
 import type {
   AtualizarPreferenciaRequest,
   ContagemNaoLidas,
@@ -26,11 +26,39 @@ import type {
 // ============================================================================
 
 /**
- * Base URL para endpoints de notificações
- * Usa variável de ambiente ou fallback para gateway
+ * Base URL da API de notificações
+ * IMPORTANTE: Deve vir do .env sem trailing slash
+ * Exemplo: VITE_NOTIFICACOES_API_URL="http://localhost:5039"
  */
-const BASE_URL =
-  import.meta.env.VITE_NOTIFICACOES_API_URL || '/api/notificacoes'
+const BASE_URL = import.meta.env.VITE_NOTIFICACOES_API_URL as string
+
+if (!BASE_URL) {
+  console.error(
+    '[Notificações] VITE_NOTIFICACOES_API_URL não configurado no .env',
+  )
+}
+
+/**
+ * Cliente Axios dedicado para API de notificações
+ * Não usa o apiGateway porque notificações têm URL própria
+ */
+const apiNotificacoes = axios.create({
+  baseURL: BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+})
+
+// Interceptor para adicionar token JWT automaticamente
+apiNotificacoes.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 // ============================================================================
 // NOTIFICAÇÕES - CRUD
@@ -48,12 +76,10 @@ export const listarMinhasNotificacoes = async (
 ): Promise<NotificacoesPaginadas> => {
   const { page = 1, pageSize = 20 } = filtros
 
-  const response: AxiosResponse<NotificacoesPaginadas> = await apiGateway.get(
-    `${BASE_URL}/minhas`,
-    {
+  const response: AxiosResponse<NotificacoesPaginadas> =
+    await apiNotificacoes.get('/api/notificacoes/minhas', {
       params: { page, pageSize },
-    },
-  )
+    })
 
   return response.data
 }
@@ -66,7 +92,7 @@ export const listarMinhasNotificacoes = async (
  */
 export const contarNaoLidas = async (): Promise<ContagemNaoLidas> => {
   const response: AxiosResponse<ContagemNaoLidas> =
-    await apiGateway.get(`${BASE_URL}/nao-lidas`)
+    await apiNotificacoes.get('/api/notificacoes/nao-lidas')
 
   return response.data
 }
@@ -81,9 +107,8 @@ export const contarNaoLidas = async (): Promise<ContagemNaoLidas> => {
 export const obterNotificacao = async (
   id: string,
 ): Promise<NotificacaoUsuario> => {
-  const response: AxiosResponse<NotificacaoUsuario> = await apiGateway.get(
-    `${BASE_URL}/${id}`,
-  )
+  const response: AxiosResponse<NotificacaoUsuario> =
+    await apiNotificacoes.get(`/api/notificacoes/${id}`)
 
   return response.data
 }
@@ -96,7 +121,7 @@ export const obterNotificacao = async (
  * @returns Promise void
  */
 export const marcarComoLida = async (id: string): Promise<void> => {
-  await apiGateway.put(`${BASE_URL}/${id}/marcar-lida`)
+  await apiNotificacoes.put(`/api/notificacoes/${id}/marcar-lida`)
 }
 
 /**
@@ -107,7 +132,7 @@ export const marcarComoLida = async (id: string): Promise<void> => {
  * @returns Promise void
  */
 export const marcarComoNaoLida = async (id: string): Promise<void> => {
-  await apiGateway.put(`${BASE_URL}/${id}/marcar-nao-lida`)
+  await apiNotificacoes.put(`/api/notificacoes/${id}/marcar-nao-lida`)
 }
 
 /**
@@ -118,7 +143,7 @@ export const marcarComoNaoLida = async (id: string): Promise<void> => {
  * @returns Promise void
  */
 export const arquivar = async (id: string): Promise<void> => {
-  await apiGateway.put(`${BASE_URL}/${id}/arquivar`)
+  await apiNotificacoes.put(`/api/notificacoes/${id}/arquivar`)
 }
 
 /**
@@ -129,7 +154,7 @@ export const arquivar = async (id: string): Promise<void> => {
  * @returns Promise void
  */
 export const desarquivar = async (id: string): Promise<void> => {
-  await apiGateway.put(`${BASE_URL}/${id}/desarquivar`)
+  await apiNotificacoes.put(`/api/notificacoes/${id}/desarquivar`)
 }
 
 /**
@@ -142,7 +167,7 @@ export const desarquivar = async (id: string): Promise<void> => {
 export const marcarTodasComoLidas = async (
   sistemaId?: string,
 ): Promise<void> => {
-  await apiGateway.put(`${BASE_URL}/marcar-todas-lidas`, null, {
+  await apiNotificacoes.put('/api/notificacoes/marcar-todas-lidas', null, {
     params: sistemaId ? { sistemaId } : undefined,
   })
 }
@@ -155,7 +180,7 @@ export const marcarTodasComoLidas = async (
  * @returns Promise void
  */
 export const arquivarTodasLidas = async (sistemaId?: string): Promise<void> => {
-  await apiGateway.put(`${BASE_URL}/arquivar-todas-lidas`, null, {
+  await apiNotificacoes.put('/api/notificacoes/arquivar-todas-lidas', null, {
     params: sistemaId ? { sistemaId } : undefined,
   })
 }
@@ -173,7 +198,7 @@ export const listarArquivadas = async (
   pageSize = 20,
 ): Promise<NotificacoesArquivadas> => {
   const response: AxiosResponse<NotificacoesArquivadas> =
-    await apiGateway.get(`${BASE_URL}/arquivadas`, {
+    await apiNotificacoes.get('/api/notificacoes/arquivadas', {
       params: { page, pageSize },
     })
 
@@ -188,7 +213,7 @@ export const listarArquivadas = async (
  * @returns Promise void
  */
 export const deletarNotificacao = async (id: string): Promise<void> => {
-  await apiGateway.delete(`${BASE_URL}/${id}`)
+  await apiNotificacoes.delete(`/api/notificacoes/${id}`)
 }
 
 // ============================================================================
@@ -202,7 +227,7 @@ export const deletarNotificacao = async (id: string): Promise<void> => {
  * @returns Promise com array de preferências
  */
 export const obterPreferencias = async (): Promise<Preferencia[]> => {
-  const response: AxiosResponse<Preferencia[]> = await apiGateway.get(
+  const response: AxiosResponse<Preferencia[]> = await apiNotificacoes.get(
     '/api/preferencias/minhas',
   )
 
@@ -221,7 +246,7 @@ export const criarPreferencia = async (preferencia: {
   tipoNotificacao: string
   habilitada: boolean
 }): Promise<Preferencia> => {
-  const response: AxiosResponse<Preferencia> = await apiGateway.post(
+  const response: AxiosResponse<Preferencia> = await apiNotificacoes.post(
     '/api/preferencias',
     preferencia,
   )
@@ -241,7 +266,7 @@ export const atualizarPreferencia = async (
   id: string,
   habilitada: AtualizarPreferenciaRequest,
 ): Promise<Preferencia> => {
-  const response: AxiosResponse<Preferencia> = await apiGateway.put(
+  const response: AxiosResponse<Preferencia> = await apiNotificacoes.put(
     `/api/preferencias/${id}`,
     habilitada,
   )
@@ -257,7 +282,7 @@ export const atualizarPreferencia = async (
  * @returns Promise void
  */
 export const deletarPreferencia = async (id: string): Promise<void> => {
-  await apiGateway.delete(`/api/preferencias/${id}`)
+  await apiNotificacoes.delete(`/api/preferencias/${id}`)
 }
 
 // ============================================================================
@@ -275,7 +300,7 @@ export const criarSubscricao = async (subscricao: {
   sistemaId: string
   entidadeOrigemId: string
 }): Promise<Subscricao> => {
-  const response: AxiosResponse<Subscricao> = await apiGateway.post(
+  const response: AxiosResponse<Subscricao> = await apiNotificacoes.post(
     '/api/subscricoes',
     subscricao,
   )
@@ -300,10 +325,8 @@ export const listarMinhasSubscricoes = async (
   const params: Record<string, unknown> = { page, pageSize }
   if (sistemaId) params.sistemaId = sistemaId
 
-  const response: AxiosResponse<SubscricoesPaginadas> = await apiGateway.get(
-    '/api/subscricoes/minhas',
-    { params },
-  )
+  const response: AxiosResponse<SubscricoesPaginadas> =
+    await apiNotificacoes.get('/api/subscricoes/minhas', { params })
 
   return response.data
 }
@@ -320,7 +343,7 @@ export const listarSeguidoresEntidade = async (
   sistemaId: string,
   entidadeOrigemId: string,
 ): Promise<Subscricao[]> => {
-  const response: AxiosResponse<Subscricao[]> = await apiGateway.get(
+  const response: AxiosResponse<Subscricao[]> = await apiNotificacoes.get(
     `/api/subscricoes/entidade/${sistemaId}/${entidadeOrigemId}`,
   )
 
@@ -335,7 +358,7 @@ export const listarSeguidoresEntidade = async (
  * @returns Promise void
  */
 export const deletarSubscricao = async (id: string): Promise<void> => {
-  await apiGateway.delete(`/api/subscricoes/${id}`)
+  await apiNotificacoes.delete(`/api/subscricoes/${id}`)
 }
 
 /**
@@ -349,7 +372,7 @@ export const toggleSeguir = async (
   request: SeguirEntidadeRequest,
 ): Promise<SeguirEntidadeResponse> => {
   const response: AxiosResponse<SeguirEntidadeResponse> =
-    await apiGateway.post('/api/subscricoes/seguir', request)
+    await apiNotificacoes.post('/api/subscricoes/seguir', request)
 
   return response.data
 }
@@ -367,7 +390,7 @@ export const verificarSeguindo = async (
   entidadeOrigemId: string,
 ): Promise<StatusSeguimentoResponse> => {
   const response: AxiosResponse<StatusSeguimentoResponse> =
-    await apiGateway.get('/api/subscricoes/estou-seguindo', {
+    await apiNotificacoes.get('/api/subscricoes/estou-seguindo', {
       params: { sistemaId, entidadeOrigemId },
     })
 
@@ -390,6 +413,6 @@ export const verificarSaude = async (): Promise<{
   version: string
   timestamp: string
 }> => {
-  const response = await apiGateway.get('/api/health')
+  const response = await apiNotificacoes.get('/api/health')
   return response.data
 }

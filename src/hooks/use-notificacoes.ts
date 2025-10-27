@@ -6,7 +6,7 @@
  */
 
 import { differenceInDays } from 'date-fns'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import {
   mostrarNotificacaoDeAPI,
@@ -14,6 +14,8 @@ import {
 } from '@/lib/browser-notifications'
 import { tocarSomNotificacao } from '@/lib/notification-sound'
 import type {
+  Broadcast,
+  BroadcastTemporario,
   FiltrosNotificacao,
   NotificacaoUsuario,
   OpcoesNotificacoes,
@@ -100,6 +102,36 @@ export const useNotificacoes = (
   const arquivarTodasLidasMutation = useArquivarTodasLidasMutation()
 
   // ============================================================================
+  // BROADCASTS (Estado Local)
+  // ============================================================================
+
+  /**
+   * Estado local de broadcasts recebidos
+   * Broadcasts são temporários e não persistem no banco
+   */
+  const [broadcasts, setBroadcasts] = useState<BroadcastTemporario[]>([])
+
+  /**
+   * Adiciona broadcast ao estado local
+   */
+  const adicionarBroadcast = useCallback((broadcast: Broadcast) => {
+    const broadcastTemporario: BroadcastTemporario = {
+      ...broadcast,
+      id: `broadcast-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      recebidoEm: new Date().toISOString(),
+    }
+
+    setBroadcasts((prev) => [broadcastTemporario, ...prev])
+  }, [])
+
+  /**
+   * Remove broadcast do estado local
+   */
+  const descartarBroadcast = useCallback((id: string) => {
+    setBroadcasts((prev) => prev.filter((b) => b.id !== id))
+  }, [])
+
+  // ============================================================================
   // SIGNALR
   // ============================================================================
 
@@ -113,6 +145,36 @@ export const useNotificacoes = (
 
       // Mostra notificação nativa (se permitido)
       mostrarNotificacaoDeAPI(notificacao)
+    },
+    aoReceberBroadcast: (broadcast: Broadcast) => {
+      console.log('[useNotificacoes] Broadcast recebido:', broadcast.titulo)
+
+      // Adiciona ao estado local
+      adicionarBroadcast(broadcast)
+
+      // Toca som (se habilitado)
+      if (habilitarSom) {
+        tocarSomNotificacao()
+      }
+
+      // Mostra notificação nativa (se permitido)
+      // Broadcasts não têm todos os campos de NotificacaoUsuario,
+      // então criamos um objeto compatível
+      const notificacaoParaNativa: NotificacaoUsuario = {
+        id: `broadcast-${Date.now()}`,
+        notificacaoId: broadcast.sistemaId,
+        titulo: `📢 ${broadcast.titulo}`,
+        mensagem: broadcast.mensagem,
+        tipo: broadcast.prioridade === 2 ? 'error' : 'warning',
+        prioridade: broadcast.prioridade === 2 ? 'Urgente' : 'Normal',
+        categoria: broadcast.categoria ?? 'Broadcast',
+        lida: false,
+        arquivada: false,
+        urlAcao: broadcast.urlAcao,
+        criadoEm: broadcast.criadoEm,
+      }
+
+      mostrarNotificacaoDeAPI(notificacaoParaNativa)
     },
   })
 
@@ -206,11 +268,34 @@ export const useNotificacoes = (
   }, [notificacoes])
 
   /**
-   * Contagem de não lidas
+   * Itens combinados para exibição: broadcasts + notificações
+   * Broadcasts aparecem primeiro (mais recentes no topo)
+   */
+  const itensExibicao = useMemo(() => {
+    // Combinar broadcasts e notificações
+    // Broadcasts vêm primeiro, depois notificações
+    const todosItens: Array<
+      | (NotificacaoUsuario & { tipo_item?: 'notificacao' })
+      | (BroadcastTemporario & { tipo_item: 'broadcast' })
+    > = [
+      ...broadcasts.map((b) => ({ ...b, tipo_item: 'broadcast' as const })),
+      ...notificacoesVisiveis.map((n) => ({
+        ...n,
+        tipo_item: 'notificacao' as const,
+      })),
+    ]
+
+    return todosItens
+  }, [broadcasts, notificacoesVisiveis])
+
+  /**
+   * Contagem de não lidas (inclui broadcasts)
+   * Broadcasts são sempre considerados "não lidos" pois não podem ser marcados como lidos
    */
   const contagemNaoLidas = useMemo(() => {
-    return naoLidasQuery.data?.naoLidas ?? notificacoesNaoLidas.length
-  }, [naoLidasQuery.data, notificacoesNaoLidas.length])
+    const naoLidasAPI = naoLidasQuery.data?.naoLidas ?? notificacoesNaoLidas.length
+    return naoLidasAPI + broadcasts.length
+  }, [naoLidasQuery.data, notificacoesNaoLidas.length, broadcasts.length])
 
   // ============================================================================
   // AÇÕES (Wrappers para mutations)
@@ -234,6 +319,13 @@ export const useNotificacoes = (
 
   const deletar = (id: string) => {
     deletarMutation.mutate(id)
+  }
+
+  /**
+   * Descarta broadcast do estado local
+   */
+  const descartarBroadcastAction = (id: string) => {
+    descartarBroadcast(id)
   }
 
   // ============================================================================
@@ -261,6 +353,17 @@ export const useNotificacoes = (
      * Primeiras 20 notificações (para exibição no dropdown)
      */
     notificacoesVisiveis,
+
+    /**
+     * Broadcasts recebidos (temporários, em memória)
+     */
+    broadcasts,
+
+    /**
+     * Itens para exibição: broadcasts + notificações combinados
+     * Broadcasts aparecem primeiro
+     */
+    itensExibicao,
 
     /**
      * Contagem total de não lidas
@@ -336,6 +439,11 @@ export const useNotificacoes = (
      * Deleta notificação permanentemente
      */
     deletar,
+
+    /**
+     * Descarta broadcast (remove do estado local)
+     */
+    descartarBroadcast: descartarBroadcastAction,
 
     // ========== QUERIES/MUTATIONS BRUTAS ==========
     /**

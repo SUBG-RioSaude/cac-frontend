@@ -6,6 +6,7 @@
 import * as signalR from '@microsoft/signalr'
 
 import type {
+  Broadcast,
   EventoSignalR,
   NotificacaoUsuario,
   SignalRCallback,
@@ -19,11 +20,17 @@ import type {
 
 /**
  * URL do SignalR Hub
- * Usa variável de ambiente ou fallback
+ * Constrói a partir da base URL de notificações
  */
-const HUB_URL =
-  import.meta.env.VITE_NOTIFICACOES_HUB_URL ||
-  'http://devcac:7000/api/notificacaohub'
+const BASE_URL = import.meta.env.VITE_NOTIFICACOES_API_URL as string
+
+if (!BASE_URL) {
+  console.error(
+    '[SignalR] VITE_NOTIFICACOES_API_URL não configurado no .env',
+  )
+}
+
+const HUB_URL = BASE_URL ? `${BASE_URL}/api/notificacaohub` : ''
 
 // ============================================================================
 // SERVIÇO SIGNALR
@@ -41,6 +48,8 @@ class NotificacaoSignalRService {
   private listeners: SignalRListeners = new Map()
 
   private statusConexao: StatusConexao = 'desconectado'
+
+  private conectando: boolean = false
 
   /**
    * Construtor privado (Singleton)
@@ -66,14 +75,17 @@ class NotificacaoSignalRService {
    * @returns Promise que resolve quando conectado
    */
   public async conectar(jwtToken: string): Promise<void> {
-    // Se já está conectado, não faz nada
+    // Se já está conectado ou conectando, não faz nada
     if (
       this.conexao?.state === signalR.HubConnectionState.Connected ||
-      this.conexao?.state === signalR.HubConnectionState.Connecting
+      this.conexao?.state === signalR.HubConnectionState.Connecting ||
+      this.conectando
     ) {
       console.log('[SignalR] Já conectado ou conectando')
       return
     }
+
+    this.conectando = true
 
     try {
       // Criar nova conexão
@@ -103,8 +115,18 @@ class NotificacaoSignalRService {
 
       this.statusConexao = 'conectado'
       console.log('✅ [SignalR] Conectado ao Hub de Notificações')
+
+      // Auto-join ao sistema para receber broadcasts
+      // Aguarda um pouco para garantir que o estado esteja Connected
+      const sistemaId = import.meta.env.VITE_SYSTEM_ID
+      if (sistemaId && this.conexao.state === signalR.HubConnectionState.Connected) {
+        await this.joinSistema(sistemaId)
+      }
+
+      this.conectando = false
     } catch (erro) {
       this.statusConexao = 'desconectado'
+      this.conectando = false
       console.error('❌ [SignalR] Erro ao conectar:', erro)
       throw erro
     }
@@ -118,6 +140,12 @@ class NotificacaoSignalRService {
   public async desconectar(): Promise<void> {
     if (this.conexao) {
       try {
+        // Sair do grupo do sistema antes de desconectar
+        const sistemaId = import.meta.env.VITE_SYSTEM_ID
+        if (sistemaId) {
+          await this.leaveSistema(sistemaId)
+        }
+
         await this.conexao.stop()
         this.statusConexao = 'desconectado'
         console.log('[SignalR] Desconectado do Hub')
@@ -125,6 +153,7 @@ class NotificacaoSignalRService {
         console.error('[SignalR] Erro ao desconectar:', erro)
       } finally {
         this.conexao = null
+        this.conectando = false
       }
     }
   }
@@ -151,10 +180,27 @@ class NotificacaoSignalRService {
       this.disparar('NotificacaoLida', notificacaoId)
     })
 
+    // Evento: Broadcast recebido (alerta global temporário)
+    this.conexao.on('ReceiveBroadcast', (broadcast: Broadcast) => {
+      console.log('📢 [SignalR] Broadcast recebido:', broadcast.titulo)
+      this.disparar('ReceiveBroadcast', broadcast)
+    })
+
     // Evento: Reconexão bem-sucedida
-    this.conexao.onreconnected((connectionId) => {
+    this.conexao.onreconnected(async (connectionId) => {
       this.statusConexao = 'conectado'
       console.log('🔄 [SignalR] Reconectado. ConnectionId:', connectionId)
+
+      // Re-join ao sistema após reconexão
+      const sistemaId = import.meta.env.VITE_SYSTEM_ID
+      if (sistemaId) {
+        try {
+          await this.joinSistema(sistemaId)
+        } catch (erro) {
+          console.error('[SignalR] Erro ao re-join após reconexão:', erro)
+        }
+      }
+
       this.disparar('reconectado', connectionId)
     })
 
@@ -259,6 +305,48 @@ class NotificacaoSignalRService {
    */
   public limparListeners(): void {
     this.listeners.clear()
+  }
+
+  /**
+   * Entra no grupo de broadcast de um sistema
+   * Necessário para receber broadcasts via SignalR
+   *
+   * @param sistemaId - ID do sistema (GUID)
+   * @returns Promise que resolve quando entrou no grupo
+   */
+  public async joinSistema(sistemaId: string): Promise<void> {
+    if (!this.conexao || this.conexao.state !== signalR.HubConnectionState.Connected) {
+      throw new Error('[SignalR] Não conectado ao Hub')
+    }
+
+    try {
+      await this.conexao.invoke('JoinSistema', sistemaId)
+      console.log(`📢 [SignalR] Inscrito para broadcasts do sistema: ${sistemaId}`)
+    } catch (erro) {
+      console.error('[SignalR] Erro ao entrar no grupo do sistema:', erro)
+      throw erro
+    }
+  }
+
+  /**
+   * Sai do grupo de broadcast de um sistema
+   *
+   * @param sistemaId - ID do sistema (GUID)
+   * @returns Promise que resolve quando saiu do grupo
+   */
+  public async leaveSistema(sistemaId: string): Promise<void> {
+    if (!this.conexao || this.conexao.state !== signalR.HubConnectionState.Connected) {
+      console.log('[SignalR] Conexão não está no estado Connected, pulando LeaveSistema')
+      return // Não joga erro, apenas retorna (conexão já foi fechada)
+    }
+
+    try {
+      await this.conexao.invoke('LeaveSistema', sistemaId)
+      console.log(`📢 [SignalR] Desinscrito dos broadcasts do sistema: ${sistemaId}`)
+    } catch (erro) {
+      console.error('[SignalR] Erro ao sair do grupo do sistema:', erro)
+      // Não joga erro no leaveSistema pois pode estar desconectando
+    }
   }
 }
 
