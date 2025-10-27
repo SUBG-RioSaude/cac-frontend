@@ -14,6 +14,11 @@ import type {
   SubscricoesPaginadas,
 } from '@/types/notificacao'
 
+type ToggleSeguirContext = {
+  previousStatus?: StatusSeguimentoResponse
+  request: SeguirEntidadeRequest
+}
+
 // ============================================================================
 // QUERY KEYS
 // ============================================================================
@@ -123,7 +128,12 @@ export const useMinhasSubscricoesQuery = (
 export const useToggleSeguirMutation = () => {
   const queryClient = useQueryClient()
 
-  return useMutation<SeguirEntidadeResponse, Error, SeguirEntidadeRequest>({
+  return useMutation<
+    SeguirEntidadeResponse,
+    Error,
+    SeguirEntidadeRequest,
+    ToggleSeguirContext
+  >({
     mutationFn: (request: SeguirEntidadeRequest) =>
       subscricoesApi.toggleSeguir(request),
 
@@ -182,9 +192,9 @@ export const useToggleSeguirMutation = () => {
       toast.success(data.mensagem || (data.seguindo ? 'Seguindo!' : 'Deixou de seguir'))
     },
 
-    onError: (erro, variables, context) => {
+    onError: (erro, _variables, context) => {
       // Rollback em caso de erro
-      if (context?.previousStatus) {
+      if (context && context.previousStatus) {
         queryClient.setQueryData(
           subscricoesQueryKeys.verificarSeguindo(
             context.request.sistemaId,
