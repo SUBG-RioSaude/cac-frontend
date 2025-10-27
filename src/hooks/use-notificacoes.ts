@@ -131,6 +131,13 @@ export const useNotificacoes = (
     setBroadcasts((prev) => prev.filter((b) => b.id !== id))
   }, [])
 
+  /**
+   * Remove todos os broadcasts do estado local
+   */
+  const descartarTodosBroadcasts = useCallback(() => {
+    setBroadcasts([])
+  }, [])
+
   // ============================================================================
   // SIGNALR
   // ============================================================================
@@ -444,6 +451,11 @@ export const useNotificacoes = (
      * Descarta broadcast (remove do estado local)
      */
     descartarBroadcast: descartarBroadcastAction,
+
+    /**
+     * Descarta todos os broadcasts (remove todos do estado local)
+     */
+    descartarTodosBroadcasts,
 
     // ========== QUERIES/MUTATIONS BRUTAS ==========
     /**

@@ -27,6 +27,7 @@ vi.mock('@/hooks/use-notificacoes', () => ({
     arquivarTodasLidas: vi.fn(),
     deletar: vi.fn(),
     descartarBroadcast: vi.fn(),
+    descartarTodosBroadcasts: vi.fn(),
   })),
 }))
 
@@ -90,6 +91,7 @@ describe('NotificacoesDropdown', () => {
       arquivarTodasLidas: vi.fn(),
       deletar: vi.fn(),
       descartarBroadcast: vi.fn(),
+      descartarTodosBroadcasts: vi.fn(),
     } as any)
 
     render(<NotificacoesDropdown />, { wrapper: createWrapper() })
@@ -128,6 +130,7 @@ describe('NotificacoesDropdown', () => {
       arquivarTodasLidas: vi.fn(),
       deletar: vi.fn(),
       descartarBroadcast: vi.fn(),
+      descartarTodosBroadcasts: vi.fn(),
     } as any)
 
     render(<NotificacoesDropdown />, { wrapper: createWrapper() })
@@ -177,6 +180,7 @@ describe('NotificacoesDropdown', () => {
       arquivarTodasLidas: vi.fn(),
       deletar: vi.fn(),
       descartarBroadcast: vi.fn(),
+      descartarTodosBroadcasts: vi.fn(),
     } as any)
 
     render(<NotificacoesDropdown />, { wrapper: createWrapper() })
@@ -281,6 +285,7 @@ describe('NotificacoesDropdown', () => {
       arquivarTodasLidas: vi.fn(),
       deletar: vi.fn(),
       descartarBroadcast: vi.fn(),
+      descartarTodosBroadcasts: vi.fn(),
     } as any)
 
     render(<NotificacoesDropdown />, { wrapper: createWrapper() })
@@ -326,6 +331,7 @@ describe('NotificacoesDropdown', () => {
       arquivarTodasLidas: vi.fn(),
       deletar: vi.fn(),
       descartarBroadcast: vi.fn(),
+      descartarTodosBroadcasts: vi.fn(),
     } as any)
 
     render(<NotificacoesDropdown />, { wrapper: createWrapper() })
@@ -341,5 +347,57 @@ describe('NotificacoesDropdown', () => {
     })
 
     expect(marcarComoLidaMock).toHaveBeenCalledWith('1')
+  })
+
+  it('deve descartar todos os broadcasts ao clicar em Visualizar todas', async () => {
+    const marcarTodasMock = vi.fn()
+    const descartarTodosBroadcastsMock = vi.fn()
+
+    const broadcastMock = {
+      id: 'b1',
+      sistemaId: 'sistema-1',
+      titulo: 'Broadcast Teste',
+      mensagem: 'Mensagem',
+      prioridade: 1,
+      categoria: 'Sistema',
+      criadoEm: '2025-01-23T10:00:00Z',
+      recebidoEm: '2025-01-23T10:00:00Z',
+      usuariosConectados: 10,
+      info: 'Info',
+    }
+
+    const { useNotificacoes } = await import('@/hooks/use-notificacoes')
+    vi.mocked(useNotificacoes).mockReturnValue({
+      notificacoesVisiveis: [],
+      notificacoesNaoLidas: [],
+      broadcasts: [broadcastMock],
+      itensExibicao: [{ ...broadcastMock, tipo_item: 'broadcast' as const }],
+      contagemNaoLidas: 1,
+      conectado: true,
+      reconectando: false,
+      isLoading: false,
+      marcarComoLida: vi.fn(),
+      arquivar: vi.fn(),
+      marcarTodasComoLidas: marcarTodasMock,
+      arquivarTodasLidas: vi.fn(),
+      deletar: vi.fn(),
+      descartarBroadcast: vi.fn(),
+      descartarTodosBroadcasts: descartarTodosBroadcastsMock,
+    } as any)
+
+    render(<NotificacoesDropdown />, { wrapper: createWrapper() })
+
+    const botao = screen.getByRole('button', { name: 'Notificações' })
+    fireEvent.click(botao)
+
+    await waitFor(() => {
+      const botaoVisualizarTodas = screen.getByRole('button', {
+        name: 'Marcar todas como lidas',
+      })
+      fireEvent.click(botaoVisualizarTodas)
+    })
+
+    expect(marcarTodasMock).toHaveBeenCalled()
+    expect(descartarTodosBroadcastsMock).toHaveBeenCalled()
   })
 })

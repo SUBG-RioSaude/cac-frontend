@@ -58,6 +58,7 @@ export const NotificacoesDropdown = () => {
     arquivarTodasLidas,
     deletar,
     descartarBroadcast,
+    descartarTodosBroadcasts,
   } = useNotificacoes()
 
   // Query para notificações arquivadas (carrega apenas se aba ativa)
@@ -216,7 +217,10 @@ export const NotificacoesDropdown = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => marcarTodasComoLidas()}
+                    onClick={() => {
+                      marcarTodasComoLidas()
+                      descartarTodosBroadcasts()
+                    }}
                     className="h-8 flex-shrink-0 border border-blue-200 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                     aria-label="Marcar todas como lidas"
                   >
@@ -361,17 +365,29 @@ export const NotificacoesDropdown = () => {
                             {/* Ações */}
                             <div className="flex items-center gap-1">
                               {ehBroadcast ? (
-                                // Broadcast: apenas botão de descartar
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => descartarBroadcast(item.id)}
-                                  className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-700"
-                                  aria-label="Descartar broadcast"
-                                  title="Descartar"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
+                                // Broadcast: botões de check (descartar) e X (remover)
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => descartarBroadcast(item.id)}
+                                    className="h-6 w-6 p-0 hover:bg-green-100 hover:text-green-700"
+                                    aria-label="Marcar como lida"
+                                    title="Marcar como lida"
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => descartarBroadcast(item.id)}
+                                    className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-700"
+                                    aria-label="Descartar broadcast"
+                                    title="Remover"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>
                               ) : (
                                 // Notificação: botões normais
                                 <>
