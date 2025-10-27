@@ -42,7 +42,7 @@ if (!BASE_URL) {
  * Cliente Axios dedicado para API de notificações
  * Não usa o apiGateway porque notificações têm URL própria
  */
-const apiNotificacoes = axios.create({
+export const apiNotificacoes = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
   headers: {

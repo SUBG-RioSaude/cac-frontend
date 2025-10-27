@@ -86,14 +86,12 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
     try {
       const token = getToken()
       if (!token) {
-        console.warn('[SignalR Hook] Token JWT não encontrado')
         return
       }
 
       await notificacaoSignalR.conectar(token)
       setStatus('conectado')
-    } catch (erro) {
-      console.error('[SignalR Hook] Erro ao conectar:', erro)
+    } catch {
       setStatus('desconectado')
     }
   }
@@ -105,8 +103,8 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
     try {
       await notificacaoSignalR.desconectar()
       setStatus('desconectado')
-    } catch (erro) {
-      console.error('[SignalR Hook] Erro ao desconectar:', erro)
+    } catch {
+      // Ignora erro ao desconectar
     }
   }
 
@@ -120,7 +118,6 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
       if (autoConectar && montado) {
         // Só conecta se já não estiver conectado/conectando
         if (notificacaoSignalR.estaConectado) {
-          console.log('[SignalR Hook] Já está conectado, pulando nova conexão')
           setStatus('conectado')
           return
         }
@@ -129,13 +126,13 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
       }
     }
 
-    iniciarConexao()
+    void iniciarConexao()
 
     return () => {
       montado = false
       // Só desconecta se estiver realmente conectado
       if (notificacaoSignalR.estaConectado) {
-        desconectar()
+        void desconectar()
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,13 +144,11 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
   useEffect(() => {
     // Handler: Nova notificação recebida
     const handleNovaNotificacao = (notificacao: NotificacaoUsuario) => {
-      console.log('[SignalR Hook] Nova notificação recebida')
-
       // Invalida queries para refetch automático
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificacoesQueryKeys.lists(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificacoesQueryKeys.naoLidas(),
       })
 
@@ -164,22 +159,18 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
     }
 
     // Handler: Notificação marcada como lida
-    const handleNotificacaoLida = (notificacaoId: string) => {
-      console.log('[SignalR Hook] Notificação marcada como lida:', notificacaoId)
-
+    const handleNotificacaoLida = () => {
       // Invalida queries
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificacoesQueryKeys.lists(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificacoesQueryKeys.naoLidas(),
       })
     }
 
     // Handler: Broadcast recebido (alerta global temporário)
     const handleBroadcast = (broadcast: Broadcast) => {
-      console.log('[SignalR Hook] Broadcast recebido:', broadcast.titulo)
-
       // Callback customizado
       if (aoReceberBroadcast) {
         aoReceberBroadcast(broadcast)
@@ -188,11 +179,10 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
 
     // Handler: Reconectado
     const handleReconectado = () => {
-      console.log('[SignalR Hook] Reconectado ao Hub')
       setStatus('conectado')
 
       // Recarrega todas as queries após reconexão
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificacoesQueryKeys.all,
       })
 
@@ -204,13 +194,11 @@ export const useNotificacoesSignalR = (opcoes: OpcoesSignalR = {}) => {
 
     // Handler: Reconectando
     const handleReconectando = () => {
-      console.log('[SignalR Hook] Tentando reconectar...')
       setStatus('reconectando')
     }
 
     // Handler: Desconectado
     const handleDesconectado = () => {
-      console.log('[SignalR Hook] Desconectado do Hub')
       setStatus('desconectado')
 
       // Callback customizado

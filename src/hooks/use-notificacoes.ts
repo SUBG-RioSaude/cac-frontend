@@ -147,21 +147,19 @@ export const useNotificacoes = (
     aoReceberNotificacao: (notificacao: NotificacaoUsuario) => {
       // Toca som (se habilitado)
       if (habilitarSom) {
-        tocarSomNotificacao()
+        void tocarSomNotificacao()
       }
 
       // Mostra notificação nativa (se permitido)
       mostrarNotificacaoDeAPI(notificacao)
     },
     aoReceberBroadcast: (broadcast: Broadcast) => {
-      console.log('[useNotificacoes] Broadcast recebido:', broadcast.titulo)
-
       // Adiciona ao estado local
       adicionarBroadcast(broadcast)
 
       // Toca som (se habilitado)
       if (habilitarSom) {
-        tocarSomNotificacao()
+        void tocarSomNotificacao()
       }
 
       // Mostra notificação nativa (se permitido)
@@ -192,8 +190,8 @@ export const useNotificacoes = (
   useEffect(() => {
     if (solicitarPermissaoNativa) {
       // Solicita permissão na primeira montagem
-      solicitarPermissaoNotificacoes().catch((erro) => {
-        console.warn('[useNotificacoes] Erro ao solicitar permissão:', erro)
+      void solicitarPermissaoNotificacoes().catch(() => {
+        // Ignora erro de permissão negada
       })
     }
   }, [solicitarPermissaoNativa])
@@ -217,23 +215,18 @@ export const useNotificacoes = (
       })
 
       if (notificacoesAntigas.length > 0) {
-        console.log(
-          `[useNotificacoes] Auto-arquivando ${notificacoesAntigas.length} notificações antigas`,
-        )
-
         // Arquiva todas as lidas (inclui as antigas)
         await arquivarTodasLidasMutation.mutateAsync(undefined)
       }
     }
 
     // Verifica imediatamente
-    verificarEArquivarAntigas()
+    void verificarEArquivarAntigas()
 
     // Configura timer para verificação periódica
-    const timer = setInterval(
-      verificarEArquivarAntigas,
-      intervaloAutoArquivamento,
-    )
+    const timer = setInterval(() => {
+      void verificarEArquivarAntigas()
+    }, intervaloAutoArquivamento)
 
     return () => clearInterval(timer)
   }, [
@@ -281,10 +274,8 @@ export const useNotificacoes = (
   const itensExibicao = useMemo(() => {
     // Combinar broadcasts e notificações
     // Broadcasts vêm primeiro, depois notificações
-    const todosItens: Array<
-      | (NotificacaoUsuario & { tipo_item?: 'notificacao' })
-      | (BroadcastTemporario & { tipo_item: 'broadcast' })
-    > = [
+    const todosItens: (| (NotificacaoUsuario & { tipo_item?: 'notificacao' })
+      | (BroadcastTemporario & { tipo_item: 'broadcast' }))[] = [
       ...broadcasts.map((b) => ({ ...b, tipo_item: 'broadcast' as const })),
       ...notificacoesVisiveis.map((n) => ({
         ...n,

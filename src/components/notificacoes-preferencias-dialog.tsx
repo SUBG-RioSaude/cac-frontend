@@ -3,9 +3,8 @@
  * Permite configurar tipos, sons e notificações nativas
  */
 
-import { useState, useEffect } from 'react'
-
 import { Volume2, VolumeX, Bell, BellOff, TestTube } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -119,7 +118,7 @@ export const NotificacoesPreferenciasDialog = ({
    * Altera volume do som
    */
   const handleAlterarVolume = (valores: number[]) => {
-    const volume = valores[0]
+    const [volume] = valores
     const novasPreferencias = {
       ...preferenciasLocais,
       volumeSom: volume,
