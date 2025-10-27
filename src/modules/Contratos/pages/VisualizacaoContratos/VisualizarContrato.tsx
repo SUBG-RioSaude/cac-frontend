@@ -3,6 +3,7 @@ import { ArrowLeft, Download, MoreHorizontal } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
+import { BotaoSeguirContrato } from '@/components/botao-seguir'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -296,6 +297,10 @@ export const VisualizarContrato = () => {
                     <Download className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Exportar</span>
                   </Button>
+
+                  {/* Botão de seguir contrato */}
+                  {id && <BotaoSeguirContrato contratoId={id} />}
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
