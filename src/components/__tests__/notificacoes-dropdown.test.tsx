@@ -3,10 +3,10 @@
  * Atualizado para usar TanStack Query ao invés de Zustand
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { NotificacoesDropdown } from '../notificacoes-dropdown'
 

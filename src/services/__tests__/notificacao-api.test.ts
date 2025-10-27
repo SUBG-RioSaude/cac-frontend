@@ -2,23 +2,37 @@
  * Testes para o serviço de API de notificações
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AxiosResponse } from 'axios'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { apiGateway } from '@/lib/axios'
-import * as notificacaoApi from '../notificacao-api'
 import type { NotificacaoUsuario } from '@/types/notificacao'
 
-// Mock do apiGateway
-vi.mock('@/lib/axios', () => ({
-  apiGateway: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
+// Hoisted mocks - executam ANTES de qualquer import
+const mockAxiosInstance = vi.hoisted(() => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  patch: vi.fn(),
+  delete: vi.fn(),
+  interceptors: {
+    request: { use: vi.fn(() => {}), eject: vi.fn() },
+    response: { use: vi.fn(), eject: vi.fn() },
   },
 }))
+
+// Mock do getToken
+vi.mock('@/lib/auth/auth', () => ({
+  getToken: vi.fn(() => 'mock-token'),
+}))
+
+// Mock do axios
+vi.mock('axios', () => ({
+  default: {
+    create: vi.fn(() => mockAxiosInstance),
+  },
+}))
+
+import * as notificacaoApi from '../notificacao-api'
 
 describe('notificacao-api', () => {
   beforeEach(() => {
@@ -44,13 +58,13 @@ describe('notificacao-api', () => {
         naoLidas: 1,
       }
 
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockData,
       } as AxiosResponse)
 
       const resultado = await notificacaoApi.listarMinhasNotificacoes()
 
-      expect(apiGateway.get).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
         expect.stringContaining('/minhas'),
         expect.objectContaining({
           params: { page: 1, pageSize: 20 },
@@ -60,13 +74,13 @@ describe('notificacao-api', () => {
     })
 
     it('deve aceitar filtros customizados', async () => {
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: { items: [], page: 2, pageSize: 10, naoLidas: 0 },
       } as AxiosResponse)
 
       await notificacaoApi.listarMinhasNotificacoes({ page: 2, pageSize: 10 })
 
-      expect(apiGateway.get).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           params: { page: 2, pageSize: 10 },
@@ -85,13 +99,13 @@ describe('notificacao-api', () => {
         },
       }
 
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockData,
       } as AxiosResponse)
 
       const resultado = await notificacaoApi.contarNaoLidas()
 
-      expect(apiGateway.get).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
         expect.stringContaining('/nao-lidas'),
       )
       expect(resultado).toEqual(mockData)
@@ -101,13 +115,13 @@ describe('notificacao-api', () => {
 
   describe('marcarComoLida', () => {
     it('deve marcar notificação como lida', async () => {
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: { message: 'Sucesso' },
       } as AxiosResponse)
 
       await notificacaoApi.marcarComoLida('notif-123')
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         expect.stringContaining('/notif-123/marcar-lida'),
       )
     })
@@ -115,13 +129,13 @@ describe('notificacao-api', () => {
 
   describe('arquivar', () => {
     it('deve arquivar notificação', async () => {
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: { message: 'Arquivada' },
       } as AxiosResponse)
 
       await notificacaoApi.arquivar('notif-456')
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         expect.stringContaining('/notif-456/arquivar'),
       )
     })
@@ -129,13 +143,13 @@ describe('notificacao-api', () => {
 
   describe('desarquivar', () => {
     it('deve desarquivar notificação', async () => {
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: { message: 'Desarquivada' },
       } as AxiosResponse)
 
       await notificacaoApi.desarquivar('notif-789')
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         expect.stringContaining('/notif-789/desarquivar'),
       )
     })
@@ -143,13 +157,13 @@ describe('notificacao-api', () => {
 
   describe('marcarTodasComoLidas', () => {
     it('deve marcar todas como lidas sem filtro', async () => {
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: { message: 'Todas marcadas' },
       } as AxiosResponse)
 
       await notificacaoApi.marcarTodasComoLidas()
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         expect.stringContaining('/marcar-todas-lidas'),
         null,
         expect.objectContaining({
@@ -159,13 +173,13 @@ describe('notificacao-api', () => {
     })
 
     it('deve aceitar filtro por sistema', async () => {
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: { message: 'Marcadas do sistema' },
       } as AxiosResponse)
 
       await notificacaoApi.marcarTodasComoLidas('sistema-123')
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         expect.any(String),
         null,
         expect.objectContaining({
@@ -177,13 +191,13 @@ describe('notificacao-api', () => {
 
   describe('arquivarTodasLidas', () => {
     it('deve arquivar todas lidas', async () => {
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: { message: 'Arquivadas' },
       } as AxiosResponse)
 
       await notificacaoApi.arquivarTodasLidas()
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         expect.stringContaining('/arquivar-todas-lidas'),
         null,
         expect.any(Object),
@@ -200,13 +214,13 @@ describe('notificacao-api', () => {
         totalArquivadas: 0,
       }
 
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockData,
       } as AxiosResponse)
 
       const resultado = await notificacaoApi.listarArquivadas()
 
-      expect(apiGateway.get).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
         expect.stringContaining('/arquivadas'),
         expect.objectContaining({
           params: { page: 1, pageSize: 20 },
@@ -218,13 +232,13 @@ describe('notificacao-api', () => {
 
   describe('deletarNotificacao', () => {
     it('deve deletar notificação permanentemente', async () => {
-      vi.mocked(apiGateway.delete).mockResolvedValue({
+      mockAxiosInstance.delete.mockResolvedValue({
         data: {},
       } as AxiosResponse)
 
       await notificacaoApi.deletarNotificacao('notif-delete')
 
-      expect(apiGateway.delete).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith(
         expect.stringContaining('/notif-delete'),
       )
     })
@@ -242,13 +256,13 @@ describe('notificacao-api', () => {
         },
       ]
 
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockPreferencias,
       } as AxiosResponse)
 
       const resultado = await notificacaoApi.obterPreferencias()
 
-      expect(apiGateway.get).toHaveBeenCalledWith('/api/preferencias/minhas')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/preferencias/minhas')
       expect(resultado).toEqual(mockPreferencias)
     })
   })
@@ -260,7 +274,7 @@ describe('notificacao-api', () => {
         habilitada: false,
       }
 
-      vi.mocked(apiGateway.put).mockResolvedValue({
+      mockAxiosInstance.put.mockResolvedValue({
         data: mockPreferencia,
       } as AxiosResponse)
 
@@ -269,7 +283,7 @@ describe('notificacao-api', () => {
         false,
       )
 
-      expect(apiGateway.put).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
         '/api/preferencias/pref-1',
         false,
       )
@@ -285,7 +299,7 @@ describe('notificacao-api', () => {
         subscricaoId: 'sub-123',
       }
 
-      vi.mocked(apiGateway.post).mockResolvedValue({
+      mockAxiosInstance.post.mockResolvedValue({
         data: mockResponse,
       } as AxiosResponse)
 
@@ -294,7 +308,7 @@ describe('notificacao-api', () => {
         entidadeOrigemId: 'entidade-1',
       })
 
-      expect(apiGateway.post).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
         '/api/subscricoes/seguir',
         {
           sistemaId: 'sistema-1',
@@ -311,7 +325,7 @@ describe('notificacao-api', () => {
         seguindo: false,
       }
 
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockResponse,
       } as AxiosResponse)
 
@@ -320,7 +334,7 @@ describe('notificacao-api', () => {
         'entidade-1',
       )
 
-      expect(apiGateway.get).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
         '/api/subscricoes/estou-seguindo',
         expect.objectContaining({
           params: {
@@ -342,13 +356,13 @@ describe('notificacao-api', () => {
         timestamp: '2025-01-23T10:00:00Z',
       }
 
-      vi.mocked(apiGateway.get).mockResolvedValue({
+      mockAxiosInstance.get.mockResolvedValue({
         data: mockSaude,
       } as AxiosResponse)
 
       const resultado = await notificacaoApi.verificarSaude()
 
-      expect(apiGateway.get).toHaveBeenCalledWith('/api/health')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/health')
       expect(resultado.status).toBe('Healthy')
     })
   })

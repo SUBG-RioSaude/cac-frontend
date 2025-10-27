@@ -2,13 +2,13 @@
  * Testes para hooks TanStack Query de notificações
  */
 
-import type { ReactNode } from 'react'
-
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import * as notificacaoApi from '@/services/notificacao-api'
+
 import {
   useNotificacoesQuery,
   useContarNaoLidasQuery,
@@ -160,7 +160,10 @@ describe('use-notificacoes-query', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-      expect(notificacaoApi.marcarComoLida).toHaveBeenCalledWith('notif-123')
+      expect(notificacaoApi.marcarComoLida).toHaveBeenCalledWith(
+        'notif-123',
+        expect.anything(),
+      )
     })
 
     it('deve fazer otimistic update', async () => {
@@ -189,9 +192,12 @@ describe('use-notificacoes-query', () => {
       const wrapper = createWrapper()
 
       // Carrega notificações
-      const { result: queryResult } = renderHook(() => useNotificacoesQuery(), {
-        wrapper,
-      })
+      const { result: queryResult, rerender } = renderHook(
+        () => useNotificacoesQuery(),
+        {
+          wrapper,
+        },
+      )
 
       await waitFor(() => expect(queryResult.current.isSuccess).toBe(true))
 
@@ -207,8 +213,13 @@ describe('use-notificacoes-query', () => {
 
       await waitFor(() => expect(mutationResult.current.isSuccess).toBe(true))
 
-      // Verifica se invalidou a query
-      expect(queryResult.current.data?.items[0].lida).toBe(true)
+      // Força rerender para pegar o otimistic update
+      rerender()
+
+      // Verifica se o otimistic update funcionou
+      await waitFor(() => {
+        expect(queryResult.current.data?.items[0].lida).toBe(true)
+      })
     })
   })
 
@@ -224,7 +235,10 @@ describe('use-notificacoes-query', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-      expect(notificacaoApi.arquivar).toHaveBeenCalledWith('notif-456')
+      expect(notificacaoApi.arquivar).toHaveBeenCalledWith(
+        'notif-456',
+        expect.anything(),
+      )
     })
 
     it('deve remover da lista ao arquivar (otimistic)', async () => {

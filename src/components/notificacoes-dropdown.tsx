@@ -3,7 +3,6 @@
  * Refatorado para usar TanStack Query ao invés de Zustand
  */
 
-import { useState, useRef, useEffect } from 'react'
 
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -19,6 +18,7 @@ import {
   Settings,
   Megaphone,
 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

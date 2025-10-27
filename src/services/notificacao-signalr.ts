@@ -49,7 +49,7 @@ class NotificacaoSignalRService {
 
   private statusConexao: StatusConexao = 'desconectado'
 
-  private conectando: boolean = false
+  private conectando = false
 
   /**
    * Construtor privado (Singleton)
