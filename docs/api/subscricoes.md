@@ -279,9 +279,54 @@ const handleRemover = (subscricaoId: string) => {
 
 ## 🎨 Componentes UI
 
-**Localização:** `src/components/botao-seguir.tsx`
+### TabSeguindo (Lista de Subscrições)
+
+**Localização:** `src/components/tab-seguindo.tsx`
+
+Componente que lista entidades que o usuário está seguindo, integrado como aba no dropdown de notificações.
+
+**Funcionalidades:**
+- ✅ Lista agrupada por sistema (Contratos, Fornecedores, Unidades)
+- ✅ Contador de subscrições por categoria
+- ✅ Navegação direta para a entidade
+- ✅ Botão "Deixar de seguir" inline (visível ao hover)
+- ✅ Tempo relativo desde quando começou a seguir
+- ✅ Loading e empty states
+- ✅ Link para página completa (Em breve)
+
+**Localização no app:**
+```
+Dropdown de Notificações → Aba "Seguindo"
+```
+
+**Estrutura visual:**
+```
+┌──────────────────────────────────────────┐
+│ Seguindo 5 entidades                     │
+├──────────────────────────────────────────┤
+│ 📄 Contratos (3)                         │
+│   • contrato-123  [Deixar de seguir]    │
+│   • contrato-456  [Deixar de seguir]    │
+│                                          │
+│ 🏢 Fornecedores (2)                      │
+│   • fornecedor-789 [Deixar de seguir]   │
+├──────────────────────────────────────────┤
+│ [Ver todas as subscrições] (Em breve)   │
+└──────────────────────────────────────────┘
+```
+
+**Uso programático:**
+```tsx
+import { TabSeguindo } from '@/components/tab-seguindo'
+
+<TabSeguindo aoClicar={() => setAberto(false)} />
+```
+
+---
 
 ### BotaoSeguir (Componente Base)
+
+**Localização:** `src/components/botao-seguir.tsx`
 
 Componente genérico reutilizável.
 
@@ -411,7 +456,22 @@ interface StatusSeguimentoResponse {
 
 ## 💡 Exemplos Práticos
 
-### Exemplo 1: Página de Contrato
+### Exemplo 1: Acessar Lista de Entidades Seguindo
+
+A maneira mais fácil de ver todas as entidades que você está seguindo:
+
+```
+1. Clique no ícone de notificações (🔔) no header
+2. Clique na aba "Seguindo"
+3. Veja lista agrupada por sistema:
+   - Contratos
+   - Fornecedores
+   - Unidades
+4. Clique em qualquer entidade para navegar
+5. Hover e clique em "Deixar de seguir" para parar de seguir
+```
+
+### Exemplo 2: Página de Contrato
 
 ```typescript
 import { BotaoSeguirContrato } from '@/components/botao-seguir'
@@ -497,8 +557,11 @@ export const ControleManual = ({ entidadeId }: { entidadeId: string }) => {
 # Testes dos hooks
 pnpm test src/hooks/__tests__/use-subscricoes-query.test.tsx
 
-# Testes do componente
+# Testes do BotaoSeguir
 pnpm test src/components/__tests__/botao-seguir.test.tsx
+
+# Testes do TabSeguindo
+pnpm test src/components/__tests__/tab-seguindo.test.tsx
 
 # Todos os testes de subscrições
 pnpm test subscri
@@ -514,7 +577,7 @@ pnpm test subscri
 - ✅ Rollback em erros
 - ✅ Listagem de subscrições
 
-**Componente** (`botao-seguir.test.tsx`):
+**BotaoSeguir** (`botao-seguir.test.tsx`):
 - ✅ 11 testes
 - ✅ Estados visuais (seguindo/não seguindo)
 - ✅ Loading states
@@ -522,7 +585,15 @@ pnpm test subscri
 - ✅ Variantes especializadas
 - ✅ Responsividade
 
-**Total: 23 testes passando ✅**
+**TabSeguindo** (`tab-seguindo.test.tsx`):
+- ✅ 10 testes
+- ✅ Loading e empty states
+- ✅ Agrupamento por sistema
+- ✅ Navegação para entidades
+- ✅ Deixar de seguir inline
+- ✅ Formatação de datas
+
+**Total: 33 testes passando ✅**
 
 ---
 

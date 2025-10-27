@@ -34,13 +34,14 @@ import type {
 } from '@/types/notificacao'
 
 import { NotificacoesPreferenciasDialog } from './notificacoes-preferencias-dialog'
+import { TabSeguindo } from './tab-seguindo'
 
 export const NotificacoesDropdown = () => {
   const [aberto, setAberto] = useState(false)
   const [preferenciasAbertas, setPreferenciasAbertas] = useState(false)
-  const [abaAtiva, setAbaAtiva] = useState<'todas' | 'nao-lidas' | 'arquivo'>(
-    'todas',
-  )
+  const [abaAtiva, setAbaAtiva] = useState<
+    'todas' | 'nao-lidas' | 'arquivo' | 'seguindo'
+  >('todas')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Hook principal de notificações (TanStack Query + SignalR)
@@ -197,21 +198,26 @@ export const NotificacoesDropdown = () => {
               value={abaAtiva}
               onValueChange={(v) => setAbaAtiva(v as typeof abaAtiva)}
             >
-              <TabsList className="w-full">
-                <TabsTrigger value="todas" className="flex-1 text-xs">
+              <TabsList className="w-full grid grid-cols-4">
+                <TabsTrigger value="todas" className="text-xs">
                   Todas
                 </TabsTrigger>
-                <TabsTrigger value="nao-lidas" className="flex-1 text-xs">
+                <TabsTrigger value="nao-lidas" className="text-xs">
                   Não lidas {contagemNaoLidas > 0 && `(${contagemNaoLidas})`}
                 </TabsTrigger>
-                <TabsTrigger value="arquivo" className="flex-1 text-xs">
+                <TabsTrigger value="arquivo" className="text-xs">
                   Arquivo
+                </TabsTrigger>
+                <TabsTrigger value="seguindo" className="text-xs">
+                  Seguindo
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
             {/* Botões de ação */}
-            {temNotificacoes && abaAtiva !== 'arquivo' && (
+            {temNotificacoes &&
+              abaAtiva !== 'arquivo' &&
+              abaAtiva !== 'seguindo' && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {contagemNaoLidas > 0 && (
                   <Button
@@ -246,8 +252,11 @@ export const NotificacoesDropdown = () => {
 
           {/* Lista de notificações */}
           <div className="max-h-96 overflow-y-auto">
-            {/* Loading state */}
-            {isLoading || (abaAtiva === 'arquivo' && isLoadingArquivadas) ? (
+            {/* Aba "Seguindo" */}
+            {abaAtiva === 'seguindo' ? (
+              <TabSeguindo aoClicar={() => setAberto(false)} />
+            ) : /* Loading state */ isLoading ||
+              (abaAtiva === 'arquivo' && isLoadingArquivadas) ? (
               <div className="space-y-2 p-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex gap-3">
