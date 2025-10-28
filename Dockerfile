@@ -19,7 +19,7 @@ RUN pnpm config set store-dir /app/.pnpm-store
 
 # Instalar dependências com cache otimizado
 RUN --mount=type=cache,id=pnpm,target=/app/.pnpm-store \
-    pnpm install --frozen-lockfile --prefer-offline
+	pnpm install --frozen-lockfile --prefer-offline
 
 # Estágio de build
 FROM base AS builder
@@ -59,6 +59,7 @@ ARG VITE_API_URL_AUTH=http://devcac:7000
 ARG VITE_VIACEP_URL=https://viacep.com.br/ws
 ARG VITE_SYSTEM_ID=7b8659bb-1aeb-4d74-92c1-110c1d27e576
 ARG VITE_API_CHAT_SOCKET_URL=http://devcac:7014/api
+ARG VITE_NOTIFICACOES_API_URL=http://devcac:7015/
 
 # Converter ARGs em ENVs para o Vite usar durante o build
 ENV VITE_API_URL=${VITE_API_URL}
@@ -66,12 +67,13 @@ ENV VITE_API_URL_AUTH=${VITE_API_URL_AUTH}
 ENV VITE_VIACEP_URL=${VITE_VIACEP_URL}
 ENV VITE_SYSTEM_ID=${VITE_SYSTEM_ID}
 ENV VITE_API_CHAT_SOCKET_URL=${VITE_API_CHAT_SOCKET_URL}
+ENV VITE_NOTIFICACOES_API_URL=${VITE_NOTIFICACOES_API_URL}
 
 
 
 # Executar build de produção
 RUN echo "🏗️ Building production..." && \
-    pnpm build
+	pnpm build
 
 # Verificar se o build foi gerado corretamente
 RUN ls -la dist/ && test -f dist/index.html
@@ -92,7 +94,7 @@ EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost || exit 1
+	CMD wget --no-verbose --tries=1 --spider http://localhost || exit 1
 
 # Labels para metadados
 LABEL org.opencontainers.image.title="CAC Frontend"
