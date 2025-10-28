@@ -14,7 +14,7 @@ import type {
   SubscricoesPaginadas,
 } from '@/types/notificacao'
 
-type ToggleSeguirContext = {
+interface ToggleSeguirContext {
   previousStatus?: StatusSeguimentoResponse
   request: SeguirEntidadeRequest
 }
@@ -194,7 +194,7 @@ export const useToggleSeguirMutation = () => {
 
     onError: (erro, _variables, context) => {
       // Rollback em caso de erro
-      if (context && context.previousStatus) {
+      if (context?.previousStatus) {
         queryClient.setQueryData(
           subscricoesQueryKeys.verificarSeguindo(
             context.request.sistemaId,

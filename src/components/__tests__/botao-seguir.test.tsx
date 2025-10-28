@@ -20,6 +20,14 @@ import {
 // Mock do serviço de API
 vi.mock('@/services/notificacao-api')
 
+// Mock das funções de configuração de sistemas
+// Retorna o sistemaId original sem conversão para UUID
+vi.mock('@/config/sistemas', () => ({
+  obterSistemaId: vi.fn((sistema: string) => sistema),
+  isSistemaValido: vi.fn(() => true),
+  SISTEMA_FRONTEND_ID: '7b8659bb-1aeb-4d74-92c1-110c1d27e576',
+}))
+
 // Mock do toast
 vi.mock('sonner', () => ({
   toast: {

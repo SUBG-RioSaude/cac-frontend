@@ -5,6 +5,7 @@
 
 import { Bell, BellRing, Loader2 } from 'lucide-react'
 
+import { obterSistemaId, isSistemaValido } from '@/config/sistemas'
 import {
   useToggleSeguirMutation,
   useVerificarSeguindoQuery,
@@ -80,9 +81,23 @@ export const BotaoSeguir = ({
   // HOOKS
   // ============================================================================
 
+  // Converte sistemaId para o formato aceito pela API
+  const sistemaIdApi = isSistemaValido(sistemaId)
+    ? obterSistemaId(sistemaId)
+    : sistemaId
+
+  // Debug: Logar conversão de sistemaId
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[BotaoSeguir] sistemaId:', {
+      original: sistemaId,
+      convertido: sistemaIdApi,
+      valido: isSistemaValido(sistemaId),
+    })
+  }
+
   // Verifica status de seguimento
   const { data: statusSeguimento, isLoading: isLoadingStatus } =
-    useVerificarSeguindoQuery(sistemaId, entidadeOrigemId)
+    useVerificarSeguindoQuery(sistemaIdApi, entidadeOrigemId)
 
   // Mutation para toggle
   const toggleSeguir = useToggleSeguirMutation()
@@ -100,7 +115,7 @@ export const BotaoSeguir = ({
 
   const handleToggle = () => {
     toggleSeguir.mutate({
-      sistemaId,
+      sistemaId: sistemaIdApi,
       entidadeOrigemId,
     })
   }
