@@ -46,8 +46,7 @@ jobs:
       - name: 🎨 Format Check
         run: |
           echo "🎨 Checking code formatting..."
-          pnpm format 
-          pnpm format:check
+          pnpm prettier --write --check . --ignore-path .prettierignore
           echo "✅ Code formatting is correct!"
 
       - name: 🔧 Install System Dependencies

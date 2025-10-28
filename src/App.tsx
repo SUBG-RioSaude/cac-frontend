@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 import { LayoutAuthenticated } from '@/components/layout-authenticated'
@@ -22,7 +23,6 @@ import VerifyForm from './pages/auth/verify-form'
 import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
-
 const App = () => {
   return (
     <Routes>
