@@ -1,35 +1,37 @@
 /**
  * ==========================================
- * CARD DE VALOR TOTAL
+ * CARD DE CONTRATOS ATIVOS
  * ==========================================
  */
 
-import { DollarSign } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 
 import { useDashboardMetrics } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
-import { LoadingMetricCard } from './MetricCard'
+import { LoadingMetricCard } from './metric-card'
 
-interface TotalValueCardProps {
+interface ActiveContractsCardProps {
   filters: DashboardFilters
   className?: string
 }
 
-export const TotalValueCard = ({ filters, className }: TotalValueCardProps) => {
+export const ActiveContractsCard = ({
+  filters,
+  className,
+}: ActiveContractsCardProps) => {
   const { metrics, isLoading, error } = useDashboardMetrics(filters)
 
   return (
     <LoadingMetricCard
-      title="Valor Total"
-      metric={metrics?.valorTotal ?? null}
-      icon={DollarSign}
+      title="Contratos Ativos"
+      metric={metrics?.contratosAtivos ?? null}
+      icon={CheckCircle}
       isLoading={isLoading}
       error={error}
-      format="currency"
       className={className}
-      description="Valor total dos contratos"
-      data-testid="total-value-card"
+      description="Contratos em vigência"
+      data-testid="active-contracts-card"
     />
   )
 }

@@ -4,7 +4,7 @@
  * ==========================================
  */
 
-export { StatusDistributionChart } from './StatusDistributionChart'
-export { StatusTrendChart } from './StatusTrendChart'
-export { TypeDistributionChart } from './TypeDistributionChart'
-export { ContractsCharts } from './ContractsCharts'
+export { StatusDistributionChart } from './status-distribution-chart'
+export { StatusTrendChart } from './status-trend-chart'
+export { TypeDistributionChart } from './type-distribution-chart'
+export { ContractsCharts } from './contracts-charts'

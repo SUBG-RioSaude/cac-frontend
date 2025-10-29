@@ -9,7 +9,7 @@ import { AlertCircle } from 'lucide-react'
 import { useDashboardMetrics } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
-import { StatusMetricCard } from './MetricCard'
+import { StatusMetricCard } from './metric-card'
 
 interface ExpiringContractsCardProps {
   filters: DashboardFilters

@@ -10,9 +10,9 @@ export {
   CurrencyMetricCard,
   PercentageMetricCard,
   StatusMetricCard,
-} from './MetricCard'
-export { TotalContractsCard } from './TotalContractsCard'
-export { ActiveContractsCard } from './ActiveContractsCard'
-export { ExpiringContractsCard } from './ExpiringContractsCard'
-export { TotalValueCard } from './TotalValueCard'
-export { MetricsGrid } from './MetricsGrid'
+} from './metric-card'
+export { TotalContractsCard } from './total-contracts-card'
+export { ActiveContractsCard } from './active-contracts-card'
+export { ExpiringContractsCard } from './expiring-contracts-card'
+export { TotalValueCard } from './total-value-card'
+export { MetricsGrid } from './metrics-grid'
