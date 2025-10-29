@@ -1,7 +1,7 @@
 import { UserPlus } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CadastroFuncionarioForm } from '@/modules/Funcionarios/components/CadastroFuncionarioForm'
+import { CadastroFuncionarioForm } from '../components/cadastro-funcionario-form'
 
 const CadastroFuncionarioPage = () => {
   return (

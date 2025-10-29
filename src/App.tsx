@@ -7,7 +7,7 @@ import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/C
 import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import { DashboardPage } from './modules/Dashboard/pages/dashboard-page'
 import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/visualizacao-fornecedor-page'
-import CadastroFuncionarioPage from './modules/Funcionarios/pages/CadastroFuncionarioPage'
+import CadastroFuncionarioPage from './modules/Funcionarios/CadastroFuncionario/pages/cadastro-funcionario-page'
 import BadRequest from './modules/http-codes/400'
 import Unauthorized from './modules/http-codes/401'
 import Forbidden from './modules/http-codes/403'

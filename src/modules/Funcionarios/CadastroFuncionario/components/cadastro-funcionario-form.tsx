@@ -21,7 +21,7 @@ import { useCreateFuncionario } from '@/modules/Funcionarios'
 import {
   useValidarCpfUnico,
   useValidarMatriculaUnica,
-} from '@/modules/Funcionarios/hooks/use-validar-funcionario'
+} from '../hooks/use-validar-funcionario'
 import type {
   FuncionarioCreateApi,
   FuncionarioApi,
@@ -32,8 +32,8 @@ import {
 } from '@/modules/Funcionarios/utils/funcionario-utils'
 import { limparMatricula } from '@/modules/Funcionarios/utils/matricula-utils'
 
-import { LotacaoSelect } from './LotacaoSelect'
-import { ModalSucessoCadastro } from './ModalSucessoCadastro'
+import { LotacaoSelect } from './lotacao-select'
+import { ModalSucessoCadastro } from './modal-sucesso-cadastro'
 
 const schema = z.object({
   nomeCompleto: z.string().min(3, 'Informe o nome completo'),
