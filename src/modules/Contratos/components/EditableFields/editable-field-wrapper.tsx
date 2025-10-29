@@ -13,9 +13,9 @@ import { Textarea } from '@/components/ui/textarea'
 
 import { getFieldConfig } from '../../config/editable-fields-config'
 
-import { EditableCurrencyField } from './EditableCurrencyField'
-import { EditableDateField } from './EditableDateField'
-import { EditableTextField } from './EditableTextField'
+import { EditableCurrencyField } from './editable-currency-field'
+import { EditableDateField } from './editable-date-field'
+import { EditableTextField } from './editable-text-field'
 
 type FieldValue = string | number | Date | null | undefined
 

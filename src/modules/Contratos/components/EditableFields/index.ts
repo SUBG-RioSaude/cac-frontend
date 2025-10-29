@@ -1,9 +1,9 @@
-export { EditableTextField } from './EditableTextField'
-export { EditableCurrencyField } from './EditableCurrencyField'
-export { EditableDateField } from './EditableDateField'
-export { EditableFieldWrapper } from './EditableFieldWrapper'
-export { ConfirmEditModal } from './ConfirmEditModal'
-export { useFieldEditing } from '../../hooks/useFieldEditing'
+export { EditableTextField } from './editable-text-field'
+export { EditableCurrencyField } from './editable-currency-field'
+export { EditableDateField } from './editable-date-field'
+export { EditableFieldWrapper } from './editable-field-wrapper'
+export { ConfirmEditModal } from './confirm-edit-modal'
+export { useFieldEditing } from '../../hooks/use-field-editing'
 export type {
   EditableFieldType,
   EditableFieldConfig,

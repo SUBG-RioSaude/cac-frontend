@@ -13,7 +13,7 @@ import React from 'react'
 import { toast } from 'sonner'
 
 import { useErrorHandler } from '@/hooks/use-error-handler'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { useToast } from '@/modules/Contratos/hooks/use-toast'
 import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
 import { empresaKeys } from '../lib/query-keys'

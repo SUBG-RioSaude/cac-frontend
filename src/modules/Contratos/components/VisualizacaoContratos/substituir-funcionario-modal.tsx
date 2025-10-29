@@ -40,7 +40,7 @@ import { useSubstituirFuncionarioContrato } from '../../hooks/use-contratos-func
 import { getTipoGerenciaLabel } from '../../services/contratos-funcionarios-service'
 import type { ContratoFuncionario } from '../../types/contrato'
 
-import { BuscaFuncionarioField } from './BuscaFuncionarioField'
+import { BuscaFuncionarioField } from './busca-funcionario-field'
 
 // ========== INTERFACES ==========
 

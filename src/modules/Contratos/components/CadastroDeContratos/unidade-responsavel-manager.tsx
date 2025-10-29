@@ -23,7 +23,7 @@ import {
   useUnidadesByIds,
 } from '@/modules/Unidades/hooks/use-unidades'
 
-import { UnidadeResponsavelItem } from './UnidadeResponsavelItem'
+import { UnidadeResponsavelItem } from './unidade-responsavel-item'
 
 interface UnidadeResponsavelManagerProps {
   unidades: CriarUnidadeResponsavelPayload[]

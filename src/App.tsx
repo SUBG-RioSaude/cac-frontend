@@ -3,8 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 
 
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
-import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
-import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
+import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
+import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/visualizar-contrato'
 import { DashboardPage } from './modules/Dashboard/pages/dashboard-page'
 import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/visualizacao-fornecedor-page'
 import CadastroFuncionarioPage from './modules/Funcionarios/CadastroFuncionario/pages/cadastro-funcionario-page'

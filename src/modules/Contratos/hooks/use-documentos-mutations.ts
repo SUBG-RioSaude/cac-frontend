@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { useToast } from '@/modules/Contratos/hooks/use-toast'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   uploadDocumento,

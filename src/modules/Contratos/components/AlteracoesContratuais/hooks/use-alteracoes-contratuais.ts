@@ -4,7 +4,7 @@ import {
   useCriarAlteracaoContratual,
   useAtualizarAlteracaoContratual,
   // useResumoAlteracao - DESABILITADO: endpoint não implementado na API
-} from '../../../hooks/useAlteracoesContratuaisApi'
+} from '../../../hooks/use-alteracoes-contratuais-api'
 import type {
   AlteracaoContratualForm,
   AlteracaoContratualResponse,

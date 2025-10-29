@@ -11,7 +11,7 @@ import type {
   PaginacaoParams,
 } from '@/modules/Contratos/types/contrato'
 
-import { useDebounce } from './useDebounce'
+import { useDebounce } from './use-debounce'
 
 export interface ContratosPageState {
   // Estados da UI

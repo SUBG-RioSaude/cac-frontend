@@ -9,7 +9,7 @@ import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/Lista
 import { SearchAndFilters } from '@/modules/Contratos/components/ListaContratos/pesquisa-e-filtros'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
 import { useContratos } from '@/modules/Contratos/hooks'
-import { useContratosPageState } from '@/modules/Contratos/hooks/useContratosPageState'
+import { useContratosPageState } from '@/modules/Contratos/hooks/use-contratos-page-state'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
 export const ContratosPage = () => {

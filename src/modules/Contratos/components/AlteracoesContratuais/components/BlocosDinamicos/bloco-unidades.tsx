@@ -27,9 +27,9 @@ import type {
   UnidadeVinculada,
 } from '../../../../types/alteracoes-contratuais'
 
-import { LinkedUnitsManager } from './LinkedUnitsManager'
-import { UnitValueEditor } from './UnitValueEditor'
-import { UnlinkedUnitsManager } from './UnlinkedUnitsManager'
+import { LinkedUnitsManager } from './linked-units-manager'
+import { UnitValueEditor } from './unit-value-editor'
+import { UnlinkedUnitsManager } from './unlinked-units-manager'
 
 interface TransformedUnidade {
   id: string

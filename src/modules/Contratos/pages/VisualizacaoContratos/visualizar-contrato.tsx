@@ -34,7 +34,7 @@ import {
 } from '../../config/tabs-config'
 import { useContratoDetalhado } from '../../hooks/use-contratos'
 import { extrairEmpenhosDoContrato } from '../../hooks/use-empenhos-with-retry'
-import { useHistoricoAlteracoes } from '../../hooks/useHistoricoAlteracoes'
+import { useHistoricoAlteracoes } from '../../hooks/use-historico-alteracoes'
 import type { AlteracaoContratualResponse } from '../../types/alteracoes-contratuais'
 // import { useTimelineIntegration } from '../../hooks/useTimelineIntegration' // Hook temporariamente removido
 // import type { TimelineEntry } from '../../types/timeline' // Removido temporariamente

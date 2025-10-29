@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import type { ChecklistData } from '@/modules/Contratos/types/contrato'
 
-import { DocumentosChecklist } from '../DocumentosChecklist'
+import { DocumentosChecklist } from '../documentos-checklist'
 
 // Mock console.log para capturar os logs do componente
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})

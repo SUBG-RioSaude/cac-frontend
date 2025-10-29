@@ -23,7 +23,7 @@ import {
   ContratoStatusBadge,
   useContratoStatus,
 } from '@/components/ui/status-badge'
-import { VigenciaDisplay } from '@/modules/Contratos/components/ListaContratos/VigenciaDisplay'
+import { VigenciaDisplay } from '@/modules/Contratos/components/ListaContratos/vigencia-display'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
 

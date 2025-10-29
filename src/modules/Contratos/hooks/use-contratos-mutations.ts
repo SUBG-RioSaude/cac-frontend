@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { executeWithFallback } from '@/lib/axios'
 import { createServiceLogger } from '@/lib/logger'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { useToast } from '@/modules/Contratos/hooks/use-toast'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   criarContrato,

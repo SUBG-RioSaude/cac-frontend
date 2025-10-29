@@ -38,7 +38,7 @@ import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-ap
 import { useAdicionarFuncionarioContrato } from '../../hooks/use-contratos-funcionarios'
 import { getTipoGerenciaLabel } from '../../services/contratos-funcionarios-service'
 
-import { BuscaFuncionarioField } from './BuscaFuncionarioField'
+import { BuscaFuncionarioField } from './busca-funcionario-field'
 
 // ========== INTERFACES ==========
 
