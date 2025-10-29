@@ -29,7 +29,7 @@ import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
 
 import { ContatosFornecedor } from './contatos-fornecedor'
 import { EnderecoFornecedor } from './endereco-fornecedor'
-import { FornecedorMetricas } from './FornecedorMetricas'
+import { FornecedorMetricas } from './fornecedor-metricas'
 import { InformacoesFornecedor } from './informacoes-fornecedor'
 
 // Componente para renderizar item de contrato relevante

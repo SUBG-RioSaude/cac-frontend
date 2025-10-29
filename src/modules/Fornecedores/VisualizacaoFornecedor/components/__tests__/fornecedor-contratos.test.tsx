@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 
-import { FornecedorContratos } from '../FornecedorContratos'
+import { FornecedorContratos } from '../fornecedor-contratos'
 
 import type { PaginacaoParams } from '@/types/api'
 

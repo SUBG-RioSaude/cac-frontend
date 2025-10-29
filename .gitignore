@@ -38,3 +38,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Backup and deprecated files
+*.bak
+*.old
+**/deprecated/

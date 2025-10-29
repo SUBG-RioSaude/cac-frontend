@@ -14,8 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
 import type { EmpresaResponse } from '@/modules/Empresas/types/empresa'
 
-import { FornecedorContratos } from './FornecedorContratos'
-import { FornecedorVisaoGeral } from './FornecedorVisaoGeral'
+import { FornecedorContratos } from './fornecedor-contratos'
+import { FornecedorVisaoGeral } from './fornecedor-visao-geral'
 
 interface FornecedorTabsProps {
   fornecedor: EmpresaResponse

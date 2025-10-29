@@ -1,14 +1,12 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom'
 
-import { LayoutAuthenticated } from '@/components/layout-authenticated'
-import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
 import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
 import { DashboardPage } from './modules/Dashboard/pages/DashboardPage'
-import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/VisualizacaoFornecedorPage'
+import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/visualizacao-fornecedor-page'
 import CadastroFuncionarioPage from './modules/Funcionarios/pages/CadastroFuncionarioPage'
 import BadRequest from './modules/http-codes/400'
 import Unauthorized from './modules/http-codes/401'
@@ -20,9 +18,12 @@ import ForgotPasswordForm from './pages/auth/forgot-password-form'
 import LoginForm from './pages/auth/login'
 import ResetPasswordForm from './pages/auth/reset-password-form'
 import VerifyForm from './pages/auth/verify-form'
-import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
+import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
+
+import { LayoutAuthenticated } from '@/components/layout-authenticated'
+import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 const App = () => {
   return (
     <Routes>

@@ -5,7 +5,7 @@ import { useContratosPorEmpresa } from '@/modules/Contratos/hooks/use-contratos-
 import { useConsultarEmpresaPorCNPJ } from '@/modules/Empresas/hooks/use-empresas'
 
 import { FornecedorHeader } from '../components/fornecedor-header'
-import { FornecedorTabs } from '../components/FornecedorTabs'
+import { FornecedorTabs } from '../components/fornecedor-tabs'
 
 const VisualizacaoFornecedorPage = () => {
   const { fornecedorId } = useParams<{ fornecedorId: string }>()
