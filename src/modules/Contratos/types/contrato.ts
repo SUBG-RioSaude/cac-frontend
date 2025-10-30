@@ -464,6 +464,7 @@ export interface ContratoLista {
 }
 
 export interface FiltrosContrato {
+  termoPesquisa?: string
   status?: string[]
   dataInicialDe?: string
   dataInicialAte?: string

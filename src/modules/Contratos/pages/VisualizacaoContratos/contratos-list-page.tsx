@@ -3,11 +3,12 @@ import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { AdvancedFilters } from '@/components/advanced-filters'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
-import { SearchAndFilters } from '@/modules/Contratos/components/ListaContratos/pesquisa-e-filtros'
 import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
+import { useFiltrosContratosConfig } from '@/modules/Contratos/config/filtros-config'
 import { useContratos } from '@/modules/Contratos/hooks'
 import { useContratosPageState } from '@/modules/Contratos/hooks/use-contratos-page-state'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
@@ -17,6 +18,9 @@ export const ContratosPage = () => {
 
   // Estado local da página
   const pageState = useContratosPageState()
+
+  // Configuração dos filtros
+  const filterSections = useFiltrosContratosConfig()
 
   // Dados da API via React Query
   const {
@@ -198,12 +202,21 @@ export const ContratosPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <SearchAndFilters
-            termoPesquisa={pageState.termoPesquisa}
+          <AdvancedFilters
             filtros={pageState.filtros}
-            onTermoPesquisaChange={pageState.setTermoPesquisa}
             onFiltrosChange={pageState.setFiltros}
             onLimparFiltros={pageState.limparFiltros}
+            searchConfig={{
+              placeholder: 'Pesquisar contratos, fornecedores...',
+              minCharacters: 0,
+              debounceMs: 500,
+            }}
+            filterSections={filterSections}
+            layoutMode="dropdown"
+            mobileMode="sheet"
+            showActiveFiltersCount
+            totalResults={totalContratos}
+            ariaLabel="Filtros de contratos"
           />
         </motion.div>
 

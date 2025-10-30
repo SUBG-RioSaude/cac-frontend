@@ -9,6 +9,7 @@
 export { FiltrosContratos } from './filtros-contratos'
 export { ModalConfirmacaoExportacao } from './modal-confirmacao-exportacao'
 export { ModalUnidadesResponsaveis } from './modal-unidades-responsaveis'
-export { SearchAndFilters } from './pesquisa-e-filtros'
+// SearchAndFilters foi substituído por AdvancedFilters genérico
+// export { SearchAndFilters } from './pesquisa-e-filtros'
 export { TabelaContratos } from './tabela-contratos'
 export { VigenciaDisplay } from './vigencia-display'
