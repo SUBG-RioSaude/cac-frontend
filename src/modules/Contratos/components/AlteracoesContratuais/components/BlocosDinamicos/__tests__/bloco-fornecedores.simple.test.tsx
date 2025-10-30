@@ -18,7 +18,7 @@ vi.mock('../../../hooks/use-contract-context', () => ({
 
 describe('BlocoFornecedores - Import Test', () => {
   it('deve conseguir importar o componente sem erros', async () => {
-    const { BlocoFornecedores } = await import('../BlocoFornecedores')
+    const { BlocoFornecedores } = await import('../bloco-fornecedores')
     expect(BlocoFornecedores).toBeDefined()
     expect(typeof BlocoFornecedores).toBe('function')
   })

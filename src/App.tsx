@@ -1,6 +1,8 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom'
 
+import { LayoutAuthenticated } from '@/components/layout-authenticated'
+import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
@@ -21,9 +23,6 @@ import VerifyForm from './pages/auth/verify-form'
 import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
-
-import { LayoutAuthenticated } from '@/components/layout-authenticated'
-import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 const App = () => {
   return (
     <Routes>

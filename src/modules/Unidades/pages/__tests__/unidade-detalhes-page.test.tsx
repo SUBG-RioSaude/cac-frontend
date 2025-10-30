@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { useUnidadeDetalhada } from '../../hooks/use-unidade-detalhada'
-import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
+import { UnidadeDetalhesPage } from '../unidade-detalhes-page'
 
 // Mock do hook
 vi.mock('../../hooks/use-unidade-detalhada')

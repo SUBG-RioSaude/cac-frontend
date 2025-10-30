@@ -12,6 +12,11 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Mock do react-router-dom
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+}))
+
 // Mock dos hooks
 const mockFilters = {
   periodo: { mes: 10, ano: 2025 },
@@ -68,7 +73,7 @@ const createWrapper = () => {
 }
 
 // Importar componente
-import { DashboardPage } from '../DashboardPage'
+import { DashboardPage } from '../dashboard-page'
 
 describe('DashboardPage', () => {
   beforeEach(() => {

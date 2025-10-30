@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import UnidadesListPage from '../UnidadesListPage'
+import UnidadesListPage from '../unidades-list-page'
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({
@@ -52,7 +52,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 })
 
 // Mock para remover delay de loading apenas no componente UnidadesListPage
-vi.mock('../UnidadesListPage', () => ({
+vi.mock('../unidades-list-page', () => ({
   default: () => (
     <div data-testid="mocked-unidades-list-page">
       <h1>Unidades</h1>

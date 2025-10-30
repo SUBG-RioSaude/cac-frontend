@@ -18,10 +18,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useCreateFuncionario } from '@/modules/Funcionarios'
-import {
-  useValidarCpfUnico,
-  useValidarMatriculaUnica,
-} from '../hooks/use-validar-funcionario'
 import type {
   FuncionarioCreateApi,
   FuncionarioApi,
@@ -31,6 +27,11 @@ import {
   validarCpfCompleto,
 } from '@/modules/Funcionarios/utils/funcionario-utils'
 import { limparMatricula } from '@/modules/Funcionarios/utils/matricula-utils'
+
+import {
+  useValidarCpfUnico,
+  useValidarMatriculaUnica,
+} from '../hooks/use-validar-funcionario'
 
 import { LotacaoSelect } from './lotacao-select'
 import { ModalSucessoCadastro } from './modal-sucesso-cadastro'

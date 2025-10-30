@@ -3,6 +3,11 @@ import { describe, it, expect, vi } from 'vitest'
 
 import ContratosPage from '../ContratosPage'
 
+// Mock do react-router-dom
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+}))
+
 // Mock do LayoutPagina
 vi.mock('@/components/layout-pagina', () => ({
   default: ({ children }: any) => (
@@ -12,7 +17,7 @@ vi.mock('@/components/layout-pagina', () => ({
 
 // Mock da ContratosPageModerna
 vi.mock(
-  '@/modules/Contratos/pages/VisualizacaoContratos/ContratosListPage',
+  '@/modules/Contratos/pages/VisualizacaoContratos/contratos-list-page',
   () => ({
     ContratosPage: () => (
       <div data-testid="contratos-page-moderna">Contratos Page Content</div>

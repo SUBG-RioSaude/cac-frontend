@@ -7,10 +7,10 @@ import {
   OperacaoVigencia,
   TipoUnidadeTempo,
 } from '../../../../types/alteracoes-contratuais'
-import { useAlteracoesContratuais } from '../useAlteracoesContratuais'
+import { useAlteracoesContratuais } from '../use-alteracoes-contratuais'
 
 // Mocks simples das mutations da API
-vi.mock('../../../../hooks/useAlteracoesContratuaisApi', () => ({
+vi.mock('../../../../hooks/use-alteracoes-contratuais-api', () => ({
   useCriarAlteracaoContratual: () => ({
     mutate: vi.fn(),
     mutateAsync: vi.fn(),

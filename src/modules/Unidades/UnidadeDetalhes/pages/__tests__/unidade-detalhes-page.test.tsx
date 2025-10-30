@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { UnidadeDetalhesPage } from '../UnidadeDetalhesPage'
+import { UnidadeDetalhesPage } from '../unidade-detalhes-page'
 
 // Mock do framer-motion para evitar problemas nos testes
 vi.mock('framer-motion', () => ({

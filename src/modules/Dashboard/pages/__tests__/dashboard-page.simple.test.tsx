@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 
-import { DashboardPage } from '../DashboardPage'
+import { DashboardPage } from '../dashboard-page'
 
 // Wrapper para testes com QueryClient
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
@@ -15,6 +15,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
 }
 
 // Mock completo dos hooks para evitar chamadas reais
+// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
 vi.mock('../hooks/useFilters', () => ({
   useFilters: () => ({
     filters: {},
@@ -24,6 +25,7 @@ vi.mock('../hooks/useFilters', () => ({
   }),
 }))
 
+// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
 vi.mock('../hooks/useDashboardData', () => ({
   useDashboardData: () => ({
     data: { lastUpdated: new Date('2023-12-01T10:30:00Z') },
@@ -33,10 +35,12 @@ vi.mock('../hooks/useDashboardData', () => ({
 }))
 
 // Mock dos componentes para focar na estrutura
+// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
 vi.mock('../components/Filters/GlobalFilters', () => ({
   GlobalFilters: () => <div data-testid="global-filters">Filtros</div>,
 }))
 
+// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
 vi.mock('../components/Cards', () => ({
   TotalContractsCard: () => <div data-testid="total-contracts">Total</div>,
   ActiveContractsCard: () => <div data-testid="active-contracts">Ativos</div>,
@@ -46,6 +50,7 @@ vi.mock('../components/Cards', () => ({
   TotalValueCard: () => <div data-testid="total-value">Valor</div>,
 }))
 
+// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
 vi.mock('../components/Charts', () => ({
   StatusDistributionChart: () => (
     <div data-testid="status-chart">Status Chart</div>
@@ -54,6 +59,7 @@ vi.mock('../components/Charts', () => ({
   TypeDistributionChart: () => <div data-testid="type-chart">Type Chart</div>,
 }))
 
+// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
