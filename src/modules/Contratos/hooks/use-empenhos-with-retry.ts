@@ -14,7 +14,7 @@ import type {
   AtualizarEmpenhoPayload,
 } from '../types/contrato'
 
-import { useToast } from './useToast'
+import { useToast } from './use-toast'
 
 const logger = createServiceLogger('use-empenhos-with-retry')
 

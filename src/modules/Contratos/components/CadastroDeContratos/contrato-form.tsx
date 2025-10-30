@@ -63,7 +63,7 @@ import { useValidarNumeroContrato } from '@/modules/Contratos/hooks/use-validar-
 import { validateUnidadesResponsaveis } from '@/modules/Contratos/types/contrato'
 import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
 
-import { UnidadeResponsavelManager } from './UnidadeResponsavelManager'
+import { UnidadeResponsavelManager } from './unidade-responsavel-manager'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {

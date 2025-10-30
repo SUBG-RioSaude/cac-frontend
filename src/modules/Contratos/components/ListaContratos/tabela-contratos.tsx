@@ -34,8 +34,8 @@ import type {
 } from '@/modules/Contratos/types/contrato'
 import { parseStatusContrato } from '@/types/status'
 
-import { ModalUnidadesResponsaveis } from './ModalUnidadesResponsaveis'
-import { VigenciaDisplay } from './VigenciaDisplay'
+import { ModalUnidadesResponsaveis } from './modal-unidades-responsaveis'
+import { VigenciaDisplay } from './vigencia-display'
 
 interface TabelaContratosProps {
   contratos: Contrato[]

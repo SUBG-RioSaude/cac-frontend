@@ -66,9 +66,9 @@ import {
 } from '../../hooks/use-contratos-funcionarios'
 import { ContractChat } from '../Timeline/contract-chat'
 
-import { AdicionarFuncionarioModal } from './AdicionarFuncionarioModal'
-import { FuncionarioCard } from './FuncionarioCard'
-import { SubstituirFuncionarioModal } from './SubstituirFuncionarioModal'
+import { AdicionarFuncionarioModal } from './adicionar-funcionario-modal'
+import { FuncionarioCard } from './funcionario-card'
+import { SubstituirFuncionarioModal } from './substituir-funcionario-modal'
 
 interface DetalhesContratoProps {
   contrato: ContratoDetalhado

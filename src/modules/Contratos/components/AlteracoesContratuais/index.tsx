@@ -58,7 +58,7 @@ import { TIPOS_ALTERACAO_CONFIG } from '../../types/alteracoes-contratuais'
 import { BlocosDinamicos } from './components/BlocosDinamicos'
 import { ModalAlertaLimiteLegal } from './components/ModalAlertaLimiteLegal'
 import { TipoAlteracaoSelector } from './components/TipoAlteracaoSelector'
-import { useAlteracoesContratuais } from './hooks/useAlteracoesContratuais'
+import { useAlteracoesContratuais } from './hooks/use-alteracoes-contratuais'
 
 interface ContractInfo {
   numeroContrato?: string

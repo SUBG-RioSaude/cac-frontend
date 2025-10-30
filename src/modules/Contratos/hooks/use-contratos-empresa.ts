@@ -5,7 +5,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useErrorHandler } from '@/hooks/use-error-handler'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { useToast } from '@/modules/Contratos/hooks/use-toast'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   getContratosPorEmpresa,
