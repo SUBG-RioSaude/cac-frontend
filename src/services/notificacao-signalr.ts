@@ -21,6 +21,7 @@ import type {
 /**
  * URL do SignalR Hub
  * Constrói a partir da base URL de notificações
+ * Remove barra final se existir para evitar URLs mal formadas
  */
 const BASE_URL = import.meta.env.VITE_NOTIFICACOES_API_URL as string
 
@@ -30,7 +31,9 @@ if (!BASE_URL) {
   )
 }
 
-const HUB_URL = BASE_URL ? `${BASE_URL}/api/notificacaohub` : ''
+// Remove barra final se existir para evitar //api/notificacaohub
+const cleanBaseUrl = BASE_URL ? BASE_URL.replace(/\/$/, '') : ''
+const HUB_URL = cleanBaseUrl ? `${cleanBaseUrl}/api/notificacaohub` : ''
 
 // ============================================================================
 // SERVIÇO SIGNALR
