@@ -61,18 +61,22 @@ export const AsyncCheckboxField = <TFilters extends Record<string, any>>({
     : options
 
   // Handler para mudança de checkbox
+  // ✅ CORREÇÃO: Forma funcional para evitar dependência de 'filtros'
   const handleCheckboxChange = useCallback(
     (optionValue: string, checked: boolean) => {
-      const newArray = checked
-        ? [...currentValue, optionValue]
-        : currentValue.filter((v) => v !== optionValue)
+      onFiltrosChange((prev: TFilters) => {
+        const currentArray = (prev[config.field] as string[]) ?? []
+        const newArray = checked
+          ? [...currentArray, optionValue]
+          : currentArray.filter((v) => v !== optionValue)
 
-      onFiltrosChange({
-        ...filtros,
-        [config.field]: newArray,
+        return {
+          ...prev,
+          [config.field]: newArray,
+        }
       })
     },
-    [config.field, currentValue, filtros, onFiltrosChange],
+    [config.field, onFiltrosChange],
   )
 
   if (error) {

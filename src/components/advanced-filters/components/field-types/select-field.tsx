@@ -29,14 +29,15 @@ export const SelectField = <TFilters extends Record<string, any>>({
 }: SelectFieldProps<TFilters>) => {
   const currentValue = (filtros[config.field] as string) ?? ''
 
+  // ✅ CORREÇÃO: Forma funcional para evitar dependência de 'filtros'
   const handleValueChange = useCallback(
     (value: string) => {
-      onFiltrosChange({
-        ...filtros,
+      onFiltrosChange((prev: TFilters) => ({
+        ...prev,
         [config.field]: value || undefined,
-      })
+      }))
     },
-    [config.field, filtros, onFiltrosChange],
+    [config.field, onFiltrosChange],
   )
 
   return (

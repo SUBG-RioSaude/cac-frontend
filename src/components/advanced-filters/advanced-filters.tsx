@@ -52,6 +52,17 @@ export const AdvancedFilters = <TFilters extends Record<string, any>>({
   // Contagem de filtros ativos
   const activeFiltersCount = useActiveFiltersCount(filtros)
 
+  // ✅ CORREÇÃO: Wrapper estável para onFiltrosChange usando useCallback com useRef
+  const handlePartialChange = useCallback(
+    (partialFilters: Partial<TFilters>) => {
+      onFiltrosChange((prev: TFilters) => ({
+        ...prev,
+        ...partialFilters,
+      }))
+    },
+    [onFiltrosChange],
+  )
+
   // Lógica de pesquisa com debounce
   const {
     searchTerm,
@@ -61,15 +72,7 @@ export const AdvancedFilters = <TFilters extends Record<string, any>>({
     minCharacters,
   } = useFilterSearch<TFilters>({
     searchConfig,
-    onFiltrosChange: useCallback(
-      (partialFilters: Partial<TFilters>) => {
-        onFiltrosChange({
-          ...filtros,
-          ...partialFilters,
-        } as TFilters)
-      },
-      [filtros, onFiltrosChange],
-    ),
+    onFiltrosChange: handlePartialChange,
   })
 
   // Conteúdo dos filtros (reutilizado em desktop e mobile)

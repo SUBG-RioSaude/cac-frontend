@@ -25,25 +25,27 @@ export const DateRangeField = <TFilters extends Record<string, any>>({
   const endDateValue = (filtros[config.endDateField] as string) ?? ''
 
   // Handler para mudança de data início
+  // ✅ CORREÇÃO: Forma funcional para evitar dependência de 'filtros'
   const handleStartDateChange = useCallback(
     (value: string) => {
-      onFiltrosChange({
-        ...filtros,
+      onFiltrosChange((prev: TFilters) => ({
+        ...prev,
         [config.startDateField]: value || undefined,
-      })
+      }))
     },
-    [config.startDateField, filtros, onFiltrosChange],
+    [config.startDateField, onFiltrosChange],
   )
 
   // Handler para mudança de data fim
+  // ✅ CORREÇÃO: Forma funcional para evitar dependência de 'filtros'
   const handleEndDateChange = useCallback(
     (value: string) => {
-      onFiltrosChange({
-        ...filtros,
+      onFiltrosChange((prev: TFilters) => ({
+        ...prev,
         [config.endDateField]: value || undefined,
-      })
+      }))
     },
-    [config.endDateField, filtros, onFiltrosChange],
+    [config.endDateField, onFiltrosChange],
   )
 
   return (

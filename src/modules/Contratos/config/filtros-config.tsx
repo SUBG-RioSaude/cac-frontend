@@ -70,25 +70,9 @@ export const useFiltrosContratosConfig = (): FilterSection<FiltrosContrato>[] =>
       config: {
         type: 'date-range',
         startDateField: 'dataInicialDe',
-        endDateField: 'dataInicialAte',
-        startLabel: 'Data Inicial - De',
-        endLabel: 'Data Inicial - Até',
-      },
-    },
-
-    // Seção 3: Data Final
-    {
-      id: 'vigencia-final',
-      title: 'Data Final',
-      icon: Calendar,
-      type: 'date-range',
-      defaultExpanded: false,
-      config: {
-        type: 'date-range',
-        startDateField: 'dataFinalDe',
         endDateField: 'dataFinalAte',
-        startLabel: 'Data Final - De',
-        endLabel: 'Data Final - Até',
+        startLabel: 'Vigência Inicial',
+        endLabel: 'Vigência Final',
       },
     },
 

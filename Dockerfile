@@ -59,7 +59,7 @@ ARG VITE_API_URL_AUTH=http://devcac:7000
 ARG VITE_VIACEP_URL=https://viacep.com.br/ws
 ARG VITE_SYSTEM_ID=7b8659bb-1aeb-4d74-92c1-110c1d27e576
 ARG VITE_API_CHAT_SOCKET_URL=http://devcac:7014/api
-ARG VITE_NOTIFICACOES_API_URL=http://devcac:7015/
+ARG VITE_NOTIFICACOES_API_URL=http://devcac:7015
 
 # Converter ARGs em ENVs para o Vite usar durante o build
 ENV VITE_API_URL=${VITE_API_URL}

@@ -100,16 +100,26 @@ export function useContratosPageState(): ContratosPageState {
   )
 
   // Parâmetros para a API (calculados quando filtros mudam)
+  // IMPORTANTE: Só recalcula quando pagina, itensPorPagina ou filtros mudam
+  // Mudanças no 'total' não devem causar nova query
   const parametrosAPI = useMemo(() => {
     return mapearFiltrosParaAPI(filtros, paginacao)
-  }, [filtros, paginacao])
+  }, [filtros, paginacao.pagina, paginacao.itensPorPagina])
 
   // Handlers
-  const handleSetFiltros = useCallback((novosFiltros: FiltrosContrato) => {
-    setFiltros(novosFiltros)
-    // Reset página quando filtros mudam
-    setPaginacao((prev) => ({ ...prev, pagina: 1 }))
-  }, [])
+  // ✅ CORREÇÃO: Suportar tanto valor direto quanto função (setState pattern)
+  const handleSetFiltros = useCallback(
+    (
+      novosFiltros:
+        | FiltrosContrato
+        | ((prev: FiltrosContrato) => FiltrosContrato),
+    ) => {
+      setFiltros(novosFiltros)
+      // Reset página quando filtros mudam
+      setPaginacao((prev) => ({ ...prev, pagina: 1 }))
+    },
+    [],
+  )
 
   const handleSetPaginacao = useCallback((novaPaginacao: PaginacaoParams) => {
     setPaginacao(novaPaginacao)

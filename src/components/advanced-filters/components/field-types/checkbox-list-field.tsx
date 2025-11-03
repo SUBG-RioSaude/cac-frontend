@@ -25,28 +25,31 @@ export const CheckboxListField = <TFilters extends Record<string, any>>({
   const currentValue = filtros[config.field]
 
   // Handler memoizado para mudanças de checkbox
+  // ✅ CORREÇÃO: Forma funcional para evitar dependência de 'filtros'
   const handleCheckboxChange = useCallback(
     (optionValue: string, checked: boolean) => {
       if (config.multiSelect) {
         // Múltipla seleção: array de valores
-        const currentArray = (currentValue as string[]) ?? []
-        const newArray = checked
-          ? [...currentArray, optionValue]
-          : currentArray.filter((v) => v !== optionValue)
+        onFiltrosChange((prev: TFilters) => {
+          const currentArray = (prev[config.field] as string[]) ?? []
+          const newArray = checked
+            ? [...currentArray, optionValue]
+            : currentArray.filter((v) => v !== optionValue)
 
-        onFiltrosChange({
-          ...filtros,
-          [config.field]: newArray,
+          return {
+            ...prev,
+            [config.field]: newArray,
+          }
         })
       } else {
         // Seleção única: valor único
-        onFiltrosChange({
-          ...filtros,
+        onFiltrosChange((prev: TFilters) => ({
+          ...prev,
           [config.field]: checked ? optionValue : undefined,
-        })
+        }))
       }
     },
-    [config.field, config.multiSelect, currentValue, filtros, onFiltrosChange],
+    [config.field, config.multiSelect, onFiltrosChange],
   )
 
   // Verifica se opção está selecionada

@@ -1,17 +1,21 @@
 import { motion } from 'framer-motion'
 import { Plus, FileDown, AlertCircle, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AdvancedFilters } from '@/components/advanced-filters'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ModalConfirmacaoExportacao } from '@/modules/Contratos/components/ListaContratos/modal-confirmacao-exportacao'
-import { TabelaContratos } from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
+import {
+  TabelaContratos,
+  type FiltroBadgeType,
+} from '@/modules/Contratos/components/ListaContratos/tabela-contratos'
 import { useFiltrosContratosConfig } from '@/modules/Contratos/config/filtros-config'
 import { useContratos } from '@/modules/Contratos/hooks'
 import { useContratosPageState } from '@/modules/Contratos/hooks/use-contratos-page-state'
 import type { Contrato } from '@/modules/Contratos/types/contrato'
+import { useUnidades } from '@/modules/Unidades/hooks/use-unidades'
 
 export const ContratosPage = () => {
   const [modalExportacaoAberto, setModalExportacaoAberto] = useState(false)
@@ -21,6 +25,43 @@ export const ContratosPage = () => {
 
   // Configuração dos filtros
   const filterSections = useFiltrosContratosConfig()
+
+  // Carregar unidades para resolver nomes
+  const { data: unidadesData } = useUnidades({
+    pagina: 1,
+    tamanhoPagina: 100,
+  })
+
+  const unidadesDisponiveis =
+    unidadesData?.dados?.map((u) => ({ id: u.id, nome: u.nome })) ?? []
+
+  // Função para limpar filtros individuais
+  const handleLimparFiltroIndividual = (tipoFiltro: FiltroBadgeType) => {
+    pageState.setFiltros((prev) => {
+      const novosFiltros = { ...prev }
+
+      switch (tipoFiltro) {
+        case 'valorMinimo':
+          novosFiltros.valorMinimo = undefined
+          break
+        case 'valorMaximo':
+          novosFiltros.valorMaximo = undefined
+          break
+        case 'status':
+          novosFiltros.status = []
+          break
+        case 'vigencia':
+          novosFiltros.dataInicialDe = undefined
+          novosFiltros.dataFinalAte = undefined
+          break
+        case 'unidades':
+          novosFiltros.unidade = []
+          break
+      }
+
+      return novosFiltros
+    })
+  }
 
   // Dados da API via React Query
   const {
@@ -39,13 +80,20 @@ export const ContratosPage = () => {
   const contratos: Contrato[] = contractsResponse?.dados ?? []
   const totalContratos = contractsResponse?.totalRegistros ?? 0
 
+  // Ref para rastrear o total anterior e evitar loops
+  const totalPreviousRef = useRef<number>(totalContratos)
+
   // Atualizar paginação quando receber dados da API
-  if (contractsResponse && pageState.paginacao.total !== totalContratos) {
-    pageState.setPaginacao({
-      ...pageState.paginacao,
-      total: totalContratos,
-    })
-  }
+  useEffect(() => {
+    // Só atualiza se o total realmente mudou
+    if (totalContratos !== totalPreviousRef.current) {
+      totalPreviousRef.current = totalContratos
+      pageState.setPaginacao((prev) => ({
+        ...prev,
+        total: totalContratos,
+      }))
+    }
+  }, [totalContratos, pageState.setPaginacao])
 
   const handleExportarTodos = () => {
     const csvContent = [
@@ -266,6 +314,9 @@ export const ContratosPage = () => {
             onSelecionarTodos={pageState.selecionarTodosContratos}
             totalContratos={totalContratos}
             isPlaceholderData={isPlaceholderData}
+            filtros={pageState.filtros}
+            unidadesDisponiveis={unidadesDisponiveis}
+            onLimparFiltro={handleLimparFiltroIndividual}
           />
         )}
       </div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import type { RangeConfig } from '../../types'
 
@@ -13,11 +14,12 @@ interface RangeFieldProps<TFilters> {
 }
 
 /**
- * Campo de range (valores min/max) com fix de perda de foco
+ * Campo de range (valores min/max) com aplicação em tempo real
  *
  * SOLUÇÃO DO PROBLEMA:
  * - Usa estados locais (minValueLocal, maxValueLocal) para armazenar valores durante digitação
- * - Atualiza o estado pai apenas no onBlur (quando o usuário sai do campo)
+ * - Aplica filtros automaticamente após 1 segundo sem digitar (debounce)
+ * - onBlur aplica imediatamente se usuário sair do campo antes do debounce
  * - Isso evita re-renderizações que causam perda de foco
  * - useEffect sincroniza com props externas (ex: ao limpar filtros)
  */
@@ -34,38 +36,70 @@ export const RangeField = <TFilters extends Record<string, any>>({
     filtros[config.maxField]?.toString() ?? '',
   )
 
+  // ✅ NOVO: Debounce dos valores para aplicação automática
+  const debouncedMinValue = useDebounce(minValueLocal, 1000)
+  const debouncedMaxValue = useDebounce(maxValueLocal, 1000)
+
   // Sincronizar quando filtros externos mudarem (ex: botão "Limpar Filtros")
+  // ✅ CORREÇÃO: Usar apenas o campo específico, não 'filtros' completo
   useEffect(() => {
-    setMinValueLocal(filtros[config.minField]?.toString() ?? '')
-  }, [filtros, config.minField])
+    const minValue = filtros[config.minField]
+    setMinValueLocal(minValue?.toString() ?? '')
+  }, [filtros[config.minField], config.minField])
 
   useEffect(() => {
-    setMaxValueLocal(filtros[config.maxField]?.toString() ?? '')
-  }, [filtros, config.maxField])
+    const maxValue = filtros[config.maxField]
+    setMaxValueLocal(maxValue?.toString() ?? '')
+  }, [filtros[config.maxField], config.maxField])
 
-  // ✅ SOLUÇÃO: Atualizar filtros pai apenas no blur (evita re-render durante digitação)
+  // ✅ NOVO: Aplicar filtro automaticamente após debounce (valor mínimo)
+  useEffect(() => {
+    const numericValue = debouncedMinValue ? Number(debouncedMinValue) : undefined
+    const currentValue = filtros[config.minField]
+
+    // Só aplicar se valor realmente mudou
+    if (numericValue !== currentValue) {
+      onFiltrosChange((prev: TFilters) => ({
+        ...prev,
+        [config.minField]: numericValue,
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedMinValue])
+
+  // ✅ NOVO: Aplicar filtro automaticamente após debounce (valor máximo)
+  useEffect(() => {
+    const numericValue = debouncedMaxValue ? Number(debouncedMaxValue) : undefined
+    const currentValue = filtros[config.maxField]
+
+    // Só aplicar se valor realmente mudou
+    if (numericValue !== currentValue) {
+      onFiltrosChange((prev: TFilters) => ({
+        ...prev,
+        [config.maxField]: numericValue,
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedMaxValue])
+
+  // ✅ MANTIDO: onBlur para aplicação imediata se usuário sair do campo
   const handleMinBlur = useCallback(() => {
     const numericValue = minValueLocal ? Number(minValueLocal) : undefined
 
-    // Apenas atualiza se o valor mudou (evita re-renders desnecessários)
-    if (numericValue !== filtros[config.minField]) {
-      onFiltrosChange({
-        ...filtros,
-        [config.minField]: numericValue,
-      })
-    }
-  }, [minValueLocal, filtros, config.minField, onFiltrosChange])
+    onFiltrosChange((prev: TFilters) => ({
+      ...prev,
+      [config.minField]: numericValue,
+    }))
+  }, [minValueLocal, config.minField, onFiltrosChange])
 
   const handleMaxBlur = useCallback(() => {
     const numericValue = maxValueLocal ? Number(maxValueLocal) : undefined
 
-    if (numericValue !== filtros[config.maxField]) {
-      onFiltrosChange({
-        ...filtros,
-        [config.maxField]: numericValue,
-      })
-    }
-  }, [maxValueLocal, filtros, config.maxField, onFiltrosChange])
+    onFiltrosChange((prev: TFilters) => ({
+      ...prev,
+      [config.maxField]: numericValue,
+    }))
+  }, [maxValueLocal, config.maxField, onFiltrosChange])
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

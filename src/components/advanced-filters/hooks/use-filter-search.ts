@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useDebounce } from '@/hooks/use-debounce'
 
@@ -23,6 +23,9 @@ export const useFilterSearch = <TFilters extends Record<string, any>>({
   const [searchTerm, setSearchTerm] = useState('')
   const [showMinCharactersWarning, setShowMinCharactersWarning] = useState(false)
 
+  // ✅ CORREÇÃO DEFINITIVA: Usar ref para rastrear último valor aplicado
+  const lastAppliedSearchRef = useRef<string>('')
+
   // Debounce do termo de pesquisa
   const debouncedSearch = useDebounce(
     searchTerm,
@@ -30,6 +33,7 @@ export const useFilterSearch = <TFilters extends Record<string, any>>({
   )
 
   // Aplicar pesquisa quando debounced value mudar
+  // ✅ CORREÇÃO: Só chamar onFiltrosChange se valor REALMENTE mudou
   useEffect(() => {
     const minChars = searchConfig?.minCharacters ?? 0
 
@@ -40,6 +44,13 @@ export const useFilterSearch = <TFilters extends Record<string, any>>({
     }
 
     setShowMinCharactersWarning(false)
+
+    // ✅ CRÍTICO: Só aplicar se valor mudou de verdade
+    if (debouncedSearch === lastAppliedSearchRef.current) {
+      return // Não fazer nada se o valor já foi aplicado
+    }
+
+    lastAppliedSearchRef.current = debouncedSearch
 
     // Se tem termo de pesquisa debounced, aplicar filtros
     if (debouncedSearch) {
@@ -57,12 +68,14 @@ export const useFilterSearch = <TFilters extends Record<string, any>>({
 
       onFiltrosChange(clearedFilters as Partial<TFilters>)
     }
-  }, [debouncedSearch, searchTerm, searchConfig, onFiltrosChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, searchTerm, searchConfig])
 
   // Handler para limpar pesquisa
   const clearSearch = useCallback(() => {
     setSearchTerm('')
     setShowMinCharactersWarning(false)
+    lastAppliedSearchRef.current = '' // ✅ Resetar ref também
   }, [])
 
   return {
