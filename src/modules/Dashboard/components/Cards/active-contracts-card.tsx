@@ -1,6 +1,6 @@
 /**
  * ==========================================
- * CARD DE CONTRATOS ATIVOS
+ * CARD DE CONTRATOS VIGENTES
  * ==========================================
  */
 
@@ -24,7 +24,7 @@ export const ActiveContractsCard = ({
 
   return (
     <LoadingMetricCard
-      title="Contratos Ativos"
+      title="Contratos Vigentes"
       metric={metrics?.contratosAtivos ?? null}
       icon={CheckCircle}
       isLoading={isLoading}

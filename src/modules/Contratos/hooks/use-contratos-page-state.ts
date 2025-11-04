@@ -21,8 +21,12 @@ export interface ContratosPageState {
   parametrosAPI: ContratoParametros
 
   // Handlers
-  setFiltros: (filtros: FiltrosContrato) => void
-  setPaginacao: (paginacao: PaginacaoParams) => void
+  setFiltros: (
+    filtros: FiltrosContrato | ((prev: FiltrosContrato) => FiltrosContrato),
+  ) => void
+  setPaginacao: (
+    paginacao: PaginacaoParams | ((prev: PaginacaoParams) => PaginacaoParams),
+  ) => void
   selecionarContrato: (contratoId: string, selecionado: boolean) => void
   selecionarTodosContratos: (
     contratoIds: string[],
@@ -121,9 +125,16 @@ export function useContratosPageState(): ContratosPageState {
     [],
   )
 
-  const handleSetPaginacao = useCallback((novaPaginacao: PaginacaoParams) => {
-    setPaginacao(novaPaginacao)
-  }, [])
+  const handleSetPaginacao = useCallback(
+    (
+      novaPaginacao:
+        | PaginacaoParams
+        | ((prev: PaginacaoParams) => PaginacaoParams),
+    ) => {
+      setPaginacao(novaPaginacao)
+    },
+    [],
+  )
 
   const handleSelecionarContrato = useCallback(
     (contratoId: string, selecionado: boolean) => {

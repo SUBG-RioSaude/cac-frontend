@@ -9,6 +9,7 @@ import type { LucideIcon } from 'lucide-react'
 
 // Status para Contratos
 export type StatusContrato =
+  | 'vigente'
   | 'ativo'
   | 'vencendo'
   | 'vencido'
@@ -28,8 +29,14 @@ export type Status = StatusContrato | StatusFornecedor | StatusUnidade
 // Mapeamento para converter string genérica para status específico
 export function parseStatusContrato(status?: string | null): StatusContrato {
   const normalizedStatus = status?.toLowerCase() ?? 'indefinido'
+
+  // Retrocompatibilidade: mapear "ativo" para "vigente"
+  if (normalizedStatus === 'ativo') {
+    return 'vigente'
+  }
+
   const validStatuses: StatusContrato[] = [
-    'ativo',
+    'vigente',
     'vencendo',
     'vencido',
     'suspenso',

@@ -28,13 +28,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useStatusConfig } from '@/hooks/use-status-config'
 import { cnpjUtils } from '@/lib/utils'
 import type {
   Contrato,
   FiltrosContrato,
   PaginacaoParams,
 } from '@/modules/Contratos/types/contrato'
-import { parseStatusContrato } from '@/types/status'
 
 import { ModalUnidadesResponsaveis } from './modal-unidades-responsaveis'
 import { VigenciaDisplay } from './vigencia-display'
@@ -77,6 +77,7 @@ export const TabelaContratos = ({
   onLimparFiltro,
 }: TabelaContratosProps) => {
   const navigate = useNavigate()
+  const { getContratoStatusFromVigencia } = useStatusConfig()
 
   // Estado para modal de unidades
   const [modalUnidadesAberto, setModalUnidadesAberto] = useState(false)
@@ -215,8 +216,6 @@ export const TabelaContratos = ({
     [paginacao.itensPorPagina],
   )
 
-  const inicio = (paginacao.pagina - 1) * paginacao.itensPorPagina
-  const fim = inicio + paginacao.itensPorPagina
   const totalPaginas = Math.ceil(totalContratos / paginacao.itensPorPagina)
 
   const paginaAnterior = () => {
@@ -260,10 +259,8 @@ export const TabelaContratos = ({
 
   const MobileContractCard = ({
     contrato,
-    index,
   }: {
     contrato: Contrato
-    index: number
   }) => (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
         <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-5">
@@ -283,7 +280,13 @@ export const TabelaContratos = ({
               </p>
             </div>
           </div>
-          <ContratoStatusBadge status={parseStatusContrato(contrato.status)} />
+          <ContratoStatusBadge
+            status={getContratoStatusFromVigencia(
+              contrato.vigenciaInicial,
+              contrato.vigenciaFinal,
+              contrato.status,
+            )}
+          />
         </CardHeader>
         <CardContent className="space-y-4 p-5 sm:p-6">
           <div className="space-y-2">
@@ -548,7 +551,7 @@ export const TabelaContratos = ({
                           </TableCell>
                         </TableRow>
                       ))
-                    : contratos.map((contrato, index) => (
+                    : contratos.map((contrato) => (
                         <TableRow
                           key={contrato.id}
                           className="hover:bg-muted/30 transition-colors"
@@ -641,7 +644,11 @@ export const TabelaContratos = ({
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <ContratoStatusBadge
-                                status={parseStatusContrato(contrato.status)}
+                                status={getContratoStatusFromVigencia(
+                                  contrato.vigenciaInicial,
+                                  contrato.vigenciaFinal,
+                                  contrato.status,
+                                )}
                               />
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap">
@@ -736,7 +743,7 @@ export const TabelaContratos = ({
                           </TableCell>
                         </TableRow>
                       ))
-                    : contratos.map((contrato, index) => (
+                    : contratos.map((contrato) => (
                         <TableRow
                           key={contrato.id}
                           className="group hover:bg-muted/50 border-b transition-colors"
@@ -824,7 +831,11 @@ export const TabelaContratos = ({
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
                               <ContratoStatusBadge
-                                status={parseStatusContrato(contrato.status)}
+                                status={getContratoStatusFromVigencia(
+                                  contrato.vigenciaInicial,
+                                  contrato.vigenciaFinal,
+                                  contrato.status,
+                                )}
                               />
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap">
@@ -867,24 +878,24 @@ export const TabelaContratos = ({
                     </CardContent>
                   </Card>
                 ))
-              : contratos.map((contrato, index) => (
+              : contratos.map((contrato) => (
                   <MobileContractCard
                     key={contrato.id}
                     contrato={contrato}
-                    index={index}
                   />
                 ))}
           </div>
 
           {/* Paginação Responsiva */}
           <div className="bg-muted/20 flex flex-col items-center justify-between gap-4 border-t px-4 py-4 sm:flex-row sm:px-6">
-            <div className="text-muted-foreground text-center text-sm sm:text-left">
-              <span className="font-medium">{totalContratos}</span> contratos
-              encontrados
-              <span className="hidden sm:inline">
-                {' '}
-                • Página {paginacao.pagina} de {totalPaginas}
-              </span>
+            <div className="text-muted-foreground text-center text-xs sm:text-left sm:text-sm">
+              Mostrando {(paginacao.pagina - 1) * paginacao.itensPorPagina + 1}{' '}
+              a{' '}
+              {Math.min(
+                paginacao.pagina * paginacao.itensPorPagina,
+                totalContratos,
+              )}{' '}
+              de {totalContratos} contratos
             </div>
 
             <div className="flex items-center gap-3">
@@ -899,15 +910,9 @@ export const TabelaContratos = ({
                 <span className="hidden sm:inline">Anterior</span>
               </Button>
 
-              <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-3">
-                <span className="text-sm font-medium">
-                  Página {paginacao.pagina} de {totalPaginas}
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  ({Math.min(inicio + 1, totalContratos)}-
-                  {Math.min(fim, totalContratos)} de {totalContratos})
-                </span>
-              </div>
+              <span className="text-sm font-medium">
+                Página {paginacao.pagina} de {totalPaginas}
+              </span>
 
               <Button
                 variant="outline"

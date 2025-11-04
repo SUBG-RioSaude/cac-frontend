@@ -177,7 +177,7 @@ export const FiltrosFornecedores = ({
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Contratos Ativos - Colapsível */}
+      {/* Contratos Vigentes - Colapsível */}
       <Collapsible open={contratosExpanded} onOpenChange={setContratosExpanded}>
         <CollapsibleTrigger asChild>
           <Button
@@ -185,7 +185,7 @@ export const FiltrosFornecedores = ({
             className="h-auto w-full justify-between p-0 hover:bg-transparent"
           >
             <Label className="text-sm font-medium">
-              Quantidade de Contratos Ativos
+              Quantidade de Contratos Vigentes
             </Label>
             {contratosExpanded ? (
               <ChevronDown className="text-muted-foreground h-4 w-4" />

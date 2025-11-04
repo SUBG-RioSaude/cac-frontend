@@ -70,6 +70,7 @@ export const AdvancedFilters = <TFilters extends Record<string, any>>({
     clearSearch,
     showMinCharactersWarning,
     minCharacters,
+    isSearching,
   } = useFilterSearch<TFilters>({
     searchConfig,
     onFiltrosChange: handlePartialChange,
@@ -122,6 +123,9 @@ export const AdvancedFilters = <TFilters extends Record<string, any>>({
               showMinCharactersWarning
             }
             minCharacters={minCharacters}
+            totalResults={totalResults}
+            isSearching={isSearching}
+            resultLabel="contratos encontrados"
           />
         </motion.div>
       )}

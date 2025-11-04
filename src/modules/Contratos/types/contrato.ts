@@ -9,6 +9,7 @@
 // ========== TIPOS BASE ==========
 
 export type ContratoStatus =
+  | 'vigente'
   | 'ativo'
   | 'vencendo'
   | 'vencido'

@@ -256,7 +256,8 @@ export const ContratosPage = () => {
             onLimparFiltros={pageState.limparFiltros}
             searchConfig={{
               placeholder: 'Pesquisar contratos, fornecedores...',
-              minCharacters: 0,
+              minCharacters: 3,
+              showMinCharactersWarning: true,
               debounceMs: 500,
             }}
             filterSections={filterSections}

@@ -78,11 +78,19 @@ export const useFilterSearch = <TFilters extends Record<string, any>>({
     lastAppliedSearchRef.current = '' // ✅ Resetar ref também
   }, [])
 
+  // Estado de busca em andamento
+  const minChars = searchConfig?.minCharacters ?? 0
+  const isSearching =
+    searchTerm !== debouncedSearch &&
+    searchTerm.trim() !== '' &&
+    searchTerm.trim().length >= minChars
+
   return {
     searchTerm,
     setSearchTerm,
     clearSearch,
     showMinCharactersWarning,
     minCharacters: searchConfig?.minCharacters ?? 0,
+    isSearching,
   }
 }

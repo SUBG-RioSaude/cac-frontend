@@ -5,6 +5,7 @@
 
 import { executeWithFallback } from '@/lib/axios'
 import { createServiceLogger } from '@/lib/logger'
+import { cnpjUtils } from '@/lib/utils'
 import type { FiltrosFornecedorApi } from '@/modules/Fornecedores/ListaFornecedores/types/fornecedor'
 
 const logger = createServiceLogger('empresa-service')
@@ -128,9 +129,12 @@ export async function consultarEmpresaPorCNPJ(
   cnpj: string,
 ): Promise<EmpresaResponse | null> {
   try {
+    // Remover máscara do CNPJ antes de enviar para a API
+    const cnpjSemMascara = cnpjUtils.limpar(cnpj)
+
     const response = await executeWithFallback<EmpresaResponse>({
       method: 'get',
-      url: `/Empresas/cnpj/${cnpj}`,
+      url: `/Empresas/cnpj/${cnpjSemMascara}`,
       })
     return response.data
   } catch (error) {
@@ -278,7 +282,7 @@ export async function getFornecedoresResumo(
   const params = {
     pagina: filtros?.pagina ?? 1,
     tamanhoPagina: filtros?.tamanhoPagina ?? 10,
-    ...(filtros?.cnpj && { cnpj: filtros.cnpj }),
+    ...(filtros?.cnpj && { cnpj: cnpjUtils.limpar(filtros.cnpj) }),
     ...(filtros?.razaoSocial && { razaoSocial: filtros.razaoSocial }),
     ...(filtros?.status && { status: filtros.status }),
     ...(filtros?.cidade && { cidade: filtros.cidade }),

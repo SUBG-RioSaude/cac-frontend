@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useParams } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -25,36 +26,58 @@ const VisualizacaoFornecedorPage = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 w-full" />
+      <div className="space-y-6 p-6">
+        <Skeleton className="h-32 w-full rounded-lg" />
         <div className="space-y-6">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="h-96 w-full rounded-lg" />
         </div>
       </div>
     )
   }
 
   if (isError || !fornecedor) {
-    return <div>Erro ao carregar os dados do fornecedor.</div>
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600">
+            Erro ao carregar dados
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Não foi possível carregar os dados do fornecedor.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   const contratos = contratosData?.dados ?? []
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6 p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <FornecedorHeader
         razaoSocial={fornecedor.razaoSocial}
         cnpj={fornecedor.cnpj}
         status={fornecedor.ativo ? 'Ativo' : 'Inativo'}
       />
 
-      <FornecedorTabs
-        fornecedor={fornecedor}
-        contratos={contratos}
-        isLoadingContratos={isLoadingContratos}
-      />
-    </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <FornecedorTabs
+          fornecedor={fornecedor}
+          contratos={contratos}
+          isLoadingContratos={isLoadingContratos}
+        />
+      </motion.div>
+    </motion.div>
   )
 }
 

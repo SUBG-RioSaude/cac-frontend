@@ -5,12 +5,12 @@
  * Lista completa de contratos de um fornecedor com filtros e busca
  */
 
-import { Search, Filter, FileText } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Search, X } from 'lucide-react'
 import { useState, useMemo } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -31,7 +31,7 @@ interface FornecedorContratosProps {
   }
 }
 
-type FiltroStatus = 'todos' | 'ativo' | 'vencendo' | 'vencido' | 'suspenso'
+type FiltroStatus = 'todos' | 'vigente' | 'vencendo' | 'vencido' | 'suspenso'
 type Ordenacao =
   | 'data_desc'
   | 'data_asc'
@@ -82,13 +82,13 @@ export const FornecedorContratos = ({
         }
 
         if (!contrato.vigenciaFinal) {
-          return filtroStatus === 'ativo'
+          return filtroStatus === 'vigente'
         }
 
         const dataFim = new Date(contrato.vigenciaFinal)
 
         switch (filtroStatus) {
-          case 'ativo':
+          case 'vigente':
             return dataFim > em30Dias && contrato.status !== 'suspenso'
           case 'vencendo':
             return (
@@ -133,14 +133,14 @@ export const FornecedorContratos = ({
 
   const contarPorStatus = useMemo(() => {
     if (contratos.length === 0)
-      return { todos: 0, ativo: 0, vencendo: 0, vencido: 0, suspenso: 0 }
+      return { todos: 0, vigente: 0, vencendo: 0, vencido: 0, suspenso: 0 }
 
     const agora = new Date()
     const em30Dias = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
     const contadores = {
       todos: contratos.length,
-      ativo: 0,
+      vigente: 0,
       vencendo: 0,
       vencido: 0,
       suspenso: 0,
@@ -153,7 +153,7 @@ export const FornecedorContratos = ({
       }
 
       if (!contrato.vigenciaFinal) {
-        contadores.ativo++
+        contadores.vigente++
         return
       }
 
@@ -164,134 +164,67 @@ export const FornecedorContratos = ({
       } else if (dataFim <= em30Dias) {
         contadores.vencendo++
       } else {
-        contadores.ativo++
+        contadores.vigente++
       }
     })
 
     return contadores
   }, [contratos])
 
-  // const handleVisualizarContrato = (contrato: Contrato) => {
-  //   navigate(`/contratos/${contrato.id}`)
-  // }
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Contratos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {Array.from({ length: 3 }, (_, index) => (
-              <div
-                key={`contratos-skeleton-${index}`}
-                className="rounded-lg border p-4"
-              >
-                <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-                <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  const temFiltrosAtivos = busca.trim() !== '' || filtroStatus !== 'todos'
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Contratos de {empresa.razaoSocial}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Filtros e busca */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-4">
-            {/* Busca */}
-            <div className="relative max-w-sm flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-              <Input
-                placeholder="Buscar por número, objeto, processo..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Filtro de Status */}
-            <Select
-              value={filtroStatus}
-              onValueChange={(value: FiltroStatus) => setFiltroStatus(value)}
-            >
-              <SelectTrigger className="w-48">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">
-                  Todos ({contarPorStatus.todos})
-                </SelectItem>
-                <SelectItem value="ativo">
-                  Ativos ({contarPorStatus.ativo})
-                </SelectItem>
-                <SelectItem value="vencendo">
-                  Vencendo ({contarPorStatus.vencendo})
-                </SelectItem>
-                <SelectItem value="vencido">
-                  Vencidos ({contarPorStatus.vencido})
-                </SelectItem>
-                <SelectItem value="suspenso">
-                  Suspensos ({contarPorStatus.suspenso})
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Ordenação */}
-            <Select
-              value={ordenacao}
-              onValueChange={(value: Ordenacao) => setOrdenacao(value)}
-            >
-              <SelectTrigger className="w-52">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="data_desc">Data ↓ (Mais recente)</SelectItem>
-                <SelectItem value="data_asc">Data ↑ (Mais antigo)</SelectItem>
-                <SelectItem value="valor_desc">Valor ↓ (Maior)</SelectItem>
-                <SelectItem value="valor_asc">Valor ↑ (Menor)</SelectItem>
-                <SelectItem value="numero_asc">Número ↑ (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="space-y-6">
+      {/* Header com contador */}
+      <motion.div
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div>
+          <h3 className="text-lg font-semibold">
+            Contratos de {empresa.razaoSocial}
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            {isLoading
+              ? 'Carregando...'
+              : `${contratosFiltrados.length} ${contratosFiltrados.length === 1 ? 'contrato encontrado' : 'contratos encontrados'}`}
+          </p>
         </div>
 
         {/* Badges de status */}
         <div className="flex flex-wrap gap-2">
           <Badge
-            variant={filtroStatus === 'todos' ? 'default' : 'secondary'}
-            className="cursor-pointer"
+            variant="outline"
+            className={`cursor-pointer transition-all ${
+              filtroStatus === 'todos'
+                ? 'border-slate-600 bg-slate-100 text-slate-900 hover:bg-slate-200'
+                : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400 hover:bg-slate-100'
+            }`}
             onClick={() => setFiltroStatus('todos')}
           >
             Todos {contarPorStatus.todos}
           </Badge>
           <Badge
-            variant={filtroStatus === 'ativo' ? 'default' : 'secondary'}
-            className="cursor-pointer bg-green-100 text-green-800 hover:bg-green-200"
-            onClick={() => setFiltroStatus('ativo')}
+            variant="outline"
+            className={`cursor-pointer transition-all ${
+              filtroStatus === 'vigente'
+                ? 'border-blue-600 bg-blue-100 text-blue-900 hover:bg-blue-200'
+                : 'border-blue-300 bg-blue-50 text-blue-700 hover:border-blue-400 hover:bg-blue-100'
+            }`}
+            onClick={() => setFiltroStatus('vigente')}
           >
-            Ativos {contarPorStatus.ativo}
+            Vigentes {contarPorStatus.vigente}
           </Badge>
           {contarPorStatus.vencendo > 0 && (
             <Badge
-              variant={filtroStatus === 'vencendo' ? 'default' : 'secondary'}
-              className="cursor-pointer bg-orange-100 text-orange-800 hover:bg-orange-200"
+              variant="outline"
+              className={`cursor-pointer transition-all ${
+                filtroStatus === 'vencendo'
+                  ? 'border-orange-600 bg-orange-100 text-orange-900 hover:bg-orange-200'
+                  : 'border-orange-300 bg-orange-50 text-orange-700 hover:border-orange-400 hover:bg-orange-100'
+              }`}
               onClick={() => setFiltroStatus('vencendo')}
             >
               Vencendo {contarPorStatus.vencendo}
@@ -299,66 +232,103 @@ export const FornecedorContratos = ({
           )}
           {contarPorStatus.vencido > 0 && (
             <Badge
-              variant={filtroStatus === 'vencido' ? 'default' : 'secondary'}
-              className="cursor-pointer bg-red-100 text-red-800 hover:bg-red-200"
+              variant="outline"
+              className={`cursor-pointer transition-all ${
+                filtroStatus === 'vencido'
+                  ? 'border-red-600 bg-red-100 text-red-900 hover:bg-red-200'
+                  : 'border-red-300 bg-red-50 text-red-700 hover:border-red-400 hover:bg-red-100'
+              }`}
               onClick={() => setFiltroStatus('vencido')}
             >
               Vencidos {contarPorStatus.vencido}
             </Badge>
           )}
         </div>
+      </motion.div>
 
-        {/* Lista de contratos */}
-        {contratosFiltrados.length === 0 ? (
-          <div className="py-12 text-center">
-            <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-            <h3 className="mb-2 text-lg font-semibold">
-              {busca || filtroStatus !== 'todos'
-                ? 'Nenhum contrato encontrado'
-                : 'Nenhum contrato vinculado'}
-            </h3>
-            <p className="text-muted-foreground">
-              {busca || filtroStatus !== 'todos'
-                ? 'Tente ajustar os filtros ou termo de busca.'
-                : 'Este fornecedor ainda não possui contratos cadastrados no sistema.'}
-            </p>
-            {(busca || filtroStatus !== 'todos') && (
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => {
-                  setBusca('')
-                  setFiltroStatus('todos')
-                }}
-              >
-                Limpar filtros
-              </Button>
-            )}
-          </div>
-        ) : (
-          <TabelaContratos
-            contratos={contratosFiltrados}
-            isLoading={false}
-            contratosSelecionados={[]}
-            onSelecionarContrato={() => {
-              // Funcionalidade de seleção será implementada futuramente
-            }}
-            onSelecionarTodos={() => {
-              // Funcionalidade de seleção será implementada futuramente
-            }}
-            paginacao={{
-              pagina: 1,
-              itensPorPagina: contratosFiltrados.length,
-              total: contratosFiltrados.length,
-            }}
-            onPaginacaoChange={() => {
-              // Funcionalidade de paginação será implementada futuramente
-            }}
-            totalContratos={contratosFiltrados.length}
-            hideContratadaColumn
+      {/* Filtros e busca */}
+      <motion.div
+        className="flex flex-col gap-3 sm:flex-row sm:items-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        {/* Busca */}
+        <div className="relative flex-1 sm:max-w-md">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Input
+            placeholder="Buscar por número, objeto, processo..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="focus:border-primary h-10 border-2 pr-10 pl-10 shadow-sm transition-all duration-200 sm:h-11"
           />
+          {busca && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setBusca('')}
+              className="hover:bg-muted absolute top-1/2 right-2 h-6 w-6 -translate-y-1/2 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+
+        {/* Ordenação */}
+        <Select
+          value={ordenacao}
+          onValueChange={(value: Ordenacao) => setOrdenacao(value)}
+        >
+          <SelectTrigger className="h-10 w-full border-2 shadow-sm sm:h-11 sm:w-52">
+            <SelectValue placeholder="Ordenar por..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="data_desc">Mais recente</SelectItem>
+            <SelectItem value="data_asc">Mais antigo</SelectItem>
+            <SelectItem value="valor_desc">Maior valor</SelectItem>
+            <SelectItem value="valor_asc">Menor valor</SelectItem>
+            <SelectItem value="numero_asc">Número (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Botão limpar filtros */}
+        {temFiltrosAtivos && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setBusca('')
+              setFiltroStatus('todos')
+            }}
+            className="h-10 whitespace-nowrap sm:h-11"
+          >
+            Limpar filtros
+          </Button>
         )}
-      </CardContent>
-    </Card>
+      </motion.div>
+
+      {/* Tabela de contratos */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <TabelaContratos
+          contratos={contratosFiltrados}
+          isLoading={isLoading ?? false}
+          contratosSelecionados={[]}
+          onSelecionarContrato={() => {}}
+          onSelecionarTodos={() => {}}
+          paginacao={{
+            pagina: 1,
+            itensPorPagina: contratosFiltrados.length,
+            total: contratosFiltrados.length,
+          }}
+          onPaginacaoChange={() => {}}
+          totalContratos={contratosFiltrados.length}
+          hideContratadaColumn
+        />
+      </motion.div>
+    </div>
   )
 }

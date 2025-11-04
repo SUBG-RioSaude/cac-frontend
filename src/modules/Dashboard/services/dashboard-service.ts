@@ -272,6 +272,7 @@ export const fetchStatusDistribution = async (
 
     // Inicializar contadores com dados dos endpoints específicos
     const statusCounts: Record<ContratoStatus, number> = {
+      vigente: 0,
       ativo: 0,
       vencendo: contratosVencendoResponse.totalRegistros,
       vencido: contratosVencidosResponse.totalRegistros,
@@ -300,6 +301,7 @@ export const fetchStatusDistribution = async (
     )
 
     const statusLabels: Record<ContratoStatus, string> = {
+      vigente: 'Vigentes',
       ativo: 'Ativos',
       vencendo: 'Vencendo',
       vencido: 'Vencidos',

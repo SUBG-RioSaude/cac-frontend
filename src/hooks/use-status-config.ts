@@ -27,6 +27,13 @@ export function useStatusConfig() {
   const statusConfigMap: StatusConfigMap = useMemo(
     () => ({
       contrato: {
+        vigente: {
+          variant: 'default',
+          label: 'Vigente',
+          className:
+            'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200',
+          icon: CheckCircle,
+        },
         ativo: {
           variant: 'default',
           label: 'Ativo',
@@ -166,9 +173,9 @@ export function useStatusConfig() {
         return 'encerrado'
       }
 
-      // Se não tem vigência final, considerar ativo
+      // Se não tem vigência final, considerar vigente
       if (!vigenciaFinal) {
-        return 'ativo'
+        return 'vigente'
       }
 
       const agora = new Date()
@@ -180,7 +187,7 @@ export function useStatusConfig() {
       } else if (dataFim <= em30Dias) {
         return 'vencendo'
       } else {
-        return 'ativo'
+        return 'vigente'
       }
     },
     [],

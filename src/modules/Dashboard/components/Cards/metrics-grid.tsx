@@ -31,7 +31,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
       description: 'vs. mês anterior',
     },
     {
-      title: 'Contratos Ativos',
+      title: 'Contratos Vigentes',
       value: data ? data.metrics.contratosAtivos.atual.toString() : '0',
       change: data
         ? `${data.metrics.contratosAtivos.percentual > 0 ? '+' : ''}${data.metrics.contratosAtivos.percentual.toFixed(1)}%`

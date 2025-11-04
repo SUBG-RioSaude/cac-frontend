@@ -64,7 +64,7 @@ describe('DetalhesContrato', () => {
     render(<DetalhesContrato contrato={contratoDetalhadoMock} />)
 
     // Verifica se os badges estão sendo exibidos corretamente
-    expect(screen.getByText('Ativo')).toBeInTheDocument()
+    expect(screen.getByText('Vigente')).toBeInTheDocument()
     expect(screen.getByText('Centralizado')).toBeInTheDocument()
   })
 
