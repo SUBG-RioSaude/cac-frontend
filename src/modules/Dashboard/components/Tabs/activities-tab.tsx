@@ -10,15 +10,11 @@
 
 import { RecentActivities } from '../Lists'
 
-interface ActivitiesTabProps {
-  isLoading: boolean
-}
-
-export const ActivitiesTab = ({ isLoading }: ActivitiesTabProps) => {
+export const ActivitiesTab = () => {
   return (
     <div className="space-y-6">
       {/* Timeline de Atividades */}
-      <RecentActivities isLoading={isLoading} />
+      <RecentActivities />
 
       {/* Placeholder para paginação futura */}
       <div className="flex justify-center">

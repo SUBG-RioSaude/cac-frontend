@@ -20,20 +20,13 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { cn } from '@/lib/utils'
+import { parseStatusContrato } from '@/types/status'
 
+import type { RecentContract } from '../../types/dashboard'
 import { formatLargeNumber } from '../../utils/dashboard-utils'
 
-interface TopContract {
-  id: string
-  numero: string
-  objeto: string
-  contratada: string
-  valorGlobal: number
-  status: string
-}
-
 interface TopContractsSectionProps {
-  contracts?: TopContract[]
+  contracts?: RecentContract[]
   isLoading?: boolean
 }
 
@@ -84,11 +77,11 @@ export const TopContractsSection = ({
 
   // Pegar apenas os 5 maiores
   const topContracts = contracts
-    .sort((a, b) => b.valorGlobal - a.valorGlobal)
+    .sort((a, b) => b.valor - a.valor)
     .slice(0, 5)
 
   const totalValue = topContracts.reduce(
-    (sum, contract) => sum + contract.valorGlobal,
+    (sum, contract) => sum + contract.valor,
     0,
   )
 
@@ -109,7 +102,9 @@ export const TopContractsSection = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/contratos?sort=valor')}
+            onClick={() => {
+              void navigate('/contratos?sort=valor')
+            }}
             className="gap-2"
           >
             Ver Todos
@@ -135,7 +130,9 @@ export const TopContractsSection = ({
                 index === 2 && 'border-l-[#5ac8fa]',
                 index > 2 && 'border-l-muted',
               )}
-              onClick={() => navigate(`/contratos/${contract.id}`)}
+              onClick={() => {
+                void navigate(`/contratos/${contract.id}`)
+              }}
             >
               <CardContent className="flex items-center gap-4 p-4">
                 {/* Posição */}
@@ -161,13 +158,13 @@ export const TopContractsSection = ({
                       <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
                         <Building2 className="h-3 w-3" />
                         <span className="line-clamp-1">
-                          {contract.contratada}
+                          {contract.fornecedor}
                         </span>
                       </div>
                     </div>
 
                     <StatusBadge
-                      status={contract.status as any}
+                      status={parseStatusContrato(contract.status)}
                       domain="contrato"
                       size="sm"
                     />
@@ -178,7 +175,7 @@ export const TopContractsSection = ({
                       Nº {contract.numero}
                     </div>
                     <div className="text-sm font-bold text-[#2a688f]">
-                      R$ {formatLargeNumber(contract.valorGlobal)}
+                      R$ {formatLargeNumber(contract.valor)}
                     </div>
                   </div>
                 </div>

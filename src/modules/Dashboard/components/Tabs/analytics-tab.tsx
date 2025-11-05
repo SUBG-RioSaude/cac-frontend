@@ -11,9 +11,9 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import type { DashboardData } from '../../types/dashboard'
 import { ContractsCharts } from '../Charts'
 
-import type { DashboardData } from '../../types/dashboard'
 
 interface AnalyticsTabProps {
   data?: DashboardData

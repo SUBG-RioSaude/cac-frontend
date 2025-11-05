@@ -8,12 +8,11 @@
  * 4. Top 5 Contratos
  */
 
-import { DashboardCarousel } from '../dashboard-carousel'
+import type { DashboardData } from '../../types/dashboard'
 import { MetricsGrid } from '../Cards'
 import { TrendSection } from '../Charts'
+import { DashboardCarousel } from '../dashboard-carousel'
 import { AlertsSection, TopContractsSection } from '../Lists'
-
-import type { DashboardData } from '../../types/dashboard'
 
 interface DashboardTabProps {
   data?: DashboardData
@@ -22,11 +21,11 @@ interface DashboardTabProps {
 
 export const DashboardTab = ({ data, isLoading }: DashboardTabProps) => {
   // Preparar dados para os slides
-  const alertsData = data?.risks
+  const alertsData = data?.riskAnalysis
     ? {
-        alto: data.risks.alto.count,
-        medio: data.risks.medio.count,
-        baixo: data.risks.baixo.count,
+        alto: data.riskAnalysis.alto.count,
+        medio: data.riskAnalysis.medio.count,
+        baixo: data.riskAnalysis.baixo.count,
       }
     : undefined
 

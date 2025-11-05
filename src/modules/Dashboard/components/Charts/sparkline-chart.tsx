@@ -10,7 +10,7 @@ import { Line, LineChart, ResponsiveContainer } from 'recharts'
 import { CHART_COLORS } from '../../utils/chart-colors'
 
 interface SparklineChartProps {
-  data: Array<{ value: number }>
+  data?: { value: number }[]
   color?: string
   className?: string
 }

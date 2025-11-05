@@ -10,15 +10,11 @@
 
 import { RiskAnalysis } from '../Lists'
 
-interface RisksTabProps {
-  isLoading: boolean
-}
-
-export const RisksTab = ({ isLoading }: RisksTabProps) => {
+export const RisksTab = () => {
   return (
     <div className="space-y-6">
       {/* Análise de Riscos Detalhada */}
-      <RiskAnalysis detailed isLoading={isLoading} />
+      <RiskAnalysis detailed />
 
       {/* Timeline de Vencimentos (placeholder) */}
       <div className="flex h-[300px] items-center justify-center rounded-lg border-2 border-dashed">

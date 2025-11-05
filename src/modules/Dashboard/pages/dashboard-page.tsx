@@ -93,12 +93,12 @@ export const DashboardPage = () => {
 
           {/* Aba Riscos (timeline) */}
           <TabsContent value="risks" className="space-y-6">
-            <RisksTab isLoading={isLoading} />
+            <RisksTab />
           </TabsContent>
 
           {/* Aba Atividades (histórico) */}
           <TabsContent value="activities" className="space-y-6">
-            <ActivitiesTab isLoading={isLoading} />
+            <ActivitiesTab />
           </TabsContent>
         </Tabs>
       </main>

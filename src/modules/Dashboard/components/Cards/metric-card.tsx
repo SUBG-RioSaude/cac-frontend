@@ -32,7 +32,7 @@ interface MetricCardProps {
   suffix?: string
   description?: string
   // Novo: Dados para sparkline
-  sparklineData?: Array<{ value: number }>
+  sparklineData?: { value: number }[]
   sparklineColor?: string
 }
 

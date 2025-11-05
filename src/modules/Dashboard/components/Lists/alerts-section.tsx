@@ -130,7 +130,9 @@ export const AlertsSection = ({ alerts, isLoading }: AlertsSectionProps) => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate('/dashboard?tab=risks')}
+          onClick={() => {
+            void navigate('/dashboard?tab=risks')
+          }}
           className="gap-2"
         >
           Ver Detalhes
@@ -157,7 +159,9 @@ export const AlertsSection = ({ alerts, isLoading }: AlertsSectionProps) => {
                   config.bgColor,
                   config.borderColor,
                 )}
-                onClick={() => navigate(`/dashboard?tab=risks&filter=${alert.level}`)}
+                onClick={() => {
+                  void navigate(`/dashboard?tab=risks&filter=${alert.level}`)
+                }}
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">

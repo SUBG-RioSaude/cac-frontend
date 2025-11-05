@@ -26,7 +26,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 
 import type { StatusTrendData } from '../../types/dashboard'
-import { CHART_COLORS, hexToRgba } from '../../utils/chart-colors'
+import { CHART_COLORS } from '../../utils/chart-colors'
 
 interface TrendSectionProps {
   data?: StatusTrendData[]
