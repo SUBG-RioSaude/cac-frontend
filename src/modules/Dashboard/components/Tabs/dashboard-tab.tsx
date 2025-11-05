@@ -10,6 +10,8 @@
 
 import { DashboardCarousel } from '../dashboard-carousel'
 import { MetricsGrid } from '../Cards'
+import { TrendSection } from '../Charts'
+import { AlertsSection, TopContractsSection } from '../Lists'
 
 import type { DashboardData } from '../../types/dashboard'
 
@@ -19,36 +21,36 @@ interface DashboardTabProps {
 }
 
 export const DashboardTab = ({ data, isLoading }: DashboardTabProps) => {
-  // Placeholder para as seções do carousel
-  // Serão implementadas nas próximas etapas
+  // Preparar dados para os slides
+  const alertsData = data?.risks
+    ? {
+        alto: data.risks.alto.count,
+        medio: data.risks.medio.count,
+        baixo: data.risks.baixo.count,
+      }
+    : undefined
+
+  const topContracts = data?.recentContracts ?? []
+
   const carouselSlides = [
-    // SLIDE 1: Métricas
+    // SLIDE 1: Métricas Executivas
     <div key="metrics" className="w-full px-4 py-2">
       <MetricsGrid data={data} isLoading={isLoading} />
     </div>,
 
-    // SLIDE 2: Tendência (placeholder)
-    <div key="trend" className="flex h-[400px] w-full items-center justify-center rounded-lg border-2 border-dashed p-8">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold">Gráfico de Tendência</h3>
-        <p className="text-muted-foreground text-sm">Em implementação...</p>
-      </div>
+    // SLIDE 2: Gráfico de Tendência
+    <div key="trend" className="w-full px-4 py-2">
+      <TrendSection data={data?.statusTrend} isLoading={isLoading} />
     </div>,
 
-    // SLIDE 3: Alertas (placeholder)
-    <div key="alerts" className="flex h-[400px] w-full items-center justify-center rounded-lg border-2 border-dashed p-8">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold">Alertas Críticos</h3>
-        <p className="text-muted-foreground text-sm">Em implementação...</p>
-      </div>
+    // SLIDE 3: Alertas Críticos
+    <div key="alerts" className="w-full px-4 py-2">
+      <AlertsSection alerts={alertsData} isLoading={isLoading} />
     </div>,
 
-    // SLIDE 4: Top Contratos (placeholder)
-    <div key="top" className="flex h-[400px] w-full items-center justify-center rounded-lg border-2 border-dashed p-8">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold">Top 5 Contratos</h3>
-        <p className="text-muted-foreground text-sm">Em implementação...</p>
-      </div>
+    // SLIDE 4: Top 5 Contratos
+    <div key="top" className="w-full px-4 py-2">
+      <TopContractsSection contracts={topContracts} isLoading={isLoading} />
     </div>,
   ]
 

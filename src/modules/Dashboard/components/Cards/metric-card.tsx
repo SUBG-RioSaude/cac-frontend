@@ -1,8 +1,10 @@
 /**
  * ==========================================
- * COMPONENTE BASE DE CARD DE MÉTRICA
+ * COMPONENTE BASE DE CARD DE MÉTRICA - REDESIGN
  * ==========================================
- * Card reutilizável para exibir métricas com comparativo
+ * Card reutilizável para exibir métricas com comparativo e sparkline
+ *
+ * Novo: Suporte a mini-gráfico (sparkline) para visualização de tendência
  */
 
 import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react'
@@ -16,6 +18,7 @@ import {
   formatPercentage,
   formatLargeNumber,
 } from '../../utils/dashboard-utils'
+import { SparklineChart } from '../Charts/sparkline-chart'
 
 interface MetricCardProps {
   title: string
@@ -28,6 +31,9 @@ interface MetricCardProps {
   format?: 'number' | 'currency' | 'percentage'
   suffix?: string
   description?: string
+  // Novo: Dados para sparkline
+  sparklineData?: Array<{ value: number }>
+  sparklineColor?: string
 }
 
 export const MetricCard = ({
@@ -41,6 +47,8 @@ export const MetricCard = ({
   format = 'number',
   suffix,
   description,
+  sparklineData,
+  sparklineColor,
   ...props
 }: MetricCardProps) => {
   // Formatação do valor principal
@@ -149,6 +157,17 @@ export const MetricCard = ({
           {description && (
             <div className="text-muted-foreground mt-1 text-xs">
               {description}
+            </div>
+          )}
+
+          {/* Sparkline (mini-gráfico) */}
+          {sparklineData && sparklineData.length > 0 && (
+            <div className="mt-3 -mb-2">
+              <SparklineChart
+                data={sparklineData}
+                color={sparklineColor}
+                className="opacity-70"
+              />
             </div>
           )}
         </div>
