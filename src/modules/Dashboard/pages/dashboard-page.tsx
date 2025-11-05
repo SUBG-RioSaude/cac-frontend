@@ -2,16 +2,17 @@
  * ==========================================
  * PÁGINA PRINCIPAL DO DASHBOARD - REDESIGN
  * ==========================================
- * Dashboard moderno com carousel e 4 abas principais
+ * Dashboard executivo com 2 abas otimizadas
  *
  * Features:
- * - Carousel interativo na aba Dashboard
- * - 4 abas: Dashboard, Analytics, Riscos, Atividades
+ * - Aba Dashboard: visão executiva completa com scroll vertical
+ * - Aba Análises: breakdowns detalhados por diferentes dimensões
+ * - Carousel apenas para gráficos, não para métricas
  * - Cores temáticas (#2a688f, #42b9eb)
  * - Layout responsivo e acessível
  */
 
-import { Activity, BarChart3, LayoutDashboard, ShieldAlert } from 'lucide-react'
+import { BarChart3, LayoutDashboard } from 'lucide-react'
 import { useState } from 'react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -19,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 // Filtros
 import { FiltersBar } from '../components/Filters'
 // Tabs
-import { DashboardTab, AnalyticsTab, RisksTab, ActivitiesTab } from '../components/Tabs'
+import { DashboardTab, AnalyticsTab } from '../components/Tabs'
 // Hooks
 import { useDashboardData } from '../hooks/useDashboardData'
 import { useFilters } from '../hooks/useFilters'
@@ -62,43 +63,29 @@ export const DashboardPage = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="bg-muted grid w-full grid-cols-4">
+          <TabsList className="bg-muted grid w-full grid-cols-2">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+              <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="risks" className="gap-2">
-              <ShieldAlert className="h-4 w-4" />
-              <span className="hidden sm:inline">Riscos</span>
-            </TabsTrigger>
-            <TabsTrigger value="activities" className="gap-2">
-              <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Atividades</span>
+              <span>Análises Detalhadas</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Aba Dashboard (com carousel) */}
+          {/* Aba Dashboard - Visão Executiva Completa */}
           <TabsContent value="dashboard" className="space-y-6">
-            <DashboardTab data={data ?? undefined} isLoading={isLoading} />
+            <DashboardTab
+              data={data ?? undefined}
+              filters={filters}
+              isLoading={isLoading}
+            />
           </TabsContent>
 
-          {/* Aba Analytics (com sub-tabs) */}
+          {/* Aba Análises - Breakdowns Detalhados */}
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsTab data={data ?? undefined} isLoading={isLoading} />
-          </TabsContent>
-
-          {/* Aba Riscos (timeline) */}
-          <TabsContent value="risks" className="space-y-6">
-            <RisksTab />
-          </TabsContent>
-
-          {/* Aba Atividades (histórico) */}
-          <TabsContent value="activities" className="space-y-6">
-            <ActivitiesTab />
           </TabsContent>
         </Tabs>
       </main>
