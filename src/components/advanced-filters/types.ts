@@ -7,7 +7,7 @@ import type { LucideIcon } from 'lucide-react'
 export interface AdvancedFiltersProps<TFilters extends Record<string, any>> {
   // Estado controlado
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   onLimparFiltros: () => void
 
   // Configuração de pesquisa
@@ -171,6 +171,6 @@ export interface CustomConfig<TFilters> {
 
 export interface CustomFieldRenderProps<TFilters> {
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }

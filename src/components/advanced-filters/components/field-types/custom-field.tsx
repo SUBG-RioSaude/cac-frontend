@@ -3,7 +3,7 @@ import type { CustomConfig } from '../../types'
 interface CustomFieldProps<TFilters> {
   config: CustomConfig<TFilters>
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }
 

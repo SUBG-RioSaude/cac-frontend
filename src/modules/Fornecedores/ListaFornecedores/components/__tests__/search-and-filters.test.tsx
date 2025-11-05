@@ -164,7 +164,8 @@ describe('SearchAndFiltersFornecedores', () => {
 
     const botaoFiltros = screen.getByText('Filtros')
 
-    expect(botaoFiltros).toHaveClass('bg-transparent', 'hover:bg-slate-600')
+    // Botão usa variant="outline" com classes personalizadas
+    expect(botaoFiltros).toHaveClass('hover:border-primary', 'border-2')
   })
 
   it('deve ter campo de pesquisa com placeholder descritivo', () => {

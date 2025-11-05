@@ -9,7 +9,7 @@ import type { RangeConfig } from '../../types'
 interface RangeFieldProps<TFilters> {
   config: RangeConfig<TFilters>
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }
 

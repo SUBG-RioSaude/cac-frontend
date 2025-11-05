@@ -143,20 +143,17 @@ describe('FornecedorContratos', () => {
   it('deve exibir estado vazio quando não há contratos', () => {
     renderWithRouter(<FornecedorContratos {...defaultProps} contratos={[]} />)
 
-    // Sem busca e com filtro 'todos' deve exibir estado "Nenhum contrato vinculado"
-    expect(screen.getByText('Nenhum contrato vinculado')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Este fornecedor ainda não possui contratos cadastrados no sistema.',
-      ),
-    ).toBeInTheDocument()
+    // Component sempre renderiza a tabela, que mostra seu próprio estado vazio
+    expect(screen.getByTestId('tabela-contratos')).toBeInTheDocument()
+    expect(screen.getByText('0 contratos encontrados')).toBeInTheDocument()
   })
 
   it('deve exibir estado de loading', () => {
     renderWithRouter(<FornecedorContratos {...defaultProps} isLoading />)
 
-    // Verifica se o skeleton loading está sendo mostrado
-    expect(screen.queryByTestId('tabela-contratos')).not.toBeInTheDocument()
+    // Component sempre renderiza a tabela, mesmo durante loading
+    expect(screen.getByTestId('tabela-contratos')).toBeInTheDocument()
+    expect(screen.getByText('Carregando...')).toBeInTheDocument()
   })
 
   it('deve filtrar contratos por busca', () => {
@@ -190,7 +187,7 @@ describe('FornecedorContratos', () => {
 
     // Verifica se os badges de filtro estão presentes
     expect(screen.getByText('Todos 1')).toBeInTheDocument()
-    expect(screen.getByText('Ativos 1')).toBeInTheDocument()
+    expect(screen.getByText('Vigentes 1')).toBeInTheDocument()
 
     vi.useRealTimers()
   })
@@ -251,8 +248,8 @@ describe('FornecedorContratos', () => {
       expect.objectContaining({ contratos, totalContratos: 3 }),
     )
 
-    // Clica em "Ativos"
-    fireEvent.click(screen.getByText(/Ativos\s+\d+/))
+    // Clica em "Vigentes"
+    fireEvent.click(screen.getByText(/Vigentes\s+\d+/))
     expect(mockTabelaContratos).toHaveBeenLastCalledWith(
       expect.objectContaining({
         contratos: expect.arrayContaining([
@@ -325,17 +322,19 @@ describe('FornecedorContratos', () => {
     )
     fireEvent.change(searchInput, { target: { value: 'inexistente-zzz' } })
 
-    // Estado vazio + botão limpar (aguarda re-render)
-    expect(
-      await screen.findByText('Nenhum contrato encontrado'),
-    ).toBeInTheDocument()
+    // Botão limpar filtros aparece quando há filtros ativos (aguarda re-render)
     const limparBtn = await screen.findByRole('button', {
       name: 'Limpar filtros',
     })
     expect(limparBtn).toBeInTheDocument()
 
-    // Limpa filtros e TabelaContratos volta a aparecer
+    // Tabela sempre é renderizada (mostra 0 contratos filtrados)
+    expect(screen.getByTestId('tabela-contratos')).toBeInTheDocument()
+
+    // Limpa filtros e contratos reaparecem
     fireEvent.click(limparBtn)
-    expect(await screen.findByTestId('tabela-contratos')).toBeInTheDocument()
+    expect(mockTabelaContratos).toHaveBeenLastCalledWith(
+      expect.objectContaining({ totalContratos: 2 }),
+    )
   })
 })

@@ -295,7 +295,8 @@ describe('IndicadoresRelatorios', () => {
     )
 
     expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
-    expect(screen.getByText('Período 1 (1º ao 3º mês)')).toBeInTheDocument()
+    // Timeline agora mostra anos civis (2023, 2024) ao invés de períodos fixos
+    expect(screen.getByText('2023')).toBeInTheDocument()
   })
 
   it('deve exibir status correto para cada fase do cronograma', () => {
@@ -327,9 +328,9 @@ describe('IndicadoresRelatorios', () => {
       />,
     )
 
-    // Verifica se há períodos sendo renderizados
-    const periodos = screen.getAllByText(/Período \d/)
-    expect(periodos.length).toBeGreaterThan(0)
+    // Verifica se há anos civis sendo renderizados (2023, 2024)
+    const anos = screen.getAllByText(/202\d/)
+    expect(anos.length).toBeGreaterThan(0)
   })
 
   it('deve exibir todas as unidades vinculadas', () => {

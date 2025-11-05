@@ -14,7 +14,7 @@ import type { SelectConfig } from '../../types'
 interface SelectFieldProps<TFilters> {
   config: SelectConfig<TFilters>
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }
 

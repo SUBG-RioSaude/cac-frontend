@@ -1,5 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 
+import { LayoutAuthenticated } from '@/components/layout-authenticated'
+import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
+
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
 import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/visualizar-contrato'
@@ -20,8 +23,6 @@ import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
 
-import { LayoutAuthenticated } from '@/components/layout-authenticated'
-import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 
 const App = () => {
   return (
@@ -63,13 +64,13 @@ const App = () => {
       {/* Rota raiz - Dashboard/Início */}
       <Route
         path="/"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <DashboardPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
 
       {/* Rota dashboard - redireciona para a raiz para manter compatibilidade */}
@@ -78,103 +79,103 @@ const App = () => {
       {/* Rotas de Contratos */}
       <Route
         path="/contratos/cadastrar"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <CadastrarContrato />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       {/* Rotas de Funcionários */}
       <Route
         path="/funcionarios/cadastrar"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <CadastroFuncionarioPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       <Route
         path="/contratos"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <ContratosPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       <Route
         path="/contratos/:contratoId"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <VisualizarContrato />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       <Route
         path="/contratos/:id/editar"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <VisualizarContrato />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
 
       {/* Rotas de Fornecedores */}
       <Route
         path="/fornecedores"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <FornecedoresPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       <Route
         path="/fornecedores/:fornecedorId"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <VisualizacaoFornecedorPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
 
       {/* Rotas de Unidades */}
       <Route
         path="/unidades"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <UnidadesPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       <Route
         path="/unidades/:unidadeId"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <UnidadeDetailPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
 
       <Route
         path="/perfil"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <div className="p-8">
@@ -183,11 +184,11 @@ const App = () => {
               </div>
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
       <Route
         path="/configuracoes"
-        element={
+        element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <div className="p-8">
@@ -196,7 +197,7 @@ const App = () => {
               </div>
             </LayoutAuthenticated>
           </ProtectedRoute>
-        }
+        )}
       />
 
       {/* Rota de fallback - 404 */}

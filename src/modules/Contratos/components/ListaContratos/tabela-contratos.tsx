@@ -58,7 +58,7 @@ interface TabelaContratosProps {
   isPlaceholderData?: boolean
   hideContratadaColumn?: boolean
   filtros?: FiltrosContrato
-  unidadesDisponiveis?: Array<{ id: string; nome: string }>
+  unidadesDisponiveis?: { id: string; nome: string }[]
   onLimparFiltro?: (tipoFiltro: FiltroBadgeType) => void
 }
 
@@ -111,11 +111,11 @@ export const TabelaContratos = ({
 
   // Gerar badges de filtros ativos
   const filtrosAtivos = useMemo(() => {
-    const badges: Array<{
+    const badges: {
       label: string
       isValor: boolean
       tipo: FiltroBadgeType
-    }> = []
+    }[] = []
 
     // Filtro de valor (verde)
     if (filtros.valorMinimo !== undefined && filtros.valorMinimo > 0) {
@@ -165,7 +165,7 @@ export const TabelaContratos = ({
       const nomesUnidades = filtros.unidade
         .map((unidadeId) => {
           const unidade = unidadesDisponiveis.find((u) => u.id === unidadeId)
-          return unidade?.nome || unidadeId
+          return unidade?.nome ?? unidadeId
         })
         .join(', ')
 

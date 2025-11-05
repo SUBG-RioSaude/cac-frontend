@@ -317,13 +317,16 @@ export const FornecedorContratos = ({
           contratos={contratosFiltrados}
           isLoading={isLoading ?? false}
           contratosSelecionados={[]}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           onSelecionarContrato={() => {}}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           onSelecionarTodos={() => {}}
           paginacao={{
             pagina: 1,
             itensPorPagina: contratosFiltrados.length,
             total: contratosFiltrados.length,
           }}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           onPaginacaoChange={() => {}}
           totalContratos={contratosFiltrados.length}
           hideContratadaColumn

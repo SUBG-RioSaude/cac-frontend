@@ -8,7 +8,7 @@ import type { DateRangeConfig } from '../../types'
 interface DateRangeFieldProps<TFilters> {
   config: DateRangeConfig<TFilters>
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }
 

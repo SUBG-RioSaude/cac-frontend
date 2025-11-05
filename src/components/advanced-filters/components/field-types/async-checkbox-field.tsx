@@ -12,7 +12,7 @@ import type { AsyncCheckboxConfig, CheckboxOption } from '../../types'
 interface AsyncCheckboxFieldProps<TFilters> {
   config: AsyncCheckboxConfig<TFilters>
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }
 

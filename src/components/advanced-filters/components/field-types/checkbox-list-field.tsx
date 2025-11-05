@@ -9,7 +9,7 @@ import type { CheckboxListConfig } from '../../types'
 interface CheckboxListFieldProps<TFilters> {
   config: CheckboxListConfig<TFilters>
   filtros: TFilters
-  onFiltrosChange: (filtros: TFilters) => void
+  onFiltrosChange: (filtros: TFilters | ((prev: TFilters) => TFilters)) => void
   isMobile?: boolean
 }
 
