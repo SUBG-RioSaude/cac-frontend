@@ -183,13 +183,12 @@ export const ContratosPage = () => {
     }
   }
 
-
   const navigate = useNavigate()
 
   const handleNovoContrato = () => {
     navigate('/contratos/cadastrar')
     // TODO: Implementar navegação para novo contrato
-  } 
+  }
 
   const textoExportar =
     pageState.contratosSelecionados.length > 0
@@ -236,9 +235,9 @@ export const ContratosPage = () => {
             <Button
               variant="outline-premium"
               onClick={handleNovoContrato}
-              className="h-10 cursor-pointer shadow-sm sm:h-auto  "
+              className="h-10 cursor-pointer shadow-sm sm:h-auto"
             >
-              <Plus className="mr-2 h-4 w-4 " />
+              <Plus className="mr-2 h-4 w-4" />
               Novo Contrato
             </Button>
           </motion.div>

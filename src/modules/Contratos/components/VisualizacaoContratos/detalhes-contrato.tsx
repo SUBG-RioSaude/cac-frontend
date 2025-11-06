@@ -80,9 +80,7 @@ type ContratoComIds = ContratoDetalhado & {
   unidadeGestoraId?: string
 }
 
-export const DetalhesContrato = ({
-  contrato,
-}: DetalhesContratoProps) => {
+export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
   const [subabaAtiva, setSubabaAtiva] = useState('visao-geral')
   const [modalSubstituicao, setModalSubstituicao] = useState<{
     aberto: boolean
@@ -369,581 +367,605 @@ export const DetalhesContrato = ({
                 <div className="space-y-6 lg:col-span-7">
                   {/* Grid interno para Dados Básicos + Vigência */}
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Dados Básicos */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Dados Básicos
-                    </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditarCampo('dados-basicos')}
-                      className={`h-8 w-8 p-0 ${isGroupEditing('dados-basicos') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
-                    >
-                      {isGroupEditing('dados-basicos') ? (
-                        <X className="h-4 w-4" />
-                      ) : (
-                        <Edit className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Número do Contrato
-                        </p>
-                        {isEditing('numeroContrato') ? (
-                          <EditableFieldWrapper
-                            fieldKey="numeroContrato"
-                            value={pendingValue ?? contrato.numeroContrato}
-                            onSave={(value) =>
-                              handleFieldSave('numeroContrato', value)
-                            }
-                            onCancel={cancelEditing}
-                            isLoading={isLoading}
-                          />
-                        ) : (
-                          <div
-                            className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
-                            onClick={() => startEditing('numeroContrato')}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                startEditing('numeroContrato')
-                              }
-                            }}
-                            role="button"
-                            tabIndex={0}
-                          >
-                            {contrato.numeroContrato}
+                    {/* Dados Básicos */}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Dados Básicos
+                        </CardTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditarCampo('dados-basicos')}
+                          className={`h-8 w-8 p-0 ${isGroupEditing('dados-basicos') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
+                        >
+                          {isGroupEditing('dados-basicos') ? (
+                            <X className="h-4 w-4" />
+                          ) : (
+                            <Edit className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              Número do Contrato
+                            </p>
+                            {isEditing('numeroContrato') ? (
+                              <EditableFieldWrapper
+                                fieldKey="numeroContrato"
+                                value={pendingValue ?? contrato.numeroContrato}
+                                onSave={(value) =>
+                                  handleFieldSave('numeroContrato', value)
+                                }
+                                onCancel={cancelEditing}
+                                isLoading={isLoading}
+                              />
+                            ) : (
+                              <div
+                                className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                onClick={() => startEditing('numeroContrato')}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    startEditing('numeroContrato')
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {contrato.numeroContrato}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Processo Rio
-                          </p>
-                          {isEditing('processoRio') ? (
-                            <EditableFieldWrapper
-                              fieldKey="processoRio"
-                              value={pendingValue ?? contrato.processoRio ?? ''}
-                              onSave={(value) =>
-                                handleFieldSave('processoRio', value)
-                              }
-                              onCancel={cancelEditing}
-                              isLoading={isLoading}
-                            />
-                          ) : (
-                            <div
-                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
-                              onClick={() => startEditing('processoRio')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  startEditing('processoRio')
-                                }
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
-                              {contrato.processoRio ?? 'Não informado'}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Processo SEI
-                          </p>
-                          {isEditing('processoSei') ? (
-                            <EditableFieldWrapper
-                              fieldKey="processoSei"
-                              value={pendingValue ?? contrato.processoSei ?? ''}
-                              onSave={(value) =>
-                                handleFieldSave('processoSei', value)
-                              }
-                              onCancel={cancelEditing}
-                              isLoading={isLoading}
-                            />
-                          ) : (
-                            <div
-                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
-                              onClick={() => startEditing('processoSei')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  startEditing('processoSei')
-                                }
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
-                              {contrato.processoSei ?? 'Não informado'}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Processo Legado
-                          </p>
-                          {isEditing('processoLegado') ? (
-                            <EditableFieldWrapper
-                              fieldKey="processoLegado"
-                              value={
-                                pendingValue ?? contrato.processoLegado ?? ''
-                              }
-                              onSave={(value) =>
-                                handleFieldSave('processoLegado', value)
-                              }
-                              onCancel={cancelEditing}
-                              isLoading={isLoading}
-                            />
-                          ) : (
-                            <div
-                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
-                              onClick={() => startEditing('processoLegado')}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  startEditing('processoLegado')
-                                }
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
-                              {contrato.processoLegado ?? 'Não informado'}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        Categoria do Objeto
-                      </p>
-                      {isEditing('categoriaObjeto') ? (
-                        <EditableFieldWrapper
-                          fieldKey="categoriaObjeto"
-                          value={pendingValue ?? contrato.categoriaObjeto}
-                          onSave={(value) =>
-                            handleFieldSave('categoriaObjeto', value)
-                          }
-                          onCancel={cancelEditing}
-                          isLoading={isLoading}
-                        />
-                      ) : (
-                        <div
-                          className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
-                          onClick={() => startEditing('categoriaObjeto')}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              startEditing('categoriaObjeto')
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          {contrato.categoriaObjeto}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        Descrição do Objeto
-                      </p>
-                      {isEditing('objeto') ? (
-                        <EditableFieldWrapper
-                          fieldKey="objeto"
-                          value={pendingValue ?? contrato.objeto}
-                          onSave={(value) => handleFieldSave('objeto', value)}
-                          onCancel={cancelEditing}
-                          isLoading={isLoading}
-                        />
-                      ) : (
-                        <div
-                          className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
-                          onClick={() => startEditing('objeto')}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              startEditing('objeto')
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          {contrato.objeto}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Tipo de Contratação
-                        </p>
-                        <div className="mt-1">
-                          {getTipoContratacaoBadge(
-                            contrato.tipoContratacao ?? '',
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">Status</p>
-                        <div className="mt-1">
-                          <ContratoStatusBadge
-                            status={parseStatusContrato(contrato.status)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Vigência e Valores */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Vigência e Valores
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-6">
-                    {/* Verificar se há alterações */}
-                    {(() => {
-                      const hasChanges =
-                        shouldShowOriginalDate(
-                          contrato.vigenciaOriginalInicial,
-                          contrato.dataInicio,
-                        ) ||
-                        shouldShowOriginalDate(
-                          contrato.vigenciaOriginalFinal,
-                          contrato.dataTermino,
-                        ) ||
-                        shouldShowOriginalValue(
-                          contrato.valorGlobalOriginal,
-                          contrato.valorTotal,
-                        ) ||
-                        (contrato.prazoOriginalMeses &&
-                          contrato.prazoOriginalMeses !==
-                            contrato.prazoInicialMeses)
-
-                      if (!hasChanges) {
-                        // Visualização unitária - layout original sem edição
-                        return (
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div className="space-y-2">
                             <div>
                               <p className="text-muted-foreground text-sm">
-                                Data de Início
+                                Processo Rio
                               </p>
-                              <p className="font-semibold">
-                                <DateDisplay value={contrato.dataInicio} />
-                              </p>
+                              {isEditing('processoRio') ? (
+                                <EditableFieldWrapper
+                                  fieldKey="processoRio"
+                                  value={
+                                    pendingValue ?? contrato.processoRio ?? ''
+                                  }
+                                  onSave={(value) =>
+                                    handleFieldSave('processoRio', value)
+                                  }
+                                  onCancel={cancelEditing}
+                                  isLoading={isLoading}
+                                />
+                              ) : (
+                                <div
+                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                  onClick={() => startEditing('processoRio')}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault()
+                                      startEditing('processoRio')
+                                    }
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  {contrato.processoRio ?? 'Não informado'}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <p className="text-muted-foreground text-sm">
-                                Data de Término
+                                Processo SEI
                               </p>
-                              <p className="font-semibold">
-                                <DateDisplay value={contrato.dataTermino} />
-                              </p>
+                              {isEditing('processoSei') ? (
+                                <EditableFieldWrapper
+                                  fieldKey="processoSei"
+                                  value={
+                                    pendingValue ?? contrato.processoSei ?? ''
+                                  }
+                                  onSave={(value) =>
+                                    handleFieldSave('processoSei', value)
+                                  }
+                                  onCancel={cancelEditing}
+                                  isLoading={isLoading}
+                                />
+                              ) : (
+                                <div
+                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                  onClick={() => startEditing('processoSei')}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault()
+                                      startEditing('processoSei')
+                                    }
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  {contrato.processoSei ?? 'Não informado'}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <p className="text-muted-foreground text-sm">
-                                Prazo Inicial
+                                Processo Legado
                               </p>
-                              <p className="font-semibold">
-                                {contrato.prazoInicialMeses} meses
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground text-sm">
-                                Valor Total do Contrato
-                              </p>
-                              <p className="text-2xl font-bold text-green-600">
-                                {formatarMoeda(contrato.valorTotal)}
-                              </p>
+                              {isEditing('processoLegado') ? (
+                                <EditableFieldWrapper
+                                  fieldKey="processoLegado"
+                                  value={
+                                    pendingValue ??
+                                    contrato.processoLegado ??
+                                    ''
+                                  }
+                                  onSave={(value) =>
+                                    handleFieldSave('processoLegado', value)
+                                  }
+                                  onCancel={cancelEditing}
+                                  isLoading={isLoading}
+                                />
+                              ) : (
+                                <div
+                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                  onClick={() => startEditing('processoLegado')}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault()
+                                      startEditing('processoLegado')
+                                    }
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  {contrato.processoLegado ?? 'Não informado'}
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )
-                      }
+                        </div>
 
-                      // Timeline com alterações - ordem invertida (atual no topo)
-                      const mesesOriginais =
-                        contrato.prazoOriginalMeses ??
-                        contrato.prazoInicialMeses
-
-                      return (
-                        <div className="relative">
-                          {/* Linha conectora vertical */}
-                          <div className="absolute top-8 bottom-4 left-4 z-0 w-0.5 bg-gray-300" />
-
-                          <div className="space-y-0">
-                            {/* Item Atual - no topo */}
-                            <div className="relative flex items-start gap-4 pb-8">
-                              {/* Ãcone */}
-                              <div className="relative flex flex-col items-center">
-                                <div className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
-                                  <Clock className="h-4 w-4 text-white" />
-                                </div>
-                              </div>
-
-                              {/* Conteúdo */}
-                              <div className="flex-1">
-                                <div className="mb-2 flex items-center gap-3">
-                                  <span className="font-semibold">Atual</span>
-                                  <Badge className="bg-gray-800 text-xs text-white">
-                                    {contrato.prazoInicialMeses} meses
-                                  </Badge>
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  Vigência:{' '}
-                                  <DateDisplay value={contrato.dataInicio} /> -{' '}
-                                  <DateDisplay value={contrato.dataTermino} />
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  Valor: {formatarMoeda(contrato.valorTotal)}
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  Prazo: {contrato.prazoInicialMeses} meses
-                                </div>
-                              </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Categoria do Objeto
+                          </p>
+                          {isEditing('categoriaObjeto') ? (
+                            <EditableFieldWrapper
+                              fieldKey="categoriaObjeto"
+                              value={pendingValue ?? contrato.categoriaObjeto}
+                              onSave={(value) =>
+                                handleFieldSave('categoriaObjeto', value)
+                              }
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div
+                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
+                              onClick={() => startEditing('categoriaObjeto')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  startEditing('categoriaObjeto')
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              {contrato.categoriaObjeto}
                             </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            Descrição do Objeto
+                          </p>
+                          {isEditing('objeto') ? (
+                            <EditableFieldWrapper
+                              fieldKey="objeto"
+                              value={pendingValue ?? contrato.objeto}
+                              onSave={(value) =>
+                                handleFieldSave('objeto', value)
+                              }
+                              onCancel={cancelEditing}
+                              isLoading={isLoading}
+                            />
+                          ) : (
+                            <div
+                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
+                              onClick={() => startEditing('objeto')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  startEditing('objeto')
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              {contrato.objeto}
+                            </div>
+                          )}
+                        </div>
 
-                            {/* Item Original - embaixo */}
-                            <div className="relative flex items-start gap-4">
-                              {/* Ãcone */}
-                              <div className="flex flex-col items-center">
-                                <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-400">
-                                  <Check className="h-4 w-4 text-white" />
-                                </div>
-                              </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              Tipo de Contratação
+                            </p>
+                            <div className="mt-1">
+                              {getTipoContratacaoBadge(
+                                contrato.tipoContratacao ?? '',
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              Status
+                            </p>
+                            <div className="mt-1">
+                              <ContratoStatusBadge
+                                status={parseStatusContrato(contrato.status)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                              {/* Conteúdo */}
-                              <div className="flex-1">
-                                <div className="mb-2 flex items-center gap-3">
-                                  <span className="font-semibold">
-                                    Original
-                                  </span>
-                                  <Badge className="bg-gray-800 text-xs text-white">
-                                    {mesesOriginais} meses
-                                  </Badge>
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  Vigência:{' '}
-                                  {contrato.vigenciaOriginalInicial ? (
-                                    <DateDisplay
-                                      value={contrato.vigenciaOriginalInicial}
-                                    />
-                                  ) : (
+                    {/* Vigência e Valores */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Calendar className="h-5 w-5" />
+                          Vigência e Valores
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="py-6">
+                        {/* Verificar se há alterações */}
+                        {(() => {
+                          const hasChanges =
+                            shouldShowOriginalDate(
+                              contrato.vigenciaOriginalInicial,
+                              contrato.dataInicio,
+                            ) ||
+                            shouldShowOriginalDate(
+                              contrato.vigenciaOriginalFinal,
+                              contrato.dataTermino,
+                            ) ||
+                            shouldShowOriginalValue(
+                              contrato.valorGlobalOriginal,
+                              contrato.valorTotal,
+                            ) ||
+                            (contrato.prazoOriginalMeses &&
+                              contrato.prazoOriginalMeses !==
+                                contrato.prazoInicialMeses)
+
+                          if (!hasChanges) {
+                            // Visualização unitária - layout original sem edição
+                            return (
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                  <p className="text-muted-foreground text-sm">
+                                    Data de Início
+                                  </p>
+                                  <p className="font-semibold">
                                     <DateDisplay value={contrato.dataInicio} />
-                                  )}{' '}
-                                  -{' '}
-                                  {contrato.vigenciaOriginalFinal ? (
-                                    <DateDisplay
-                                      value={contrato.vigenciaOriginalFinal}
-                                    />
-                                  ) : (
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground text-sm">
+                                    Data de Término
+                                  </p>
+                                  <p className="font-semibold">
                                     <DateDisplay value={contrato.dataTermino} />
-                                  )}
+                                  </p>
                                 </div>
-                                <div className="text-sm text-gray-600">
-                                  Valor:{' '}
-                                  {formatarMoeda(
-                                    contrato.valorGlobalOriginal ??
-                                      contrato.valorTotal,
-                                  )}
+                                <div>
+                                  <p className="text-muted-foreground text-sm">
+                                    Prazo Inicial
+                                  </p>
+                                  <p className="font-semibold">
+                                    {contrato.prazoInicialMeses} meses
+                                  </p>
                                 </div>
-                                <div className="text-sm text-gray-600">
-                                  Prazo: {mesesOriginais} meses
+                                <div>
+                                  <p className="text-muted-foreground text-sm">
+                                    Valor Total do Contrato
+                                  </p>
+                                  <p className="text-2xl font-bold text-green-600">
+                                    {formatarMoeda(contrato.valorTotal)}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
+
+                          // Timeline com alterações - ordem invertida (atual no topo)
+                          const mesesOriginais =
+                            contrato.prazoOriginalMeses ??
+                            contrato.prazoInicialMeses
+
+                          return (
+                            <div className="relative">
+                              {/* Linha conectora vertical */}
+                              <div className="absolute top-8 bottom-4 left-4 z-0 w-0.5 bg-gray-300" />
+
+                              <div className="space-y-0">
+                                {/* Item Atual - no topo */}
+                                <div className="relative flex items-start gap-4 pb-8">
+                                  {/* Ãcone */}
+                                  <div className="relative flex flex-col items-center">
+                                    <div className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
+                                      <Clock className="h-4 w-4 text-white" />
+                                    </div>
+                                  </div>
+
+                                  {/* Conteúdo */}
+                                  <div className="flex-1">
+                                    <div className="mb-2 flex items-center gap-3">
+                                      <span className="font-semibold">
+                                        Atual
+                                      </span>
+                                      <Badge className="bg-gray-800 text-xs text-white">
+                                        {contrato.prazoInicialMeses} meses
+                                      </Badge>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      Vigência:{' '}
+                                      <DateDisplay
+                                        value={contrato.dataInicio}
+                                      />{' '}
+                                      -{' '}
+                                      <DateDisplay
+                                        value={contrato.dataTermino}
+                                      />
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      Valor:{' '}
+                                      {formatarMoeda(contrato.valorTotal)}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      Prazo: {contrato.prazoInicialMeses} meses
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Item Original - embaixo */}
+                                <div className="relative flex items-start gap-4">
+                                  {/* Ãcone */}
+                                  <div className="flex flex-col items-center">
+                                    <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-400">
+                                      <Check className="h-4 w-4 text-white" />
+                                    </div>
+                                  </div>
+
+                                  {/* Conteúdo */}
+                                  <div className="flex-1">
+                                    <div className="mb-2 flex items-center gap-3">
+                                      <span className="font-semibold">
+                                        Original
+                                      </span>
+                                      <Badge className="bg-gray-800 text-xs text-white">
+                                        {mesesOriginais} meses
+                                      </Badge>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      Vigência:{' '}
+                                      {contrato.vigenciaOriginalInicial ? (
+                                        <DateDisplay
+                                          value={
+                                            contrato.vigenciaOriginalInicial
+                                          }
+                                        />
+                                      ) : (
+                                        <DateDisplay
+                                          value={contrato.dataInicio}
+                                        />
+                                      )}{' '}
+                                      -{' '}
+                                      {contrato.vigenciaOriginalFinal ? (
+                                        <DateDisplay
+                                          value={contrato.vigenciaOriginalFinal}
+                                        />
+                                      ) : (
+                                        <DateDisplay
+                                          value={contrato.dataTermino}
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      Valor:{' '}
+                                      {formatarMoeda(
+                                        contrato.valorGlobalOriginal ??
+                                          contrato.valorTotal,
+                                      )}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      Prazo: {mesesOriginais} meses
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </CardContent>
-                </Card>
+                          )
+                        })()}
+                      </CardContent>
+                    </Card>
                   </div>
                   {/* Fim do grid interno */}
 
-                {/* Fiscais Administrativos */}
-                <CollapsibleCard
-                  title="Fiscais Administrativos"
-                  icon={<Users className="h-5 w-5" />}
-                  count={fiscaisAtivos.length}
-                  defaultOpen={false}
-                  variant="fiscal"
-                  headerAction={(
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAbrirModalAdicionar(2)}
-                      className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
-                      title="Adicionar Fiscal"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  )}
-                >
-                  <CardContent className="space-y-4">
-                    {funcionariosLoading ? (
-                      <div className="space-y-4">
-                        {fiscalSkeletonIds.map((placeholderId) => (
-                          <Skeleton
-                            key={placeholderId}
-                            className="h-32 w-full"
-                          />
-                        ))}
-                      </div>
-                    ) : fiscaisAtivos.length === 0 ? (
-                      <div className="text-muted-foreground py-8 text-center">
-                        <User className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                        <p>Nenhum fiscal administrativo designado</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAbrirModalAdicionar(2)}
-                          className="mt-4"
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Adicionar Primeiro Fiscal
-                        </Button>
-                      </div>
-                    ) : (
-                      fiscaisAtivos.map((fiscal) => (
-                        <FuncionarioCard
-                          key={fiscal.id}
-                          contratoFuncionario={fiscal}
-                          variant="fiscal"
-                          isLoading={false}
-                          onSubstituir={() =>
-                            handleAbrirModalSubstituicao(fiscal, 2)
-                          }
-                          onRemover={() => handleAbrirModalRemover(fiscal, 2)}
-                          permitirSubstituicao
-                          permitirRemocao
-                        />
-                      ))
-                    )}
-                  </CardContent>
-                </CollapsibleCard>
-
-                {/* Gestores */}
-                <CollapsibleCard
-                  title="Gestores do Contrato"
-                  icon={<User className="h-5 w-5" />}
-                  count={gestoresAtivos.length}
-                  defaultOpen={false}
-                  variant="gestor"
-                  headerAction={(
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAbrirModalAdicionar(1)}
-                      className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
-                      title="Adicionar Gestor"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  )}
-                >
-                  <CardContent className="space-y-4">
-                    {funcionariosLoading ? (
-                      <div className="space-y-4">
-                        {gestorSkeletonIds.map((placeholderId) => (
-                          <Skeleton
-                            key={placeholderId}
-                            className="h-32 w-full"
-                          />
-                        ))}
-                      </div>
-                    ) : gestoresAtivos.length === 0 ? (
-                      <div className="text-muted-foreground py-8 text-center">
-                        <User className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                        <p>Nenhum gestor designado</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAbrirModalAdicionar(1)}
-                          className="mt-4"
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Adicionar Primeiro Gestor
-                        </Button>
-                      </div>
-                    ) : (
-                      gestoresAtivos.map((gestor) => (
-                        <FuncionarioCard
-                          key={gestor.id}
-                          contratoFuncionario={gestor}
-                          variant="gestor"
-                          isLoading={false}
-                          onSubstituir={() =>
-                            handleAbrirModalSubstituicao(gestor, 1)
-                          }
-                          onRemover={() => handleAbrirModalRemover(gestor, 1)}
-                          permitirSubstituicao
-                          permitirRemocao
-                        />
-                      ))
-                    )}
-                  </CardContent>
-                </CollapsibleCard>
-
-                {/* Informações CCon */}
-                {contrato.ccon && (
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <Hash className="h-5 w-5" />
-                        Informações CCon
-                      </CardTitle>
+                  {/* Fiscais Administrativos */}
+                  <CollapsibleCard
+                    title="Fiscais Administrativos"
+                    icon={<Users className="h-5 w-5" />}
+                    count={fiscaisAtivos.length}
+                    defaultOpen={false}
+                    variant="fiscal"
+                    headerAction={(
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEditarCampo('ccon')}
-                        className="h-8 w-8 p-0"
+                        onClick={() => handleAbrirModalAdicionar(2)}
+                        className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                        title="Adicionar Fiscal"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                       </Button>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Número CCon
-                          </p>
-                          <p className="font-semibold">
-                            {contrato.ccon.numero}
-                          </p>
+                    )}
+                  >
+                    <CardContent className="space-y-4">
+                      {funcionariosLoading ? (
+                        <div className="space-y-4">
+                          {fiscalSkeletonIds.map((placeholderId) => (
+                            <Skeleton
+                              key={placeholderId}
+                              className="h-32 w-full"
+                            />
+                          ))}
                         </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Data de Início
-                          </p>
-                          <p className="font-semibold">
-                            <DateDisplay value={contrato.ccon.dataInicio} />
-                          </p>
+                      ) : fiscaisAtivos.length === 0 ? (
+                        <div className="text-muted-foreground py-8 text-center">
+                          <User className="mx-auto mb-2 h-12 w-12 opacity-50" />
+                          <p>Nenhum fiscal administrativo designado</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAbrirModalAdicionar(2)}
+                            className="mt-4"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Adicionar Primeiro Fiscal
+                          </Button>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            Data de Término
-                          </p>
-                          <p className="font-semibold">
-                            <DateDisplay value={contrato.ccon.dataTermino} />
-                          </p>
-                        </div>
-                      </div>
+                      ) : (
+                        fiscaisAtivos.map((fiscal) => (
+                          <FuncionarioCard
+                            key={fiscal.id}
+                            contratoFuncionario={fiscal}
+                            variant="fiscal"
+                            isLoading={false}
+                            onSubstituir={() =>
+                              handleAbrirModalSubstituicao(fiscal, 2)
+                            }
+                            onRemover={() => handleAbrirModalRemover(fiscal, 2)}
+                            permitirSubstituicao
+                            permitirRemocao
+                          />
+                        ))
+                      )}
                     </CardContent>
-                  </Card>
-                )}
+                  </CollapsibleCard>
+
+                  {/* Gestores */}
+                  <CollapsibleCard
+                    title="Gestores do Contrato"
+                    icon={<User className="h-5 w-5" />}
+                    count={gestoresAtivos.length}
+                    defaultOpen={false}
+                    variant="gestor"
+                    headerAction={(
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAbrirModalAdicionar(1)}
+                        className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                        title="Adicionar Gestor"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  >
+                    <CardContent className="space-y-4">
+                      {funcionariosLoading ? (
+                        <div className="space-y-4">
+                          {gestorSkeletonIds.map((placeholderId) => (
+                            <Skeleton
+                              key={placeholderId}
+                              className="h-32 w-full"
+                            />
+                          ))}
+                        </div>
+                      ) : gestoresAtivos.length === 0 ? (
+                        <div className="text-muted-foreground py-8 text-center">
+                          <User className="mx-auto mb-2 h-12 w-12 opacity-50" />
+                          <p>Nenhum gestor designado</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAbrirModalAdicionar(1)}
+                            className="mt-4"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Adicionar Primeiro Gestor
+                          </Button>
+                        </div>
+                      ) : (
+                        gestoresAtivos.map((gestor) => (
+                          <FuncionarioCard
+                            key={gestor.id}
+                            contratoFuncionario={gestor}
+                            variant="gestor"
+                            isLoading={false}
+                            onSubstituir={() =>
+                              handleAbrirModalSubstituicao(gestor, 1)
+                            }
+                            onRemover={() => handleAbrirModalRemover(gestor, 1)}
+                            permitirSubstituicao
+                            permitirRemocao
+                          />
+                        ))
+                      )}
+                    </CardContent>
+                  </CollapsibleCard>
+
+                  {/* Informações CCon */}
+                  {contrato.ccon && (
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Hash className="h-5 w-5" />
+                          Informações CCon
+                        </CardTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditarCampo('ccon')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              Número CCon
+                            </p>
+                            <p className="font-semibold">
+                              {contrato.ccon.numero}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              Data de Início
+                            </p>
+                            <p className="font-semibold">
+                              <DateDisplay value={contrato.ccon.dataInicio} />
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              Data de Término
+                            </p>
+                            <p className="font-semibold">
+                              <DateDisplay value={contrato.ccon.dataTermino} />
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
                 {/* Fim da coluna esquerda */}
 

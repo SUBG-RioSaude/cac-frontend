@@ -478,9 +478,7 @@ export const IndicadoresRelatorios = ({
               for (let ano = anoInicio; ano <= anoFim; ano++) {
                 // Definir início do período: início do contrato ou 1º de janeiro
                 const inicioPeriodo =
-                  ano === anoInicio
-                    ? contratoInicio
-                    : new Date(`${ano}-01-01`)
+                  ano === anoInicio ? contratoInicio : new Date(`${ano}-01-01`)
 
                 // Definir fim do período: fim do contrato ou 31 de dezembro
                 const fimPeriodo =
@@ -490,7 +488,10 @@ export const IndicadoresRelatorios = ({
                 let status = 'pendente'
                 if (hojeTimeline > fimPeriodo) {
                   status = 'concluido'
-                } else if (hojeTimeline >= inicioPeriodo && hojeTimeline <= fimPeriodo) {
+                } else if (
+                  hojeTimeline >= inicioPeriodo &&
+                  hojeTimeline <= fimPeriodo
+                ) {
                   status = 'em_andamento'
                 }
 
@@ -512,7 +513,8 @@ export const IndicadoresRelatorios = ({
                   fim: fimPeriodo.toISOString(),
                   status,
                   percentualEsperado: percentualEsperado.toFixed(1),
-                  valorEsperado: (valorTotalContrato * percentualEsperado) / 100,
+                  valorEsperado:
+                    (valorTotalContrato * percentualEsperado) / 100,
                 })
               }
 

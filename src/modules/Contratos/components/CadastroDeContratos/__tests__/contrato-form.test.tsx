@@ -569,19 +569,25 @@ describe('ContratoForm', () => {
       await user.click(screen.getByText('Processo SEI'))
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+        expect(
+          screen.getByPlaceholderText('SEI-123456-2024'),
+        ).toBeInTheDocument()
       })
 
       // Adicionar processo Físico
       await user.click(screen.getByText('Processo Físico'))
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('LEG-01/123.456/2024')).toBeInTheDocument()
+        expect(
+          screen.getByPlaceholderText('LEG-01/123.456/2024'),
+        ).toBeInTheDocument()
       })
 
       // Verificar que ambos os processos permanecem na tela
       expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('LEG-01/123.456/2024')).toBeInTheDocument()
+      expect(
+        screen.getByPlaceholderText('LEG-01/123.456/2024'),
+      ).toBeInTheDocument()
     })
   })
 })

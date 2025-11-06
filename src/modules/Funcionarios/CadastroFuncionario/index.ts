@@ -14,4 +14,7 @@ export { ModalSucessoCadastro } from './components/modal-sucesso-cadastro'
 export { default as CadastroFuncionarioPage } from './pages/cadastro-funcionario-page'
 
 // Hooks
-export { useValidarCpfUnico, useValidarMatriculaUnica } from './hooks/use-validar-funcionario'
+export {
+  useValidarCpfUnico,
+  useValidarMatriculaUnica,
+} from './hooks/use-validar-funcionario'

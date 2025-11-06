@@ -3,6 +3,7 @@
 ## 📋 VISÃO GERAL
 
 Redesign completo do dashboard com:
+
 - Carousel de seções completas (métricas → gráficos → riscos → atividades)
 - 4 Abas principais: Dashboard, Analytics, Riscos, Atividades
 - Nova paleta de cores temáticas: #2a688f, #42b9eb, oklch neutros
@@ -70,22 +71,22 @@ Redesign completo do dashboard com:
 
 ```css
 /* Cores Primárias do Cliente */
---theme-primary: #2a688f;        /* Azul escuro profissional */
---theme-secondary: #42b9eb;      /* Azul claro vibrante */
+--theme-primary: #2a688f; /* Azul escuro profissional */
+--theme-secondary: #42b9eb; /* Azul claro vibrante */
 --theme-neutral-dark: oklch(0.404 0.017 264.376);
 --theme-neutral-light: oklch(0.709 0.142 213.68);
 
 /* Aplicação em Gráficos */
---chart-1: #2a688f;              /* Azul escuro */
---chart-2: #42b9eb;              /* Azul claro */
---chart-3: #5ac8fa;              /* Azul médio */
---chart-4: #1c4f6a;              /* Azul navy */
---chart-5: #7dd3fc;              /* Azul sky */
+--chart-1: #2a688f; /* Azul escuro */
+--chart-2: #42b9eb; /* Azul claro */
+--chart-3: #5ac8fa; /* Azul médio */
+--chart-4: #1c4f6a; /* Azul navy */
+--chart-5: #7dd3fc; /* Azul sky */
 
 /* Aplicação em UI */
---accent-primary: #42b9eb;       /* Botões, badges */
---accent-hover: #2a688f;         /* Hover states */
---gradient-start: #2a688f;       /* Gradientes */
+--accent-primary: #42b9eb; /* Botões, badges */
+--accent-hover: #2a688f; /* Hover states */
+--gradient-start: #2a688f; /* Gradientes */
 --gradient-end: #42b9eb;
 ```
 
@@ -99,12 +100,20 @@ Redesign completo do dashboard com:
 
 ```tsx
 // Carousel de seções completas com auto-play
-<Carousel opts={{ align: "start", loop: true }}>
+<Carousel opts={{ align: 'start', loop: true }}>
   <CarouselContent>
-    <CarouselItem><MetricsSection /></CarouselItem>
-    <CarouselItem><TrendSection /></CarouselItem>
-    <CarouselItem><AlertsSection /></CarouselItem>
-    <CarouselItem><TopContractsSection /></CarouselItem>
+    <CarouselItem>
+      <MetricsSection />
+    </CarouselItem>
+    <CarouselItem>
+      <TrendSection />
+    </CarouselItem>
+    <CarouselItem>
+      <AlertsSection />
+    </CarouselItem>
+    <CarouselItem>
+      <TopContractsSection />
+    </CarouselItem>
   </CarouselContent>
   <CarouselPrevious />
   <CarouselNext />
@@ -176,12 +185,8 @@ Redesign completo do dashboard com:
     <CardTitle>Maiores Contratos</CardTitle>
   </CardHeader>
   <CardContent>
-    {topContracts.map(contract => (
-      <ContractRow
-        contract={contract}
-        showSparkline
-        showValue
-      />
+    {topContracts.map((contract) => (
+      <ContractRow contract={contract} showSparkline showValue />
     ))}
   </CardContent>
 </Card>
@@ -221,7 +226,7 @@ Redesign completo do dashboard com:
   </CardHeader>
   <CardContent>
     <ScrollArea className="h-[400px]">
-      {vencimentos.map(item => (
+      {vencimentos.map((item) => (
         <TimelineItem
           date={item.date}
           contract={item.contract}
@@ -280,14 +285,12 @@ Redesign completo do dashboard com:
 
 ```tsx
 // Bolinhas indicadoras embaixo do carousel
-<div className="flex justify-center gap-2 mt-4">
+<div className="mt-4 flex justify-center gap-2">
   {slides.map((_, index) => (
     <button
       className={cn(
-        "h-2 w-2 rounded-full transition-all",
-        current === index
-          ? "bg-theme-secondary w-8"
-          : "bg-muted"
+        'h-2 w-2 rounded-full transition-all',
+        current === index ? 'bg-theme-secondary w-8' : 'bg-muted',
       )}
       onClick={() => goToSlide(index)}
     />

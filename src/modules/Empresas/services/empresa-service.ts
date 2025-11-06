@@ -30,17 +30,14 @@ import type {
 export async function cadastrarEmpresa(
   dadosEmpresa: EmpresaRequest,
 ): Promise<EmpresaResponse> {
-  logger.info(
-    'Iniciando cadastro de empresa',
-    {
-      operation: 'cadastrar_empresa',
-      empresaData: {
-        cnpj: dadosEmpresa.cnpj,
-        razaoSocial: dadosEmpresa.razaoSocial,
-        hasContacts: dadosEmpresa.contatos.length > 0,
-      },
+  logger.info('Iniciando cadastro de empresa', {
+    operation: 'cadastrar_empresa',
+    empresaData: {
+      cnpj: dadosEmpresa.cnpj,
+      razaoSocial: dadosEmpresa.razaoSocial,
+      hasContacts: dadosEmpresa.contatos.length > 0,
     },
-  )
+  })
 
   // A API retorna apenas o ID como string, não um objeto
   const response = await executeWithFallback<string>({
@@ -50,39 +47,30 @@ export async function cadastrarEmpresa(
   })
 
   // Log da resposta da API
-  logger.debug(
-    'Response da API de cadastro recebida',
-    {
-      operation: 'cadastrar_empresa_response',
-      responseStatus: response.status,
-      responseDataType: typeof response.data,
-      hasValidId: !!response.data,
-    },
-  )
+  logger.debug('Response da API de cadastro recebida', {
+    operation: 'cadastrar_empresa_response',
+    responseStatus: response.status,
+    responseDataType: typeof response.data,
+    hasValidId: !!response.data,
+  })
 
   // A API retorna o ID como string simples
   const empresaId = response.data
 
   if (!empresaId || typeof empresaId !== 'string') {
-    logger.error(
-      'ID da empresa não é uma string válida',
-      {
-        operation: 'cadastrar_empresa_validation',
-        receivedValue: empresaId,
-        receivedType: typeof empresaId,
-        expected: 'string',
-      },
-    )
+    logger.error('ID da empresa não é uma string válida', {
+      operation: 'cadastrar_empresa_validation',
+      receivedValue: empresaId,
+      receivedType: typeof empresaId,
+      expected: 'string',
+    })
     throw new Error('API não retornou um ID válido')
   }
 
-  logger.info(
-    'Empresa cadastrada com sucesso',
-    {
-      operation: 'cadastrar_empresa_success',
-      empresaId,
-    },
-  )
+  logger.info('Empresa cadastrada com sucesso', {
+    operation: 'cadastrar_empresa_success',
+    empresaId,
+  })
 
   // Construir objeto EmpresaResponse usando dados enviados + ID retornado
   const empresaResponse: EmpresaResponse = {
@@ -110,14 +98,11 @@ export async function cadastrarEmpresa(
     })),
   }
 
-  logger.debug(
-    'Objeto EmpresaResponse construído com sucesso',
-    {
-      operation: 'cadastrar_empresa_response_built',
-      empresaId: empresaResponse.id,
-      contatosCount: empresaResponse.contatos.length,
-    },
-  )
+  logger.debug('Objeto EmpresaResponse construído com sucesso', {
+    operation: 'cadastrar_empresa_response_built',
+    empresaId: empresaResponse.id,
+    contatosCount: empresaResponse.contatos.length,
+  })
 
   return empresaResponse
 }
@@ -135,7 +120,7 @@ export async function consultarEmpresaPorCNPJ(
     const response = await executeWithFallback<EmpresaResponse>({
       method: 'get',
       url: `/Empresas/cnpj/${cnpjSemMascara}`,
-      })
+    })
     return response.data
   } catch (error) {
     // Se retornar 404, significa que a empresa não foi encontrada

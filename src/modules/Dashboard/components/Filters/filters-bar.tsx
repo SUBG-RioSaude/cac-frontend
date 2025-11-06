@@ -102,9 +102,9 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
     <div className="flex items-center justify-between gap-4">
       {/* Date Picker */}
       <div className="flex items-center gap-3">
-        <Calendar className="h-5 w-5 text-muted-foreground" />
+        <Calendar className=" h-5 w-5 text-blue-500" />
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-          <SelectTrigger className="w-[180px] border-border bg-background">
+          <SelectTrigger className="border-border bg-background w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -121,21 +121,23 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
       {/* Advanced Filters Popover */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2 bg-background">
+          <Button variant="outline" className="bg-background gap-2">
             <Filter className="h-4 w-4" />
             Filtros
             {(selectedStatus.length > 0 ||
               selectedTypes.length > 0 ||
               selectedUnits.length > 0) && (
-              <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                {selectedStatus.length + selectedTypes.length + selectedUnits.length}
+              <span className="bg-primary text-primary-foreground ml-1 rounded-full px-2 py-0.5 text-xs">
+                {selectedStatus.length +
+                  selectedTypes.length +
+                  selectedUnits.length}
               </span>
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0" align="end">
-          <div className="border-b border-border p-4">
-            <h3 className="font-semibold text-foreground">Filtros Avançados</h3>
+          <div className="border-border border-b p-4">
+            <h3 className="text-foreground font-semibold">Filtros Avançados</h3>
           </div>
 
           <ScrollArea className="h-[500px]">
@@ -143,7 +145,7 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
               {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button
-                  className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+                  className="bg-foreground text-background hover:bg-foreground/90 flex-1"
                   onClick={handleApplyFilters}
                 >
                   Aplicar Filtros
@@ -160,12 +162,17 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
               {/* Status Section */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <h4 className="text-sm font-semibold text-foreground">Status</h4>
+                  <Filter className="text-muted-foreground h-4 w-4" />
+                  <h4 className="text-foreground text-sm font-semibold">
+                    Status
+                  </h4>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {statusOptions.map((status) => (
-                    <div key={status.id} className="flex items-center space-x-2">
+                    <div
+                      key={status.id}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={status.id}
                         checked={selectedStatus.includes(status.id)}
@@ -185,8 +192,10 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
               {/* Type Section */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <h4 className="text-sm font-semibold text-foreground">Tipo</h4>
+                  <Filter className="text-muted-foreground h-4 w-4" />
+                  <h4 className="text-foreground text-sm font-semibold">
+                    Tipo
+                  </h4>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {typeOptions.map((type) => (
@@ -210,8 +219,10 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
               {/* Units Section */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <h4 className="text-sm font-semibold text-foreground">Unidades</h4>
+                  <Filter className="text-muted-foreground h-4 w-4" />
+                  <h4 className="text-foreground text-sm font-semibold">
+                    Unidades
+                  </h4>
                 </div>
                 <div className="space-y-2">
                   {unitOptions.map((unit) => (
@@ -223,7 +234,7 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
                       />
                       <Label
                         htmlFor={unit}
-                        className="cursor-pointer text-sm font-normal leading-tight"
+                        className="cursor-pointer text-sm leading-tight font-normal"
                       >
                         {unit}
                       </Label>

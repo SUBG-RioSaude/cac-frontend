@@ -11,7 +11,7 @@ export const CHAT_SISTEMA_ID = import.meta.env.VITE_SYSTEM_ID as string
 // Validação de configuração obrigatória
 if (!CHAT_SISTEMA_ID || CHAT_SISTEMA_ID === 'undefined') {
   throw new Error(
-    'VITE_SYSTEM_ID não está configurado. Adicione VITE_SYSTEM_ID=<seu-guid> no arquivo .env'
+    'VITE_SYSTEM_ID não está configurado. Adicione VITE_SYSTEM_ID=<seu-guid> no arquivo .env',
   )
 }
 

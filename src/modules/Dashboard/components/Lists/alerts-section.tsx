@@ -170,7 +170,9 @@ export const AlertsSection = ({ alerts, isLoading }: AlertsSectionProps) => {
                         className="h-5 w-5"
                         style={{ color: config.color }}
                       />
-                      <CardTitle className="text-base">{config.label}</CardTitle>
+                      <CardTitle className="text-base">
+                        {config.label}
+                      </CardTitle>
                     </div>
                   </div>
                   <CardDescription className="text-xs">

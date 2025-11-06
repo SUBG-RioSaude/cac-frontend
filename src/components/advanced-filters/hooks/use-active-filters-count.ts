@@ -10,7 +10,10 @@ import { useMemo } from 'react'
  */
 export const useActiveFiltersCount = <TFilters extends Record<string, any>>(
   filtros: TFilters,
-  excludeFields: (keyof TFilters)[] = ['pagina', 'tamanhoPagina'] as (keyof TFilters)[],
+  excludeFields: (keyof TFilters)[] = [
+    'pagina',
+    'tamanhoPagina',
+  ] as (keyof TFilters)[],
 ) => {
   return useMemo(() => {
     let count = 0

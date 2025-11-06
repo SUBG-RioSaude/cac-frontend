@@ -94,7 +94,9 @@ describe('VerifyForm', () => {
       renderVerifyForm()
 
       expect(screen.getByText(/Verificação de Segurança/i)).toBeInTheDocument()
-      expect(screen.getByText(/Enviamos um código de 6 dígitos para/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Enviamos um código de 6 dígitos para/i),
+      ).toBeInTheDocument()
     })
 
     it('deve exibir o email do usuário', () => {
@@ -175,14 +177,15 @@ describe('VerifyForm', () => {
         })
       })
     })
-
   })
 
   describe('Validação e Submit', () => {
     it('deve desabilitar botão quando código está incompleto', () => {
       renderVerifyForm()
 
-      const submitButton = screen.getByRole('button', { name: /Verificar Código/i })
+      const submitButton = screen.getByRole('button', {
+        name: /Verificar Código/i,
+      })
       expect(submitButton).toBeDisabled()
     })
 
@@ -197,18 +200,21 @@ describe('VerifyForm', () => {
       })
 
       await waitFor(() => {
-        const submitButton = screen.getByRole('button', { name: /Verificar Código/i })
+        const submitButton = screen.getByRole('button', {
+          name: /Verificar Código/i,
+        })
         expect(submitButton).toBeEnabled()
       })
     })
-
   })
 
   describe('Reenvio de código', () => {
     it('botão de reenviar deve estar desabilitado enquanto há tempo', () => {
       renderVerifyForm()
 
-      const resendButton = screen.getByRole('button', { name: /Reenviar Código/i })
+      const resendButton = screen.getByRole('button', {
+        name: /Reenviar Código/i,
+      })
       expect(resendButton).toBeDisabled()
     })
   })
@@ -223,7 +229,9 @@ describe('VerifyForm', () => {
 
       renderVerifyForm()
 
-      expect(screen.getByText(/Verificar Código de Recuperação/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Verificar Código de Recuperação/i),
+      ).toBeInTheDocument()
     })
 
     it('deve exibir mensagem apropriada para contexto de senha expirada', () => {
@@ -235,7 +243,9 @@ describe('VerifyForm', () => {
 
       renderVerifyForm()
 
-      expect(screen.getByText(/Senha Expirada - Verificar Identidade/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Senha Expirada - Verificar Identidade/i),
+      ).toBeInTheDocument()
     })
   })
 

@@ -22,7 +22,11 @@ const ForgotPasswordForm = () => {
 
   const { estaAutenticado } = useAuth()
   const forgotPasswordMutation = useForgotPasswordMutation()
-  const { isPending: carregando, error, reset: limparErro } = forgotPasswordMutation
+  const {
+    isPending: carregando,
+    error,
+    reset: limparErro,
+  } = forgotPasswordMutation
   const erro = error?.message ?? null
 
   // Redireciona se já estiver autenticado

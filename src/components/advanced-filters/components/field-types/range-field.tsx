@@ -54,7 +54,9 @@ export const RangeField = <TFilters extends Record<string, any>>({
 
   // ✅ NOVO: Aplicar filtro automaticamente após debounce (valor mínimo)
   useEffect(() => {
-    const numericValue = debouncedMinValue ? Number(debouncedMinValue) : undefined
+    const numericValue = debouncedMinValue
+      ? Number(debouncedMinValue)
+      : undefined
     const currentValue = filtros[config.minField]
 
     // Só aplicar se valor realmente mudou
@@ -69,7 +71,9 @@ export const RangeField = <TFilters extends Record<string, any>>({
 
   // ✅ NOVO: Aplicar filtro automaticamente após debounce (valor máximo)
   useEffect(() => {
-    const numericValue = debouncedMaxValue ? Number(debouncedMaxValue) : undefined
+    const numericValue = debouncedMaxValue
+      ? Number(debouncedMaxValue)
+      : undefined
     const currentValue = filtros[config.maxField]
 
     // Só aplicar se valor realmente mudou

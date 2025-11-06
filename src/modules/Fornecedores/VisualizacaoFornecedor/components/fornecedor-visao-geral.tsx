@@ -27,7 +27,6 @@ export const FornecedorVisaoGeral = ({
   contratos,
   isLoading,
 }: FornecedorVisaoGeralProps) => {
-
   return (
     <div className="space-y-6">
       {/* Métricas principais */}

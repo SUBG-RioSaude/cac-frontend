@@ -42,9 +42,7 @@ export const AsyncCheckboxField = <TFilters extends Record<string, any>>({
         const loadedOptions = await config.loadOptions()
         setOptions(loadedOptions)
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Erro ao carregar opções',
-        )
+        setError(err instanceof Error ? err.message : 'Erro ao carregar opções')
       } finally {
         setIsLoading(false)
       }
@@ -80,11 +78,7 @@ export const AsyncCheckboxField = <TFilters extends Record<string, any>>({
   )
 
   if (error) {
-    return (
-      <div className="py-2 text-center text-sm text-red-600">
-        {error}
-      </div>
-    )
+    return <div className="py-2 text-center text-sm text-red-600">{error}</div>
   }
 
   return (
@@ -134,7 +128,10 @@ export const AsyncCheckboxField = <TFilters extends Record<string, any>>({
                   {Icon && <Icon className="h-4 w-4" />}
                   {option.color ? (
                     <span
-                      className={cn('rounded-full px-2 py-1 text-xs', option.color)}
+                      className={cn(
+                        'rounded-full px-2 py-1 text-xs',
+                        option.color,
+                      )}
                     >
                       {option.label}
                     </span>

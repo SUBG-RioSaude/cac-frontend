@@ -76,7 +76,9 @@ export const useTokenRenewal = (checkInterval = 60000) => {
         } catch (erro) {
           logger.error(
             { action: 'token-renewal', status: 'error' },
-            erro instanceof Error ? erro.message : 'Erro desconhecido na renovação',
+            erro instanceof Error
+              ? erro.message
+              : 'Erro desconhecido na renovação',
           )
           // Em caso de erro, faz logout por segurança
           logout()

@@ -204,7 +204,10 @@ const mockDashboardData = {
           numero: 'CT-2024-0401',
           objeto: 'Serviços de TI - Suporte Técnico',
           risco: 'medio' as const,
-          motivos: ['Vencimento em 82 dias', 'Avaliação de desempenho pendente'],
+          motivos: [
+            'Vencimento em 82 dias',
+            'Avaliação de desempenho pendente',
+          ],
           diasVencimento: 82,
           valorRisco: 156000,
         },
@@ -320,7 +323,8 @@ const mockDashboardData = {
       tipo: 'aprovado' as const,
       contratoId: '01992e74-b75f-73c8-817e-27ffead2e13f',
       contratoNumero: 'CT-2024-1283',
-      descricao: 'Contrato de Fornecimento de Equipamentos aprovado pela gestão',
+      descricao:
+        'Contrato de Fornecimento de Equipamentos aprovado pela gestão',
       dataHora: '2024-12-14T16:45:00Z',
       usuario: 'João Santos',
     },

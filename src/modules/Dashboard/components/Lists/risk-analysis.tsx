@@ -7,7 +7,13 @@ import {
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 // TODO: Substituir por dados reais da API
 const riskContracts = {
@@ -97,9 +103,12 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
           {Object.entries(riskConfig).map(([key, config]) => {
             const Icon = config.icon
             return (
-              <Card key={key} className={`border-2 bg-card ${config.borderColor}`}>
+              <Card
+                key={key}
+                className={`bg-card border-2 ${config.borderColor}`}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">
+                  <CardTitle className="text-foreground text-sm font-medium">
                     {config.label}
                   </CardTitle>
                   <Icon className={`h-4 w-4 ${config.color}`} />
@@ -108,7 +117,7 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
                   <div className={`text-3xl font-bold ${config.color}`}>
                     {config.count}
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     {config.description}
                   </p>
                 </CardContent>
@@ -125,11 +134,13 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
           return (
             <Card key={riskLevel} className="bg-card">
               <CardHeader>
-                <div className='flex items-center justify-between'>
+                <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <Icon className={`h-5 w-5 ${config.color}`} />
-                      <CardTitle className="text-foreground">{config.label}</CardTitle>
+                      <CardTitle className="text-foreground">
+                        {config.label}
+                      </CardTitle>
                       <Badge variant="secondary">{contracts.length}</Badge>
                     </div>
                     <CardDescription>{config.description}</CardDescription>
@@ -147,10 +158,10 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
                       <div className="flex-1 space-y-1">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="text-sm font-medium leading-none text-foreground">
+                            <p className="text-foreground text-sm leading-none font-medium">
                               {contract.title}
                             </p>
-                            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
                               <Building2 className="h-3 w-3" />
                               {contract.company}
                             </p>
@@ -159,7 +170,7 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
                             {contract.daysToExpire} dias
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground flex items-center gap-4 text-xs">
                           <span className="font-medium">{contract.value}</span>
                           <span className="text-muted-foreground/70">
                             {contract.id}
@@ -201,15 +212,18 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
                       <Icon className={`h-4 w-4 ${config.color}`} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-foreground text-sm font-medium">
                         {config.label}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {config.description}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="text-base font-semibold">
+                  <Badge
+                    variant="secondary"
+                    className="text-base font-semibold"
+                  >
                     {config.count}
                   </Badge>
                 </div>
@@ -221,10 +235,10 @@ export const RiskAnalysis = ({ detailed = false }: RiskAnalysisProps) => {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <p className="text-xs font-medium text-foreground">
+                        <p className="text-foreground text-xs font-medium">
                           {contract.title}
                         </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
+                        <p className="text-muted-foreground mt-0.5 text-xs">
                           {contract.company}
                         </p>
                       </div>

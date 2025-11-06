@@ -77,11 +77,7 @@ export function hasAuthCookies(): boolean {
 
   // Valida apenas o auth_token como JWT
   // O refresh_token pode ser um token opaco (não JWT), então só verificamos a existência
-  return !!(
-    token &&
-    refreshToken &&
-    validarTokenJWT(token)
-  )
+  return !!(token && refreshToken && validarTokenJWT(token))
 }
 
 // Função para limpar todos os cookies de autenticação
@@ -91,7 +87,10 @@ export function clearAuthCookies(): void {
 }
 
 // Função para validar se um token está próximo de expirar
-export function isTokenNearExpiry(token: string, minutesThreshold = 5): boolean {
+export function isTokenNearExpiry(
+  token: string,
+  minutesThreshold = 5,
+): boolean {
   try {
     const [, base64Payload] = token.split('.')
     const payloadString = decodeBase64UTF8(base64Payload)

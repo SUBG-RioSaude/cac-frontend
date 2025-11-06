@@ -257,136 +257,132 @@ export const TabelaContratos = ({
     </div>
   )
 
-  const MobileContractCard = ({
-    contrato,
-  }: {
-    contrato: Contrato
-  }) => (
+  const MobileContractCard = ({ contrato }: { contrato: Contrato }) => (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-        <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-5">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              checked={contratosSelecionados.includes(contrato.id)}
-              onCheckedChange={(checked) =>
-                onSelecionarContrato(contrato.id, checked as boolean)
-              }
-            />
-            <div>
-              <h3 className="text-primary font-bold">
-                {contrato.numeroContrato}
-              </h3>
-              <p className="text-muted-foreground text-xs">
-                {obterProcessoPriorizado(contrato)}
-              </p>
-            </div>
-          </div>
-          <ContratoStatusBadge
-            status={getContratoStatusFromVigencia(
-              contrato.vigenciaInicial,
-              contrato.vigenciaFinal,
-              contrato.status,
-            )}
+      <CardHeader className="bg-muted/30 flex flex-row items-start justify-between gap-4 p-5">
+        <div className="flex items-center gap-3">
+          <Checkbox
+            checked={contratosSelecionados.includes(contrato.id)}
+            onCheckedChange={(checked) =>
+              onSelecionarContrato(contrato.id, checked as boolean)
+            }
           />
-        </CardHeader>
-        <CardContent className="space-y-4 p-5 sm:p-6">
-          <div className="space-y-2">
-            {!hideContratadaColumn && (
-              <>
-                <p
-                  className="truncate text-base font-semibold sm:text-lg"
-                  title={
-                    contrato.empresaRazaoSocial ??
-                    contrato.contratada?.razaoSocial ??
-                    'Empresa não informada'
-                  }
-                >
-                  {contrato.empresaRazaoSocial ??
-                    contrato.contratada?.razaoSocial ??
-                    'Empresa não informada'}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  CNPJ:{' '}
-                  <CNPJDisplay
-                    value={contrato.empresaCnpj ?? contrato.contratada?.cnpj}
-                    fallback="N/A"
-                  />
-                </p>
-              </>
-            )}
-            <p
-              className="text-muted-foreground truncate text-sm"
-              title={contrato.descricaoObjeto ?? ''}
-            >
-              {contrato.descricaoObjeto ?? 'Objeto não informado'}
+          <div>
+            <h3 className="text-primary font-bold">
+              {contrato.numeroContrato}
+            </h3>
+            <p className="text-muted-foreground text-xs">
+              {obterProcessoPriorizado(contrato)}
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
-            <InfoItem
-              icon={DollarSign}
-              label="Valor Global"
-              value={formatarMoeda(contrato.valorGlobal)}
-            />
-            <div>
-              <p className="text-muted-foreground mb-1 flex items-center gap-1 text-xs font-medium">
-                <Calendar className="h-3 w-3" />
-                Vigência
-              </p>
-              <VigenciaDisplay
-                vigenciaInicio={contrato.vigenciaInicial}
-                vigenciaFim={contrato.vigenciaFinal}
-                compact
-              />
-            </div>
-            <InfoItem
-              icon={Briefcase}
-              label="Contratação"
-              value={contrato.contratacao ?? 'N/A'}
-            />
-            <div className="flex items-center gap-2 text-sm">
-              <Building className="text-muted-foreground h-4 w-4 shrink-0" />
-              <span className="font-semibold">Unidades:</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleMostrarUnidades(contrato)}
-                className="ml-auto h-auto border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
-                disabled={obterTotalUnidades(contrato) === 0}
+        </div>
+        <ContratoStatusBadge
+          status={getContratoStatusFromVigencia(
+            contrato.vigenciaInicial,
+            contrato.vigenciaFinal,
+            contrato.status,
+          )}
+        />
+      </CardHeader>
+      <CardContent className="space-y-4 p-5 sm:p-6">
+        <div className="space-y-2">
+          {!hideContratadaColumn && (
+            <>
+              <p
+                className="truncate text-base font-semibold sm:text-lg"
+                title={
+                  contrato.empresaRazaoSocial ??
+                  contrato.contratada?.razaoSocial ??
+                  'Empresa não informada'
+                }
               >
-                {obterTotalUnidades(contrato) === 0 ? (
-                  <span>Nenhuma</span>
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <Building className="h-3 w-3" />
-                    Ver ({obterTotalUnidades(contrato)})
-                  </span>
-                )}
-              </Button>
-            </div>
-            <InfoItem
-              icon={FileText}
-              label="Processo"
-              value={obterProcessoPriorizado(contrato)}
-            />
-            <InfoItem
-              icon={Archive}
-              label="Vínculo PCA"
-              value={contrato.vinculacaoPCA ?? 'N/A'}
+                {contrato.empresaRazaoSocial ??
+                  contrato.contratada?.razaoSocial ??
+                  'Empresa não informada'}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                CNPJ:{' '}
+                <CNPJDisplay
+                  value={contrato.empresaCnpj ?? contrato.contratada?.cnpj}
+                  fallback="N/A"
+                />
+              </p>
+            </>
+          )}
+          <p
+            className="text-muted-foreground truncate text-sm"
+            title={contrato.descricaoObjeto ?? ''}
+          >
+            {contrato.descricaoObjeto ?? 'Objeto não informado'}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2">
+          <InfoItem
+            icon={DollarSign}
+            label="Valor Global"
+            value={formatarMoeda(contrato.valorGlobal)}
+          />
+          <div>
+            <p className="text-muted-foreground mb-1 flex items-center gap-1 text-xs font-medium">
+              <Calendar className="h-3 w-3" />
+              Vigência
+            </p>
+            <VigenciaDisplay
+              vigenciaInicio={contrato.vigenciaInicial}
+              vigenciaFim={contrato.vigenciaFinal}
+              compact
             />
           </div>
-          <div className="flex items-center justify-end border-t pt-4">
+          <InfoItem
+            icon={Briefcase}
+            label="Contratação"
+            value={contrato.contratacao ?? 'N/A'}
+          />
+          <div className="flex items-center gap-2 text-sm">
+            <Building className="text-muted-foreground h-4 w-4 shrink-0" />
+            <span className="font-semibold">Unidades:</span>
             <Button
-              variant="outline-premium"
+              variant="outline"
               size="sm"
-              onClick={() => handleVisualizarContrato(contrato)}
-              className="h-9 px-4"
-              title="Abrir contrato"
+              onClick={() => handleMostrarUnidades(contrato)}
+              className="ml-auto h-auto border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
+              disabled={obterTotalUnidades(contrato) === 0}
             >
-              <Eye className="mr-2 h-4 w-4" />
-              Detalhes
+              {obterTotalUnidades(contrato) === 0 ? (
+                <span>Nenhuma</span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <Building className="h-3 w-3" />
+                  Ver ({obterTotalUnidades(contrato)})
+                </span>
+              )}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          <InfoItem
+            icon={FileText}
+            label="Processo"
+            value={obterProcessoPriorizado(contrato)}
+          />
+          <InfoItem
+            icon={Archive}
+            label="Vínculo PCA"
+            value={contrato.vinculacaoPCA ?? 'N/A'}
+          />
+        </div>
+        <div className="flex items-center justify-end border-t pt-4">
+          <Button
+            variant="outline-premium"
+            size="sm"
+            onClick={() => handleVisualizarContrato(contrato)}
+            className="h-9 px-4"
+            title="Abrir contrato"
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Detalhes
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   )
 
   return (
@@ -411,7 +407,7 @@ export const TabelaContratos = ({
                       <button
                         type="button"
                         onClick={() => onLimparFiltro(filtro.tipo)}
-                        className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                        className="rounded-full p-0.5 transition-colors hover:bg-white/20"
                         aria-label={`Remover filtro ${filtro.label}`}
                       >
                         <X className="h-3 w-3" />
@@ -556,115 +552,113 @@ export const TabelaContratos = ({
                           key={contrato.id}
                           className="hover:bg-muted/30 transition-colors"
                         >
-                            <TableCell>
-                              <Checkbox
-                                checked={contratosSelecionados.includes(
+                          <TableCell>
+                            <Checkbox
+                              checked={contratosSelecionados.includes(
+                                contrato.id,
+                              )}
+                              onCheckedChange={(checked) =>
+                                onSelecionarContrato(
                                   contrato.id,
-                                )}
-                                onCheckedChange={(checked) =>
-                                  onSelecionarContrato(
-                                    contrato.id,
-                                    checked as boolean,
-                                  )
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-primary font-medium">
-                                {contrato.numeroContrato ?? 'N/A'}
-                              </div>
-                              <div className="text-muted-foreground text-xs">
-                                {obterProcessoPriorizado(contrato)}
-                              </div>
-                              <div
-                                className="text-muted-foreground max-w-48 truncate text-xs"
-                                title={contrato.descricaoObjeto ?? ''}
-                              >
-                                {contrato.descricaoObjeto ?? 'N/A'}
-                              </div>
-                            </TableCell>
-                            {!hideContratadaColumn && (
-                              <TableCell>
-                                <div className="font-medium">
-                                  {contrato.empresaRazaoSocial ??
-                                    contrato.contratada?.razaoSocial ??
-                                    'N/A'}
-                                </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {(() => {
-                                    const rawCnpj =
-                                      contrato.empresaCnpj ??
-                                      contrato.contratada?.cnpj
-                                    const cnpjTexto = rawCnpj
-                                      ? cnpjUtils.formatar(rawCnpj)
-                                      : 'N/A'
-                                    return `CNPJ: ${cnpjTexto}`
-                                  })()}
-                                </div>
-                              </TableCell>
-                            )}
+                                  checked as boolean,
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-primary font-medium">
+                              {contrato.numeroContrato ?? 'N/A'}
+                            </div>
+                            <div className="text-muted-foreground text-xs">
+                              {obterProcessoPriorizado(contrato)}
+                            </div>
+                            <div
+                              className="text-muted-foreground max-w-48 truncate text-xs"
+                              title={contrato.descricaoObjeto ?? ''}
+                            >
+                              {contrato.descricaoObjeto ?? 'N/A'}
+                            </div>
+                          </TableCell>
+                          {!hideContratadaColumn && (
                             <TableCell>
                               <div className="font-medium">
-                                {contrato.contratacao ?? 'N/A'}
+                                {contrato.empresaRazaoSocial ??
+                                  contrato.contratada?.razaoSocial ??
+                                  'N/A'}
+                              </div>
+                              <div className="text-muted-foreground text-xs">
+                                {(() => {
+                                  const rawCnpj =
+                                    contrato.empresaCnpj ??
+                                    contrato.contratada?.cnpj
+                                  const cnpjTexto = rawCnpj
+                                    ? cnpjUtils.formatar(rawCnpj)
+                                    : 'N/A'
+                                  return `CNPJ: ${cnpjTexto}`
+                                })()}
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleMostrarUnidades(contrato)}
-                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 transition-colors duration-200 hover:bg-gray-50 disabled:opacity-60"
-                                disabled={obterTotalUnidades(contrato) === 0}
-                              >
-                                {obterTotalUnidades(contrato) === 0 ? (
-                                  <span className="text-muted-foreground">
-                                    Nenhuma unidade
+                          )}
+                          <TableCell>
+                            <div className="font-medium">
+                              {contrato.contratacao ?? 'N/A'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMostrarUnidades(contrato)}
+                              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 transition-colors duration-200 hover:bg-gray-50 disabled:opacity-60"
+                              disabled={obterTotalUnidades(contrato) === 0}
+                            >
+                              {obterTotalUnidades(contrato) === 0 ? (
+                                <span className="text-muted-foreground">
+                                  Nenhuma unidade
+                                </span>
+                              ) : (
+                                <>
+                                  <Building className="h-4 w-4 text-gray-600" />
+                                  <span className="font-medium text-gray-800">
+                                    Mostrar
                                   </span>
-                                ) : (
-                                  <>
-                                    <Building className="h-4 w-4 text-gray-600" />
-                                    <span className="font-medium text-gray-800">
-                                      Mostrar
-                                    </span>
-                                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
-                                      {obterTotalUnidades(contrato)}
-                                    </span>
-                                  </>
-                                )}
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <VigenciaDisplay
-                                vigenciaInicio={contrato.vigenciaInicial}
-                                vigenciaFim={contrato.vigenciaFinal}
-                              />
-                            </TableCell>
-                            <TableCell className="text-right font-medium whitespace-nowrap">
-                              {formatarMoeda(contrato.valorGlobal)}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <ContratoStatusBadge
-                                status={getContratoStatusFromVigencia(
-                                  contrato.vigenciaInicial,
-                                  contrato.vigenciaFinal,
-                                  contrato.status,
-                                )}
-                              />
-                            </TableCell>
-                            <TableCell className="text-right whitespace-nowrap">
-                              <Button
-                                variant="outline-premium"
-                                onClick={() =>
-                                  handleVisualizarContrato(contrato)
-                                }
-                                className="h-8 px-3"
-                              >
-                                <Eye className="mr-1 h-4 w-4" />
-                                Abrir
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                                    {obterTotalUnidades(contrato)}
+                                  </span>
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <VigenciaDisplay
+                              vigenciaInicio={contrato.vigenciaInicial}
+                              vigenciaFim={contrato.vigenciaFinal}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right font-medium whitespace-nowrap">
+                            {formatarMoeda(contrato.valorGlobal)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <ContratoStatusBadge
+                              status={getContratoStatusFromVigencia(
+                                contrato.vigenciaInicial,
+                                contrato.vigenciaFinal,
+                                contrato.status,
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            <Button
+                              variant="outline-premium"
+                              onClick={() => handleVisualizarContrato(contrato)}
+                              className="h-8 px-3"
+                            >
+                              <Eye className="mr-1 h-4 w-4" />
+                              Abrir
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
             </div>
@@ -748,110 +742,108 @@ export const TabelaContratos = ({
                           key={contrato.id}
                           className="group hover:bg-muted/50 border-b transition-colors"
                         >
-                            <TableCell>
-                              <Checkbox
-                                checked={contratosSelecionados.includes(
+                          <TableCell>
+                            <Checkbox
+                              checked={contratosSelecionados.includes(
+                                contrato.id,
+                              )}
+                              onCheckedChange={(checked) =>
+                                onSelecionarContrato(
                                   contrato.id,
-                                )}
-                                onCheckedChange={(checked) =>
-                                  onSelecionarContrato(
-                                    contrato.id,
-                                    checked as boolean,
-                                  )
-                                }
-                              />
-                            </TableCell>
+                                  checked as boolean,
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">
+                              {contrato.numeroContrato ?? 'N/A'}
+                            </div>
+                            <div className="text-muted-foreground max-w-32 truncate text-xs">
+                              {contrato.descricaoObjeto ?? 'N/A'}
+                            </div>
+                          </TableCell>
+                          {!hideContratadaColumn && (
                             <TableCell>
-                              <div className="font-medium">
-                                {contrato.numeroContrato ?? 'N/A'}
+                              <div className="max-w-36 truncate font-medium">
+                                {contrato.empresaRazaoSocial ??
+                                  contrato.contratada?.razaoSocial ??
+                                  'N/A'}
                               </div>
-                              <div className="text-muted-foreground max-w-32 truncate text-xs">
-                                {contrato.descricaoObjeto ?? 'N/A'}
-                              </div>
-                            </TableCell>
-                            {!hideContratadaColumn && (
-                              <TableCell>
-                                <div className="max-w-36 truncate font-medium">
-                                  {contrato.empresaRazaoSocial ??
-                                    contrato.contratada?.razaoSocial ??
-                                    'N/A'}
-                                </div>
-                                <div className="text-muted-foreground text-xs">
-                                  {(() => {
-                                    const rawCnpj =
-                                      contrato.empresaCnpj ??
-                                      contrato.contratada?.cnpj
-                                    const cnpjTexto = rawCnpj
-                                      ? cnpjUtils.formatar(rawCnpj)
-                                      : 'N/A'
-                                    return `CNPJ: ${cnpjTexto}`
-                                  })()}
-                                </div>
-                              </TableCell>
-                            )}
-                            <TableCell>
-                              <div className="font-medium">
-                                {contrato.contratacao ?? 'N/A'}
+                              <div className="text-muted-foreground text-xs">
+                                {(() => {
+                                  const rawCnpj =
+                                    contrato.empresaCnpj ??
+                                    contrato.contratada?.cnpj
+                                  const cnpjTexto = rawCnpj
+                                    ? cnpjUtils.formatar(rawCnpj)
+                                    : 'N/A'
+                                  return `CNPJ: ${cnpjTexto}`
+                                })()}
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleMostrarUnidades(contrato)}
-                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 transition-colors duration-200 hover:bg-gray-50 disabled:opacity-60"
-                                disabled={obterTotalUnidades(contrato) === 0}
-                              >
-                                {obterTotalUnidades(contrato) === 0 ? (
-                                  <span className="text-muted-foreground text-xs">
-                                    Nenhuma unidade
+                          )}
+                          <TableCell>
+                            <div className="font-medium">
+                              {contrato.contratacao ?? 'N/A'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMostrarUnidades(contrato)}
+                              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 transition-colors duration-200 hover:bg-gray-50 disabled:opacity-60"
+                              disabled={obterTotalUnidades(contrato) === 0}
+                            >
+                              {obterTotalUnidades(contrato) === 0 ? (
+                                <span className="text-muted-foreground text-xs">
+                                  Nenhuma unidade
+                                </span>
+                              ) : (
+                                <>
+                                  <Building className="h-4 w-4 text-gray-600" />
+                                  <span className="font-medium text-gray-800">
+                                    Mostrar
                                   </span>
-                                ) : (
-                                  <>
-                                    <Building className="h-4 w-4 text-gray-600" />
-                                    <span className="font-medium text-gray-800">
-                                      Mostrar
-                                    </span>
-                                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
-                                      {obterTotalUnidades(contrato)}
-                                    </span>
-                                  </>
-                                )}
-                              </Button>
-                            </TableCell>
-                            <TableCell>
-                              <VigenciaDisplay
-                                vigenciaInicio={contrato.vigenciaInicial}
-                                vigenciaFim={contrato.vigenciaFinal}
-                                compact
-                              />
-                            </TableCell>
-                            <TableCell className="text-right font-medium whitespace-nowrap">
-                              {formatarMoeda(contrato.valorGlobal)}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              <ContratoStatusBadge
-                                status={getContratoStatusFromVigencia(
-                                  contrato.vigenciaInicial,
-                                  contrato.vigenciaFinal,
-                                  contrato.status,
-                                )}
-                              />
-                            </TableCell>
-                            <TableCell className="text-right whitespace-nowrap">
-                              <Button
-                                variant="outline-premium"
-                                size="sm"
-                                onClick={() =>
-                                  handleVisualizarContrato(contrato)
-                                }
-                                className="h-8 px-3"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                                    {obterTotalUnidades(contrato)}
+                                  </span>
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <VigenciaDisplay
+                              vigenciaInicio={contrato.vigenciaInicial}
+                              vigenciaFim={contrato.vigenciaFinal}
+                              compact
+                            />
+                          </TableCell>
+                          <TableCell className="text-right font-medium whitespace-nowrap">
+                            {formatarMoeda(contrato.valorGlobal)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <ContratoStatusBadge
+                              status={getContratoStatusFromVigencia(
+                                contrato.vigenciaInicial,
+                                contrato.vigenciaFinal,
+                                contrato.status,
+                              )}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            <Button
+                              variant="outline-premium"
+                              size="sm"
+                              onClick={() => handleVisualizarContrato(contrato)}
+                              className="h-8 px-3"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
             </div>
@@ -860,7 +852,7 @@ export const TabelaContratos = ({
           {/* Mobile Cards */}
           <div
             key={`page-${paginacao.pagina}`}
-            className="grid grid-cols-1 gap-4 animate-in fade-in-0 zoom-in-[0.98] duration-300 lg:hidden xl:grid-cols-2"
+            className="animate-in fade-in-0 zoom-in-[0.98] grid grid-cols-1 gap-4 duration-300 lg:hidden xl:grid-cols-2"
           >
             {isLoading
               ? mobileSkeletonCardIds.map((skeletonId) => (
@@ -879,10 +871,7 @@ export const TabelaContratos = ({
                   </Card>
                 ))
               : contratos.map((contrato) => (
-                  <MobileContractCard
-                    key={contrato.id}
-                    contrato={contrato}
-                  />
+                  <MobileContractCard key={contrato.id} contrato={contrato} />
                 ))}
           </div>
 

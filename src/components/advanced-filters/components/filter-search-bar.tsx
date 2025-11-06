@@ -69,7 +69,9 @@ export const FilterSearchBar = ({
             className="text-muted-foreground bg-background/95 absolute top-full left-0 z-10 mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm shadow-sm backdrop-blur-sm"
           >
             <Info className="h-4 w-4 flex-shrink-0" />
-            <span>Digite pelo menos {minCharacters} caracteres para pesquisar</span>
+            <span>
+              Digite pelo menos {minCharacters} caracteres para pesquisar
+            </span>
           </motion.div>
         )}
       </AnimatePresence>

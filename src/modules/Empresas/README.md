@@ -17,6 +17,7 @@ src/modules/Empresas/
 - **`use-empresas.ts`** - Hook para gerenciamento de empresas
 
 Hooks disponíveis:
+
 - `useConsultarEmpresaPorCNPJ` - Buscar empresa por CNPJ
 - `useConsultarEmpresas` - Listar empresas
 
@@ -28,6 +29,7 @@ Hooks disponíveis:
 - **`query-keys.ts`** - Keys do TanStack Query
 
 Serviços disponíveis:
+
 - `consultarEmpresaPorCNPJ()` - Buscar empresa específica
 - `consultarEmpresas()` - Listar todas as empresas
 
@@ -70,19 +72,29 @@ interface Contato {
 ### 1. Hooks de Consulta
 
 ```typescript
-import { useConsultarEmpresaPorCNPJ, useConsultarEmpresas } from '@/modules/Empresas/hooks/use-empresas'
+import {
+  useConsultarEmpresaPorCNPJ,
+  useConsultarEmpresas,
+} from '@/modules/Empresas/hooks/use-empresas'
 
 // Buscar empresa por CNPJ
-const { data: empresa, isLoading } = useConsultarEmpresaPorCNPJ('12345678000190')
+const { data: empresa, isLoading } =
+  useConsultarEmpresaPorCNPJ('12345678000190')
 
 // Listar empresas
-const { data: empresas } = useConsultarEmpresas({ pagina: 1, itensPorPagina: 10 })
+const { data: empresas } = useConsultarEmpresas({
+  pagina: 1,
+  itensPorPagina: 10,
+})
 ```
 
 ### 2. Serviços Diretos
 
 ```typescript
-import { consultarEmpresaPorCNPJ, consultarEmpresas } from '@/modules/Empresas/services/empresa-service'
+import {
+  consultarEmpresaPorCNPJ,
+  consultarEmpresas,
+} from '@/modules/Empresas/services/empresa-service'
 
 // Uso direto dos serviços (sem cache do TanStack Query)
 const empresa = await consultarEmpresaPorCNPJ('12345678000190')
@@ -147,6 +159,7 @@ export const empresaKeys = {
 **Status**: Estrutura criada, aguardando implementação de testes.
 
 Testes planejados:
+
 ```
 hooks/
 ├── __tests__/
@@ -158,15 +171,15 @@ services/
 
 ## 🚧 Status de Desenvolvimento
 
-| Funcionalidade | Status |
-|---|---|
+| Funcionalidade    | Status          |
+| ----------------- | --------------- |
 | Hooks de consulta | ✅ Implementado |
-| Serviços de API | ✅ Implementado |
-| Tipos TypeScript | ✅ Implementado |
-| Query Keys | ✅ Implementado |
-| Testes | ⏳ Pendente |
-| Componentes UI | ⏳ Pendente |
-| Páginas | ⏳ Pendente |
+| Serviços de API   | ✅ Implementado |
+| Tipos TypeScript  | ✅ Implementado |
+| Query Keys        | ✅ Implementado |
+| Testes            | ⏳ Pendente     |
+| Componentes UI    | ⏳ Pendente     |
+| Páginas           | ⏳ Pendente     |
 
 ## 📋 Próximos Passos
 

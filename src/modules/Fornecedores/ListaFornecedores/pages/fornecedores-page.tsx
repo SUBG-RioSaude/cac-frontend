@@ -234,10 +234,12 @@ const FornecedoresListPage = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <SearchAndFiltersFornecedores
-          onFiltrosChange={useCallback((novosFiltros: FiltrosFornecedorApi) => {
-            setFiltros(prev => {
-              // Verifica se já possui paginação nos novos filtros
-              const jaPossuiPaginacao = 'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
+            onFiltrosChange={useCallback(
+              (novosFiltros: FiltrosFornecedorApi) => {
+                setFiltros((prev) => {
+                  // Verifica se já possui paginação nos novos filtros
+                  const jaPossuiPaginacao =
+                    'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
 
                   const filtrosFinais = {
                     ...prev,

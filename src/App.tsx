@@ -23,7 +23,6 @@ import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
 
-
 const App = () => {
   return (
     <Routes>

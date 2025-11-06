@@ -56,7 +56,10 @@ export const useDebugInfiniteLoop = (
         renderTimestamps.current.length > 10 ? '⚠️ SUSPEITO' : ''
       }`,
     )
-    console.log('📊 Renders no último segundo:', renderTimestamps.current.length)
+    console.log(
+      '📊 Renders no último segundo:',
+      renderTimestamps.current.length,
+    )
 
     if (Object.keys(changedValues).length > 0) {
       console.log('🔄 Valores que mudaram:', changedValues)

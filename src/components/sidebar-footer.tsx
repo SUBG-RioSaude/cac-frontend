@@ -72,9 +72,9 @@ const SidebarFooter = () => {
       <div className="space-y-1.5">
         {/* Versão */}
         <div className="flex items-center gap-1.5">
-          <Package className="h-3 w-3 text-muted-foreground" />
+          <Package className="text-muted-foreground h-3 w-3" />
           <div className="flex flex-1 items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Versão:</span>
+            <span className="text-muted-foreground text-[11px]">Versão:</span>
             <span className="font-mono text-[11px] font-medium">
               {metadata.versao}
             </span>
@@ -83,9 +83,9 @@ const SidebarFooter = () => {
 
         {/* Build Number */}
         <div className="flex items-center gap-1.5">
-          <Hash className="h-3 w-3 text-muted-foreground" />
+          <Hash className="text-muted-foreground h-3 w-3" />
           <div className="flex flex-1 items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Build:</span>
+            <span className="text-muted-foreground text-[11px]">Build:</span>
             <span className="font-mono text-[11px] font-medium">
               #{metadata.buildNumber}
             </span>
@@ -94,9 +94,9 @@ const SidebarFooter = () => {
 
         {/* Commit SHA */}
         <div className="flex items-center gap-1.5">
-          <GitBranch className="h-3 w-3 text-muted-foreground" />
+          <GitBranch className="text-muted-foreground h-3 w-3" />
           <div className="flex flex-1 items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Commit:</span>
+            <span className="text-muted-foreground text-[11px]">Commit:</span>
             <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[11px] font-medium text-slate-700">
               {metadata.commitSha}
             </code>
@@ -105,9 +105,9 @@ const SidebarFooter = () => {
 
         {/* Data do Build */}
         <div className="flex items-center gap-1.5">
-          <Calendar className="h-3 w-3 text-muted-foreground" />
+          <Calendar className="text-muted-foreground h-3 w-3" />
           <div className="flex flex-1 items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Data:</span>
+            <span className="text-muted-foreground text-[11px]">Data:</span>
             <span className="text-[11px] font-medium">
               {metadata.buildTimestamp}
             </span>

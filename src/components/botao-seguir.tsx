@@ -132,7 +132,7 @@ export const BotaoSeguir = ({
       disabled={isLoading}
       className={cn(
         'transition-all duration-200',
-        seguindo && 'bg-green-600 hover:bg-green-700 text-white',
+        seguindo && 'bg-green-600 text-white hover:bg-green-700',
         className,
       )}
       aria-label={seguindo ? 'Deixar de seguir' : 'Seguir'}

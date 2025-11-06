@@ -107,7 +107,10 @@ export const TrendSection = ({ data, isLoading }: TrendSectionProps) => {
 
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart
+            data={data}
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          >
             <defs>
               {/* Gradiente para Ativos */}
               <linearGradient id="colorAtivos" x1="0" y1="0" x2="0" y2="1">
@@ -200,7 +203,7 @@ export const TrendSection = ({ data, isLoading }: TrendSectionProps) => {
         </ResponsiveContainer>
 
         {/* Resumo numérico */}
-        <div className="mt-4 grid grid-cols-3 gap-4 rounded-lg bg-muted/30 p-4">
+        <div className="bg-muted/30 mt-4 grid grid-cols-3 gap-4 rounded-lg p-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-[#42b9eb]">
               {data[data.length - 1]?.ativos ?? 0}

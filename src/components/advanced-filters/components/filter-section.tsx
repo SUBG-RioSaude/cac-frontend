@@ -36,9 +36,7 @@ export const FilterSection = <TFilters extends Record<string, any>>({
   onFiltrosChange,
   isMobile = false,
 }: FilterSectionProps<TFilters>) => {
-  const [isExpanded, setIsExpanded] = useState(
-    section.defaultExpanded ?? false,
-  )
+  const [isExpanded, setIsExpanded] = useState(section.defaultExpanded ?? false)
 
   const Icon = section.icon
 
@@ -47,7 +45,9 @@ export const FilterSection = <TFilters extends Record<string, any>>({
     if (section.config.type === 'checkbox-list') {
       const value = filtros[section.config.field]
       return (
-        (section.config.multiSelect && Array.isArray(value) && value.length > 0) ||
+        (section.config.multiSelect &&
+          Array.isArray(value) &&
+          value.length > 0) ||
         (!section.config.multiSelect && value !== undefined && value !== null)
       )
     }
@@ -175,7 +175,7 @@ export const FilterSection = <TFilters extends Record<string, any>>({
         </Button>
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="ml-6 mt-2 space-y-3">
+      <CollapsibleContent className="mt-2 ml-6 space-y-3">
         {renderField()}
       </CollapsibleContent>
     </Collapsible>

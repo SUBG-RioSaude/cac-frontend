@@ -5,7 +5,7 @@
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
-export type LogContext = Record<string, unknown>;
+export type LogContext = Record<string, unknown>
 
 export interface Logger {
   trace: (message: string | LogContext, context?: string | LogContext) => void
@@ -41,7 +41,9 @@ export const createServiceLogger = (serviceName: string): Logger => {
         if (typeof message === 'string') {
           console.debug(`${prefix} [TRACE] ${message}${formatContext(context)}`)
         } else {
-          console.debug(`${prefix} [TRACE] ${context as string}${formatContext(message)}`)
+          console.debug(
+            `${prefix} [TRACE] ${context as string}${formatContext(message)}`,
+          )
         }
       }
     },
@@ -52,7 +54,9 @@ export const createServiceLogger = (serviceName: string): Logger => {
         if (typeof message === 'string') {
           console.debug(`${prefix} ${message}${formatContext(context)}`)
         } else {
-          console.debug(`${prefix} ${context as string}${formatContext(message)}`)
+          console.debug(
+            `${prefix} ${context as string}${formatContext(message)}`,
+          )
         }
       }
     },
@@ -72,7 +76,9 @@ export const createServiceLogger = (serviceName: string): Logger => {
       if (typeof message === 'string') {
         console.warn(`${prefix} ⚠️ ${message}${formatContext(context)}`)
       } else {
-        console.warn(`${prefix} ⚠️ ${context as string}${formatContext(message)}`)
+        console.warn(
+          `${prefix} ⚠️ ${context as string}${formatContext(message)}`,
+        )
       }
     },
 
@@ -81,7 +87,9 @@ export const createServiceLogger = (serviceName: string): Logger => {
       if (typeof message === 'string') {
         console.error(`${prefix} ❌ ${message}${formatContext(context)}`)
       } else {
-        console.error(`${prefix} ❌ ${context as string}${formatContext(message)}`)
+        console.error(
+          `${prefix} ❌ ${context as string}${formatContext(message)}`,
+        )
       }
     },
   }
@@ -90,8 +98,13 @@ export const createServiceLogger = (serviceName: string): Logger => {
 /**
  * Cria um logger com prefixo de componente
  */
-export const createComponentLogger = (componentName: string, module?: string): Logger => {
-  const name = module ? `component:${module}:${componentName}` : `component:${componentName}`
+export const createComponentLogger = (
+  componentName: string,
+  module?: string,
+): Logger => {
+  const name = module
+    ? `component:${module}:${componentName}`
+    : `component:${componentName}`
   return createServiceLogger(name)
 }
 

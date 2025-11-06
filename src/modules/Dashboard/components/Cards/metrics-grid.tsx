@@ -62,9 +62,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
       change: data
         ? `${data.metrics.valorTotal.percentual > 0 ? '+' : ''}${data.metrics.valorTotal.percentual.toFixed(1)}%`
         : '+18.7%',
-      trend: data
-        ? (data.metrics.valorTotal.tendencia as 'up' | 'down')
-        : 'up',
+      trend: data ? (data.metrics.valorTotal.tendencia as 'up' | 'down') : 'up',
       icon: DollarSign,
       description: 'vs. mês anterior',
     },
@@ -76,12 +74,12 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
         {[1, 2, 3, 4].map((i) => (
           <Card key={i} className="bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-4 animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-4 w-24 animate-pulse rounded" />
+              <div className="bg-muted h-4 w-4 animate-pulse rounded" />
             </CardHeader>
             <CardContent>
-              <div className="h-8 w-32 animate-pulse rounded bg-muted" />
-              <div className="mt-2 h-4 w-40 animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-8 w-32 animate-pulse rounded" />
+              <div className="bg-muted mt-2 h-4 w-40 animate-pulse rounded" />
             </CardContent>
           </Card>
         ))}
@@ -100,13 +98,13 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
         return (
           <Card key={metric.title} className="bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-muted-foreground text-sm font-medium">
                 {metric.title}
               </CardTitle>
-              <Icon className="h-4 w-4 text-muted-foreground" />
+              <Icon className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">
+              <div className="text-foreground text-2xl font-bold">
                 {metric.value}
               </div>
               <div className="mt-1 flex items-center gap-1">
@@ -114,7 +112,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
                 <span className={`text-xs font-medium ${trendColor}`}>
                   {metric.change}
                 </span>
-                <span className="ml-1 text-xs text-muted-foreground">
+                <span className="text-muted-foreground ml-1 text-xs">
                   {metric.description}
                 </span>
               </div>

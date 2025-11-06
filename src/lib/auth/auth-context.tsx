@@ -1,5 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { createContext, useContext, type ReactNode, useEffect, useState } from 'react'
+import {
+  createContext,
+  useContext,
+  type ReactNode,
+  useEffect,
+  useState,
+} from 'react'
 
 import type { Usuario } from '@/types/auth'
 
@@ -30,7 +36,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [hasCookies, setHasCookies] = useState(hasAuthCookies())
 
   // Só busca usuário atual se houver cookies válidos
-  const { data: usuario, isLoading, error } = useMeQuery({
+  const {
+    data: usuario,
+    isLoading,
+    error,
+  } = useMeQuery({
     enabled: hasCookies,
   })
 
@@ -91,13 +101,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       'Timer de renovação proativa iniciado (12 minutos)',
     )
 
-    const interval = setInterval(() => {
-      authContextLogger.info(
-        { action: 'token-renewal-timer', status: 'executing' },
-        '🔄 Renovação proativa de token',
-      )
-      void useAuthStore.getState().renovarToken()
-    }, 12 * 60 * 1000) // 12 minutos
+    const interval = setInterval(
+      () => {
+        authContextLogger.info(
+          { action: 'token-renewal-timer', status: 'executing' },
+          '🔄 Renovação proativa de token',
+        )
+        void useAuthStore.getState().renovarToken()
+      },
+      12 * 60 * 1000,
+    ) // 12 minutos
 
     return () => {
       authContextLogger.info(

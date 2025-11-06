@@ -21,7 +21,8 @@ export const useFilterSearch = <TFilters extends Record<string, any>>({
   onFiltrosChange,
 }: UseFilterSearchProps<TFilters>) => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [showMinCharactersWarning, setShowMinCharactersWarning] = useState(false)
+  const [showMinCharactersWarning, setShowMinCharactersWarning] =
+    useState(false)
 
   // ✅ CORREÇÃO DEFINITIVA: Usar ref para rastrear último valor aplicado
   const lastAppliedSearchRef = useRef<string>('')

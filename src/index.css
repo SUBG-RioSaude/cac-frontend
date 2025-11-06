@@ -1,6 +1,18 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* ========== TIPOGRAFIA - PLUS JAKARTA SANS ==========
+   Hierarquia baseada no manual de marca:
+   - Extra Bold (800): Títulos principais (equivalente a BLACK)
+   - Bold (700): Subtítulos e títulos secundários (equivalente a MEDIUM)
+   - Regular (400): Textos corridos e parágrafos
+*/
+@import '@fontsource/plus-jakarta-sans/400.css'; /* Regular */
+@import '@fontsource/plus-jakarta-sans/500.css'; /* Medium */
+@import '@fontsource/plus-jakarta-sans/600.css'; /* Semi Bold */
+@import '@fontsource/plus-jakarta-sans/700.css'; /* Bold */
+@import '@fontsource/plus-jakarta-sans/800.css'; /* Extra Bold */
+
 @custom-variant dark (&:is(.dark *));
 
 /* Escopo customizado só para a sidebar */
@@ -42,7 +54,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-sans:
-    Roboto, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
@@ -196,6 +208,30 @@
 }
 
 @layer utilities {
+  /* ========== HIERARQUIA TIPOGRÁFICA - MANUAL DE MARCA ========== */
+
+  /* Títulos principais - PLUS JAKARTA SANS EXTRA BOLD (equivalente a CERA PRO BLACK) */
+  .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase; /* Preferencialmente CAIXA ALTA */
+    letter-spacing: -0.02em; /* Reduzir entrelinha em títulos grandes (mínimo 30 milésimos) */
+  }
+
+  /* Subtítulos e títulos curtos - PLUS JAKARTA SANS BOLD (equivalente a CERA PRO MEDIUM) */
+  .font-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    /* Preferencialmente CAIXA ALTA, mas pode ser sentença */
+  }
+
+  /* Textos longos - PLUS JAKARTA SANS REGULAR (equivalente a CERA PRO REGULAR) */
+  .font-body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 400;
+    /* Caixa alta e baixa (sentença normal) */
+  }
+
   /* Esconde scrollbar mas mantém funcionalidade */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

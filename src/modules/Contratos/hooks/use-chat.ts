@@ -99,7 +99,9 @@ export const useContractChatMessages = (
   })
 
   const mensagens =
-    query.data?.pages.flatMap((page: ChatMensagensPaginadas) => page.mensagens) ?? ([] as ChatMessage[])
+    query.data?.pages.flatMap(
+      (page: ChatMensagensPaginadas) => page.mensagens,
+    ) ?? ([] as ChatMessage[])
 
   return {
     ...query,
@@ -142,7 +144,8 @@ export const useSendChatMessage = (
     },
     onError: (error) => {
       toast.error('Erro ao enviar mensagem', {
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        description:
+          error instanceof Error ? error.message : 'Erro desconhecido',
       })
     },
   })
@@ -175,9 +178,8 @@ export const useUpdateChatMessage = (
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey })
 
-      const previousData = queryClient.getQueryData<
-        InfiniteData<ChatMensagensPaginadas>
-      >(queryKey)
+      const previousData =
+        queryClient.getQueryData<InfiniteData<ChatMensagensPaginadas>>(queryKey)
 
       if (previousData) {
         const pages = replaceMessageInPages(
@@ -207,7 +209,8 @@ export const useUpdateChatMessage = (
         queryClient.setQueryData(queryKey, context.previousData)
       }
       toast.error('Erro ao atualizar mensagem', {
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        description:
+          error instanceof Error ? error.message : 'Erro desconhecido',
       })
     },
     onSettled: () => {
@@ -233,9 +236,8 @@ export const useDeleteChatMessage = (
     onMutate: async (mensagemId) => {
       await queryClient.cancelQueries({ queryKey })
 
-      const previousData = queryClient.getQueryData<
-        InfiniteData<ChatMensagensPaginadas>
-      >(queryKey)
+      const previousData =
+        queryClient.getQueryData<InfiniteData<ChatMensagensPaginadas>>(queryKey)
 
       if (previousData) {
         const pages = replaceMessageInPages(
@@ -260,7 +262,8 @@ export const useDeleteChatMessage = (
         queryClient.setQueryData(queryKey, context.previousData)
       }
       toast.error('Erro ao remover mensagem', {
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        description:
+          error instanceof Error ? error.message : 'Erro desconhecido',
       })
     },
     onSettled: () => {
@@ -277,7 +280,8 @@ export const useChatEstatisticas = (options?: { enabled?: boolean }) => {
         return await fetchEstatisticas()
       } catch (error) {
         toast.error('Erro ao carregar estatísticas', {
-          description: error instanceof Error ? error.message : 'Erro desconhecido',
+          description:
+            error instanceof Error ? error.message : 'Erro desconhecido',
         })
         throw error
       }
@@ -307,12 +311,15 @@ export const useContractChatRealtime = ({
   const [connectionError, setConnectionError] = useState<Error | null>(null)
 
   useEffect(() => {
-    realtimeLogger.debug('useContractChatRealtime - Inicializando com params:', {
-      contratoId,
-      autorId,
-      sistemaId,
-      pageSize,
-    })
+    realtimeLogger.debug(
+      'useContractChatRealtime - Inicializando com params:',
+      {
+        contratoId,
+        autorId,
+        sistemaId,
+        pageSize,
+      },
+    )
 
     if (!contratoId || !autorId) {
       realtimeLogger.warn('SignalR NÃO VAI CONECTAR - Parâmetros inválidos:', {
@@ -388,7 +395,9 @@ export const useContractChatRealtime = ({
                 )
 
                 if (exists) {
-                  realtimeLogger.debug('Mensagem já existe, ignorando duplicação')
+                  realtimeLogger.debug(
+                    'Mensagem já existe, ignorando duplicação',
+                  )
                   return current
                 }
 

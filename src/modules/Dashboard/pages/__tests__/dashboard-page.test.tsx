@@ -91,12 +91,16 @@ describe('DashboardPage', () => {
       render(<DashboardPage />, { wrapper: createWrapper() })
 
       expect(
-        screen.getByText('Visão executiva e operacional do portfólio de contratos'),
+        screen.getByText(
+          'Visão executiva e operacional do portfólio de contratos',
+        ),
       ).toBeInTheDocument()
     })
 
     it('deve renderizar o ícone do dashboard', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const icon = container.querySelector('svg')
       expect(icon).toBeInTheDocument()
@@ -115,28 +119,36 @@ describe('DashboardPage', () => {
 
   describe('Layout', () => {
     it('deve ter estrutura de container responsivo', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const mainContainer = container.querySelector('.container')
       expect(mainContainer).toBeInTheDocument()
     })
 
     it('deve ter cabeçalho com borda', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const header = container.querySelector('.border')
       expect(header).toBeInTheDocument()
     })
 
     it('deve ter grid responsivo para contratos e riscos', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const grid = container.querySelector('.lg\\:grid-cols-2')
       expect(grid).toBeInTheDocument()
     })
 
     it('deve ter estrutura principal com min-h-screen', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const mainDiv = container.querySelector('.min-h-screen')
       expect(mainDiv).toBeInTheDocument()
@@ -155,7 +167,9 @@ describe('DashboardPage', () => {
     })
 
     it('deve ter estrutura semântica com main', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const mainElement = container.querySelector('main')
       expect(mainElement).toBeInTheDocument()
@@ -200,7 +214,9 @@ describe('DashboardPage', () => {
 
   describe('Estrutura de Tabs', () => {
     it('deve renderizar sistema de abas', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       // Verifica se existe a estrutura de tabs do Radix UI
       const tabsList = container.querySelector('[role="tablist"]')
@@ -208,7 +224,9 @@ describe('DashboardPage', () => {
     })
 
     it('deve ter três triggers de tab', () => {
-      const { container } = render(<DashboardPage />, { wrapper: createWrapper() })
+      const { container } = render(<DashboardPage />, {
+        wrapper: createWrapper(),
+      })
 
       const tabTriggers = container.querySelectorAll('[role="tab"]')
       expect(tabTriggers).toHaveLength(3)

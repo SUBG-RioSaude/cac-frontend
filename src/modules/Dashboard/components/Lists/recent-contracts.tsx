@@ -1,7 +1,13 @@
 import { FileText, Calendar, DollarSign } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 // TODO: Substituir por dados reais da API
 const recentContracts = [
@@ -64,18 +70,18 @@ export const RecentContracts = () => {
           {recentContracts.map((contract) => (
             <div
               key={contract.id}
-              className="flex items-start gap-4 rounded-lg border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
+              className="border-border bg-muted/30 hover:bg-muted/50 flex items-start gap-4 rounded-lg border p-4 transition-colors"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <FileText className="h-5 w-5 text-primary" />
+              <div className="bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+                <FileText className="text-primary h-5 w-5" />
               </div>
               <div className="flex-1 space-y-1">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium leading-none text-foreground">
+                    <p className="text-foreground text-sm leading-none font-medium">
                       {contract.title}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="text-muted-foreground mt-1 text-xs">
                       {contract.company}
                     </p>
                   </div>
@@ -83,7 +89,7 @@ export const RecentContracts = () => {
                     {statusConfig[contract.status].label}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-4 text-xs">
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
                     <span>{contract.value}</span>
@@ -92,7 +98,9 @@ export const RecentContracts = () => {
                     <Calendar className="h-3 w-3" />
                     <span>{contract.date}</span>
                   </div>
-                  <span className="text-muted-foreground/70">{contract.id}</span>
+                  <span className="text-muted-foreground/70">
+                    {contract.id}
+                  </span>
                 </div>
               </div>
             </div>

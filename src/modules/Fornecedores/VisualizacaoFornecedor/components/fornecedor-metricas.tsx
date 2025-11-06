@@ -6,12 +6,7 @@
  */
 
 import { motion } from 'framer-motion'
-import {
-  FileText,
-  DollarSign,
-  CheckCircle,
-  TrendingUp,
-} from 'lucide-react'
+import { FileText, DollarSign, CheckCircle, TrendingUp } from 'lucide-react'
 import { useMemo } from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -194,7 +189,9 @@ export const FornecedorMetricas = ({
             <div className="text-2xl font-bold text-orange-600">
               <CurrencyDisplay value={metricas.ticketMedio} />
             </div>
-            <p className="text-muted-foreground text-xs">valor médio/contrato</p>
+            <p className="text-muted-foreground text-xs">
+              valor médio/contrato
+            </p>
           </CardContent>
         </Card>
       </motion.div>

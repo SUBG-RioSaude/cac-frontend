@@ -66,11 +66,7 @@ export const CollapsibleCard = ({
   return (
     <Collapsible open={isOpen} onOpenChange={handleToggle}>
       <Card
-        className={cn(
-          'transition-all duration-200',
-          styles.border,
-          className,
-        )}
+        className={cn('transition-all duration-200', styles.border, className)}
       >
         <CollapsibleTrigger className="w-full" asChild>
           <CardHeader

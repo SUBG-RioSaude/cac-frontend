@@ -58,7 +58,9 @@ export const obterSistemaId = (sistema: SistemaKey): string => {
   const id = SISTEMA_IDS[sistema]
 
   if (!id) {
-    console.warn(`[Sistemas] Sistema desconhecido: ${sistema}, usando SISTEMA_FRONTEND_ID como fallback`)
+    console.warn(
+      `[Sistemas] Sistema desconhecido: ${sistema}, usando SISTEMA_FRONTEND_ID como fallback`,
+    )
     return SISTEMA_FRONTEND_ID
   }
 

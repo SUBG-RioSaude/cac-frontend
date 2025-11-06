@@ -283,11 +283,13 @@ export const getActivityConfig = (type: ActivityType) => {
     },
   }
 
-  return configs[type] || {
-    icon: 'Edit',
-    color: 'text-yellow-600',
-    bg: 'bg-yellow-100',
-  }
+  return (
+    configs[type] || {
+      icon: 'Edit',
+      color: 'text-yellow-600',
+      bg: 'bg-yellow-100',
+    }
+  )
 }
 
 /**

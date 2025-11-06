@@ -119,8 +119,7 @@ export const AdvancedFilters = <TFilters extends Record<string, any>>({
             onClearSearch={clearSearch}
             placeholder={searchConfig.placeholder}
             showMinCharactersWarning={
-              searchConfig.showMinCharactersWarning &&
-              showMinCharactersWarning
+              searchConfig.showMinCharactersWarning && showMinCharactersWarning
             }
             minCharacters={minCharacters}
             totalResults={totalResults}

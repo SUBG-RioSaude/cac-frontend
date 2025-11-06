@@ -28,10 +28,18 @@ interface ToggleSeguirContext {
  */
 export const subscricoesQueryKeys = {
   all: ['subscricoes'] as const,
-  minhas: (filtros?: { page?: number; pageSize?: number; sistemaId?: string }) =>
-    [...subscricoesQueryKeys.all, 'minhas', filtros] as const,
+  minhas: (filtros?: {
+    page?: number
+    pageSize?: number
+    sistemaId?: string
+  }) => [...subscricoesQueryKeys.all, 'minhas', filtros] as const,
   verificarSeguindo: (sistemaId: string, entidadeOrigemId: string) =>
-    [...subscricoesQueryKeys.all, 'verificar', sistemaId, entidadeOrigemId] as const,
+    [
+      ...subscricoesQueryKeys.all,
+      'verificar',
+      sistemaId,
+      entidadeOrigemId,
+    ] as const,
 } as const
 
 // ============================================================================
@@ -60,8 +68,12 @@ export const useVerificarSeguindoQuery = (
   enabled = true,
 ) => {
   return useQuery<StatusSeguimentoResponse>({
-    queryKey: subscricoesQueryKeys.verificarSeguindo(sistemaId, entidadeOrigemId),
-    queryFn: () => subscricoesApi.verificarSeguindo(sistemaId, entidadeOrigemId),
+    queryKey: subscricoesQueryKeys.verificarSeguindo(
+      sistemaId,
+      entidadeOrigemId,
+    ),
+    queryFn: () =>
+      subscricoesApi.verificarSeguindo(sistemaId, entidadeOrigemId),
     enabled: enabled && !!sistemaId && !!entidadeOrigemId,
     staleTime: 1000 * 60 * 2, // 2 minutos
     gcTime: 1000 * 60 * 5, // 5 minutos
@@ -189,7 +201,9 @@ export const useToggleSeguirMutation = () => {
       })
 
       // Toast de sucesso
-      toast.success(data.mensagem || (data.seguindo ? 'Seguindo!' : 'Deixou de seguir'))
+      toast.success(
+        data.mensagem || (data.seguindo ? 'Seguindo!' : 'Deixou de seguir'),
+      )
     },
 
     onError: (erro, _variables, context) => {

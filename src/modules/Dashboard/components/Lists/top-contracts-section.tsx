@@ -76,9 +76,7 @@ export const TopContractsSection = ({
   }
 
   // Pegar apenas os 5 maiores
-  const topContracts = contracts
-    .sort((a, b) => b.valor - a.valor)
-    .slice(0, 5)
+  const topContracts = contracts.sort((a, b) => b.valor - a.valor).slice(0, 5)
 
   const totalValue = topContracts.reduce(
     (sum, contract) => sum + contract.valor,
@@ -152,7 +150,7 @@ export const TopContractsSection = ({
                 <div className="flex-1 space-y-1">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <div className="font-medium leading-tight line-clamp-1">
+                      <div className="line-clamp-1 leading-tight font-medium">
                         {contract.objeto}
                       </div>
                       <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
@@ -171,7 +169,7 @@ export const TopContractsSection = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-muted-foreground text-xs">
                       Nº {contract.numero}
                     </div>
                     <div className="text-sm font-bold text-[#2a688f]">

@@ -84,7 +84,9 @@ export const CheckboxListField = <TFilters extends Record<string, any>>({
             >
               {Icon && <Icon className="h-4 w-4" />}
               {option.color ? (
-                <span className={cn('rounded-full px-2 py-1 text-xs', option.color)}>
+                <span
+                  className={cn('rounded-full px-2 py-1 text-xs', option.color)}
+                >
                   {option.label}
                 </span>
               ) : (

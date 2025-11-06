@@ -47,11 +47,7 @@ export const dashboardKeys = {
   invalidateAll: () => [dashboardKeys.all] as const,
 
   invalidateMetrics: () =>
-    [
-      dashboardKeys.metrics(),
-      dashboardKeys.data(),
-      dashboardKeys.all,
-    ] as const,
+    [dashboardKeys.metrics(), dashboardKeys.data(), dashboardKeys.all] as const,
 
   invalidateCharts: () =>
     [

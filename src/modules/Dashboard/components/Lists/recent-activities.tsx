@@ -7,7 +7,13 @@ import {
   FileSignature,
 } from 'lucide-react'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 // TODO: Substituir por dados reais da API
 const activities = [
@@ -93,7 +99,7 @@ export const RecentActivities = () => {
             return (
               <div
                 key={activity.id}
-                className="flex items-start gap-4 rounded-lg border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"
+                className="border-border bg-muted/30 hover:bg-muted/50 flex items-start gap-4 rounded-lg border p-4 transition-colors"
               >
                 <div
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${activity.bgColor}`}
@@ -103,18 +109,18 @@ export const RecentActivities = () => {
                 <div className="flex-1 space-y-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-sm font-medium leading-none text-foreground">
+                      <p className="text-foreground text-sm leading-none font-medium">
                         {activity.title}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         {activity.description}
                       </p>
                     </div>
-                    <span className="whitespace-nowrap text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs whitespace-nowrap">
                       {activity.timestamp}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     por <span className="font-medium">{activity.user}</span>
                   </p>
                 </div>

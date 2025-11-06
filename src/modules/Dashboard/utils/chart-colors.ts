@@ -168,9 +168,7 @@ export const hexToRgba = (hex: string, alpha: number): string => {
 /**
  * Helper: Obtém cor de status de contrato
  */
-export const getStatusColor = (
-  status: keyof typeof STATUS_COLORS,
-): string => {
+export const getStatusColor = (status: keyof typeof STATUS_COLORS): string => {
   return STATUS_COLORS[status] ?? STATUS_COLORS.indefinido
 }
 

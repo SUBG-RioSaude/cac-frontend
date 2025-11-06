@@ -248,7 +248,7 @@ export const TabelaFornecedores = ({
                         ease: 'easeOut',
                         delay: index * 0.03,
                       }}
-                      className="group cursor-pointer transition-colors hover:bg-muted/30"
+                      className="group hover:bg-muted/30 cursor-pointer transition-colors"
                       onClick={() => onAbrirFornecedor(fornecedor)}
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>

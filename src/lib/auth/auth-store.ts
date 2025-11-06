@@ -62,471 +62,466 @@ const sanitizeMensagem = (
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
-      // Estado inicial
-      usuario: null,
-      estaAutenticado: false,
-      carregando: false,
-      erro: null,
+  // Estado inicial
+  usuario: null,
+  estaAutenticado: false,
+  carregando: false,
+  erro: null,
 
-      // Login - Primeira etapa (envia código 2FA)
-      login: async (email: string, senha: string) => {
-        try {
-          set({ carregando: true, erro: null })
+  // Login - Primeira etapa (envia código 2FA)
+  login: async (email: string, senha: string) => {
+    try {
+      set({ carregando: true, erro: null })
 
-          const resultado = await authService.login(email, senha)
+      const resultado = await authService.login(email, senha)
 
-          if (resultado.sucesso) {
-            // Salva email para próxima etapa - SEMPRE vai para 2FA
-            sessionStorage.setItem('auth_email', email)
-            set({ carregando: false })
-            return true
-          } else {
-            set({
-              carregando: false,
-              erro: resultado.mensagem ?? 'Erro no login',
-            })
-            return false
-          }
-        } catch (erro) {
-          set({
-            carregando: false,
-            erro:
-              erro instanceof Error ? erro.message : 'Erro inesperado no login',
-          })
-          return false
-        }
-      },
-
-      // Confirmação do código 2FA - Segunda etapa
-      confirmarCodigo2FA: async (email: string, codigo: string) => {
-        try {
-          set({ carregando: true, erro: null })
-
-          const resultado = await authService.confirmarCodigo2FA(email, codigo)
-
-          // Se a API indica que precisa trocar senha, mesmo com 200 OK, trata como sucesso para redirecionamento
-          if (resultado.dados?.precisaTrocarSenha) {
-            sessionStorage.setItem('auth_email', email)
-            sessionStorage.setItem(
-              'tokenTrocaSenha',
-              resultado.dados.tokenTrocaSenha ?? '',
-            )
-            sessionStorage.setItem('auth_context', 'password_reset')
-            set({ carregando: false, erro: null })
-            window.location.href = '/auth/trocar-senha'
-            return false
-          }
-
-          // Se a API indica que senha expirou (dados.senhaExpirada: true)
-          if (resultado.dados?.senhaExpirada) {
-            sessionStorage.setItem('auth_email', email)
-            sessionStorage.setItem(
-              'tokenTrocaSenha',
-              resultado.dados.tokenTrocaSenha ?? '',
-            )
-            sessionStorage.setItem('auth_context', 'password_expired')
-            set({ carregando: false, erro: null })
-            window.location.href = '/auth/trocar-senha'
-            return false
-          }
-
-          // Se não precisa trocar senha, verifica o sucesso normal
-          if (resultado.sucesso) {
-            // Login bem-sucedido - salva tokens nos cookies
-            if (resultado.dados) {
-              const { token, refreshToken, usuario } = resultado.dados
-
-              // Valida tokens antes de salvar
-              if (validarTokenJWT(token) && validarTokenJWT(refreshToken)) {
-                // Salva tokens nos cookies com configurações de segurança
-                cookieUtils.setCookie(
-                  'auth_token',
-                  token,
-                  authCookieConfig.token,
-                )
-                cookieUtils.setCookie(
-                  'auth_refresh_token',
-                  refreshToken,
-                  authCookieConfig.refreshToken,
-                )
-
-                set({
-                  usuario,
-                  estaAutenticado: true,
-                  carregando: false,
-                  erro: null,
-                })
-              } else {
-                set({
-                  carregando: false,
-                  erro: 'Tokens inválidos recebidos do servidor',
-                })
-                return false
-              }
-            }
-
-            // Limpa dados temporários
-            sessionStorage.removeItem('auth_email')
-            sessionStorage.removeItem('tokenTrocaSenha')
-
-            return true
-          } else {
-            // Se não foi sucesso e não precisa trocar senha, define o erro
-            set({
-              carregando: false,
-              erro: resultado.mensagem ?? 'Erro ao confirmar código 2FA.',
-            })
-            return false
-          }
-        } catch (erro) {
-          set({
-            carregando: false,
-            erro: erro instanceof Error ? erro.message : 'Erro na verificação',
-          })
-          return false
-        }
-      },
-
-      // Troca de senha
-      trocarSenha: async (
-        email: string,
-        novaSenha: string,
-        tokenTrocaSenha?: string,
-      ) => {
-        try {
-          set({ carregando: true, erro: null })
-
-          const resultado = await authService.trocarSenha(
-            email,
-            novaSenha,
-            tokenTrocaSenha,
-          )
-
-          if (resultado.sucesso) {
-            const { token, refreshToken, usuario } = resultado.dados
-
-            // Valida tokens antes de salvar
-            const tokenValido = validarTokenJWT(token)
-            const refreshTokenValido = validarTokenJWT(refreshToken)
-
-            if (tokenValido && refreshTokenValido) {
-              // Salva tokens nos cookies com configurações de segurança
-              cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-              cookieUtils.setCookie(
-                'auth_refresh_token',
-                refreshToken,
-                authCookieConfig.refreshToken,
-              )
-
-              set({
-                usuario,
-                estaAutenticado: true,
-                carregando: false,
-                erro: null,
-              })
-
-              // Limpa dados temporários
-              sessionStorage.removeItem('auth_email')
-              sessionStorage.removeItem('tokenTrocaSenha')
-
-              return true
-            } else {
-              set({
-                carregando: false,
-                erro: 'Formato de tokens inválido recebido do servidor',
-              })
-              return false
-            }
-          } else {
-            const mensagemErro = sanitizeMensagem(
-              resultado.mensagem,
-              'Erro ao trocar senha',
-            )
-            set({
-              carregando: false,
-              erro: mensagemErro,
-            })
-            return false
-          }
-        } catch (erro) {
-          set({
-            carregando: false,
-            erro: erro instanceof Error ? erro.message : 'Erro ao trocar senha',
-          })
-          return false
-        }
-      },
-
-      // Esqueci a senha
-      esqueciSenha: async (email: string) => {
-        try {
-          set({ carregando: true, erro: null })
-
-          const resultado = await authService.esqueciSenha(email)
-
-          if (resultado.sucesso) {
-            sessionStorage.setItem('auth_email', email)
-            set({ carregando: false })
-            return true
-          } else {
-            const mensagemErro = sanitizeMensagem(
-              resultado.mensagem,
-              'Erro ao solicitar recuperação',
-            )
-            set({
-              carregando: false,
-              erro: mensagemErro,
-            })
-            return false
-          }
-        } catch (erro) {
-          set({
-            carregando: false,
-            erro:
-              erro instanceof Error
-                ? erro.message
-                : 'Erro ao solicitar recuperação',
-          })
-          return false
-        }
-      },
-
-      // Logout
-      logout: () => {
-        const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-
-        // Invalida token no servidor (não bloqueia UI)
-        if (refreshToken && validarTokenJWT(refreshToken)) {
-          authService.logout(refreshToken).catch((erro) => {
-            authLogger.warn(
-              { action: 'logout', scope: 'single-session' },
-              erro instanceof Error
-                ? erro.message
-                : 'Erro desconhecido ao encerrar sessão',
-            )
-          })
-        }
-
-        // Remove tokens dos cookies
-        cookieUtils.removeCookie('auth_token', authCookieConfig.token)
-        cookieUtils.removeCookie(
-          'auth_refresh_token',
-          authCookieConfig.refreshToken,
-        )
-
+      if (resultado.sucesso) {
+        // Salva email para próxima etapa - SEMPRE vai para 2FA
+        sessionStorage.setItem('auth_email', email)
+        set({ carregando: false })
+        return true
+      } else {
         set({
-          usuario: null,
-          estaAutenticado: false,
           carregando: false,
-          erro: null,
+          erro: resultado.mensagem ?? 'Erro no login',
         })
+        return false
+      }
+    } catch (erro) {
+      set({
+        carregando: false,
+        erro: erro instanceof Error ? erro.message : 'Erro inesperado no login',
+      })
+      return false
+    }
+  },
 
-        // Limpa dados da sessão
-        sessionStorage.clear()
-      },
+  // Confirmação do código 2FA - Segunda etapa
+  confirmarCodigo2FA: async (email: string, codigo: string) => {
+    try {
+      set({ carregando: true, erro: null })
 
-      // Logout de todas as sessões
-      logoutTodasSessoes: async () => {
-        try {
-          const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      const resultado = await authService.confirmarCodigo2FA(email, codigo)
 
-          if (refreshToken && validarTokenJWT(refreshToken)) {
-            await authService.logoutTodasSessoes(refreshToken)
+      // Se a API indica que precisa trocar senha, mesmo com 200 OK, trata como sucesso para redirecionamento
+      if (resultado.dados?.precisaTrocarSenha) {
+        sessionStorage.setItem('auth_email', email)
+        sessionStorage.setItem(
+          'tokenTrocaSenha',
+          resultado.dados.tokenTrocaSenha ?? '',
+        )
+        sessionStorage.setItem('auth_context', 'password_reset')
+        set({ carregando: false, erro: null })
+        window.location.href = '/auth/trocar-senha'
+        return false
+      }
+
+      // Se a API indica que senha expirou (dados.senhaExpirada: true)
+      if (resultado.dados?.senhaExpirada) {
+        sessionStorage.setItem('auth_email', email)
+        sessionStorage.setItem(
+          'tokenTrocaSenha',
+          resultado.dados.tokenTrocaSenha ?? '',
+        )
+        sessionStorage.setItem('auth_context', 'password_expired')
+        set({ carregando: false, erro: null })
+        window.location.href = '/auth/trocar-senha'
+        return false
+      }
+
+      // Se não precisa trocar senha, verifica o sucesso normal
+      if (resultado.sucesso) {
+        // Login bem-sucedido - salva tokens nos cookies
+        if (resultado.dados) {
+          const { token, refreshToken, usuario } = resultado.dados
+
+          // Valida tokens antes de salvar
+          if (validarTokenJWT(token) && validarTokenJWT(refreshToken)) {
+            // Salva tokens nos cookies com configurações de segurança
+            cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
+            cookieUtils.setCookie(
+              'auth_refresh_token',
+              refreshToken,
+              authCookieConfig.refreshToken,
+            )
+
+            set({
+              usuario,
+              estaAutenticado: true,
+              carregando: false,
+              erro: null,
+            })
+          } else {
+            set({
+              carregando: false,
+              erro: 'Tokens inválidos recebidos do servidor',
+            })
+            return false
           }
+        }
 
-          // Remove tokens dos cookies
-          cookieUtils.removeCookie('auth_token', authCookieConfig.token)
-          cookieUtils.removeCookie(
+        // Limpa dados temporários
+        sessionStorage.removeItem('auth_email')
+        sessionStorage.removeItem('tokenTrocaSenha')
+
+        return true
+      } else {
+        // Se não foi sucesso e não precisa trocar senha, define o erro
+        set({
+          carregando: false,
+          erro: resultado.mensagem ?? 'Erro ao confirmar código 2FA.',
+        })
+        return false
+      }
+    } catch (erro) {
+      set({
+        carregando: false,
+        erro: erro instanceof Error ? erro.message : 'Erro na verificação',
+      })
+      return false
+    }
+  },
+
+  // Troca de senha
+  trocarSenha: async (
+    email: string,
+    novaSenha: string,
+    tokenTrocaSenha?: string,
+  ) => {
+    try {
+      set({ carregando: true, erro: null })
+
+      const resultado = await authService.trocarSenha(
+        email,
+        novaSenha,
+        tokenTrocaSenha,
+      )
+
+      if (resultado.sucesso) {
+        const { token, refreshToken, usuario } = resultado.dados
+
+        // Valida tokens antes de salvar
+        const tokenValido = validarTokenJWT(token)
+        const refreshTokenValido = validarTokenJWT(refreshToken)
+
+        if (tokenValido && refreshTokenValido) {
+          // Salva tokens nos cookies com configurações de segurança
+          cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
+          cookieUtils.setCookie(
             'auth_refresh_token',
+            refreshToken,
             authCookieConfig.refreshToken,
           )
 
           set({
-            usuario: null,
-            estaAutenticado: false,
+            usuario,
+            estaAutenticado: true,
             carregando: false,
             erro: null,
           })
 
-          sessionStorage.clear()
-        } catch (erro) {
-          authLogger.warn(
-            { action: 'logout', scope: 'all-sessions' },
-            erro instanceof Error
-              ? erro.message
-              : 'Erro desconhecido ao encerrar todas as sessões',
-          )
-        }
-      },
+          // Limpa dados temporários
+          sessionStorage.removeItem('auth_email')
+          sessionStorage.removeItem('tokenTrocaSenha')
 
-      // Renovação de token
-      renovarToken: async () => {
-        try {
-          const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-
-          if (!refreshToken || !validarTokenJWT(refreshToken)) {
-            authLogger.warn(
-              { action: 'renovar-token', status: 'invalid-refresh-token' },
-              'Refresh token ausente ou inválido',
-            )
-            return false
-          }
-
-          authLogger.info(
-            { action: 'renovar-token', status: 'requesting' },
-            'Solicitando renovação de token',
-          )
-
-          const resultado = await authService.renovarToken(refreshToken)
-
-          if (resultado.sucesso) {
-            const {
-              token,
-              refreshToken: newRefreshToken,
-              usuario,
-            } = resultado.dados
-
-            // Valida novos tokens antes de salvar
-            if (validarTokenJWT(token) && validarTokenJWT(newRefreshToken)) {
-              // Atualiza tokens nos cookies
-              cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-              cookieUtils.setCookie(
-                'auth_refresh_token',
-                newRefreshToken,
-                authCookieConfig.refreshToken,
-              )
-
-              set({
-                usuario,
-                estaAutenticado: true,
-              })
-
-              authLogger.info(
-                { action: 'renovar-token', status: 'success' },
-                'Token renovado com sucesso',
-              )
-              return true
-            } else {
-              authLogger.error(
-                { action: 'renovar-token', status: 'invalid-tokens' },
-                'Tokens recebidos são inválidos',
-              )
-              return false
-            }
-          } else {
-            // Token inválido, faz logout
-            const mensagemErro = sanitizeMensagem(
-              resultado.mensagem,
-              'Falha na renovação do token',
-            )
-            authLogger.warn(
-              { action: 'renovar-token', status: 'failed' },
-              mensagemErro,
-            )
-            get().logout()
-            return false
-          }
-        } catch (erro) {
-          authLogger.error(
-            { action: 'renovar-token', status: 'error' },
-            erro instanceof Error ? erro.message : 'Erro desconhecido na renovação',
-          )
-          get().logout()
+          return true
+        } else {
+          set({
+            carregando: false,
+            erro: 'Formato de tokens inválido recebido do servidor',
+          })
           return false
         }
-      },
+      } else {
+        const mensagemErro = sanitizeMensagem(
+          resultado.mensagem,
+          'Erro ao trocar senha',
+        )
+        set({
+          carregando: false,
+          erro: mensagemErro,
+        })
+        return false
+      }
+    } catch (erro) {
+      set({
+        carregando: false,
+        erro: erro instanceof Error ? erro.message : 'Erro ao trocar senha',
+      })
+      return false
+    }
+  },
 
-      // Verificação inicial de autenticação
-      verificarAutenticacao: async () => {
-        try {
-          const token = cookieUtils.getCookie('auth_token')
-          const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+  // Esqueci a senha
+  esqueciSenha: async (email: string) => {
+    try {
+      set({ carregando: true, erro: null })
 
-          // Se não há cookies, usuário não está autenticado
-          if (
-            !token ||
-            !refreshToken ||
-            !validarTokenJWT(token) ||
-            !validarTokenJWT(refreshToken)
-          ) {
-            authLogger.info(
-              { action: 'verificar-autenticacao', status: 'no-cookies' },
-              'Cookies de autenticação ausentes ou inválidos',
-            )
-            set({ carregando: false, estaAutenticado: false })
-            return
-          }
+      const resultado = await authService.esqueciSenha(email)
 
-          // Verifica se token está próximo de expirar (menos de 5min)
-          const { isTokenNearExpiry } = await import('./auth')
-          if (isTokenNearExpiry(token)) {
-            authLogger.info(
-              { action: 'verificar-autenticacao', status: 'near-expiry' },
-              'Token próximo de expirar, renovando proativamente',
-            )
-            const renovado = await get().renovarToken()
-            if (renovado) {
-              set({ estaAutenticado: true, carregando: false })
-            } else {
-              set({ estaAutenticado: false, carregando: false })
-            }
-            return
-          }
+      if (resultado.sucesso) {
+        sessionStorage.setItem('auth_email', email)
+        set({ carregando: false })
+        return true
+      } else {
+        const mensagemErro = sanitizeMensagem(
+          resultado.mensagem,
+          'Erro ao solicitar recuperação',
+        )
+        set({
+          carregando: false,
+          erro: mensagemErro,
+        })
+        return false
+      }
+    } catch (erro) {
+      set({
+        carregando: false,
+        erro:
+          erro instanceof Error
+            ? erro.message
+            : 'Erro ao solicitar recuperação',
+      })
+      return false
+    }
+  },
+
+  // Logout
+  logout: () => {
+    const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+
+    // Invalida token no servidor (não bloqueia UI)
+    if (refreshToken && validarTokenJWT(refreshToken)) {
+      authService.logout(refreshToken).catch((erro) => {
+        authLogger.warn(
+          { action: 'logout', scope: 'single-session' },
+          erro instanceof Error
+            ? erro.message
+            : 'Erro desconhecido ao encerrar sessão',
+        )
+      })
+    }
+
+    // Remove tokens dos cookies
+    cookieUtils.removeCookie('auth_token', authCookieConfig.token)
+    cookieUtils.removeCookie(
+      'auth_refresh_token',
+      authCookieConfig.refreshToken,
+    )
+
+    set({
+      usuario: null,
+      estaAutenticado: false,
+      carregando: false,
+      erro: null,
+    })
+
+    // Limpa dados da sessão
+    sessionStorage.clear()
+  },
+
+  // Logout de todas as sessões
+  logoutTodasSessoes: async () => {
+    try {
+      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+
+      if (refreshToken && validarTokenJWT(refreshToken)) {
+        await authService.logoutTodasSessoes(refreshToken)
+      }
+
+      // Remove tokens dos cookies
+      cookieUtils.removeCookie('auth_token', authCookieConfig.token)
+      cookieUtils.removeCookie(
+        'auth_refresh_token',
+        authCookieConfig.refreshToken,
+      )
+
+      set({
+        usuario: null,
+        estaAutenticado: false,
+        carregando: false,
+        erro: null,
+      })
+
+      sessionStorage.clear()
+    } catch (erro) {
+      authLogger.warn(
+        { action: 'logout', scope: 'all-sessions' },
+        erro instanceof Error
+          ? erro.message
+          : 'Erro desconhecido ao encerrar todas as sessões',
+      )
+    }
+  },
+
+  // Renovação de token
+  renovarToken: async () => {
+    try {
+      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+
+      if (!refreshToken || !validarTokenJWT(refreshToken)) {
+        authLogger.warn(
+          { action: 'renovar-token', status: 'invalid-refresh-token' },
+          'Refresh token ausente ou inválido',
+        )
+        return false
+      }
+
+      authLogger.info(
+        { action: 'renovar-token', status: 'requesting' },
+        'Solicitando renovação de token',
+      )
+
+      const resultado = await authService.renovarToken(refreshToken)
+
+      if (resultado.sucesso) {
+        const {
+          token,
+          refreshToken: newRefreshToken,
+          usuario,
+        } = resultado.dados
+
+        // Valida novos tokens antes de salvar
+        if (validarTokenJWT(token) && validarTokenJWT(newRefreshToken)) {
+          // Atualiza tokens nos cookies
+          cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
+          cookieUtils.setCookie(
+            'auth_refresh_token',
+            newRefreshToken,
+            authCookieConfig.refreshToken,
+          )
+
+          set({
+            usuario,
+            estaAutenticado: true,
+          })
 
           authLogger.info(
-            { action: 'verificar-autenticacao', status: 'checking' },
-            'Verificando token de acesso',
+            { action: 'renovar-token', status: 'success' },
+            'Token renovado com sucesso',
           )
-
-          // Verifica se o token ainda é válido no backend
-          const resultado = await authService.verificarAcesso()
-
-          if (resultado.sucesso && resultado.dados?.temAcesso) {
-            authLogger.info(
-              { action: 'verificar-autenticacao', status: 'valid' },
-              'Token de acesso válido',
-            )
-            set({ estaAutenticado: true, carregando: false })
-          } else {
-            // Token inválido/expirado, tenta renovar
-            authLogger.info(
-              { action: 'verificar-autenticacao', status: 'expired' },
-              'Token expirado, tentando renovar',
-            )
-            const renovado = await get().renovarToken()
-            if (!renovado) {
-              authLogger.warn(
-                { action: 'verificar-autenticacao', status: 'renewal-failed' },
-                'Falha na renovação, usuário será desconectado',
-              )
-              set({ estaAutenticado: false, carregando: false })
-            }
-          }
-        } catch (erro) {
+          return true
+        } else {
           authLogger.error(
-            { action: 'verificar-autenticacao', status: 'error' },
-            erro instanceof Error
-              ? erro.message
-              : 'Erro desconhecido na verificação',
+            { action: 'renovar-token', status: 'invalid-tokens' },
+            'Tokens recebidos são inválidos',
           )
+          return false
+        }
+      } else {
+        // Token inválido, faz logout
+        const mensagemErro = sanitizeMensagem(
+          resultado.mensagem,
+          'Falha na renovação do token',
+        )
+        authLogger.warn(
+          { action: 'renovar-token', status: 'failed' },
+          mensagemErro,
+        )
+        get().logout()
+        return false
+      }
+    } catch (erro) {
+      authLogger.error(
+        { action: 'renovar-token', status: 'error' },
+        erro instanceof Error ? erro.message : 'Erro desconhecido na renovação',
+      )
+      get().logout()
+      return false
+    }
+  },
 
-          // Se erro for de rede, tenta renovar antes de deslogar
-          if (erro instanceof Error && erro.message.includes('Network Error')) {
-            authLogger.warn(
-              { action: 'verificar-autenticacao', status: 'network-error' },
-              'Erro de rede, tentando renovar token',
-            )
-            const renovado = await get().renovarToken()
-            if (renovado) {
-              set({ estaAutenticado: true, carregando: false })
-              return
-            }
-          }
+  // Verificação inicial de autenticação
+  verificarAutenticacao: async () => {
+    try {
+      const token = cookieUtils.getCookie('auth_token')
+      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
 
+      // Se não há cookies, usuário não está autenticado
+      if (
+        !token ||
+        !refreshToken ||
+        !validarTokenJWT(token) ||
+        !validarTokenJWT(refreshToken)
+      ) {
+        authLogger.info(
+          { action: 'verificar-autenticacao', status: 'no-cookies' },
+          'Cookies de autenticação ausentes ou inválidos',
+        )
+        set({ carregando: false, estaAutenticado: false })
+        return
+      }
+
+      // Verifica se token está próximo de expirar (menos de 5min)
+      const { isTokenNearExpiry } = await import('./auth')
+      if (isTokenNearExpiry(token)) {
+        authLogger.info(
+          { action: 'verificar-autenticacao', status: 'near-expiry' },
+          'Token próximo de expirar, renovando proativamente',
+        )
+        const renovado = await get().renovarToken()
+        if (renovado) {
+          set({ estaAutenticado: true, carregando: false })
+        } else {
           set({ estaAutenticado: false, carregando: false })
         }
-      },
+        return
+      }
 
-      // Limpar erro
-      limparErro: () => set({ erro: null }),
-    }))
+      authLogger.info(
+        { action: 'verificar-autenticacao', status: 'checking' },
+        'Verificando token de acesso',
+      )
+
+      // Verifica se o token ainda é válido no backend
+      const resultado = await authService.verificarAcesso()
+
+      if (resultado.sucesso && resultado.dados?.temAcesso) {
+        authLogger.info(
+          { action: 'verificar-autenticacao', status: 'valid' },
+          'Token de acesso válido',
+        )
+        set({ estaAutenticado: true, carregando: false })
+      } else {
+        // Token inválido/expirado, tenta renovar
+        authLogger.info(
+          { action: 'verificar-autenticacao', status: 'expired' },
+          'Token expirado, tentando renovar',
+        )
+        const renovado = await get().renovarToken()
+        if (!renovado) {
+          authLogger.warn(
+            { action: 'verificar-autenticacao', status: 'renewal-failed' },
+            'Falha na renovação, usuário será desconectado',
+          )
+          set({ estaAutenticado: false, carregando: false })
+        }
+      }
+    } catch (erro) {
+      authLogger.error(
+        { action: 'verificar-autenticacao', status: 'error' },
+        erro instanceof Error
+          ? erro.message
+          : 'Erro desconhecido na verificação',
+      )
+
+      // Se erro for de rede, tenta renovar antes de deslogar
+      if (erro instanceof Error && erro.message.includes('Network Error')) {
+        authLogger.warn(
+          { action: 'verificar-autenticacao', status: 'network-error' },
+          'Erro de rede, tentando renovar token',
+        )
+        const renovado = await get().renovarToken()
+        if (renovado) {
+          set({ estaAutenticado: true, carregando: false })
+          return
+        }
+      }
+
+      set({ estaAutenticado: false, carregando: false })
+    }
+  },
+
+  // Limpar erro
+  limparErro: () => set({ erro: null }),
+}))
