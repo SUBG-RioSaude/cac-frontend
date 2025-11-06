@@ -14,18 +14,18 @@ Baseado no manual de marca da Prefeitura do Rio.
 
 **Classes disponíveis:**
 ```tsx
-// Título principal sobre fundo branco (dark blue #2a688f)
-<h1 className="font-display text-[#2a688f]">
+// Título principal sobre fundo branco (azul escuro)
+<h1 className="font-display text-brand-primary">
   DASHBOARD DE CONTRATOS
 </h1>
 
-// Destaque/subtítulo (light blue #42b9eb)
-<h2 className="font-display text-[#42b9eb]">
+// Destaque/subtítulo (azul claro)
+<h2 className="font-display text-brand-secondary">
   MÉTRICAS EXECUTIVAS
 </h2>
 
 // Sobre fundo azul ou escuro (branco)
-<h1 className="font-display text-white">
+<h1 className="font-display text-brand-white">
   VISÃO GERAL
 </h1>
 ```
@@ -44,18 +44,18 @@ Baseado no manual de marca da Prefeitura do Rio.
 
 **Classes disponíveis:**
 ```tsx
-// Subtítulo sobre fundo branco (dark blue #2a688f)
-<h3 className="font-heading text-[#2a688f] uppercase">
+// Subtítulo sobre fundo branco (azul escuro)
+<h3 className="font-heading text-brand-primary uppercase">
   TOTAL DE CONTRATOS
 </h3>
 
-// Destaque/card title (light blue #42b9eb)
-<h4 className="font-heading text-[#42b9eb] uppercase">
+// Destaque/card title (azul claro)
+<h4 className="font-heading text-brand-secondary uppercase">
   CONTRATOS ATIVOS
 </h4>
 
 // Sobre fundo azul ou escuro (branco)
-<h3 className="font-heading text-white uppercase">
+<h3 className="font-heading text-brand-white uppercase">
   ALERTAS CRÍTICOS
 </h3>
 ```
@@ -78,7 +78,7 @@ Baseado no manual de marca da Prefeitura do Rio.
 </p>
 
 // Texto sobre fundo azul/escuro
-<p className="font-body text-white">
+<p className="font-body text-brand-white">
   Últimos 6 meses de evolução dos contratos
 </p>
 
@@ -92,15 +92,26 @@ Baseado no manual de marca da Prefeitura do Rio.
 
 ## 🎨 Paleta de Cores Tipográficas
 
+### ✅ Variáveis Tailwind Disponíveis:
+
+| Cor | Variável Tailwind | Hex | RGB | Uso |
+|-----|-------------------|-----|-----|-----|
+| Azul Escuro | `brand-primary` | `#2a688f` | R 42 / G 104 / B 143 | Títulos sobre fundo branco |
+| Azul Claro | `brand-secondary` | `#42b9eb` | R 66 / G 185 / B 235 | Destaques e subtítulos |
+| Cinza Claro | `brand-gray-light` | `#eceded` | R 236 / G 237 / B 237 | Fundos secundários |
+| Branco | `brand-white` | `#ffffff` | R 255 / G 255 / B 255 | Texto sobre fundos escuros |
+
 ### Sobre fundo branco:
-- **Primário (títulos):** `#2a688f` (dark blue)
-- **Secundário (destaques):** `#42b9eb` (light blue)
+- **Primário (títulos):** `text-brand-primary` ou `bg-brand-primary`
+- **Secundário (destaques):** `text-brand-secondary` ou `bg-brand-secondary`
 - **Texto corpo:** `text-foreground` (preto/cinza escuro)
 - **Texto secundário:** `text-muted-foreground` (cinza médio)
 
 ### Sobre fundo azul ou imagem escura:
-- **Títulos/texto principal:** `text-white`
+- **Títulos/texto principal:** `text-brand-white` ou `text-white`
 - **Texto secundário:** `text-white/80` ou `text-gray-200`
+- **Fundo azul escuro:** `bg-brand-primary`
+- **Fundo azul claro:** `bg-brand-secondary`
 
 ---
 

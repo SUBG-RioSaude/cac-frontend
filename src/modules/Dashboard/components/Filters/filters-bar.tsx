@@ -102,7 +102,7 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
     <div className="flex items-center justify-between gap-4">
       {/* Date Picker */}
       <div className="flex items-center gap-3">
-        <Calendar className=" h-5 w-5 text-blue-500" />
+        <Calendar className=" h-5 w-5 text-brand-secondary" />
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="border-border bg-background w-[180px]">
             <SelectValue />
