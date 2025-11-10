@@ -1,35 +1,33 @@
 /**
  * ==========================================
- * CARD DE CONTRATOS A VENCER (CONFIGURÁVEL)
+ * CARD DE CONTRATOS VENCIDOS
  * ==========================================
- * Card flexível que aceita diferentes períodos de antecedência (30, 60, 90 dias)
+ * Mostra total de contratos que já venceram
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Clock, AlertTriangle } from 'lucide-react'
+import { AlertOctagon } from 'lucide-react'
 
-import { getContratosVencendo } from '@/modules/Contratos/services/contratos-service'
+import { getContratosVencidos } from '@/modules/Contratos/services/contratos-service'
 
 import type { DashboardFilters } from '../../types/dashboard'
 
 import { LoadingMetricCard } from './metric-card'
 
-interface ExpiringContractsCardProps {
+interface ExpiredContractsCardProps {
   filters: DashboardFilters
-  diasAntecedencia?: 30 | 60 | 90
   className?: string
 }
 
-export const ExpiringContractsCard = ({
+export const ExpiredContractsCard = ({
   filters,
-  diasAntecedencia = 30,
   className,
-}: ExpiringContractsCardProps) => {
-  // Buscar contratos vencendo usando o endpoint específico
+}: ExpiredContractsCardProps) => {
+  // Buscar contratos vencidos usando o endpoint específico
   const { data, isLoading, error } = useQuery({
-    queryKey: ['contratos-vencendo', diasAntecedencia, filters.unidades],
+    queryKey: ['contratos-vencidos', filters.unidades],
     queryFn: async () => {
-      const result = await getContratosVencendo(diasAntecedencia, {
+      const result = await getContratosVencidos({
         unidadeSaudeId:
           filters.unidades.length === 1 ? filters.unidades[0] : undefined,
       })
@@ -38,16 +36,13 @@ export const ExpiringContractsCard = ({
     staleTime: 2 * 60 * 1000, // 2 minutos
   })
 
-  // Buscar dados do período anterior para comparação
+  // Buscar dados do período anterior para comparação (opcional, pode ser 0)
   const { data: previousData } = useQuery({
-    queryKey: [
-      'contratos-vencendo-anterior',
-      diasAntecedencia,
-      filters.unidades,
-    ],
+    queryKey: ['contratos-vencidos-anterior', filters.unidades],
     queryFn: async () => {
-      // Buscar mesmo período do mês anterior
-      const result = await getContratosVencendo(diasAntecedencia, {
+      // Para contratos vencidos, não faz muito sentido comparar com período anterior
+      // mas mantemos a estrutura para consistência
+      const result = await getContratosVencidos({
         unidadeSaudeId:
           filters.unidades.length === 1 ? filters.unidades[0] : undefined,
       })
@@ -69,25 +64,16 @@ export const ExpiringContractsCard = ({
     tendencia: tendencia as 'up' | 'down',
   }
 
-  // Definir ícone e cor baseado no período
-  const iconMap = {
-    30: AlertTriangle, // Mais urgente
-    60: AlertCircle, // Atenção moderada
-    90: Clock, // Menos urgente
-  }
-
-  const Icon = iconMap[diasAntecedencia]
-
   return (
     <LoadingMetricCard
-      title={`Contratos a Vencer (${diasAntecedencia}d)`}
+      title="Contratos Vencidos"
       metric={metric}
-      icon={Icon}
+      icon={AlertOctagon}
       isLoading={isLoading}
       error={error ?? null}
       className={className}
-      description={`Vencendo nos próximos ${diasAntecedencia} dias`}
-      data-testid={`expiring-contracts-card-${diasAntecedencia}`}
+      description="Requerem atenção urgente"
+      data-testid="expired-contracts-card"
     />
   )
 }

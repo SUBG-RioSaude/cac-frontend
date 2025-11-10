@@ -9,7 +9,9 @@ import { FileText } from 'lucide-react'
 import { useDashboardMetrics } from '../../hooks/useDashboardData'
 import type { DashboardFilters } from '../../types/dashboard'
 
-import { LoadingMetricCard } from './metric-card'
+import { LoadingMetricCard } from '.'
+
+
 
 interface TotalContractsCardProps {
   filters: DashboardFilters
