@@ -61,6 +61,7 @@ export const RiskAnalysis = ({
   detailed = false,
 }: RiskAnalysisProps) => {
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<RiskLevel>('alto')
 
   // Loading state
   if (isLoading) {
@@ -226,10 +227,8 @@ export const RiskAnalysis = ({
     )
   }
 
-  const [activeTab, setActiveTab] = useState<RiskLevel>('alto')
-
   return (
-    <Card className="bg-card">
+    <Card className="bg-card flex h-full flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
@@ -249,11 +248,11 @@ export const RiskAnalysis = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-1 flex-col">
         <Tabs
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as RiskLevel)}
-          className="w-full"
+          className="flex h-full w-full flex-col"
         >
           <TabsList className="grid w-full grid-cols-3">
             {(['alto', 'medio', 'baixo'] as RiskLevel[]).map((key) => {
@@ -282,7 +281,7 @@ export const RiskAnalysis = ({
             const riskData = data[key]
 
             return (
-              <TabsContent key={key} value={key} className="mt-4 space-y-3">
+              <TabsContent key={key} value={key} className="mt-4 flex flex-1 flex-col space-y-3">
                 {/* Descrição do nível de risco */}
                 <div
                   className={`rounded-lg border p-3 ${config.borderColor} ${config.bgColor}`}
@@ -301,7 +300,7 @@ export const RiskAnalysis = ({
                     </p>
                   </div>
                 ) : (
-                  <div className="scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 max-h-[400px] space-y-2 overflow-y-auto pr-2">
+                  <div className="scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 max-h-[300px] space-y-2 overflow-y-auto pr-2">
                     {riskData.contratos.map((contract) => (
                       <div
                         key={contract.id}

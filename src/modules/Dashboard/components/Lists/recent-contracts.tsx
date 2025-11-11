@@ -75,13 +75,13 @@ export const RecentContracts = ({
   }
 
   return (
-    <Card className="bg-card">
-      <CardHeader>
+    <Card className="bg-card flex h-full flex-col">
+      <CardHeader className="pb-3">
         <CardTitle className="text-foreground">Contratos Recentes</CardTitle>
         <CardDescription>Últimos 5 contratos formalizados</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="flex flex-1 flex-col overflow-hidden">
+        <div className="scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 space-y-4 overflow-y-auto">
           {contracts.map((contract) => (
             <div
               key={contract.id}

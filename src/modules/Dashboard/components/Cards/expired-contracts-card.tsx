@@ -61,7 +61,7 @@ export const ExpiredContractsCard = ({
   const metric = {
     atual,
     percentual,
-    tendencia: tendencia as 'up' | 'down',
+    tendencia,
   }
 
   return (

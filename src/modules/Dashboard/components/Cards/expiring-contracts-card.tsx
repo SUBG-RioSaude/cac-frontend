@@ -66,7 +66,7 @@ export const ExpiringContractsCard = ({
   const metric = {
     atual,
     percentual,
-    tendencia: tendencia as 'up' | 'down',
+    tendencia,
   }
 
   // Definir ícone e cor baseado no período

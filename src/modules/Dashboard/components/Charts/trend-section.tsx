@@ -81,7 +81,7 @@ export const TrendSection = ({ data, isLoading }: TrendSectionProps) => {
   }
 
   return (
-    <Card className="w-full">
+    <Card className="flex h-full w-full flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
@@ -96,8 +96,8 @@ export const TrendSection = ({ data, isLoading }: TrendSectionProps) => {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
-        <ChartContainer config={chartConfig} className="h-[240px] w-full">
+      <CardContent className="flex flex-1 flex-col pt-0">
+        <ChartContainer config={chartConfig} className="h-full w-full">
           <AreaChart
             data={data}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
@@ -197,60 +197,60 @@ export const TrendSection = ({ data, isLoading }: TrendSectionProps) => {
 
         {/* Resumo detalhado com melhor aproveitamento de espaço */}
         {data && data.length > 0 && (
-          <div className="bg-muted/30 mt-3 grid grid-cols-3 gap-4 rounded-lg p-4">
-            <div className="space-y-2 text-center">
-              <div className="flex items-center justify-center gap-2">
+          <div className="bg-muted/30 mt-2 grid grid-cols-3 gap-3 rounded-lg p-3">
+            <div className="space-y-1 text-center">
+              <div className="flex items-center justify-center gap-1.5">
                 <div
-                  className="h-3 w-3 rounded-full"
+                  className="h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: chartConfig.ativos.color }}
                 />
-                <span className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-xs font-medium">
                   Ativos
                 </span>
               </div>
               <p
-                className="text-3xl font-bold"
+                className="text-2xl font-bold"
                 style={{ color: chartConfig.ativos.color }}
               >
                 {data[data.length - 1]?.ativos ?? 0}
               </p>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-[10px]">
                 Contratos vigentes
               </p>
             </div>
 
-            <div className="space-y-2 text-center">
-              <div className="flex items-center justify-center gap-2">
+            <div className="space-y-1 text-center">
+              <div className="flex items-center justify-center gap-1.5">
                 <div
-                  className="h-3 w-3 rounded-full"
+                  className="h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: chartConfig.pendentes.color }}
                 />
-                <span className="text-muted-foreground text-sm font-medium">
+                <span className="text-muted-foreground text-xs font-medium">
                   Pendentes
                 </span>
               </div>
               <p
-                className="text-3xl font-bold"
+                className="text-2xl font-bold"
                 style={{ color: chartConfig.pendentes.color }}
               >
                 {data[data.length - 1]?.pendentes ?? 0}
               </p>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-[10px]">
                 Aguardando aprovação
               </p>
             </div>
 
-            <div className="space-y-2 text-center">
-              <div className="flex items-center justify-center gap-2">
-                <div className="bg-muted-foreground/30 h-3 w-3 rounded-full" />
-                <span className="text-muted-foreground text-sm font-medium">
+            <div className="space-y-1 text-center">
+              <div className="flex items-center justify-center gap-1.5">
+                <div className="bg-muted-foreground/30 h-2.5 w-2.5 rounded-full" />
+                <span className="text-muted-foreground text-xs font-medium">
                   Encerrados
                 </span>
               </div>
-              <p className="text-muted-foreground text-3xl font-bold">
+              <p className="text-muted-foreground text-2xl font-bold">
                 {data[data.length - 1]?.encerrados ?? 0}
               </p>
-              <p className="text-muted-foreground text-xs">Finalizados</p>
+              <p className="text-muted-foreground text-[10px]">Finalizados</p>
             </div>
           </div>
         )}

@@ -65,7 +65,7 @@ const App = () => {
         path="/"
         element={(
           <ProtectedRoute requireAuth>
-            <LayoutAuthenticated>
+            <LayoutAuthenticated fullscreen>
               <DashboardPage />
             </LayoutAuthenticated>
           </ProtectedRoute>

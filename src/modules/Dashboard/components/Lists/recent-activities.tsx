@@ -87,13 +87,13 @@ const activities = [
 
 export const RecentActivities = () => {
   return (
-    <Card className="bg-card">
-      <CardHeader>
+    <Card className="bg-card flex h-full flex-col">
+      <CardHeader className="pb-3">
         <CardTitle className="text-foreground">Atividades Recentes</CardTitle>
         <CardDescription>Últimas ações e eventos do sistema</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="flex flex-1 flex-col overflow-hidden">
+        <div className="scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 space-y-3 overflow-y-auto">
           {activities.map((activity) => {
             const Icon = activity.icon
             return (

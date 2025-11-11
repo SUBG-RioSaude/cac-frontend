@@ -16,7 +16,9 @@
  */
 
 // ========== COMPONENTES DISPONÍVEIS ==========
-// Cards de Métricas
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState } from 'react'
+
 import {
   ActiveContractsCard,
   ExpiredContractsCard,
@@ -32,13 +34,16 @@ import {
 import { FiltersBar } from '../components/Filters'
 // Listas e Seções
 import {
-  AlertsSection,
   RecentActivities,
   RecentContracts,
   RiskAnalysis,
 } from '../components/Lists'
-// Carousel do shadcn (descomente se quiser usar)
-/*
+// ========== HOOKS ==========
+import { useDashboardData } from '../hooks/useDashboardData'
+import { useFilters } from '../hooks/useFilters'
+
+import type { CarouselApi } from '@/components/ui/carousel'
+// Cards de Métricas
 import {
   Carousel,
   CarouselContent,
@@ -46,125 +51,143 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel'
-*/
-// ========== HOOKS ==========
-import { useDashboardData } from '../hooks/useDashboardData'
-import { useFilters } from '../hooks/useFilters'
 
 export const DashboardPage = () => {
   const { filters, resetFilters } = useFilters()
   const { data, isLoading } = useDashboardData(filters)
 
-  return (
-    <div className="min-h-screen px-6 py-4">
-      {/* ========================================
-          HEADER COMPACTO COM TÍTULO E FILTROS
-          ======================================== */}
-      <div className="bg-card mb-6 rounded-lg border shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Logo da aplicação */}
-              <div className="flex items-center justify-center">
-                <img
-                  src="/logo.png"
-                  alt="Logo Dashboard Contratos"
-                  className="h-10 w-auto object-contain"
-                />
-              </div>
+  // Estado para controlar o carousel
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const [currentSlide, setCurrentSlide] = useState(0)
 
+  // Sincroniza o estado com o carousel
+  useEffect(() => {
+    if (!carouselApi) return
+
+    // Define o slide inicial
+    setCurrentSlide(carouselApi.selectedScrollSnap())
+
+    // Escuta mudanças de slide
+    carouselApi.on('select', () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap())
+    })
+  }, [carouselApi])
+
+  return (
+  <div className="flex h-full w-full max-w-[1920px] flex-col overflow-hidden px-6 pt-2 mx-auto">
+
+
+      {/* ========================================
+            HEADER COMPACTO COM TÍTULO E FILTROS
+            ======================================== */}
+      <div className="bg-card mb-2 flex-shrink-0 rounded-lg border shadow-sm">
+        <div className="px-6 py-2">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img
+                src="/logo.png"
+                alt="Logo Dashboard Contratos"
+                className="h-7 w-auto object-contain"
+              />
               <div>
-                <h1 className="text-lg font-bold" style={{ color: '#2a688f' }}>
+                <h1
+                  className="text-base font-bold"
+                  style={{ color: '#2a688f' }}
+                >
                   Dashboard de Contratos
                 </h1>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-muted-foreground text-[10px]">
                   Visão executiva e operacional do portfólio de contratos
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Barra de Filtros */}
           <FiltersBar onReset={resetFilters} />
         </div>
       </div>
 
       {/* ========================================
-          ÁREA DE CONTEÚDO PRINCIPAL
-          MONTE O LAYOUT AQUI COMO PREFERIR
-          ======================================== */}
-      <main className="container mx-auto space-y-6 px-4">
-        {/* ==========================================
-            SEÇÃO 1: MÉTRICAS EXECUTIVAS
-            4 KPIs principais do dashboard
-            ========================================== */}
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            ÁREA DE CONTEÚDO PRINCIPAL
+            ======================================== */}
+      <main className="flex flex-1 flex-col space-y-2 overflow-hidden min-h-0 w-full">
+        {/* SEÇÃO 1: MÉTRICAS EXECUTIVAS */}
+        <section className="flex-shrink-0 grid gap-2 md:grid-cols-2 lg:grid-cols-4">
           <TotalContractsCard filters={filters} />
           <ActiveContractsCard filters={filters} />
           <TotalValueCard filters={filters} />
           <ExpiredContractsCard filters={filters} />
         </section>
 
-        {/* ==========================================
-            SEÇÃO 2: EVOLUÇÃO + ANÁLISE DE RISCOS (GRID LADO A LADO)
-            Gráfico de tendência e análise de riscos comprimidos
-            ========================================== */}
-        <section className="grid gap-6 lg:grid-cols-2">
-          {/* Gráfico de Evolução (Comprimido) */}
-          <TrendSection data={data?.statusTrend} isLoading={isLoading} />
+        {/* SEÇÃO 2: CAROUSEL PRINCIPAL */}
+        <section className="relative flex flex-1 flex-col min-h-0 overflow-hidden">
+          {/* Wrapper com overflow-visible horizontal para permitir setas fora do container */}
+          <div className="h-full overflow-x-visible overflow-y-hidden px-16">
+            <Carousel
+              setApi={setCarouselApi}
+              opts={{
+                align: 'start',
+                loop: true,
+                duration: 30,
+              }}
+              className="flex h-full w-full flex-col overflow-visible"
+            >
+            <CarouselContent className="ml-0 flex-1 min-h-0">
+              {/* SLIDE 1 */}
+              <CarouselItem className="h-full min-h-0 flex flex-col pl-0">
+                <div className="grid h-full w-full gap-2 lg:grid-cols-2">
+                  <TrendSection
+                    data={data?.statusTrend}
+                    isLoading={isLoading}
+                  />
+                  <RiskAnalysis
+                    data={data?.riskAnalysis}
+                    isLoading={isLoading}
+                    detailed={false}
+                  />
+                </div>
+              </CarouselItem>
 
-          {/* Análise de Riscos com Abas */}
-          <RiskAnalysis
-            data={data?.riskAnalysis}
-            isLoading={isLoading}
-            detailed={false}
-          />
+              {/* SLIDE 2 */}
+              <CarouselItem className="h-full min-h-0 flex flex-col pl-0">
+                <div className="grid h-full w-full gap-2 lg:grid-cols-2">
+                  <StatusDistributionChart filters={filters} />
+                  <TypeDistributionChart filters={filters} />
+                </div>
+              </CarouselItem>
+
+              {/* SLIDE 3 */}
+              <CarouselItem className="h-full min-h-0 flex flex-col pl-0">
+                <div className="grid h-full w-full gap-2 lg:grid-cols-2">
+                  <RecentContracts
+                    contracts={data?.recentContracts}
+                    isLoading={isLoading}
+                  />
+                  <RecentActivities />
+                </div>
+              </CarouselItem>
+            </CarouselContent>
+
+            {/* Indicadores dots elegantes - no fluxo normal com espaçamento controlado */}
+            <div className="flex-shrink-0 flex items-center justify-center gap-2 rounded-full bg-white/60 px-3 py-1 backdrop-blur-sm shadow-sm mx-auto mt-2">
+              {[0, 1, 2].map((index) => (
+                <button
+                  key={index}
+                  onClick={() => carouselApi?.scrollTo(index)}
+                  aria-label={`Ir para slide ${index + 1}`}
+                  className={`rounded-full transition-all duration-300 hover:scale-125 ${
+                    currentSlide === index
+                      ? 'h-2 w-8 bg-brand-primary shadow-md'
+                      : 'h-2 w-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              ))}
+            </div>
+            <CarouselPrevious className="bg-brand-primary hover:bg-brand-primary/90 -left-6 size-9 rounded-full border text-white shadow-md transition-all duration-300 hover:scale-110 hover:shadow-lg" />
+            <CarouselNext className="bg-brand-primary hover:bg-brand-primary/90 -right-6 size-9 rounded-full border text-white shadow-md transition-all duration-300 hover:scale-110 hover:shadow-lg" />
+            </Carousel>
+          </div>
         </section>
-
-        {/* ==========================================
-            SEÇÃO 3: GRÁFICOS DE DISTRIBUIÇÃO
-            Status e Tipo lado a lado
-            ========================================== */}
-        <section className="grid gap-6 lg:grid-cols-2">
-          <StatusDistributionChart filters={filters} />
-          <TypeDistributionChart filters={filters} />
-        </section>
-
-        {/* ==========================================
-            SEÇÃO 5: CONTRATOS RECENTES + ATIVIDADES
-            Grid com 2 colunas em desktop
-            ========================================== */}
-        <section className="grid gap-6 lg:grid-cols-2">
-          {/* Últimos 5 Contratos Formalizados */}
-          <RecentContracts
-            contracts={data?.recentContracts}
-            isLoading={isLoading}
-          />
-
-          {/* Atividades Recentes do Sistema */}
-          <RecentActivities />
-        </section>
-
-        {/* ==========================================
-            SEÇÃO 6: ANÁLISE DE RISCOS DETALHADA
-            (Comentada por padrão - descomente se quiser)
-            ========================================== */}
-        {/*
-        <section>
-          <RiskAnalysis detailed />
-        </section>
-        */}
-
-        {/* ==========================================
-            SEÇÃO 7: CHARTS COMPLETOS (ANALYTICS)
-            Todos os gráficos detalhados
-            (Comentada por padrão - descomente se quiser)
-            ========================================== */}
-        {/*
-        <section>
-          <ContractsCharts data={data} isLoading={isLoading} detailed />
-        </section>
-        */}
       </main>
     </div>
   )

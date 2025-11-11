@@ -23,7 +23,7 @@ const MetricCardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex flex-col space-y-0 p-4 pb-2', className)}
+    className={cn('flex flex-col space-y-0 p-2.5 pb-1', className)}
     {...props}
   />
 ))
@@ -35,7 +35,7 @@ const MetricCardTitle = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-muted-foreground text-sm font-medium', className)}
+    className={cn('text-muted-foreground text-xs font-medium', className)}
     {...props}
   >
     {children}
@@ -47,7 +47,7 @@ const MetricCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('p-4 pt-0', className)} {...props} />
+  <div ref={ref} className={cn('p-2.5 pt-0', className)} {...props} />
 ))
 MetricCardContent.displayName = 'MetricCardContent'
 
@@ -84,13 +84,13 @@ export const LoadingMetricCard = ({
       <MetricCard className={className} data-testid={testId}>
         <MetricCardHeader>
           <div className="flex items-center justify-between">
-            <div className="bg-muted h-4 w-24 animate-pulse rounded" />
-            <div className="bg-muted h-8 w-8 animate-pulse rounded" />
+            <div className="bg-muted h-3 w-20 animate-pulse rounded" />
+            <div className="bg-muted h-6 w-6 animate-pulse rounded" />
           </div>
         </MetricCardHeader>
         <MetricCardContent>
-          <div className="bg-muted h-8 w-32 animate-pulse rounded" />
-          <div className="bg-muted mt-2 h-4 w-40 animate-pulse rounded" />
+          <div className="bg-muted h-6 w-28 animate-pulse rounded" />
+          <div className="bg-muted mt-1 h-3 w-32 animate-pulse rounded" />
         </MetricCardContent>
       </MetricCard>
     )
@@ -130,20 +130,20 @@ export const LoadingMetricCard = ({
     <MetricCard className={className} data-testid={testId}>
       <MetricCardHeader>
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <MetricCardTitle>{title}</MetricCardTitle>
-            <div className="bg-brand-secondary/60 h-[2px] w-12 rounded-full transition-all duration-300 group-hover:w-24" />
+            <div className="bg-brand-secondary/60 h-[1px] w-10 rounded-full transition-all duration-300 group-hover:w-20" />
           </div>
-          <div className="bg-brand-secondary rounded-md p-1.5">
-            <Icon className="h-5 w-5 text-white" />
+          <div className="bg-brand-secondary rounded-md p-1">
+            <Icon className="h-4 w-4 text-white" />
           </div>
         </div>
       </MetricCardHeader>
       <MetricCardContent>
-        <div className="text-brand-primary text-2xl font-bold">
+        <div className="text-brand-primary text-lg font-bold">
           {formatValue(metric?.atual ?? 0)}
         </div>
-        <div className="mt-1 flex items-center gap-1">
+        <div className="mt-0.5 flex items-center gap-1">
           {TrendIcon}
           <span className={`text-xs font-medium ${trendColor}`}>
             {metric?.percentual ?? 0}%
