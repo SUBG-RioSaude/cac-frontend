@@ -133,7 +133,10 @@ import { useUnidadesGestoras } from '@/modules/Unidades/hooks/use-unidades-gesto
 ### 3. Serviços de API
 
 ```typescript
-import { obterUnidades, obterUnidadePorId } from '@/modules/Unidades/services/unidades-service'
+import {
+  obterUnidades,
+  obterUnidadePorId,
+} from '@/modules/Unidades/services/unidades-service'
 ```
 
 ### 4. Rotas

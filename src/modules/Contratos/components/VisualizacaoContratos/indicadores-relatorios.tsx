@@ -459,55 +459,62 @@ export const IndicadoresRelatorios = ({
             </div>
           </div>
 
-          {/* Timeline baseada nos dados reais */}
+          {/* Timeline baseada em anos civis */}
           <div className="space-y-3 sm:space-y-4">
             {(() => {
-              const hojePeriodos = new Date()
-              const dataInicioPeriodos = new Date(contrato.dataInicio)
+              const hojeTimeline = new Date()
+              const contratoInicio = new Date(contrato.dataInicio)
+              const contratoFim = new Date(contrato.dataTermino)
 
-              // Calcular períodos baseados na duração do contrato
+              // Calcular anos civis entre início e fim do contrato
+              const anoInicio = contratoInicio.getFullYear()
+              const anoFim = contratoFim.getFullYear()
+
               const duracaoTotal = contrato.prazoInicialMeses
-              const mesesPorPeriodo = Math.ceil(duracaoTotal / 4) // Dividir em 4 períodos
+              const valorTotalContrato = contrato.valorGlobal
 
               const periodos = []
-              for (
-                let i = 0;
-                i < 4 && i * mesesPorPeriodo < duracaoTotal;
-                i++
-              ) {
-                const inicioMeses = i * mesesPorPeriodo
-                const fimMeses = Math.min(
-                  (i + 1) * mesesPorPeriodo - 1,
-                  duracaoTotal - 1,
-                )
 
-                const periodoInicio = new Date(dataInicioPeriodos)
-                periodoInicio.setMonth(periodoInicio.getMonth() + inicioMeses)
+              for (let ano = anoInicio; ano <= anoFim; ano++) {
+                // Definir início do período: início do contrato ou 1º de janeiro
+                const inicioPeriodo =
+                  ano === anoInicio ? contratoInicio : new Date(`${ano}-01-01`)
 
-                const periodoFim = new Date(dataInicioPeriodos)
-                periodoFim.setMonth(periodoFim.getMonth() + fimMeses + 1)
-                periodoFim.setDate(periodoFim.getDate() - 1)
+                // Definir fim do período: fim do contrato ou 31 de dezembro
+                const fimPeriodo =
+                  ano === anoFim ? contratoFim : new Date(`${ano}-12-31`)
 
                 // Determinar status baseado na data atual
                 let status = 'pendente'
-                if (hojePeriodos > periodoFim) {
+                if (hojeTimeline > fimPeriodo) {
                   status = 'concluido'
                 } else if (
-                  hojePeriodos >= periodoInicio &&
-                  hojePeriodos <= periodoFim
+                  hojeTimeline >= inicioPeriodo &&
+                  hojeTimeline <= fimPeriodo
                 ) {
                   status = 'em_andamento'
                 }
 
-                const percentualEsperado = ((fimMeses + 1) / duracaoTotal) * 100
+                // Calcular meses desde início do contrato até fim deste período
+                const mesesAteAnoFim =
+                  (fimPeriodo.getFullYear() - contratoInicio.getFullYear()) *
+                    12 +
+                  (fimPeriodo.getMonth() - contratoInicio.getMonth()) +
+                  1
+
+                const percentualEsperado = Math.min(
+                  (mesesAteAnoFim / duracaoTotal) * 100,
+                  100,
+                )
 
                 periodos.push({
-                  descricao: `Período ${i + 1} (${inicioMeses + 1}º ao ${fimMeses + 1}º mês)`,
-                  inicio: periodoInicio.toISOString(),
-                  fim: periodoFim.toISOString(),
+                  descricao: ano.toString(),
+                  inicio: inicioPeriodo.toISOString(),
+                  fim: fimPeriodo.toISOString(),
                   status,
                   percentualEsperado: percentualEsperado.toFixed(1),
-                  valorEsperado: (valorTotal * percentualEsperado) / 100,
+                  valorEsperado:
+                    (valorTotalContrato * percentualEsperado) / 100,
                 })
               }
 
@@ -558,41 +565,40 @@ export const IndicadoresRelatorios = ({
             <div className="flex h-3 items-center gap-1 overflow-hidden sm:h-4">
               {(() => {
                 const hojeTimeline = new Date()
-                const dataInicioTimeline = new Date(contrato.dataInicio)
-                const duracaoTotal = contrato.prazoInicialMeses
-                const mesesPorPeriodo = Math.ceil(duracaoTotal / 4)
+                const contratoInicioTimeline = new Date(contrato.dataInicio)
+                const contratoFimTimeline = new Date(contrato.dataTermino)
+
+                // Calculate civil years between contract start and end
+                const anoInicio = contratoInicioTimeline.getFullYear()
+                const anoFim = contratoFimTimeline.getFullYear()
 
                 const periodos = []
-                for (
-                  let i = 0;
-                  i < 4 && i * mesesPorPeriodo < duracaoTotal;
-                  i++
-                ) {
-                  const inicioMeses = i * mesesPorPeriodo
-                  const fimMeses = Math.min(
-                    (i + 1) * mesesPorPeriodo - 1,
-                    duracaoTotal - 1,
-                  )
+                for (let ano = anoInicio; ano <= anoFim; ano++) {
+                  // Period start: contract start or January 1st
+                  const inicioPeriodo =
+                    ano === anoInicio
+                      ? contratoInicioTimeline
+                      : new Date(`${ano}-01-01`)
 
-                  const periodoInicio = new Date(dataInicioTimeline)
-                  periodoInicio.setMonth(periodoInicio.getMonth() + inicioMeses)
+                  // Period end: contract end or December 31st
+                  const fimPeriodo =
+                    ano === anoFim
+                      ? contratoFimTimeline
+                      : new Date(`${ano}-12-31`)
 
-                  const periodoFim = new Date(dataInicioTimeline)
-                  periodoFim.setMonth(periodoFim.getMonth() + fimMeses + 1)
-                  periodoFim.setDate(periodoFim.getDate() - 1)
-
+                  // Determine status based on current date
                   let status = 'pendente'
-                  if (hojeTimeline > periodoFim) {
+                  if (hojeTimeline > fimPeriodo) {
                     status = 'concluido'
                   } else if (
-                    hojeTimeline >= periodoInicio &&
-                    hojeTimeline <= periodoFim
+                    hojeTimeline >= inicioPeriodo &&
+                    hojeTimeline <= fimPeriodo
                   ) {
                     status = 'em_andamento'
                   }
 
                   periodos.push({
-                    descricao: `Período ${i + 1}`,
+                    descricao: ano.toString(),
                     status,
                   })
                 }

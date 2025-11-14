@@ -1,6 +1,18 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* ========== TIPOGRAFIA - PLUS JAKARTA SANS ==========
+   Hierarquia baseada no manual de marca:
+   - Extra Bold (800): Títulos principais (equivalente a BLACK)
+   - Bold (700): Subtítulos e títulos secundários (equivalente a MEDIUM)
+   - Regular (400): Textos corridos e parágrafos
+*/
+@import '@fontsource/plus-jakarta-sans/400.css'; /* Regular */
+@import '@fontsource/plus-jakarta-sans/500.css'; /* Medium */
+@import '@fontsource/plus-jakarta-sans/600.css'; /* Semi Bold */
+@import '@fontsource/plus-jakarta-sans/700.css'; /* Bold */
+@import '@fontsource/plus-jakarta-sans/800.css'; /* Extra Bold */
+
 @custom-variant dark (&:is(.dark *));
 
 /* Escopo customizado só para a sidebar */
@@ -10,6 +22,14 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* ========== CORES DA MARCA (Tailwind ready) ========== */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-gray-light: var(--brand-gray-light);
+  --color-brand-white: var(--brand-white);
+
+  /* ========== CORES SHADCN ========== */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -42,12 +62,33 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-sans:
-    Roboto, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 :root {
   --radius: 0.625rem;
+
+  /* ========== CORES DO MANUAL DE MARCA - PREFEITURA RIO ========== */
+  /* Sistema RGB e Hexadecimal conforme especificação */
+
+  /* Azul Escuro - Títulos principais sobre fundo branco */
+  --brand-primary: #2a688f; /* R 83 / G 50 / B 16 */
+  --brand-primary-rgb: 42 104 143;
+
+  /* Azul Claro - Destaques e subtítulos */
+  --brand-secondary: #42b9eb; /* R 66 / G 185 / B 235 */
+  --brand-secondary-rgb: 66 185 235;
+
+  /* Cinza Claro - Fundos e elementos secundários */
+  --brand-gray-light: #eceded; /* R 236 / G 237 / B 237 */
+  --brand-gray-light-rgb: 236 237 237;
+
+  /* Branco - Texto sobre fundos escuros */
+  --brand-white: #ffffff; /* R 255 / G 255 / B 255 */
+  --brand-white-rgb: 255 255 255;
+
+  /* ========== VARIÁVEIS SHADCN (mantidas) ========== */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -196,6 +237,30 @@
 }
 
 @layer utilities {
+  /* ========== HIERARQUIA TIPOGRÁFICA - MANUAL DE MARCA ========== */
+
+  /* Títulos principais - PLUS JAKARTA SANS EXTRA BOLD (equivalente a CERA PRO BLACK) */
+  .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase; /* Preferencialmente CAIXA ALTA */
+    letter-spacing: -0.02em; /* Reduzir entrelinha em títulos grandes (mínimo 30 milésimos) */
+  }
+
+  /* Subtítulos e títulos curtos - PLUS JAKARTA SANS BOLD (equivalente a CERA PRO MEDIUM) */
+  .font-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    /* Preferencialmente CAIXA ALTA, mas pode ser sentença */
+  }
+
+  /* Textos longos - PLUS JAKARTA SANS REGULAR (equivalente a CERA PRO REGULAR) */
+  .font-body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 400;
+    /* Caixa alta e baixa (sentença normal) */
+  }
+
   /* Esconde scrollbar mas mantém funcionalidade */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
@@ -204,5 +269,40 @@
   .scrollbar-hide {
     -ms-overflow-style: none; /* IE e Edge */
     scrollbar-width: none; /* Firefox */
+  }
+
+  /* Scrollbar customizada elegante */
+  .scrollbar-thin {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgb(209 213 219) rgb(243 244 246); /* thumb track - gray-300 gray-100 */
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: rgb(243 244 246); /* gray-100 */
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(209 213 219); /* gray-300 */
+    border-radius: 4px;
+    border: 2px solid rgb(243 244 246); /* gray-100 para dar espaço */
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175); /* gray-400 no hover */
+  }
+
+  /* Classes utilitárias para cores da scrollbar (não precisam de webkit) */
+  .scrollbar-track-gray-100 {
+    /* Aplicado via scrollbar-thin */
+  }
+
+  .scrollbar-thumb-gray-300 {
+    /* Aplicado via scrollbar-thin */
   }
 }

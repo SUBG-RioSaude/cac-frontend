@@ -124,7 +124,10 @@ export const TabelaFornecedores = ({
                     delay: index * 0.02,
                   }}
                 >
-                  <Card className="p-4 transition-shadow hover:shadow-md">
+                  <Card
+                    className="cursor-pointer p-4 transition-shadow hover:shadow-md"
+                    onClick={() => onAbrirFornecedor(fornecedor)}
+                  >
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -137,6 +140,7 @@ export const TabelaFornecedores = ({
                               checked as boolean,
                             )
                           }
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </div>
                       <FornecedorStatusBadge
@@ -155,7 +159,7 @@ export const TabelaFornecedores = ({
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-muted-foreground text-xs">
-                            Contratos Ativos
+                            Contratos Vigentes
                           </p>
                           <p className="text-sm font-semibold">
                             {fornecedor.contratosAtivos}
@@ -188,10 +192,13 @@ export const TabelaFornecedores = ({
 
                     <div className="flex items-center justify-end gap-1">
                       <Button
-                        variant="default"
+                        variant="outline-premium"
                         size="sm"
-                        onClick={() => onAbrirFornecedor(fornecedor)}
-                        className="h-8 px-3 shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onAbrirFornecedor(fornecedor)
+                        }}
+                        className="h-8 px-3"
                         aria-label="Abrir fornecedor"
                       >
                         <Eye className="mr-1 h-4 w-4" />
@@ -219,7 +226,7 @@ export const TabelaFornecedores = ({
                     </TableHead>
                     <TableHead className="font-semibold">CNPJ</TableHead>
                     <TableHead className="font-semibold">
-                      Contratos Ativos
+                      Contratos Vigentes
                     </TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold">Valor Total</TableHead>
@@ -241,9 +248,10 @@ export const TabelaFornecedores = ({
                         ease: 'easeOut',
                         delay: index * 0.03,
                       }}
-                      className="group hover:bg-muted/30 transition-colors"
+                      className="group hover:bg-muted/30 cursor-pointer transition-colors"
+                      onClick={() => onAbrirFornecedor(fornecedor)}
                     >
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={fornecedoresSelecionados.includes(
                             fornecedor.id,
@@ -289,12 +297,15 @@ export const TabelaFornecedores = ({
                           />
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button
-                          variant="default"
+                          variant="outline-premium"
                           size="sm"
                           onClick={() => onAbrirFornecedor(fornecedor)}
-                          className="h-8 px-3 shadow-sm"
+                          className="h-8 px-3"
                           aria-label="Abrir fornecedor"
                         >
                           <Eye className="mr-1 h-4 w-4" />
@@ -308,7 +319,7 @@ export const TabelaFornecedores = ({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 px-3 pb-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6">
+          <div className="bg-muted/20 flex flex-col items-center justify-between gap-4 border-t px-4 py-4 sm:flex-row sm:px-6">
             <div className="text-muted-foreground text-center text-xs sm:text-left sm:text-sm">
               Mostrando {(paginacao.pagina - 1) * paginacao.itensPorPagina + 1}{' '}
               a{' '}
@@ -319,90 +330,21 @@ export const TabelaFornecedores = ({
               de {paginacao.total} fornecedores
             </div>
 
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={paginaAnterior}
                 disabled={paginacao.pagina <= 1 || isLoading}
-                className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
+                className="flex items-center gap-2"
               >
-                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="xs:inline hidden">Anterior</span>
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Anterior</span>
               </Button>
 
-              <div className="flex items-center gap-1">
-                {/* Renderizar páginas de forma inteligente */}
-                {(() => {
-                  const maxVisiblePages = 5
-                  const currentPage = paginacao.pagina
-                  const totalPages = totalPaginas
-
-                  if (totalPages <= maxVisiblePages) {
-                    // Se há poucas páginas, mostra todas
-                    return Array.from({ length: totalPages }, (_, i) => {
-                      const pageNum = i + 1
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={
-                            currentPage === pageNum ? 'default' : 'outline'
-                          }
-                          size="sm"
-                          disabled={isLoading}
-                          onClick={() => {
-                            const novaPaginacao = {
-                              ...paginacao,
-                              pagina: pageNum,
-                            }
-                            onPaginacaoChange(novaPaginacao)
-                          }}
-                          className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
-                        >
-                          {pageNum}
-                        </Button>
-                      )
-                    })
-                  } else {
-                    // Lógica mais avançada para muitas páginas
-                    const startPage = Math.max(
-                      1,
-                      currentPage - Math.floor(maxVisiblePages / 2),
-                    )
-                    const endPage = Math.min(
-                      totalPages,
-                      startPage + maxVisiblePages - 1,
-                    )
-
-                    return Array.from(
-                      { length: endPage - startPage + 1 },
-                      (_, i) => {
-                        const pageNum = startPage + i
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={
-                              currentPage === pageNum ? 'default' : 'outline'
-                            }
-                            size="sm"
-                            disabled={isLoading}
-                            onClick={() => {
-                              const novaPaginacao = {
-                                ...paginacao,
-                                pagina: pageNum,
-                              }
-                              onPaginacaoChange(novaPaginacao)
-                            }}
-                            className="h-8 w-8 p-0 text-xs sm:h-9 sm:w-9 sm:text-sm"
-                          >
-                            {pageNum}
-                          </Button>
-                        )
-                      },
-                    )
-                  }
-                })()}
-              </div>
+              <span className="text-sm font-medium">
+                Página {paginacao.pagina} de {totalPaginas}
+              </span>
 
               <Button
                 variant="outline"
@@ -413,10 +355,10 @@ export const TabelaFornecedores = ({
                   totalPaginas === 0 ||
                   isLoading
                 }
-                className="flex items-center gap-2 bg-transparent text-xs sm:text-sm"
+                className="flex items-center gap-2"
               >
-                <span className="xs:inline hidden">Próxima</span>
-                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Próxima</span>
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>

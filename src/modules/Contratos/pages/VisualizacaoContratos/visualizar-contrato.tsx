@@ -372,7 +372,7 @@ export const VisualizarContrato = () => {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList className="flex h-auto w-full gap-1 overflow-x-auto rounded-lg bg-gray-50 p-1 scrollbar-hide sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+              <TabsList className="scrollbar-hide flex h-auto w-full gap-1 overflow-x-auto rounded-lg bg-gray-50 p-1 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 {getActiveTabs().map((tab) => (
                   <TabsTrigger
                     key={tab.id}
@@ -382,7 +382,9 @@ export const VisualizarContrato = () => {
                     <div
                       className={`h-2 w-2 shrink-0 rounded-full ${tab.icon.color} ${tab.icon.bgColor} sm:h-3 sm:w-3`}
                     />
-                    <span className="truncate text-center sm:text-left">{tab.label}</span>
+                    <span className="truncate text-center sm:text-left">
+                      {tab.label}
+                    </span>
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -414,9 +416,7 @@ export const VisualizarContrato = () => {
                 {/* Renderizar apenas abas ativas */}
                 {isTabEnabled('detalhes') && (
                   <TabsContent value="detalhes" className="mt-0 w-full">
-                    <DetalhesContrato
-                      contrato={contrato}
-                    />
+                    <DetalhesContrato contrato={contrato} />
                   </TabsContent>
                 )}
 

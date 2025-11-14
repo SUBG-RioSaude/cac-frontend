@@ -3,7 +3,6 @@
  * Refatorado para usar TanStack Query ao invés de Zustand
  */
 
-
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
@@ -198,7 +197,7 @@ export const NotificacoesDropdown = () => {
               value={abaAtiva}
               onValueChange={(v) => setAbaAtiva(v as typeof abaAtiva)}
             >
-              <TabsList className="w-full grid grid-cols-4">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="todas" className="text-xs">
                   Todas
                 </TabsTrigger>
@@ -218,36 +217,36 @@ export const NotificacoesDropdown = () => {
             {temNotificacoes &&
               abaAtiva !== 'arquivo' &&
               abaAtiva !== 'seguindo' && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {contagemNaoLidas > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      marcarTodasComoLidas()
-                      descartarTodosBroadcasts()
-                    }}
-                    className="h-8 flex-shrink-0 border border-blue-200 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                    aria-label="Marcar todas como lidas"
-                  >
-                    <Check className="mr-1 h-3 w-3" />
-                    Visualizar todas
-                  </Button>
-                )}
-                {notificacoesVisiveis.some((n) => n.lida) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => arquivarTodasLidas()}
-                    className="h-8 flex-shrink-0 border border-orange-200 px-2 text-xs text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-                    aria-label="Arquivar notificações lidas"
-                  >
-                    <Archive className="mr-1 h-3 w-3" />
-                    Arquivar lidas
-                  </Button>
-                )}
-              </div>
-            )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {contagemNaoLidas > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        marcarTodasComoLidas()
+                        descartarTodosBroadcasts()
+                      }}
+                      className="h-8 flex-shrink-0 border border-blue-200 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                      aria-label="Marcar todas como lidas"
+                    >
+                      <Check className="mr-1 h-3 w-3" />
+                      Visualizar todas
+                    </Button>
+                  )}
+                  {notificacoesVisiveis.some((n) => n.lida) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => arquivarTodasLidas()}
+                      className="h-8 flex-shrink-0 border border-orange-200 px-2 text-xs text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                      aria-label="Arquivar notificações lidas"
+                    >
+                      <Archive className="mr-1 h-3 w-3" />
+                      Arquivar lidas
+                    </Button>
+                  )}
+                </div>
+              )}
           </div>
 
           {/* Lista de notificações */}
@@ -329,9 +328,7 @@ export const NotificacoesDropdown = () => {
                               <h4
                                 className={cn(
                                   'text-sm font-medium text-gray-900',
-                                  !ehBroadcast &&
-                                    !item.lida &&
-                                    'font-semibold',
+                                  !ehBroadcast && !item.lida && 'font-semibold',
                                   ehBroadcast && 'font-semibold',
                                 )}
                               >
@@ -345,7 +342,7 @@ export const NotificacoesDropdown = () => {
                                     // Dois checks azuis para lida
                                     <div className="relative flex">
                                       <Check className="h-3 w-3 text-blue-500" />
-                                      <Check className="h-3 w-3 -ml-1.5 text-blue-500" />
+                                      <Check className="-ml-1.5 h-3 w-3 text-blue-500" />
                                     </div>
                                   ) : (
                                     // Um check cinza para não lida
@@ -442,10 +439,8 @@ export const NotificacoesDropdown = () => {
                           <p
                             className={cn(
                               'mt-1 line-clamp-2 text-sm text-gray-600',
-                              !ehBroadcast &&
-                                !item.lida &&
-                                'text-gray-700',
-                              ehBroadcast && 'text-gray-700 font-medium',
+                              !ehBroadcast && !item.lida && 'text-gray-700',
+                              ehBroadcast && 'font-medium text-gray-700',
                             )}
                           >
                             {item.mensagem}

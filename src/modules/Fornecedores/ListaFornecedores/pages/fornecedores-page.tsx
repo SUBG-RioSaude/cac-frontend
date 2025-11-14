@@ -107,7 +107,7 @@ const FornecedoresListPage = () => {
     fornecedoresSelecionadosData: Fornecedor[],
   ) => {
     const csvContent = [
-      ['Razão Social', 'CNPJ', 'Contratos Ativos', 'Status', 'Valor Total'],
+      ['Razão Social', 'CNPJ', 'Contratos Vigentes', 'Status', 'Valor Total'],
       ...fornecedoresSelecionadosData.map((f) => [
         f.razaoSocial,
         f.cnpj,
@@ -179,14 +179,14 @@ const FornecedoresListPage = () => {
       : 'Exportar Todos'
 
   return (
-    <div className="to-muted/20 min-h-screen bg-gradient-to-br p-6">
-      <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+    <div className="min-h-screen overflow-x-hidden">
+      <div className="space-y-6 py-6 sm:space-y-8 sm:py-8">
         {/* Cabeçalho Responsivo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start"
+          className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
         >
           <div className="text-center sm:text-left">
             <h1 className="from-foreground to-foreground/70 bg-gradient-to-r bg-clip-text text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
@@ -197,7 +197,7 @@ const FornecedoresListPage = () => {
             </p>
           </div>
           <motion.div
-            className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4"
+            className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -216,10 +216,12 @@ const FornecedoresListPage = () => {
               <span className="hidden sm:inline">{textoExportar}</span>
             </Button>
             <ModalNovoFornecedor onSalvar={handleNovoFornecedor}>
-              <Button className="h-10 cursor-pointer shadow-sm sm:h-auto">
+              <Button
+                variant="outline-premium"
+                className="h-10 cursor-pointer shadow-sm sm:h-auto"
+              >
                 <Plus className="mr-2 h-4 w-4" />
-                <span className="sm:hidden">Novo</span>
-                <span className="hidden sm:inline">Novo Fornecedor</span>
+                Novo Fornecedor
               </Button>
             </ModalNovoFornecedor>
           </motion.div>
@@ -232,10 +234,12 @@ const FornecedoresListPage = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <SearchAndFiltersFornecedores
-          onFiltrosChange={useCallback((novosFiltros: FiltrosFornecedorApi) => {
-            setFiltros(prev => {
-              // Verifica se já possui paginação nos novos filtros
-              const jaPossuiPaginacao = 'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
+            onFiltrosChange={useCallback(
+              (novosFiltros: FiltrosFornecedorApi) => {
+                setFiltros((prev) => {
+                  // Verifica se já possui paginação nos novos filtros
+                  const jaPossuiPaginacao =
+                    'pagina' in novosFiltros || 'tamanhoPagina' in novosFiltros
 
                   const filtrosFinais = {
                     ...prev,

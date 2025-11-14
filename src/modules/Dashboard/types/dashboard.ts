@@ -16,7 +16,7 @@ export interface DashboardMetric {
   atual: number
   anterior: number
   percentual: number
-  tendencia: 'up' | 'down' | 'stable'
+  tendencia: 'up' | 'down'
 }
 
 export interface DashboardMetrics {
@@ -29,6 +29,7 @@ export interface DashboardMetrics {
 // ========== FILTROS GLOBAIS ==========
 
 export interface DashboardFilters {
+  tipoVisualizacao: 'global' | 'periodo' // Modo de visualização: global (all time) ou por período
   periodo: {
     mes: number
     ano: number
@@ -92,6 +93,7 @@ export interface DashboardActivity {
   tipo: ActivityType
   contratoId: string
   contratoNumero: string
+  titulo: string
   descricao: string
   dataHora: string
   usuario?: string

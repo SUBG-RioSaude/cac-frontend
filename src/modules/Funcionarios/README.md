@@ -74,7 +74,10 @@ utils/
 ### 1. Serviços de API
 
 ```typescript
-import { obterFuncionarios, obterFuncionarioPorId } from '@/modules/Funcionarios/services/funcionarios-service'
+import {
+  obterFuncionarios,
+  obterFuncionarioPorId,
+} from '@/modules/Funcionarios/services/funcionarios-service'
 ```
 
 ### 2. Tipos
@@ -87,7 +90,7 @@ import type { Funcionario } from '@/modules/Funcionarios/types/funcionario'
 
 ```typescript
 // Cadastro de funcionário
-/funcionarios/cadastrar
+;/funcionarios/aaacdrrst
 ```
 
 ## 🔄 Fluxo de Dados
@@ -131,14 +134,14 @@ Interface do Usuário
 
 ## 🚧 Status de Desenvolvimento
 
-| Funcionalidade | Status |
-|---|---|
-| Cadastro | ✅ Implementado |
-| Listagem | ⏳ Pendente |
-| Visualização | ⏳ Pendente |
-| Edição | ⏳ Pendente |
-| Testes de Componentes | ⏳ Pendente |
-| Testes de Serviços | ⏳ Pendente |
+| Funcionalidade        | Status          |
+| --------------------- | --------------- |
+| Cadastro              | ✅ Implementado |
+| Listagem              | ⏳ Pendente     |
+| Visualização          | ⏳ Pendente     |
+| Edição                | ⏳ Pendente     |
+| Testes de Componentes | ⏳ Pendente     |
+| Testes de Serviços    | ⏳ Pendente     |
 
 ## 📋 Próximos Passos
 

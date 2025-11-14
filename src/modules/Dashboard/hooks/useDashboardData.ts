@@ -1,57 +1,46 @@
 /**
  * ==========================================
- * HOOK DE DADOS DO DASHBOARD
+ * HOOK DE DADOS DO DASHBOARD - OTIMIZADO
  * ==========================================
  * Gerencia carregamento e cache dos dados do dashboard
+ * Melhorias de Performance - Fase 1: Debounce + Smooth Transitions
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
-import { getDashboardDataMock } from '../data/dashboard-mock'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
+
 import { fetchDashboardData } from '../services/dashboard-service'
 import type {
   DashboardFilters,
   UseDashboardDataResult,
 } from '../types/dashboard'
 
-// Flag para habilitar modo mock (útil durante desenvolvimento)
-// Em testes, sempre usar fetchDashboardData para permitir mocking
-const isTestEnvironment = () => {
-  // Detecta se estamos em ambiente de teste
-  return (
-    typeof process !== 'undefined' &&
-    (process.env.NODE_ENV === 'test' ||
-      process.env.VITEST === 'true' ||
-      import.meta.env.MODE === 'test' ||
-      // Fallback: detecta se há funções de teste globais
-      (typeof globalThis !== 'undefined' &&
-        ('vi' in globalThis || 'describe' in globalThis)))
-  )
-}
-
-const USE_MOCK_DATA = import.meta.env.DEV && !isTestEnvironment()
-
 /**
  * Hook para gerenciar dados do dashboard com cache e refetch
+ * OTIMIZADO: Aplica debounce de 500ms nos filtros para reduzir chamadas HTTP
  */
 export const useDashboardData = (
   filters: DashboardFilters,
 ): UseDashboardDataResult => {
+  // Debounce de filtros para evitar requisições excessivas
+  const debouncedFilters = useDebouncedValue(filters, 500)
+
   const {
     data,
     isLoading,
     error,
     refetch: queryRefetch,
   } = useQuery({
-    queryKey: ['dashboard-data', filters],
-    queryFn: USE_MOCK_DATA
-      ? () => getDashboardDataMock(800)
-      : () => fetchDashboardData(filters),
+    queryKey: ['dashboard-data', debouncedFilters],
+    queryFn: () => fetchDashboardData(debouncedFilters),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    // Melhorias de UX
+    placeholderData: keepPreviousData, // Mantém dados anteriores durante loading
   })
 
   const refetch = useCallback(() => {

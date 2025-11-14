@@ -262,7 +262,9 @@ describe('notificacao-api', () => {
 
       const resultado = await notificacaoApi.obterPreferencias()
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/preferencias/minhas')
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/api/preferencias/minhas',
+      )
       expect(resultado).toEqual(mockPreferencias)
     })
   })

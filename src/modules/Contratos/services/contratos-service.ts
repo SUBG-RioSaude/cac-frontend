@@ -255,20 +255,16 @@ export async function criarContrato(
 
     return response.data
   } catch (error: unknown) {
-    logger.error(
-      'Erro ao criar contrato',
-      {
-        operation: 'criar_contrato',
-        payloadType: typeof payload,
-        status: (error as { response?: { status?: number } }).response?.status,
-        statusText: (error as { response?: { statusText?: string } }).response
-          ?.statusText,
-        responseData: (error as { response?: { data?: unknown } }).response
-          ?.data,
-        errorMessage: (error as { message?: string }).message,
-        stack: (error as Error).stack,
-      },
-    )
+    logger.error('Erro ao criar contrato', {
+      operation: 'criar_contrato',
+      payloadType: typeof payload,
+      status: (error as { response?: { status?: number } }).response?.status,
+      statusText: (error as { response?: { statusText?: string } }).response
+        ?.statusText,
+      responseData: (error as { response?: { data?: unknown } }).response?.data,
+      errorMessage: (error as { message?: string }).message,
+      stack: (error as Error).stack,
+    })
 
     // Extrair mensagem específica do backend se disponível
     let errorMessage = 'Erro ao criar contrato'
@@ -474,14 +470,11 @@ export async function getContratosVencendo(
       temPaginaAnterior: false,
     }
   } catch (error) {
-    logger.error(
-      'Erro ao buscar contratos vencendo',
-      {
-        operation: 'buscar_contratos_vencendo',
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      },
-    )
+    logger.error('Erro ao buscar contratos vencendo', {
+      operation: 'buscar_contratos_vencendo',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     throw error
   }
 }
@@ -565,14 +558,11 @@ export async function getContratosVencidos(
       temPaginaAnterior: false,
     }
   } catch (error) {
-    logger.error(
-      'Erro ao buscar contratos vencidos',
-      {
-        operation: 'buscar_contratos_vencidos',
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      },
-    )
+    logger.error('Erro ao buscar contratos vencidos', {
+      operation: 'buscar_contratos_vencidos',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     throw error
   }
 }
@@ -662,16 +652,13 @@ export async function getContratosPorEmpresa(
       temPaginaAnterior: false,
     }
   } catch (error) {
-    logger.error(
-      'Erro ao buscar contratos da empresa',
-      {
-        operation: 'buscar_contratos_empresa',
-        empresaId,
-        filtros,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      },
-    )
+    logger.error('Erro ao buscar contratos da empresa', {
+      operation: 'buscar_contratos_empresa',
+      empresaId,
+      filtros,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     throw error
   }
 }

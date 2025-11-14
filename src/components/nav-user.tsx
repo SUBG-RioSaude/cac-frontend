@@ -121,7 +121,7 @@ export const NavUser = () => {
               <div className="relative z-10 flex items-center gap-3">
                 <div className="relative">
                   <Avatar className="h-9 w-9 rounded-xl border-2 border-gray-700/40 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover/user:border-gray-700/60 group-hover/user:shadow-xl group-data-[state=open]:scale-105">
-                    <AvatarFallback className="rounded-xl bg-gray-700 text-sm font-bold text-white !bg-gray-700">
+                    <AvatarFallback className="rounded-xl !bg-gray-700 bg-gray-700 text-sm font-bold text-white">
                       {(usuario.nomeCompleto || usuario.email)
                         .split(' ')
                         .map((n) => n[0])
@@ -170,7 +170,7 @@ export const NavUser = () => {
               <div className="border-sidebar-border/30 bg-sidebar-accent m-1 flex items-center gap-3 rounded-lg border px-2 py-2 text-left text-sm shadow-sm backdrop-blur-sm">
                 <div className="relative">
                   <Avatar className="h-9 w-9 rounded-xl border-2 border-gray-700/40 shadow-md backdrop-blur-sm">
-                    <AvatarFallback className="rounded-xl bg-gray-700 text-xs font-bold text-white !bg-gray-700">
+                    <AvatarFallback className="rounded-xl !bg-gray-700 bg-gray-700 text-xs font-bold text-white">
                       {(usuario.nomeCompleto || usuario.email)
                         .split(' ')
                         .map((n) => n[0])

@@ -13,7 +13,13 @@ import {
   Legend,
 } from 'recharts'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 import type { DashboardData } from '../../types/dashboard'
 
@@ -76,11 +82,11 @@ export const ContractsCharts = ({
         {[1, 2, 3, 4].map((i) => (
           <Card key={i} className="bg-card">
             <CardHeader>
-              <div className="h-6 w-48 animate-pulse rounded bg-muted" />
-              <div className="mt-2 h-4 w-64 animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-6 w-48 animate-pulse rounded" />
+              <div className="bg-muted mt-2 h-4 w-64 animate-pulse rounded" />
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-[300px] w-full animate-pulse rounded" />
             </CardContent>
           </Card>
         ))}
@@ -93,7 +99,9 @@ export const ContractsCharts = ({
       {/* Evolução Mensal */}
       <Card className="bg-card lg:col-span-2">
         <CardHeader>
-          <CardTitle className="text-foreground">Evolução de Contratos</CardTitle>
+          <CardTitle className="text-foreground">
+            Evolução de Contratos
+          </CardTitle>
           <CardDescription>
             Contratos formalizados e valores nos últimos 12 meses
           </CardDescription>
@@ -173,7 +181,9 @@ export const ContractsCharts = ({
       {/* Contratos por Categoria */}
       <Card className="bg-card">
         <CardHeader>
-          <CardTitle className="text-foreground">Contratos por Categoria</CardTitle>
+          <CardTitle className="text-foreground">
+            Contratos por Categoria
+          </CardTitle>
           <CardDescription>Distribuição por tipo de contrato</CardDescription>
         </CardHeader>
         <CardContent>
@@ -218,7 +228,9 @@ export const ContractsCharts = ({
       {/* Status dos Contratos */}
       <Card className="bg-card">
         <CardHeader>
-          <CardTitle className="text-foreground">Status dos Contratos</CardTitle>
+          <CardTitle className="text-foreground">
+            Status dos Contratos
+          </CardTitle>
           <CardDescription>Distribuição por situação atual</CardDescription>
         </CardHeader>
         <CardContent>
@@ -258,7 +270,9 @@ export const ContractsCharts = ({
       {detailed && (
         <Card className="bg-card lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-foreground">Vencimentos por Mês</CardTitle>
+            <CardTitle className="text-foreground">
+              Vencimentos por Mês
+            </CardTitle>
             <CardDescription>Contratos com vencimento previsto</CardDescription>
           </CardHeader>
           <CardContent>

@@ -88,6 +88,10 @@ const data = {
       icon: ShieldUser,
       items: [
         {
+          title: 'Registro de Alterações',
+          url: '/alteracoes',
+        },
+        {
           title: 'Cadastro de Funcionários',
           url: '/funcionarios/cadastrar',
         },
@@ -130,11 +134,11 @@ export const AppSidebar = ({
                 </Link>
 
                 {/* Badge CAC redesenhada com ícone maior */}
-                <div className="group-data-[state=collapsed]:hidden w-full">
+                <div className="w-full group-data-[state=collapsed]:hidden">
                   <div className="px-4 py-3">
                     <Separator className="bg-sidebar-border/50" />
                   </div>
-                  <div className="flex gap-8 items-center overflow-hidden rounded-md bg-gray-600 px-4 py-2 opacity-80 transition-all duration-300 hover:scale-105 hover:opacity-95">
+                  <div className="flex items-center gap-8 overflow-hidden rounded-md bg-gray-600 px-4 py-2 opacity-80 transition-all duration-300 hover:scale-105 hover:opacity-95">
                     {/* Ícone CAC maior */}
                     <div className="flex h-[45px] items-center justify-center">
                       <img
@@ -145,8 +149,8 @@ export const AppSidebar = ({
                       />
                     </div>
                     {/* Texto CAC */}
-                    <div className='flex flex-col'>
-                      <span className="text-sidebar-foreground ml-[-20px] text-md font-bold tracking-wider uppercase drop-shadow-sm">
+                    <div className="flex flex-col">
+                      <span className="text-sidebar-foreground text-md ml-[-20px] font-bold tracking-wider uppercase drop-shadow-sm">
                         CAC 360
                       </span>
                       <span className="text-sidebar-foreground ml-[-20px] text-sm tracking-wider drop-shadow-sm">

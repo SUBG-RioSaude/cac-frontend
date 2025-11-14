@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 import { LayoutAuthenticated } from '@/components/layout-authenticated'
@@ -23,6 +22,7 @@ import VerifyForm from './pages/auth/verify-form'
 import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
+
 const App = () => {
   return (
     <Routes>
@@ -65,7 +65,7 @@ const App = () => {
         path="/"
         element={(
           <ProtectedRoute requireAuth>
-            <LayoutAuthenticated>
+            <LayoutAuthenticated fullscreen>
               <DashboardPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
@@ -149,6 +149,18 @@ const App = () => {
           </ProtectedRoute>
         )}
       />
+      
+      
+      {/*<Route
+        path="/alteracoes"
+        element={(
+          <ProtectedRoute requireAuth>
+            <LayoutAuthenticated>
+              <CadastroFornecedorPage />
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        )}
+      />*/}
 
       {/* Rotas de Unidades */}
       <Route

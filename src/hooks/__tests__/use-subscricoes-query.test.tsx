@@ -65,7 +65,9 @@ describe('use-subscricoes-query', () => {
         criadoEm: '2025-01-23T10:00:00Z',
       }
 
-      vi.mocked(subscricoesApi.verificarSeguindo).mockResolvedValue(mockResponse)
+      vi.mocked(subscricoesApi.verificarSeguindo).mockResolvedValue(
+        mockResponse,
+      )
 
       const { result } = renderHook(
         () => useVerificarSeguindoQuery('contratos', 'contrato-123'),
@@ -89,7 +91,9 @@ describe('use-subscricoes-query', () => {
         seguindo: false,
       }
 
-      vi.mocked(subscricoesApi.verificarSeguindo).mockResolvedValue(mockResponse)
+      vi.mocked(subscricoesApi.verificarSeguindo).mockResolvedValue(
+        mockResponse,
+      )
 
       const { result } = renderHook(
         () => useVerificarSeguindoQuery('fornecedores', 'fornecedor-456'),
@@ -127,12 +131,9 @@ describe('use-subscricoes-query', () => {
     })
 
     it('não deve executar query quando parametros estão vazios', () => {
-      const { result } = renderHook(
-        () => useVerificarSeguindoQuery('', ''),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const { result } = renderHook(() => useVerificarSeguindoQuery('', ''), {
+        wrapper: createWrapper(),
+      })
 
       expect(result.current.fetchStatus).toBe('idle')
       expect(subscricoesApi.verificarSeguindo).not.toHaveBeenCalled()

@@ -153,15 +153,22 @@ export const useConfirm2FAMutation = () => {
       const resultado = await authService.confirmarCodigo2FA(email, codigo)
 
       // Verifica se precisa trocar senha ou se senha expirou
-      if (resultado.dados?.precisaTrocarSenha || resultado.dados?.senhaExpirada) {
+      if (
+        resultado.dados?.precisaTrocarSenha ||
+        resultado.dados?.senhaExpirada
+      ) {
         authLogger.info(
           {
             action: 'confirm-2fa',
-            status: resultado.dados?.senhaExpirada ? 'password-expired' : 'password-change-required',
+            status: resultado.dados?.senhaExpirada
+              ? 'password-expired'
+              : 'password-change-required',
             senhaExpirada: resultado.dados?.senhaExpirada,
-            precisaTrocarSenha: resultado.dados?.precisaTrocarSenha
+            precisaTrocarSenha: resultado.dados?.precisaTrocarSenha,
           },
-          resultado.dados?.senhaExpirada ? 'Senha expirada detectada' : 'Troca de senha obrigatória detectada',
+          resultado.dados?.senhaExpirada
+            ? 'Senha expirada detectada'
+            : 'Troca de senha obrigatória detectada',
         )
 
         // Salva tokens se fornecidos
@@ -353,7 +360,7 @@ export const useLogoutMutation = () => {
       // Limpa sessionStorage
       sessionStorage.clear()
 
-      toast.success("Logout concluído")
+      toast.success('Logout concluído')
 
       authLogger.info(
         { action: 'logout', status: 'completed' },
@@ -407,7 +414,9 @@ export const useLogoutAllSessionsMutation = () => {
       sessionStorage.setItem('show_logout_success_toast', 'true')
 
       // Limpa sessionStorage (exceto a flag do toast)
-      const logoutToastFlag = sessionStorage.getItem('show_logout_success_toast')
+      const logoutToastFlag = sessionStorage.getItem(
+        'show_logout_success_toast',
+      )
       sessionStorage.clear()
       if (logoutToastFlag) {
         sessionStorage.setItem('show_logout_success_toast', logoutToastFlag)

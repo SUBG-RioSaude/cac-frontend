@@ -250,7 +250,8 @@ describe('AuthStore', () => {
           usuario: mockUsuario,
           senhaExpirada: true,
           tokenTrocaSenha: 'token_senha_expirada_456',
-          mensagem: 'Senha expirada detectada. Confirmação de código realizada. Prossiga com a redefinição da senha.',
+          mensagem:
+            'Senha expirada detectada. Confirmação de código realizada. Prossiga com a redefinição da senha.',
         },
       })
 

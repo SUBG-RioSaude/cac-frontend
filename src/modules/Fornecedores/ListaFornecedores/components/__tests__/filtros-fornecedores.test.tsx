@@ -158,7 +158,7 @@ describe('FiltrosFornecedores', () => {
     const titulosStatus = screen.getAllByText('Status')
     const titulosValor = screen.getAllByText('Valor Total dos Contratos')
     const titulosContratos = screen.getAllByText(
-      'Quantidade de Contratos Ativos',
+      'Quantidade de Contratos Vigentes',
     )
 
     expect(titulosStatus.length).toBeGreaterThan(0)

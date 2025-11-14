@@ -46,7 +46,10 @@ interface SubscricaoPorSistema {
 const obterConfigSistema = (
   sistemaId: string,
 ): { nome: string; icone: React.ReactNode; urlBase: string } => {
-  const configs: Record<string, { nome: string; icone: React.ReactNode; urlBase: string }> = {
+  const configs: Record<
+    string,
+    { nome: string; icone: React.ReactNode; urlBase: string }
+  > = {
     contratos: {
       nome: 'Contratos',
       icone: <FileText className="h-4 w-4 text-blue-600" />,
@@ -76,7 +79,9 @@ const obterConfigSistema = (
 /**
  * Agrupa subscrições por sistema
  */
-const agruparPorSistema = (subscricoes: Subscricao[]): SubscricaoPorSistema[] => {
+const agruparPorSistema = (
+  subscricoes: Subscricao[],
+): SubscricaoPorSistema[] => {
   const grupos: Record<string, Subscricao[]> = {}
 
   subscricoes.forEach((sub) => {
@@ -218,7 +223,10 @@ export const TabSeguindo = ({ aoClicar }: TabSeguindoProps) => {
                   <div className="min-w-0 flex-1">
                     <button
                       onClick={() =>
-                        handleNavegar(grupo.urlBase, subscricao.entidadeOrigemId)
+                        handleNavegar(
+                          grupo.urlBase,
+                          subscricao.entidadeOrigemId,
+                        )
                       }
                       className="flex items-center gap-2 text-left transition-colors hover:text-blue-600"
                     >

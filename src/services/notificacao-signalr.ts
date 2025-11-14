@@ -26,9 +26,7 @@ import type {
 const BASE_URL = import.meta.env.VITE_NOTIFICACOES_API_URL as string
 
 if (!BASE_URL) {
-  console.error(
-    '[SignalR] VITE_NOTIFICACOES_API_URL não configurado no .env',
-  )
+  console.error('[SignalR] VITE_NOTIFICACOES_API_URL não configurado no .env')
 }
 
 // Remove barra final se existir para evitar //api/notificacaohub
@@ -122,7 +120,10 @@ class NotificacaoSignalRService {
       // Auto-join ao sistema para receber broadcasts
       // Aguarda um pouco para garantir que o estado esteja Connected
       const sistemaId = import.meta.env.VITE_SYSTEM_ID
-      if (sistemaId && this.conexao.state === signalR.HubConnectionState.Connected) {
+      if (
+        sistemaId &&
+        this.conexao.state === signalR.HubConnectionState.Connected
+      ) {
         await this.joinSistema(sistemaId)
       }
 
@@ -169,13 +170,10 @@ class NotificacaoSignalRService {
     if (!this.conexao) return
 
     // Evento: Nova notificação recebida
-    this.conexao.on(
-      'ReceberNotificacao',
-      (notificacao: NotificacaoUsuario) => {
-        console.log('📬 [SignalR] Nova notificação:', notificacao.titulo)
-        this.disparar('ReceberNotificacao', notificacao)
-      },
-    )
+    this.conexao.on('ReceberNotificacao', (notificacao: NotificacaoUsuario) => {
+      console.log('📬 [SignalR] Nova notificação:', notificacao.titulo)
+      this.disparar('ReceberNotificacao', notificacao)
+    })
 
     // Evento: Notificação marcada como lida
     this.conexao.on('NotificacaoLida', (notificacaoId: string) => {
@@ -228,7 +226,10 @@ class NotificacaoSignalRService {
    * @param evento - Nome do evento
    * @param callback - Função callback
    */
-  public on<T = unknown>(evento: EventoSignalR, callback: SignalRCallback<T>): void {
+  public on<T = unknown>(
+    evento: EventoSignalR,
+    callback: SignalRCallback<T>,
+  ): void {
     if (!this.listeners.has(evento)) {
       this.listeners.set(evento, [])
     }
@@ -245,7 +246,10 @@ class NotificacaoSignalRService {
    * @param evento - Nome do evento
    * @param callback - Função callback a remover
    */
-  public off<T = unknown>(evento: EventoSignalR, callback: SignalRCallback<T>): void {
+  public off<T = unknown>(
+    evento: EventoSignalR,
+    callback: SignalRCallback<T>,
+  ): void {
     const callbacks = this.listeners.get(evento)
     if (callbacks) {
       const index = callbacks.indexOf(callback as SignalRCallback)
@@ -269,7 +273,10 @@ class NotificacaoSignalRService {
         try {
           callback(dados)
         } catch (erro) {
-          console.error(`[SignalR] Erro ao executar callback de ${evento}:`, erro)
+          console.error(
+            `[SignalR] Erro ao executar callback de ${evento}:`,
+            erro,
+          )
         }
       })
     }
@@ -318,13 +325,18 @@ class NotificacaoSignalRService {
    * @returns Promise que resolve quando entrou no grupo
    */
   public async joinSistema(sistemaId: string): Promise<void> {
-    if (!this.conexao || this.conexao.state !== signalR.HubConnectionState.Connected) {
+    if (
+      !this.conexao ||
+      this.conexao.state !== signalR.HubConnectionState.Connected
+    ) {
       throw new Error('[SignalR] Não conectado ao Hub')
     }
 
     try {
       await this.conexao.invoke('JoinSistema', sistemaId)
-      console.log(`📢 [SignalR] Inscrito para broadcasts do sistema: ${sistemaId}`)
+      console.log(
+        `📢 [SignalR] Inscrito para broadcasts do sistema: ${sistemaId}`,
+      )
     } catch (erro) {
       console.error('[SignalR] Erro ao entrar no grupo do sistema:', erro)
       throw erro
@@ -338,14 +350,21 @@ class NotificacaoSignalRService {
    * @returns Promise que resolve quando saiu do grupo
    */
   public async leaveSistema(sistemaId: string): Promise<void> {
-    if (!this.conexao || this.conexao.state !== signalR.HubConnectionState.Connected) {
-      console.log('[SignalR] Conexão não está no estado Connected, pulando LeaveSistema')
+    if (
+      !this.conexao ||
+      this.conexao.state !== signalR.HubConnectionState.Connected
+    ) {
+      console.log(
+        '[SignalR] Conexão não está no estado Connected, pulando LeaveSistema',
+      )
       return // Não joga erro, apenas retorna (conexão já foi fechada)
     }
 
     try {
       await this.conexao.invoke('LeaveSistema', sistemaId)
-      console.log(`📢 [SignalR] Desinscrito dos broadcasts do sistema: ${sistemaId}`)
+      console.log(
+        `📢 [SignalR] Desinscrito dos broadcasts do sistema: ${sistemaId}`,
+      )
     } catch (erro) {
       console.error('[SignalR] Erro ao sair do grupo do sistema:', erro)
       // Não joga erro no leaveSistema pois pode estar desconectando
@@ -361,8 +380,7 @@ class NotificacaoSignalRService {
  * Instância singleton do serviço SignalR
  * Usar esta instância em toda a aplicação
  */
-export const notificacaoSignalR =
-  NotificacaoSignalRService.obterInstancia()
+export const notificacaoSignalR = NotificacaoSignalRService.obterInstancia()
 
 /**
  * Exporta a classe para testes

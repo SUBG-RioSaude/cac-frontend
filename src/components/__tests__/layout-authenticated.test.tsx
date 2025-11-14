@@ -12,7 +12,9 @@ vi.mock('@/components/app-sidebar', () => ({
 }))
 
 vi.mock('@/components/notificacoes-dropdown', () => ({
-  NotificacoesDropdown: () => <div data-testid="notifications">Notifications</div>,
+  NotificacoesDropdown: () => (
+    <div data-testid="notifications">Notifications</div>
+  ),
 }))
 
 vi.mock('@/components/page-breadcrumb', () => ({

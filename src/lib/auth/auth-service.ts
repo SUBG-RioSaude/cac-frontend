@@ -146,7 +146,10 @@ export const authService = {
     const payload: LogoutRequest = { refreshToken }
 
     try {
-      const response = await authApi.post<LogoutResponse>('/Auth/logout', payload)
+      const response = await authApi.post<LogoutResponse>(
+        '/Auth/logout',
+        payload,
+      )
       return response.data
     } catch (erro: unknown) {
       const apiError = erro as ApiError

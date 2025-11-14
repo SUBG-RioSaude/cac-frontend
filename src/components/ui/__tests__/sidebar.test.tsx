@@ -91,7 +91,7 @@ describe('Sidebar Components', () => {
       expect(wrapper).toHaveClass(
         'group/sidebar-wrapper',
         'flex',
-        'min-h-svh',
+        'h-svh',
         'w-full',
       )
     })

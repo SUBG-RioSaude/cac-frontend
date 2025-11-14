@@ -274,8 +274,10 @@ export const useNotificacoes = (
   const itensExibicao = useMemo(() => {
     // Combinar broadcasts e notificações
     // Broadcasts vêm primeiro, depois notificações
-    const todosItens: (| (NotificacaoUsuario & { tipo_item?: 'notificacao' })
-      | (BroadcastTemporario & { tipo_item: 'broadcast' }))[] = [
+    const todosItens: (
+      | (NotificacaoUsuario & { tipo_item?: 'notificacao' })
+      | (BroadcastTemporario & { tipo_item: 'broadcast' })
+    )[] = [
       ...broadcasts.map((b) => ({ ...b, tipo_item: 'broadcast' as const })),
       ...notificacoesVisiveis.map((n) => ({
         ...n,
@@ -291,7 +293,8 @@ export const useNotificacoes = (
    * Broadcasts são sempre considerados "não lidos" pois não podem ser marcados como lidos
    */
   const contagemNaoLidas = useMemo(() => {
-    const naoLidasAPI = naoLidasQuery.data?.naoLidas ?? notificacoesNaoLidas.length
+    const naoLidasAPI =
+      naoLidasQuery.data?.naoLidas ?? notificacoesNaoLidas.length
     return naoLidasAPI + broadcasts.length
   }, [naoLidasQuery.data, notificacoesNaoLidas.length, broadcasts.length])
 

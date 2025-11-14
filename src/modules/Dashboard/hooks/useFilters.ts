@@ -21,12 +21,7 @@ export const useFilters = (): UseFiltersResult => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY)
       if (saved) {
-        const parsed = JSON.parse(saved) as {
-          periodo: unknown
-          unidades: unknown
-          status: unknown
-          tipos: unknown
-        }
+        const parsed = JSON.parse(saved) as Partial<DashboardFilters>
         // Validar estrutura básica
         if (
           parsed.periodo &&
@@ -34,7 +29,11 @@ export const useFilters = (): UseFiltersResult => {
           parsed.status &&
           parsed.tipos
         ) {
-          return parsed as DashboardFilters
+          // Garantir que tipoVisualizacao existe (compatibilidade com versões antigas)
+          return {
+            ...parsed,
+            tipoVisualizacao: parsed.tipoVisualizacao ?? 'global',
+          } as DashboardFilters
         }
       }
     } catch {

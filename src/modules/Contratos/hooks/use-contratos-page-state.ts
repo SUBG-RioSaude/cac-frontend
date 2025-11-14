@@ -11,23 +11,22 @@ import type {
   PaginacaoParams,
 } from '@/modules/Contratos/types/contrato'
 
-import { useDebounce } from './use-debounce'
-
 export interface ContratosPageState {
   // Estados da UI
-  termoPesquisa: string
   filtros: FiltrosContrato
   paginacao: PaginacaoParams
   contratosSelecionados: string[]
 
   // Dados derivados
-  debouncedSearch: string
   parametrosAPI: ContratoParametros
 
   // Handlers
-  setTermoPesquisa: (termo: string) => void
-  setFiltros: (filtros: FiltrosContrato) => void
-  setPaginacao: (paginacao: PaginacaoParams) => void
+  setFiltros: (
+    filtros: FiltrosContrato | ((prev: FiltrosContrato) => FiltrosContrato),
+  ) => void
+  setPaginacao: (
+    paginacao: PaginacaoParams | ((prev: PaginacaoParams) => PaginacaoParams),
+  ) => void
   selecionarContrato: (contratoId: string, selecionado: boolean) => void
   selecionarTodosContratos: (
     contratoIds: string[],
@@ -42,7 +41,6 @@ export interface ContratosPageState {
  */
 function mapearFiltrosParaAPI(
   filtros: FiltrosContrato,
-  termoPesquisa: string,
   paginacao: PaginacaoParams,
 ): ContratoParametros {
   const params: ContratoParametros = {
@@ -50,9 +48,9 @@ function mapearFiltrosParaAPI(
     tamanhoPagina: paginacao.itensPorPagina,
   }
 
-  // Termo de pesquisa
-  if (termoPesquisa.trim()) {
-    params.termoPesquisa = termoPesquisa.trim()
+  // Termo de pesquisa (agora integrado nos filtros)
+  if (filtros.termoPesquisa?.trim()) {
+    params.termoPesquisa = filtros.termoPesquisa.trim()
   }
 
   // Status (array → string separado por vírgula)
@@ -95,7 +93,6 @@ function mapearFiltrosParaAPI(
 
 export function useContratosPageState(): ContratosPageState {
   // Estados locais
-  const [termoPesquisa, setTermoPesquisa] = useState('')
   const [filtros, setFiltros] = useState<FiltrosContrato>({})
   const [paginacao, setPaginacao] = useState<PaginacaoParams>({
     pagina: 1,
@@ -106,24 +103,38 @@ export function useContratosPageState(): ContratosPageState {
     [],
   )
 
-  // Debounce da pesquisa para evitar muitas requisições
-  const debouncedSearch = useDebounce(termoPesquisa, 500)
-
   // Parâmetros para a API (calculados quando filtros mudam)
+  // IMPORTANTE: Só recalcula quando pagina, itensPorPagina ou filtros mudam
+  // Mudanças no 'total' não devem causar nova query
   const parametrosAPI = useMemo(() => {
-    return mapearFiltrosParaAPI(filtros, debouncedSearch, paginacao)
-  }, [filtros, debouncedSearch, paginacao])
+    return mapearFiltrosParaAPI(filtros, paginacao)
+  }, [filtros, paginacao.pagina, paginacao.itensPorPagina])
 
   // Handlers
-  const handleSetFiltros = useCallback((novosFiltros: FiltrosContrato) => {
-    setFiltros(novosFiltros)
-    // Reset página quando filtros mudam
-    setPaginacao((prev) => ({ ...prev, pagina: 1 }))
-  }, [])
+  // ✅ CORREÇÃO: Suportar tanto valor direto quanto função (setState pattern)
+  const handleSetFiltros = useCallback(
+    (
+      novosFiltros:
+        | FiltrosContrato
+        | ((prev: FiltrosContrato) => FiltrosContrato),
+    ) => {
+      setFiltros(novosFiltros)
+      // Reset página quando filtros mudam
+      setPaginacao((prev) => ({ ...prev, pagina: 1 }))
+    },
+    [],
+  )
 
-  const handleSetPaginacao = useCallback((novaPaginacao: PaginacaoParams) => {
-    setPaginacao(novaPaginacao)
-  }, [])
+  const handleSetPaginacao = useCallback(
+    (
+      novaPaginacao:
+        | PaginacaoParams
+        | ((prev: PaginacaoParams) => PaginacaoParams),
+    ) => {
+      setPaginacao(novaPaginacao)
+    },
+    [],
+  )
 
   const handleSelecionarContrato = useCallback(
     (contratoId: string, selecionado: boolean) => {
@@ -151,7 +162,6 @@ export function useContratosPageState(): ContratosPageState {
 
   const handleLimparFiltros = useCallback(() => {
     setFiltros({})
-    setTermoPesquisa('')
     setPaginacao((prev) => ({ ...prev, pagina: 1 }))
   }, [])
 
@@ -159,25 +169,16 @@ export function useContratosPageState(): ContratosPageState {
     setContratosSelecionados([])
   }, [])
 
-  const handleSetTermoPesquisa = useCallback((termo: string) => {
-    setTermoPesquisa(termo)
-    // Reset página quando termo muda
-    setPaginacao((prev) => ({ ...prev, pagina: 1 }))
-  }, [])
-
   return {
     // Estados
-    termoPesquisa,
     filtros,
     paginacao,
     contratosSelecionados,
 
     // Dados derivados
-    debouncedSearch,
     parametrosAPI,
 
     // Handlers
-    setTermoPesquisa: handleSetTermoPesquisa,
     setFiltros: handleSetFiltros,
     setPaginacao: handleSetPaginacao,
     selecionarContrato: handleSelecionarContrato,

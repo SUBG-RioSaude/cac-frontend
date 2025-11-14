@@ -230,9 +230,10 @@ export function useContratoDetalhado(
         if ('code' in error && error.code === 'ECONNABORTED') {
           return failureCount < 3 // 3 tentativas para timeouts
         }
-        
+
         if ('response' in error) {
-          const status = (error as { response: { status: number } }).response?.status
+          const status = (error as { response: { status: number } }).response
+            ?.status
           // Não retry para erros de cliente (4xx)
           if (status >= 400 && status < 500) {
             return false

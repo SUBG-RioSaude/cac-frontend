@@ -1,11 +1,13 @@
 /**
  * ==========================================
- * GRÁFICO DE DISTRIBUIÇÃO POR TIPO
+ * GRÁFICO DE DISTRIBUIÇÃO POR TIPO - OTIMIZADO
  * ==========================================
  * Gráfico de barras horizontais mostrando distribuição por tipo de contrato
+ * Melhorias de Performance: React.memo para evitar re-renders desnecessários
  */
 
 import { BarChart3 } from 'lucide-react'
+import { memo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,19 +23,19 @@ interface TypeDistributionChartProps {
   className?: string
 }
 
-// Configuração das cores para cada tipo
+// Configuração das cores com paleta da marca
 const chartConfig = {
   quantidade: {
     label: 'Quantidade',
-    color: 'hsl(var(--chart-1))',
+    color: '#42b9eb', // Azul Claro da marca
   },
   valor: {
     label: 'Valor (R$)',
-    color: 'hsl(var(--chart-2))',
+    color: '#2a688f', // Azul Escuro da marca
   },
 }
 
-export const TypeDistributionChart = ({
+const TypeDistributionChartComponent = ({
   filters,
   className,
 }: TypeDistributionChartProps) => {
@@ -47,20 +49,23 @@ export const TypeDistributionChart = ({
     valor: item.valor,
     valorFormatado: `R$ ${(item.valor / 1000000).toFixed(1)}M`,
   }))
+  
+  
+  console.log(chartData)
 
   // Estados de carregamento e erro
   if (isLoading) {
     return (
-      <Card className={className} data-testid="type-distribution-chart">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+      <Card className="flex h-[590px] w-full flex-col" data-testid="type-distribution-chart">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-brand-primary" />
             Distribuição por Tipo
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Skeleton className="h-80 w-full" />
+        <CardContent className="flex flex-1 flex-col pt-0 items-center justify-center">
+          <div className="space-y-4 w-full">
+            <Skeleton className="h-full w-full flex-1" />
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex justify-between">
@@ -77,15 +82,15 @@ export const TypeDistributionChart = ({
 
   if (error) {
     return (
-      <Card className={className} data-testid="type-distribution-chart">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-700">
+      <Card className="flex h-[590px] w-full flex-col" data-testid="type-distribution-chart">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg text-red-700">
             <BarChart3 className="h-5 w-5" />
             Distribuição por Tipo
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground flex h-80 items-center justify-center text-sm">
+        <CardContent className="flex flex-1 flex-col pt-0 items-center justify-center">
+          <div className="text-muted-foreground text-sm">
             Erro ao carregar dados do gráfico
           </div>
         </CardContent>
@@ -95,15 +100,15 @@ export const TypeDistributionChart = ({
 
   if (chartData.length === 0) {
     return (
-      <Card className={className} data-testid="type-distribution-chart">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+      <Card className="flex h-[590px] w-full flex-col" data-testid="type-distribution-chart">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-brand-primary" />
             Distribuição por Tipo
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground flex h-80 items-center justify-center text-sm">
+        <CardContent className="flex flex-1 flex-col pt-0 items-center justify-center">
+          <div className="text-muted-foreground text-sm">
             Nenhum registro encontrado
           </div>
         </CardContent>
@@ -112,34 +117,42 @@ export const TypeDistributionChart = ({
   }
 
   return (
-    <Card className={className} data-testid="type-distribution-chart">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5" />
+    <Card
+      className={`${className} flex h-[590px] w-full flex-col`}
+      data-testid="type-distribution-chart"
+    >
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <BarChart3 className="h-5 w-5 text-brand-primary" />
           Distribuição por Tipo
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
+      <CardContent className="flex flex-1 flex-col pt-0">
+        <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             accessibilityLayer
             data={chartData}
-            layout="horizontal"
+            layout="vertical"
+            width={800}
+            height={520}
             margin={{
               left: 80,
+              right: 20,
+              top: 20,
+              bottom: 20,
             }}
-            height={320}
           >
-            <CartesianGrid horizontal={false} />
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+            <XAxis type="number" hide /> {/* ✅ valores numéricos */}
             <YAxis
               dataKey="tipo"
               type="category"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              width={75}
+              width={65}
+              tick={{ fontSize: 12 }}
             />
-            <XAxis dataKey="quantidade" type="number" hide />
             <ChartTooltip
               cursor={false}
               content={({ active, payload }) => {
@@ -153,17 +166,16 @@ export const TypeDistributionChart = ({
                   }
                   return (
                     <div className="bg-background rounded-lg border p-2 shadow-sm">
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <div className="flex flex-col">
-                          <span className="text-muted-foreground text-[0.70rem] uppercase">
+                          <span className="text-muted-foreground text-[0.70rem] font-semibold uppercase">
                             {data.tipo}
                           </span>
-                          <span className="text-muted-foreground font-bold">
-                            {data.quantidade} contratos (
-                            {data.percentual.toFixed(1)}%)
+                          <span className="text-foreground text-sm font-bold">
+                            {data.quantidade} contratos ({data.percentual.toFixed(1)}%)
                           </span>
                           <span className="text-muted-foreground text-[0.70rem]">
-                            Valor: <CurrencyDisplay value={data.valor} />
+                            <CurrencyDisplay value={data.valor} />
                           </span>
                         </div>
                       </div>
@@ -173,43 +185,19 @@ export const TypeDistributionChart = ({
                 return null
               }}
             />
-            <Bar
-              dataKey="quantidade"
-              fill="var(--color-quantidade)"
-              radius={4}
-            />
+            <Bar dataKey="quantidade" fill="#42b9eb" radius={4} />
           </BarChart>
         </ChartContainer>
-
-        {/* Tabela detalhada */}
-        <div className="mt-6 space-y-2">
-          <h4 className="text-sm font-medium">Detalhamento por Tipo</h4>
-          <div className="space-y-2 text-sm">
-            {chartData.map((item) => (
-              <div
-                key={item.tipo}
-                className="border-muted/30 flex items-center justify-between border-b py-2"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="h-3 w-3 rounded"
-                    style={{ backgroundColor: 'var(--color-quantidade)' }}
-                  />
-                  <span className="font-medium">{item.tipo}</span>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">
-                    {item.quantidade} ({item.percentual.toFixed(1)}%)
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    <CurrencyDisplay value={item.valor} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </CardContent>
     </Card>
   )
 }
+
+// React.memo com comparação personalizada para evitar re-renders desnecessários
+export const TypeDistributionChart = memo(
+  TypeDistributionChartComponent,
+  (prev, next) => {
+    // Comparar filtros para decidir se deve re-renderizar
+    return JSON.stringify(prev.filters) === JSON.stringify(next.filters)
+  },
+)

@@ -63,11 +63,12 @@ export interface AtualizarMensagemPayload {
 export const fetchMensagens = async (
   params: BuscarMensagensParams,
 ): Promise<ChatMensagensPaginadas> => {
-  const response = await chatApi.get<
-    ResultadoPaginadoDto<MensagemResponseDto>
-  >('/Mensagens', {
-    params: serializeBuscarMensagensParams(params),
-  })
+  const response = await chatApi.get<ResultadoPaginadoDto<MensagemResponseDto>>(
+    '/Mensagens',
+    {
+      params: serializeBuscarMensagensParams(params),
+    },
+  )
 
   if (!response.data) {
     throw new Error('Resposta vazia ao consultar mensagens do chat')
@@ -91,7 +92,9 @@ export const fetchMensagensPorContrato = async (
   {
     sistemaId = CHAT_SISTEMA_ID,
     ...params
-  }: Omit<BuscarMensagensParams, 'entidadeOrigemId'> & { sistemaId?: string } = {},
+  }: Omit<BuscarMensagensParams, 'entidadeOrigemId'> & {
+    sistemaId?: string
+  } = {},
 ): Promise<ChatMensagensPaginadas> =>
   fetchMensagens({
     ...params,
@@ -131,10 +134,7 @@ export const criarMensagem = async (
   }
 
   try {
-    const response = await chatApi.post<MensagemResponseDto>(
-      '/Mensagens',
-      dto,
-    )
+    const response = await chatApi.post<MensagemResponseDto>('/Mensagens', dto)
 
     if (!response.data) {
       throw new Error('Resposta vazia ao criar mensagem de chat')
@@ -187,9 +187,7 @@ export const fetchMensagensPeriodo = async (
 }
 
 export const fetchEstatisticas = async (): Promise<EstatisticasDto> => {
-  const response = await chatApi.get<EstatisticasDto>(
-    '/Mensagens/estatisticas',
-  )
+  const response = await chatApi.get<EstatisticasDto>('/Mensagens/estatisticas')
 
   if (!response.data) {
     throw new Error('Não foi possível obter estatísticas do chat')

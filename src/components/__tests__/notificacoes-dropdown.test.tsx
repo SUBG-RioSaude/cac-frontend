@@ -274,7 +274,9 @@ describe('NotificacoesDropdown', () => {
       notificacoesVisiveis: [notificacaoMock],
       notificacoesNaoLidas: [],
       broadcasts: [],
-      itensExibicao: [{ ...notificacaoMock, tipo_item: 'notificacao' as const }],
+      itensExibicao: [
+        { ...notificacaoMock, tipo_item: 'notificacao' as const },
+      ],
       contagemNaoLidas: 1,
       conectado: true,
       reconectando: false,
@@ -320,7 +322,9 @@ describe('NotificacoesDropdown', () => {
       notificacoesVisiveis: [notificacaoMock],
       notificacoesNaoLidas: [],
       broadcasts: [],
-      itensExibicao: [{ ...notificacaoMock, tipo_item: 'notificacao' as const }],
+      itensExibicao: [
+        { ...notificacaoMock, tipo_item: 'notificacao' as const },
+      ],
       contagemNaoLidas: 1,
       conectado: true,
       reconectando: false,

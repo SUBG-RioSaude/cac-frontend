@@ -8,13 +8,7 @@ import {
   MessageSquare,
   Loader2,
 } from 'lucide-react'
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -77,7 +71,9 @@ export const ContractChat = ({
     })
 
     if (currentUserId === 'usuario-anonimo') {
-      logger.error('ERRO: Usuário usando fallback "usuario-anonimo" - token inválido!')
+      logger.error(
+        'ERRO: Usuário usando fallback "usuario-anonimo" - token inválido!',
+      )
     }
   }, [currentUserId, currentUserNome, currentUserEmail, tokenInfo])
 
@@ -142,7 +138,8 @@ export const ContractChat = ({
 
   const mensagensOrdenadas = useMemo(() => {
     return [...mensagens].sort(
-      (a, b) => new Date(a.dataEnvio).getTime() - new Date(b.dataEnvio).getTime(),
+      (a, b) =>
+        new Date(a.dataEnvio).getTime() - new Date(b.dataEnvio).getTime(),
     )
   }, [mensagens])
 
@@ -213,7 +210,8 @@ export const ContractChat = ({
     if (currentUserId === 'usuario-anonimo' || !tokenInfo) {
       logger.error('Tentativa de envio sem autenticação válida')
       toast.error('Erro de autenticação', {
-        description: 'Não foi possível identificar o usuário. Faça login novamente.',
+        description:
+          'Não foi possível identificar o usuário. Faça login novamente.',
       })
       return
     }
@@ -237,7 +235,6 @@ export const ContractChat = ({
     realtime,
     tokenInfo,
   ])
-
 
   const formatarHorario = (dataHora: string) => {
     return new Date(dataHora).toLocaleString('pt-BR', {
@@ -280,9 +277,7 @@ export const ContractChat = ({
 
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">
-              {
-                mensagensOrdenadas.filter((m) => m.tipo !== 'sistema').length
-              }{' '}
+              {mensagensOrdenadas.filter((m) => m.tipo !== 'sistema').length}{' '}
               observações
             </Badge>
             <Badge
@@ -323,7 +318,7 @@ export const ContractChat = ({
         <ScrollArea ref={scrollAreaRef} className="h-full">
           <div className="space-y-6 p-6">
             {isError && (
-              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+              <div className="border-destructive/40 bg-destructive/10 text-destructive rounded-lg border p-4 text-sm">
                 <p className="font-medium">Erro ao carregar o chat</p>
                 <p className="mt-1 opacity-80">
                   {error instanceof Error
@@ -364,7 +359,9 @@ export const ContractChat = ({
 
             {realtime.connectionState === 'error' && realtime.error && (
               <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-                <p className="font-medium">⚠️ Conexão em tempo real indisponível</p>
+                <p className="font-medium">
+                  ⚠️ Conexão em tempo real indisponível
+                </p>
                 <p className="mt-1 text-xs opacity-80">
                   {realtime.error.message}
                 </p>
@@ -403,7 +400,7 @@ export const ContractChat = ({
             )}
 
             {!isLoading && mensagensOrdenadas.length === 0 && !isError && (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
                 Nenhuma observação registrada para este contrato.
               </div>
             )}
@@ -428,7 +425,7 @@ export const ContractChat = ({
                   >
                     {mensagem.tipo === 'sistema' ? (
                       <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-center">
-                        <p className="flex items-center justify-center gap-2 text-sm font-medium text-blue-700 whitespace-pre-wrap">
+                        <p className="flex items-center justify-center gap-2 text-sm font-medium whitespace-pre-wrap text-blue-700">
                           <CheckCircle2 className="h-4 w-4" />
                           {mensagem.conteudo}
                         </p>
@@ -469,7 +466,9 @@ export const ContractChat = ({
                                 className="flex items-center gap-1 px-2 py-0.5 text-xs"
                               >
                                 {getTipoIcon(remetenteTipo)}
-                                <span className="capitalize">{remetenteTipo}</span>
+                                <span className="capitalize">
+                                  {remetenteTipo}
+                                </span>
                               </Badge>
                             </div>
                           )}
@@ -477,7 +476,7 @@ export const ContractChat = ({
                           <div className="group relative">
                             <div
                               className={cn(
-                                'rounded-lg border px-4 py-3 text-sm leading-relaxed shadow-sm whitespace-pre-wrap',
+                                'rounded-lg border px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm',
                                 isOwn
                                   ? 'border-blue-500 bg-blue-500 text-white'
                                   : 'border-border bg-white transition-shadow hover:shadow-md',
@@ -517,11 +516,13 @@ export const ContractChat = ({
           <div className="flex gap-3">
             <Avatar className="mt-1 h-8 w-8">
               <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-700">
-                {(currentUserParticipant?.nome
-                  ?.split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .substring(0, 2) ?? 'VC').toUpperCase()}
+                {(
+                  currentUserParticipant?.nome
+                    ?.split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .substring(0, 2) ?? 'VC'
+                ).toUpperCase()}
               </AvatarFallback>
             </Avatar>
 

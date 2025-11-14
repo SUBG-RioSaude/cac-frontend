@@ -47,7 +47,7 @@ export const apiNotificacoes = axios.create({
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
 
@@ -91,8 +91,9 @@ export const listarMinhasNotificacoes = async (
  * @returns Promise com contagem total e por sistema
  */
 export const contarNaoLidas = async (): Promise<ContagemNaoLidas> => {
-  const response: AxiosResponse<ContagemNaoLidas> =
-    await apiNotificacoes.get('/api/notificacoes/nao-lidas')
+  const response: AxiosResponse<ContagemNaoLidas> = await apiNotificacoes.get(
+    '/api/notificacoes/nao-lidas',
+  )
 
   return response.data
 }
@@ -107,8 +108,9 @@ export const contarNaoLidas = async (): Promise<ContagemNaoLidas> => {
 export const obterNotificacao = async (
   id: string,
 ): Promise<NotificacaoUsuario> => {
-  const response: AxiosResponse<NotificacaoUsuario> =
-    await apiNotificacoes.get(`/api/notificacoes/${id}`)
+  const response: AxiosResponse<NotificacaoUsuario> = await apiNotificacoes.get(
+    `/api/notificacoes/${id}`,
+  )
 
   return response.data
 }

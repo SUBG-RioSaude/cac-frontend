@@ -101,9 +101,9 @@ describe('Badge', () => {
         'inline-flex',
         'items-center',
         'justify-center',
-        'rounded-md',
+        'rounded-full',
         'border',
-        'px-2',
+        'px-2.5',
         'py-0.5',
         'text-xs',
         'font-medium',
@@ -301,7 +301,7 @@ describe('badgeVariants', () => {
     const classes = badgeVariants({ variant: 'outline' })
     expect(classes).toContain('inline-flex')
     expect(classes).toContain('items-center')
-    expect(classes).toContain('rounded-md')
+    expect(classes).toContain('rounded-full')
     expect(classes).toContain('text-xs')
   })
 })

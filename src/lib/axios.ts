@@ -14,7 +14,7 @@ export const apiGateway = axios.create({
   responseType: 'json',
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
 
@@ -56,17 +56,15 @@ apiGateway.interceptors.response.use(utf8ResponseInterceptor)
  * Função simplificada para requisições via Gateway centralizado
  * Substitui o antigo sistema de fallback (executeWithFallback)
  */
-export async function executeWithFallback<T>(
-  requestConfig: {
-    method: 'get' | 'post' | 'put' | 'delete' | 'patch'
-    url: string
-    data?: unknown
-    params?: Record<string, unknown>
-    headers?: Record<string, string>
-    baseURL?: string // Mantido para compatibilidade, mas ignorado
-    timeout?: number
-  },
-): Promise<AxiosResponse<T>> {
+export async function executeWithFallback<T>(requestConfig: {
+  method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+  url: string
+  data?: unknown
+  params?: Record<string, unknown>
+  headers?: Record<string, string>
+  baseURL?: string // Mantido para compatibilidade, mas ignorado
+  timeout?: number
+}): Promise<AxiosResponse<T>> {
   const { method, url, data, params, headers, timeout } = requestConfig
 
   console.log(`[API Gateway] ${method.toUpperCase()} ${url}`)
@@ -140,7 +138,7 @@ export const authApi = axios.create({
   responseType: 'json',
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
 
@@ -167,7 +165,7 @@ export const chatApi = axios.create({
   responseType: 'json',
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
 

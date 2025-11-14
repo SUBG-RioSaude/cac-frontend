@@ -269,9 +269,13 @@ describe('UnidadeDetalhesPage', () => {
     renderWithRouter(<UnidadeDetalhesPage />)
 
     await waitFor(() => {
-      const statusBadges = screen.getAllByText('Ativo')
-      // Um badge para status da unidade, dois para contratos
-      expect(statusBadges.length).toBeGreaterThanOrEqual(2)
+      // Badge "Ativo" para status da unidade
+      const statusBadgeUnidade = screen.getByText('Ativo')
+      expect(statusBadgeUnidade).toBeInTheDocument()
+
+      // Badges "Vigente" para contratos ativos
+      const statusBadgesContratos = screen.queryAllByText('Vigente')
+      expect(statusBadgesContratos.length).toBeGreaterThanOrEqual(1)
     })
   })
 

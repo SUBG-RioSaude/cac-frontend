@@ -25,7 +25,6 @@ const LoginForm = () => {
   const { isPending: carregando, error, reset: limparErro } = loginMutation
   const erro = error?.message ?? null
 
-
   // Redireciona se já estiver autenticado
   useEffect(() => {
     if (estaAutenticado) {
@@ -37,7 +36,9 @@ const LoginForm = () => {
 
   // Verifica se deve mostrar toast de logout bem-sucedido
   useEffect(() => {
-    const shouldShowLogoutToast = sessionStorage.getItem('show_logout_success_toast')
+    const shouldShowLogoutToast = sessionStorage.getItem(
+      'show_logout_success_toast',
+    )
     if (shouldShowLogoutToast === 'true') {
       // Remove flag imediatamente para não mostrar novamente
       sessionStorage.removeItem('show_logout_success_toast')
@@ -87,7 +88,6 @@ const LoginForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     void handleSubmitAsync(e)
   }
-
 
   const containerVariants = {
     hidden: { opacity: 0 },

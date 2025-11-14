@@ -177,10 +177,10 @@ describe('ListaContratos', () => {
         />,
       )
 
-      const ativoBadges = screen.getAllByText('Ativo')
+      const vigenteBadges = screen.getAllByText('Vigente')
       const vencidoBadge = screen.getByText('Vencido')
 
-      expect(ativoBadges).toHaveLength(2)
+      expect(vigenteBadges).toHaveLength(2)
       expect(vencidoBadge).toBeInTheDocument()
     })
 
@@ -236,9 +236,9 @@ describe('ListaContratos', () => {
       const vencidoBadge = screen.getByText('Vencido')
       expect(vencidoBadge).toHaveClass('bg-red-100', 'text-red-800')
 
-      const ativoBadges = screen.getAllByText('Ativo')
-      ativoBadges.forEach((badge) => {
-        expect(badge).toHaveClass('bg-green-100', 'text-green-800')
+      const vigenteBadges = screen.getAllByText('Vigente')
+      vigenteBadges.forEach((badge) => {
+        expect(badge).toHaveClass('bg-blue-100', 'text-blue-800')
       })
     })
 
