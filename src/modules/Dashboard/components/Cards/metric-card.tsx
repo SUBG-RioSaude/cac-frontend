@@ -23,7 +23,7 @@ const MetricCardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex flex-col space-y-0 p-2.5 pb-1', className)}
+    className={cn('flex flex-col space-y-0 p-3 pb-1.5', className)}
     {...props}
   />
 ))
@@ -35,7 +35,7 @@ const MetricCardTitle = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-muted-foreground text-xs font-medium', className)}
+    className={cn('text-muted-foreground text-[13px] font-medium', className)}
     {...props}
   >
     {children}
@@ -47,7 +47,7 @@ const MetricCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('p-2.5 pt-0', className)} {...props} />
+  <div ref={ref} className={cn('p-3 pt-0', className)} {...props} />
 ))
 MetricCardContent.displayName = 'MetricCardContent'
 
@@ -61,7 +61,7 @@ interface LoadingMetricCardProps {
   } | null
   icon: React.ComponentType<{ className?: string }>
   isLoading?: boolean
-  error?: Error | null
+  error?: string | null
   className?: string
   description?: string
   format?: 'number' | 'currency'
@@ -132,24 +132,24 @@ export const LoadingMetricCard = ({
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <MetricCardTitle>{title}</MetricCardTitle>
-            <div className="bg-brand-secondary/60 h-[1px] w-10 rounded-full transition-all duration-300 group-hover:w-20" />
+            <div className="bg-brand-secondary/60 h-[1.5px] w-11 rounded-full transition-all duration-300 group-hover:w-20" />
           </div>
-          <div className="bg-brand-secondary rounded-md p-1">
-            <Icon className="h-4 w-4 text-white" />
+          <div className="bg-brand-secondary rounded-md p-1.5">
+            <Icon className="h-5 w-5 text-white" />
           </div>
         </div>
       </MetricCardHeader>
       <MetricCardContent>
-        <div className="text-brand-primary text-lg font-bold">
+        <div className="text-brand-primary text-2xl font-bold">
           {formatValue(metric?.atual ?? 0)}
         </div>
         <div className="mt-0.5 flex items-center gap-1">
           {TrendIcon}
-          <span className={`text-xs font-medium ${trendColor}`}>
+          <span className={`text-[13px] font-medium ${trendColor}`}>
             {metric?.percentual ?? 0}%
           </span>
           {description && (
-            <span className="text-muted-foreground ml-1 text-xs">
+            <span className="text-muted-foreground ml-1 text-[13px]">
               {description}
             </span>
           )}

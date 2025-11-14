@@ -88,6 +88,10 @@ const data = {
       icon: ShieldUser,
       items: [
         {
+          title: 'Registro de Alterações',
+          url: '/alteracoes',
+        },
+        {
           title: 'Cadastro de Funcionários',
           url: '/funcionarios/cadastrar',
         },

@@ -31,7 +31,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
         ? `${data.metrics.totalContratos.percentual > 0 ? '+' : ''}${data.metrics.totalContratos.percentual.toFixed(1)}%`
         : '+12.5%',
       trend: data
-        ? (data.metrics.totalContratos.tendencia as 'up' | 'down')
+        ? (data.metrics.totalContratos.tendencia)
         : 'up',
       icon: FileText,
       description: 'vs. mês anterior',
@@ -43,7 +43,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
         ? `${data.metrics.contratosAtivos.percentual > 0 ? '+' : ''}${data.metrics.contratosAtivos.percentual.toFixed(1)}%`
         : '+8.2%',
       trend: data
-        ? (data.metrics.contratosAtivos.tendencia as 'up' | 'down')
+        ? (data.metrics.contratosAtivos.tendencia)
         : 'up',
       icon: CheckCircle2,
       description: 'vs. mês anterior',
@@ -55,7 +55,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
         ? `${data.metrics.contratosVencendo.percentual > 0 ? '+' : ''}${data.metrics.contratosVencendo.percentual.toFixed(1)}%`
         : '-15.3%',
       trend: data
-        ? (data.metrics.contratosVencendo.tendencia as 'up' | 'down')
+        ? (data.metrics.contratosVencendo.tendencia)
         : 'down',
       icon: AlertCircle,
       description: 'vs. mês anterior',
@@ -68,7 +68,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
       change: data
         ? `${data.metrics.valorTotal.percentual > 0 ? '+' : ''}${data.metrics.valorTotal.percentual.toFixed(1)}%`
         : '+18.7%',
-      trend: data ? (data.metrics.valorTotal.tendencia as 'up' | 'down') : 'up',
+      trend: data ? (data.metrics.valorTotal.tendencia) : 'up',
       icon: DollarSign,
       description: 'vs. mês anterior',
     },
@@ -97,7 +97,7 @@ export const MetricsGrid = ({ data, isLoading }: MetricsGridProps) => {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {metrics.map((metric, i) => {
+      {metrics.map((metric) => {
         const Icon = metric.icon
         const TrendIcon = metric.trend === 'up' ? TrendingUp : TrendingDown
         const trendColor =

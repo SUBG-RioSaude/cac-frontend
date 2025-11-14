@@ -1,11 +1,13 @@
 /**
  * ==========================================
- * GRÁFICO DE DISTRIBUIÇÃO POR TIPO
+ * GRÁFICO DE DISTRIBUIÇÃO POR TIPO - OTIMIZADO
  * ==========================================
  * Gráfico de barras horizontais mostrando distribuição por tipo de contrato
+ * Melhorias de Performance: React.memo para evitar re-renders desnecessários
  */
 
 import { BarChart3 } from 'lucide-react'
+import { memo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,7 +35,7 @@ const chartConfig = {
   },
 }
 
-export const TypeDistributionChart = ({
+const TypeDistributionChartComponent = ({
   filters,
   className,
 }: TypeDistributionChartProps) => {
@@ -47,20 +49,23 @@ export const TypeDistributionChart = ({
     valor: item.valor,
     valorFormatado: `R$ ${(item.valor / 1000000).toFixed(1)}M`,
   }))
+  
+  
+  console.log(chartData)
 
   // Estados de carregamento e erro
   if (isLoading) {
     return (
-      <Card className={className} data-testid="type-distribution-chart">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+      <Card className="flex h-[590px] w-full flex-col" data-testid="type-distribution-chart">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-brand-primary" />
             Distribuição por Tipo
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Skeleton className="h-80 w-full" />
+        <CardContent className="flex flex-1 flex-col pt-0 items-center justify-center">
+          <div className="space-y-4 w-full">
+            <Skeleton className="h-full w-full flex-1" />
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex justify-between">
@@ -77,15 +82,15 @@ export const TypeDistributionChart = ({
 
   if (error) {
     return (
-      <Card className={className} data-testid="type-distribution-chart">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-700">
+      <Card className="flex h-[590px] w-full flex-col" data-testid="type-distribution-chart">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg text-red-700">
             <BarChart3 className="h-5 w-5" />
             Distribuição por Tipo
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground flex h-80 items-center justify-center text-sm">
+        <CardContent className="flex flex-1 flex-col pt-0 items-center justify-center">
+          <div className="text-muted-foreground text-sm">
             Erro ao carregar dados do gráfico
           </div>
         </CardContent>
@@ -95,15 +100,15 @@ export const TypeDistributionChart = ({
 
   if (chartData.length === 0) {
     return (
-      <Card className={className} data-testid="type-distribution-chart">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+      <Card className="flex h-[590px] w-full flex-col" data-testid="type-distribution-chart">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-brand-primary" />
             Distribuição por Tipo
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground flex h-80 items-center justify-center text-sm">
+        <CardContent className="flex flex-1 flex-col pt-0 items-center justify-center">
+          <div className="text-muted-foreground text-sm">
             Nenhum registro encontrado
           </div>
         </CardContent>
@@ -113,7 +118,7 @@ export const TypeDistributionChart = ({
 
   return (
     <Card
-      className={`${className} flex h-full w-full flex-col`}
+      className={`${className} flex h-[590px] w-full flex-col`}
       data-testid="type-distribution-chart"
     >
       <CardHeader className="pb-3">
@@ -127,17 +132,18 @@ export const TypeDistributionChart = ({
           <BarChart
             accessibilityLayer
             data={chartData}
-            layout="horizontal"
-            width={500}
-            height={200}
+            layout="vertical"
+            width={800}
+            height={520}
             margin={{
-              left: 70,
-              right: 12,
-              top: 10,
-              bottom: 10,
+              left: 80,
+              right: 20,
+              top: 20,
+              bottom: 20,
             }}
           >
-            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+            <XAxis type="number" hide /> {/* ✅ valores numéricos */}
             <YAxis
               dataKey="tipo"
               type="category"
@@ -147,7 +153,6 @@ export const TypeDistributionChart = ({
               width={65}
               tick={{ fontSize: 12 }}
             />
-            <XAxis dataKey="quantidade" type="number" hide />
             <ChartTooltip
               cursor={false}
               content={({ active, payload }) => {
@@ -180,14 +185,19 @@ export const TypeDistributionChart = ({
                 return null
               }}
             />
-            <Bar
-              dataKey="quantidade"
-              fill="var(--color-quantidade)"
-              radius={4}
-            />
+            <Bar dataKey="quantidade" fill="#42b9eb" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
   )
 }
+
+// React.memo com comparação personalizada para evitar re-renders desnecessários
+export const TypeDistributionChart = memo(
+  TypeDistributionChartComponent,
+  (prev, next) => {
+    // Comparar filtros para decidir se deve re-renderizar
+    return JSON.stringify(prev.filters) === JSON.stringify(next.filters)
+  },
+)

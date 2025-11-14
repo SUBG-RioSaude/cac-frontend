@@ -69,12 +69,12 @@ describe('Dashboard Utils', () => {
       expect(getTrend(-2.1)).toBe('down')
     })
 
-    it('deve identificar tend�ncia est�vel', () => {
-      expect(getTrend(0)).toBe('stable')
-      expect(getTrend(1)).toBe('stable')
-      expect(getTrend(-1)).toBe('stable')
-      expect(getTrend(2)).toBe('stable')
-      expect(getTrend(-2)).toBe('stable')
+    it('deve identificar tend�ncia positiva ou negativa (sem stable)', () => {
+      expect(getTrend(0)).toBe('up') // 0 é considerado 'up'
+      expect(getTrend(1)).toBe('up')
+      expect(getTrend(-1)).toBe('down')
+      expect(getTrend(2)).toBe('up')
+      expect(getTrend(-2)).toBe('down')
     })
   })
 
@@ -101,14 +101,14 @@ describe('Dashboard Utils', () => {
       })
     })
 
-    it('deve criar m�trica est�vel', () => {
+    it('deve criar m�trica com pequeno crescimento', () => {
       const metric = createDashboardMetric(101, 100)
 
       expect(metric).toEqual({
         atual: 101,
         anterior: 100,
         percentual: 1,
-        tendencia: 'stable',
+        tendencia: 'up', // 1% positivo = 'up'
       })
     })
   })

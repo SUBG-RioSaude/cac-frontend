@@ -33,10 +33,8 @@ export const calculatePercentageChange = (
 /**
  * Determina tendência baseada no percentual
  */
-export const getTrend = (percentage: number): 'up' | 'down' | 'stable' => {
-  if (percentage > 2) return 'up'
-  if (percentage < -2) return 'down'
-  return 'stable'
+export const getTrend = (percentage: number): 'up' | 'down' => {
+  return percentage >= 0 ? 'up' : 'down'
 }
 
 /**
@@ -202,6 +200,7 @@ export const generatePeriodOptions = () => {
  * Filtros padrão do dashboard
  */
 export const defaultFilters: DashboardFilters = {
+  tipoVisualizacao: 'global', // Padrão: visualização global (all time)
   periodo: {
     mes: new Date().getMonth() + 1,
     ano: new Date().getFullYear(),

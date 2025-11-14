@@ -15,6 +15,8 @@ export type StatusContrato =
   | 'vencido'
   | 'suspenso'
   | 'encerrado'
+  | 'rascunho'
+  | 'em_aprovacao'
   | 'indefinido'
 
 // Status para Fornecedores
@@ -41,6 +43,8 @@ export function parseStatusContrato(status?: string | null): StatusContrato {
     'vencido',
     'suspenso',
     'encerrado',
+    'rascunho',
+    'em_aprovacao',
     'indefinido',
   ]
   return validStatuses.includes(normalizedStatus as StatusContrato)

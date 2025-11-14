@@ -1,5 +1,5 @@
-import { Calendar, Filter } from 'lucide-react'
-import { useState } from 'react'
+import { Calendar, Filter, Globe } from 'lucide-react'
+import { useState, useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -17,17 +17,86 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
+
+import type { DashboardFilters } from '../../types/dashboard'
 
 interface FiltersBarProps {
+  filters?: DashboardFilters
+  onUpdateFilter?: <K extends keyof DashboardFilters>(
+    key: K,
+    value: DashboardFilters[K],
+  ) => void
   onFiltersChange?: (filters: Record<string, unknown>) => void
   onReset?: () => void
 }
 
-export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
+export const FiltersBar = ({
+  filters,
+  onUpdateFilter,
+  onFiltersChange,
+  onReset,
+}: FiltersBarProps) => {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedUnits, setSelectedUnits] = useState<string[]>([])
-  const [selectedMonth, setSelectedMonth] = useState('2025-10')
+
+  // Gerar opções dinâmicas dos últimos 12 meses
+  const monthOptions = useMemo(() => {
+    const options = []
+    const now = new Date()
+    const meses = [
+      'janeiro',
+      'fevereiro',
+      'março',
+      'abril',
+      'maio',
+      'junho',
+      'julho',
+      'agosto',
+      'setembro',
+      'outubro',
+      'novembro',
+      'dezembro',
+    ]
+
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const mes = date.getMonth() + 1
+      const ano = date.getFullYear()
+      const mesNome = meses[date.getMonth()]
+
+      options.push({
+        value: `${ano}-${mes.toString().padStart(2, '0')}`,
+        label: `${mesNome} ${ano}`,
+        mes,
+        ano,
+      })
+    }
+
+    return options
+  }, [])
+
+  // Valor atual do período selecionado
+  const selectedPeriod = useMemo(() => {
+    if (!filters?.periodo) return monthOptions[0]?.value || ''
+    const { mes, ano } = filters.periodo
+    return `${ano}-${mes.toString().padStart(2, '0')}`
+  }, [filters?.periodo, monthOptions])
+
+  // Atualizar período quando usuário seleciona
+  const handlePeriodChange = (value: string) => {
+    if (!onUpdateFilter) return
+
+    const option = monthOptions.find((opt) => opt.value === value)
+    if (option) {
+      onUpdateFilter('periodo', {
+        mes: option.mes,
+        ano: option.ano,
+      })
+    }
+  }
 
   const statusOptions = [
     { id: 'ativo', label: 'Ativo' },
@@ -83,7 +152,6 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
         status: selectedStatus,
         types: selectedTypes,
         units: selectedUnits,
-        month: selectedMonth,
       })
     }
   }
@@ -92,34 +160,81 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
     setSelectedStatus([])
     setSelectedTypes([])
     setSelectedUnits([])
-    setSelectedMonth('2025-10')
     if (onReset) {
       onReset()
     }
   }
 
+  const isGlobalView = filters?.tipoVisualizacao === 'global'
+
+  const handleToggleVisualizacao = (checked: boolean) => {
+    if (onUpdateFilter) {
+      onUpdateFilter('tipoVisualizacao', checked ? 'global' : 'periodo')
+    }
+  }
+
   return (
-    <div className="flex items-center justify-between gap-4">
-      {/* Date Picker */}
+    <div className="flex items-center justify-between gap-6 border-t border-gray-100 pt-3">
+      {/* ESQUERDA: Toggle Visualização Global */}
       <div className="flex items-center gap-3">
-        <Calendar className=" h-5 w-5 text-brand-secondary" />
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-          <SelectTrigger className="border-border bg-background w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="2025-10">outubro 2025</SelectItem>
-            <SelectItem value="2025-09">setembro 2025</SelectItem>
-            <SelectItem value="2025-08">agosto 2025</SelectItem>
-            <SelectItem value="2025-07">julho 2025</SelectItem>
-            <SelectItem value="2025-06">junho 2025</SelectItem>
-            <SelectItem value="2025-05">maio 2025</SelectItem>
-          </SelectContent>
-        </Select>
+        <Globe
+          className={cn(
+            'h-5 w-5 transition-colors',
+            isGlobalView ? 'text-brand-primary' : 'text-brand-secondary',
+          )}
+        />
+        <div className="flex items-center gap-2.5">
+          <Switch
+            id="visualizacao-global"
+            checked={isGlobalView}
+            onCheckedChange={handleToggleVisualizacao}
+            className="data-[state=checked]:bg-brand-primary data-[state=unchecked]:bg-gray-300"
+          />
+          <Label
+            htmlFor="visualizacao-global"
+            className={cn(
+              'cursor-pointer text-sm font-medium leading-none transition-colors',
+              isGlobalView ? 'text-brand-primary' : 'text-gray-600',
+            )}
+          >
+            Visualização Global
+          </Label>
+        </div>
       </div>
 
-      {/* Advanced Filters Popover */}
-      <Popover>
+      {/* Separador visual */}
+      <div className="h-6 w-px bg-gray-200" />
+
+      {/* DIREITA: Date Picker + Filtros */}
+      <div className="flex items-center gap-4">
+        {/* Date Picker */}
+        <div className="flex items-center gap-2.5">
+          <Calendar className="h-5 w-5 text-brand-secondary" />
+          <Select
+            value={selectedPeriod}
+            onValueChange={handlePeriodChange}
+            disabled={isGlobalView}
+          >
+            <SelectTrigger
+              className={cn(
+                'border-border bg-background w-[180px] transition-opacity',
+                isGlobalView && 'cursor-not-allowed opacity-50',
+              )}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Advanced Filters Popover */}
+        <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="bg-background gap-2">
             <Filter className="h-4 w-4" />
@@ -246,6 +361,7 @@ export const FiltersBar = ({ onFiltersChange, onReset }: FiltersBarProps) => {
           </ScrollArea>
         </PopoverContent>
       </Popover>
+      </div>
     </div>
   )
 }

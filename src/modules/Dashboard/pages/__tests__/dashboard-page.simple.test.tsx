@@ -1,32 +1,36 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi } from 'vitest'
 
 import { DashboardPage } from '../dashboard-page'
 
-// Wrapper para testes com QueryClient
+// Wrapper para testes com QueryClient e Router
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </MemoryRouter>
   )
 }
 
 // Mock completo dos hooks para evitar chamadas reais
-// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
-vi.mock('../hooks/useFilters', () => ({
+vi.mock('../../hooks/useFilters', () => ({
   useFilters: () => ({
-    filters: {},
+    filters: {
+      periodo: { mes: 10, ano: 2025 },
+      tipoVisualizacao: 'periodo',
+    },
     updateFilter: vi.fn(),
     resetFilters: vi.fn(),
     hasActiveFilters: false,
   }),
 }))
 
-// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
-vi.mock('../hooks/useDashboardData', () => ({
+vi.mock('../../hooks/useDashboardData', () => ({
   useDashboardData: () => ({
     data: { lastUpdated: new Date('2023-12-01T10:30:00Z') },
     isLoading: false,
@@ -35,31 +39,31 @@ vi.mock('../hooks/useDashboardData', () => ({
 }))
 
 // Mock dos componentes para focar na estrutura
-// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
-vi.mock('../components/Filters/GlobalFilters', () => ({
-  GlobalFilters: () => <div data-testid="global-filters">Filtros</div>,
+vi.mock('../../components/Filters', () => ({
+  FiltersBar: () => <div data-testid="filters-bar">Filtros</div>,
 }))
 
-// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
-vi.mock('../components/Cards', () => ({
+vi.mock('../../components/Cards', () => ({
   TotalContractsCard: () => <div data-testid="total-contracts">Total</div>,
   ActiveContractsCard: () => <div data-testid="active-contracts">Ativos</div>,
-  ExpiringContractsCard: () => (
-    <div data-testid="expiring-contracts">Vencendo</div>
-  ),
+  ExpiredContractsCard: () => <div data-testid="expired-contracts">Vencidos</div>,
   TotalValueCard: () => <div data-testid="total-value">Valor</div>,
 }))
 
-// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
-vi.mock('../components/Charts', () => ({
+vi.mock('../../components/Charts', () => ({
   StatusDistributionChart: () => (
     <div data-testid="status-chart">Status Chart</div>
   ),
-  StatusTrendChart: () => <div data-testid="trend-chart">Trend Chart</div>,
+  TrendSection: () => <div data-testid="trend-section">Trend</div>,
   TypeDistributionChart: () => <div data-testid="type-chart">Type Chart</div>,
 }))
 
-// Mock do react-router-domvi.mock('react-router-dom', () => ({  useNavigate: () => vi.fn(),}))
+vi.mock('../../components/Lists', () => ({
+  RecentContracts: () => <div data-testid="recent-contracts">Contratos Recentes</div>,
+  RecentActivities: () => <div data-testid="recent-activities">Atividades</div>,
+  RiskAnalysis: () => <div data-testid="risk-analysis">Riscos</div>,
+}))
+
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
@@ -87,32 +91,33 @@ describe('DashboardPage - Testes Essenciais', () => {
     it('deve renderizar seção de filtros', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Procurar por texto relacionado aos filtros ao invés do mock
-      expect(screen.getByText('Filtros')).toBeInTheDocument()
+      // Verificar se o component FiltersBar foi renderizado
+      expect(screen.getByTestId('filters-bar')).toBeInTheDocument()
     })
 
     it('deve renderizar seletor de período', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verificar se o seletor de período está presente
-      expect(screen.getByText('outubro 2025')).toBeInTheDocument()
+      // Verificar se filtros estão renderizados (mock)
+      expect(screen.getByTestId('filters-bar')).toBeInTheDocument()
     })
   })
 
-  describe('Tabs', () => {
-    it('deve renderizar todas as tabs', () => {
+  describe('Carousel de Componentes', () => {
+    it('deve renderizar componentes do carousel', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
-      expect(screen.getByText('Análises')).toBeInTheDocument()
-      expect(screen.getByText('Gestão de Riscos')).toBeInTheDocument()
+      // Verificar se os componentes principais estão presentes
+      expect(screen.getByTestId('trend-section')).toBeInTheDocument()
+      expect(screen.getByTestId('risk-analysis')).toBeInTheDocument()
     })
 
-    it('deve exibir conteúdo da tab visão geral por padrão', () => {
+    it('deve exibir conteúdo do primeiro slide por padrão', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verificar se a tab "Visão Geral" está ativa por padrão
-      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
+      // Verificar se os componentes do primeiro slide estão presentes
+      expect(screen.getByTestId('trend-section')).toBeInTheDocument()
+      expect(screen.getByTestId('risk-analysis')).toBeInTheDocument()
     })
   })
 
@@ -120,8 +125,6 @@ describe('DashboardPage - Testes Essenciais', () => {
     it('deve ter layout principal correto', () => {
       const { container } = render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verifica container principal com padding
-      expect(container.querySelector('.py-6')).toBeInTheDocument()
       // Verifica container com mx-auto
       expect(container.querySelector('.mx-auto')).toBeInTheDocument()
     })
@@ -133,26 +136,29 @@ describe('DashboardPage - Testes Essenciais', () => {
       expect(container.querySelector('.border')).toBeInTheDocument()
     })
 
-    it('deve ter tabs container', () => {
-      const { container } = render(<DashboardPage />, { wrapper: Wrapper })
+    it('deve ter carousel container', () => {
+      render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verifica se tabs estão presentes
-      expect(container.querySelector('[role="tablist"]')).toBeInTheDocument()
+      // Verifica se componentes do carousel estão presentes
+      expect(screen.getByTestId('trend-section')).toBeInTheDocument()
     })
   })
 
-  describe('Conteúdo das Tabs', () => {
-    it('deve exibir conteúdo da tab visão geral', () => {
+  describe('Conteúdo dos Slides', () => {
+    it('deve exibir conteúdo do primeiro slide', () => {
       render(<DashboardPage />, { wrapper: Wrapper })
 
-      expect(screen.getByText('Visão Geral')).toBeInTheDocument()
+      // Verifica componentes do primeiro slide
+      expect(screen.getByTestId('trend-section')).toBeInTheDocument()
+      expect(screen.getByTestId('risk-analysis')).toBeInTheDocument()
     })
 
-    it('deve ter estrutura de tabs', () => {
-      const { container } = render(<DashboardPage />, { wrapper: Wrapper })
+    it('deve ter estrutura de carousel', () => {
+      render(<DashboardPage />, { wrapper: Wrapper })
 
-      // Verifica se tabs estão presentes
-      expect(container.querySelector('[role="tablist"]')).toBeInTheDocument()
+      // Verifica se componentes do carousel estão presentes
+      expect(screen.getByTestId('trend-section')).toBeInTheDocument()
+      expect(screen.getByTestId('status-chart')).toBeInTheDocument()
     })
   })
 

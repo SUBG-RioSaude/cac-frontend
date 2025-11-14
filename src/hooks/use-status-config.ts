@@ -5,7 +5,7 @@
  * Centraliza todas as configurações visuais e lógica de status
  */
 
-import { CheckCircle, AlertTriangle, Clock, XCircle, Pause } from 'lucide-react'
+import { CheckCircle, AlertTriangle, Clock, XCircle, Pause, FileText, HourglassIcon } from 'lucide-react'
 import { useMemo, useCallback } from 'react'
 
 import {
@@ -67,6 +67,20 @@ export function useStatusConfig() {
           className:
             'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200',
           icon: XCircle,
+        },
+        rascunho: {
+          variant: 'outline',
+          label: 'Rascunho',
+          className:
+            'bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-200',
+          icon: FileText,
+        },
+        em_aprovacao: {
+          variant: 'secondary',
+          label: 'Em Aprovação',
+          className:
+            'bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200',
+          icon: HourglassIcon,
         },
         indefinido: {
           variant: 'outline',

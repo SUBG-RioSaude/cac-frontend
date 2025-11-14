@@ -56,7 +56,7 @@ export const ExpiredContractsCard = ({
   const anterior = previousData?.totalRegistros ?? atual
   const percentual =
     anterior > 0 ? ((atual - anterior) / anterior) * 100 : atual > 0 ? 100 : 0
-  const tendencia = atual > anterior ? 'up' : atual < anterior ? 'down' : 'up'
+  const tendencia: 'up' | 'down' = atual > anterior ? 'up' : atual < anterior ? 'down' : 'up'
 
   const metric = {
     atual,
@@ -70,7 +70,7 @@ export const ExpiredContractsCard = ({
       metric={metric}
       icon={AlertOctagon}
       isLoading={isLoading}
-      error={error ?? null}
+      error={error?.message ?? null}
       className={className}
       description="Requerem atenção urgente"
       data-testid="expired-contracts-card"

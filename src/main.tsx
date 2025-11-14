@@ -31,8 +31,15 @@ const queryClient = new QueryClient({
         // Máximo 3 tentativas para outros erros
         return failureCount < 3
       },
-      // Refetch quando a janela ganha foco
-      refetchOnWindowFocus: false,
+      // ========== MELHORIAS DE CACHE - FASE 1 ==========
+      // Refetch quando a janela ganha foco (dados sempre atualizados)
+      refetchOnWindowFocus: true,
+      // Sempre refetch ao montar componente
+      refetchOnMount: 'always',
+      // Background refetch a cada 5 minutos (auto-refresh)
+      refetchInterval: 5 * 60 * 1000,
+      // Refetch mesmo quando aba está em background
+      refetchIntervalInBackground: true,
       // Refetch quando reconecta à internet
       refetchOnReconnect: 'always',
     },

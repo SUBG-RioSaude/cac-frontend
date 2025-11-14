@@ -149,6 +149,18 @@ const App = () => {
           </ProtectedRoute>
         )}
       />
+      
+      
+      {/*<Route
+        path="/alteracoes"
+        element={(
+          <ProtectedRoute requireAuth>
+            <LayoutAuthenticated>
+              <CadastroFornecedorPage />
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        )}
+      />*/}
 
       {/* Rotas de Unidades */}
       <Route
