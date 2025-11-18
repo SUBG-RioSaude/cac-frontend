@@ -5,7 +5,7 @@ import { authService } from '../auth-service'
 import { useAuthStore } from '../auth-store'
 import { cookieUtils } from '../cookie-utils'
 
-// Mocks
+// Mocks datas
 vi.mock('../auth-service', () => ({
   authService: {
     login: vi.fn(),
