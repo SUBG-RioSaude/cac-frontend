@@ -134,33 +134,99 @@ export async function getFuncionarioByMatricula(
 /**
  * Buscar funcionário por CPF
  */
+/**
+ * Helper para delay entre retries
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Buscar funcionário por CPF
+ * Implementa retry automático: 3 tentativas com delay exponencial (1s, 2s, 3s)
+ */
 export async function getFuncionarioByCpf(
   cpf: string,
 ): Promise<BuscaFuncionarioResponse> {
-  try {
-    const response = await executeWithFallback<FuncionarioApi>({
-      method: 'get',
-      url: `/Funcionarios/cpf/${cpf}`,
-    })
+  const MAX_RETRIES = 3
+  let lastError: unknown = null
 
-    return {
-      encontrado: true,
-      funcionario: response.data,
+  for (let tentativa = 1; tentativa <= MAX_RETRIES; tentativa++) {
+    try {
+      logger.info(
+        {
+          operation: 'buscar_funcionario_cpf',
+          cpf: `${cpf.substring(0, 3)}***`,
+          tentativa,
+          maxRetries: MAX_RETRIES,
+        },
+        `Tentativa ${tentativa}/${MAX_RETRIES} de busca por CPF`,
+      )
+
+      const response = await executeWithFallback<FuncionarioApi>({
+        method: 'get',
+        url: `/Funcionarios/cpf/${cpf}`,
+      })
+
+      logger.info(
+        {
+          operation: 'buscar_funcionario_cpf',
+          cpf: `${cpf.substring(0, 3)}***`,
+          tentativa,
+          funcionarioId: response.data.id,
+        },
+        `Funcionário encontrado na tentativa ${tentativa}`,
+      )
+
+      return {
+        encontrado: true,
+        funcionario: response.data,
+      }
+    } catch (error) {
+      lastError = error
+
+      logger.warn(
+        {
+          operation: 'buscar_funcionario_cpf',
+          cpf: `${cpf.substring(0, 3)}***`,
+          tentativa,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        `Tentativa ${tentativa}/${MAX_RETRIES} falhou`,
+      )
+
+      // Se não é a última tentativa, aguarda antes de tentar novamente
+      if (tentativa < MAX_RETRIES) {
+        const delayMs = tentativa * 1000 // 1s, 2s
+        logger.debug(
+          {
+            operation: 'buscar_funcionario_cpf',
+            cpf: `${cpf.substring(0, 3)}***`,
+            tentativa,
+            delayMs,
+          },
+          `Aguardando ${delayMs}ms antes da próxima tentativa`,
+        )
+        await delay(delayMs)
+      }
     }
-  } catch (error) {
-    logger.error(
-      {
-        operation: 'buscar_funcionario_cpf',
-        cpf: `${cpf.substring(0, 3)}***`, // Mascarar CPF por segurança
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      },
-      `Erro ao buscar funcionário por CPF`,
-    )
-    return {
-      encontrado: false,
-      erro: 'Funcionário não encontrado ou erro na consulta',
-    }
+  }
+
+  // Todas as tentativas falharam
+  logger.error(
+    {
+      operation: 'buscar_funcionario_cpf',
+      cpf: `${cpf.substring(0, 3)}***`,
+      error: lastError instanceof Error ? lastError.message : String(lastError),
+      stack: lastError instanceof Error ? lastError.stack : undefined,
+      tentativas: MAX_RETRIES,
+    },
+    `Funcionário não encontrado após ${MAX_RETRIES} tentativas`,
+  )
+
+  return {
+    encontrado: false,
+    erro: 'Funcionário não encontrado ou erro na consulta',
   }
 }
 
@@ -382,4 +448,33 @@ export async function criarFuncionario(
   }
 
   return data
+}
+
+/**
+ * Deletar um funcionário por ID
+ * Usado para rollback quando o cadastro de usuário falha após criar o funcionário
+ */
+export async function deletarFuncionario(id: string): Promise<void> {
+  try {
+    await executeWithFallback({
+      method: 'delete',
+      url: `/Funcionarios/${id}`,
+    })
+
+    logger.info(
+      { operation: 'deletar_funcionario', funcionarioId: id },
+      `Funcionário ${id} deletado com sucesso (rollback)`,
+    )
+  } catch (error) {
+    logger.error(
+      {
+        operation: 'deletar_funcionario',
+        funcionarioId: id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      `Erro ao deletar funcionário ${id} (rollback)`,
+    )
+    throw error
+  }
 }

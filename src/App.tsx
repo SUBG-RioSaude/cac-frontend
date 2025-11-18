@@ -22,6 +22,7 @@ import VerifyForm from './pages/auth/verify-form'
 import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
+import GerenciarUsuariosPage from './modules/Usuarios/pages/gerenciar-usuarios-page'
 
 const App = () => {
   return (
@@ -206,6 +207,18 @@ const App = () => {
                 <h1 className="text-2xl font-bold">Configurações</h1>
                 <p>Configure suas preferências do sistema.</p>
               </div>
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        )}
+      />
+
+      {/* Rotas de Gestão de Usuários */}
+      <Route
+        path="/gestao-usuarios/gerenciar"
+        element={(
+          <ProtectedRoute requireAuth>
+            <LayoutAuthenticated>
+              <GerenciarUsuariosPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
         )}

@@ -4,7 +4,6 @@ import {
   PenBoxIcon,
   Settings2,
   Truck,
-  Users,
   ShieldUser,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -53,34 +52,11 @@ const data = {
       title: 'Fornecedores',
       url: '/fornecedores',
       icon: Truck,
-      items: [
-        {
-          title: 'Lista de Fornecedores',
-          url: '/fornecedores',
-        },
-      ],
     },
     {
       title: 'Unidades',
       url: '/unidades',
       icon: Building2,
-      items: [
-        {
-          title: 'Lista de Unidades',
-          url: '/unidades',
-        },
-      ],
-    },
-    {
-      title: 'Funcionários',
-      url: '/funcionarios',
-      icon: Users,
-      items: [
-        {
-          title: 'Cadastro de Funcionários',
-          url: '/funcionarios/cadastrar',
-        },
-      ],
     },
     {
       title: 'Gestão de Usuários',
@@ -88,12 +64,16 @@ const data = {
       icon: ShieldUser,
       items: [
         {
-          title: 'Registro de Alterações',
-          url: '/alteracoes',
-        },
-        {
           title: 'Cadastro de Funcionários',
           url: '/funcionarios/cadastrar',
+        },
+        {
+          title: 'Gerenciar Usuários',
+          url: '/gestao-usuarios/gerenciar',
+        },
+        {
+          title: 'Registro de Alterações',
+          url: '/alteracoes',
         },
       ],
     },
@@ -101,12 +81,6 @@ const data = {
       title: 'Configurações',
       url: '/configuracoes',
       icon: Settings2,
-      items: [
-        {
-          title: 'Geral',
-          url: '/configuracoes',
-        },
-      ],
     },
   ],
 }

@@ -11,7 +11,7 @@ import type {
 
 import { createServiceLogger } from '../logger'
 
-import { getTokenInfo } from './auth'
+import { getToken, getRefreshToken, getTokenInfo } from './auth'
 import { authService } from './auth-service'
 import { cookieUtils, authCookieConfig } from './cookie-utils'
 
@@ -32,13 +32,13 @@ export const useMeQuery = (options?: { enabled?: boolean }) => {
       )
 
       try {
-        // Obtém token dos cookies
-        const token = cookieUtils.getCookie('auth_token')
+        // ⭐ Obtém token da memória primeiro, cookies como fallback
+        const token = getToken()
 
         if (!token) {
           authLogger.warn(
             { action: 'fetch-user', status: 'no-token' },
-            'Token não encontrado nos cookies',
+            'Token não encontrado',
           )
           throw new Error('Token não encontrado')
         }
@@ -59,7 +59,7 @@ export const useMeQuery = (options?: { enabled?: boolean }) => {
             action: 'fetch-user',
             status: 'token-decoded',
             usuarioId: payload.usuarioId,
-            nomePermissao: payload.nomePermissao,
+            permissaoNome: payload.permissaoNome,
           },
           'Token decodificado com sucesso',
         )
@@ -69,7 +69,10 @@ export const useMeQuery = (options?: { enabled?: boolean }) => {
           id: payload.usuarioId,
           email: payload.sub,
           nomeCompleto: payload.nomeCompleto,
-          tipoUsuario: payload.nomePermissao,
+          // Converte array de permissões para string (compatibilidade com tipoUsuario)
+          tipoUsuario: Array.isArray(payload.permissaoNome)
+            ? payload.permissaoNome.join(', ')
+            : '',
           precisaTrocarSenha: false,
           emailConfirmado: true,
           ativo: true,
@@ -171,7 +174,7 @@ export const useConfirm2FAMutation = () => {
             : 'Troca de senha obrigatória detectada',
         )
 
-        // Salva tokens se fornecidos
+        // Salva tokens se fornecidos (setCookie sobrescreve automaticamente)
         if (resultado.dados) {
           cookieUtils.setCookie(
             'auth_token',
@@ -199,7 +202,7 @@ export const useConfirm2FAMutation = () => {
         throw new Error(resultado.mensagem ?? 'Erro ao confirmar código 2FA')
       }
 
-      // Salva tokens nos cookies
+      // Salva tokens nos cookies (setCookie sobrescreve automaticamente)
       if (resultado.dados) {
         cookieUtils.setCookie(
           'auth_token',
@@ -257,7 +260,7 @@ export const usePasswordChangeMutation = () => {
         throw new Error(resultado.mensagem ?? 'Erro ao trocar senha')
       }
 
-      // Salva tokens nos cookies
+      // Salva tokens nos cookies (setCookie sobrescreve automaticamente)
       cookieUtils.setCookie(
         'auth_token',
         resultado.dados.token,
@@ -321,7 +324,8 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      // ⭐ Obtém refresh token da memória primeiro, cookies como fallback
+      const refreshToken = getRefreshToken()
 
       authLogger.info(
         { action: 'logout', status: 'requesting' },
@@ -378,7 +382,8 @@ export const useLogoutAllSessionsMutation = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      // ⭐ Obtém refresh token da memória primeiro, cookies como fallback
+      const refreshToken = getRefreshToken()
 
       authLogger.info(
         { action: 'logout-all', status: 'requesting' },
@@ -426,6 +431,56 @@ export const useLogoutAllSessionsMutation = () => {
       // Não usa navigate() para evitar race conditions com React Query e Context
       // Toast será mostrado após o reload na página de login
       window.location.href = '/login'
+    },
+  })
+}
+
+/**
+ * Mutation para registrar um novo usuário no sistema
+ *
+ * @example
+ * const registerMutation = useRegisterMutation()
+ * registerMutation.mutate({
+ *   email: 'user@example.com',
+ *   nomeCompleto: 'João Silva',
+ *   cpf: '12345678901',
+ *   senhaExpiraEm: '2025-12-31'
+ * })
+ */
+export const useRegisterMutation = () => {
+  return useMutation({
+    mutationFn: async (data: {
+      email: string
+      nomeCompleto: string
+      cpf: string
+      senhaExpiraEm: string
+    }) => {
+      authLogger.info(
+        { action: 'register', status: 'requesting', email: data.email },
+        'Registrando novo usuário',
+      )
+
+      const response = await authService.registerUsuario(data)
+
+      if (!response.sucesso) {
+        authLogger.error(
+          { action: 'register', status: 'failed', email: data.email },
+          response.mensagem ?? 'Erro ao registrar usuário',
+        )
+        throw new Error(response.mensagem ?? 'Erro ao registrar usuário')
+      }
+
+      authLogger.info(
+        {
+          action: 'register',
+          status: 'success',
+          email: data.email,
+          usuarioId: response.dados.usuarioId,
+        },
+        'Usuário registrado com sucesso',
+      )
+
+      return response
     },
   })
 }

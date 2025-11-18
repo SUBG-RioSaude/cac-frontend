@@ -868,7 +868,77 @@ if (usuario.dados.existe) {
 
 ---
 
-### 14. **PUT** `/api/usuarios/{usuarioId}/permissoes`
+### 14. **GET** `/api/usuarios/{id}/permissoes`
+
+Obtém todas as permissões de um usuário específico. Retorna as permissões agrupadas por sistema.
+
+**⚡ Otimização**: Utiliza cache em memória com TTL de 15 minutos.
+
+#### 📥 Request
+
+```bash
+GET /api/usuarios/uuid-do-usuario/permissoes
+```
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Permissões obtidas com sucesso.",
+  "dados": {
+    "usuarioId": "uuid-do-usuario",
+    "quantidadeSistemas": 2,
+    "permissoes": [
+      {
+        "sistemaId": "uuid-sistema-rh",
+        "sistemaNome": "Sistema RH",
+        "permissoes": [
+          { "id": 1, "nome": "Supervisor" },
+          { "id": 2, "nome": "Analista I" }
+        ]
+      },
+      {
+        "sistemaId": "uuid-sistema-fin",
+        "sistemaNome": "Sistema Financeiro",
+        "permissoes": [
+          { "id": 4, "nome": "Visualizador" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### 📤 Response (404 Not Found)
+
+```json
+{
+  "sucesso": false,
+  "mensagem": "Usuário não encontrado.",
+  "dados": null
+}
+```
+
+#### 💡 Uso no Frontend
+
+```javascript
+// Buscar permissões de um usuário específico
+const usuarioId = "uuid-do-usuario";
+const response = await fetch(`http://auth-api/api/usuarios/${usuarioId}/permissoes`);
+const data = await response.json();
+
+if (data.sucesso) {
+  console.log('Sistemas com permissões:', data.dados.quantidadeSistemas);
+  data.dados.permissoes.forEach(sistema => {
+    console.log(`${sistema.sistemaNome}:`, sistema.permissoes.map(p => p.nome));
+  });
+}
+```
+
+---
+
+### 15. **PUT** `/api/usuarios/{usuarioId}/permissoes`
 
 Atualiza as permissões de um usuário. Remove todas as permissões antigas e adiciona as novas.
 
@@ -1642,6 +1712,7 @@ Para dúvidas ou problemas, entre em contato com a equipe de desenvolvimento.
 
 **Novos Endpoints:**
 - `GET /verificar-usuario-por-cpf/{cpf}` - Verifica existência de usuário por CPF
+- `GET /api/usuarios/{id}/permissoes` - Obtém permissões de um usuário específico
 - `PUT /api/usuarios/{usuarioId}/permissoes` - Atualiza permissões de usuário
 
 **Melhorias:**

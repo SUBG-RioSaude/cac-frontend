@@ -89,31 +89,50 @@ const createTokenRenewalInterceptor = () => {
 
     // Se o erro for 401 (não autorizado), tenta renovar o token
     if (response?.status === 401) {
+      console.log('🔴 [Axios Interceptor] Erro 401 detectado')
+      console.log('🔍 [Axios Interceptor] URL:', config?.url)
+
       try {
+        // ⭐ VERIFICA SE HÁ REFRESH TOKEN ANTES DE TENTAR RENOVAR
+        const { getRefreshToken } = await import('./auth/auth')
+        const refreshToken = getRefreshToken()
+
+        if (!refreshToken) {
+          console.warn('⚠️ [Axios Interceptor] Sem refresh token, não tenta renovar')
+          // Não faz logout - pode ser primeira requisição ou já deslogado
+          return Promise.reject(erro)
+        }
+
+        console.log('🔄 [Axios Interceptor] Tentando renovar token...')
         const renovado = await renovarToken()
+
         if (renovado && config) {
+          console.log('✅ [Axios Interceptor] Token renovado com sucesso')
+
           // Reexecuta a requisição original com o novo token
           const token = getToken()
           if (token && token.split('.').length === 3) {
             config.headers.Authorization = `Bearer ${token}`
+            console.log('🔄 [Axios Interceptor] Reexecutando requisição original')
             // Usa o cliente axios que originou a requisição
             return axios.request(config)
           }
+
           // Se renovou mas token inválido, faz logout
-          console.error('❌ Token renovado é inválido')
+          console.error('❌ [Axios Interceptor] Token renovado é inválido')
           logout()
           window.location.href = '/login'
           return Promise.reject(new Error('Token renovado inválido'))
         } else {
           // Renovação falhou, faz logout
-          console.error('❌ Falha na renovação do token')
+          console.error('❌ [Axios Interceptor] Falha na renovação do token')
           logout()
           window.location.href = '/login'
           return Promise.reject(new Error('Falha na renovação do token'))
         }
       } catch (erroRenovacao) {
         // Log mais detalhado do erro
-        console.error('❌ Erro ao renovar token:', erroRenovacao)
+        console.error('❌ [Axios Interceptor] Erro ao renovar token:', erroRenovacao)
         logout()
         window.location.href = '/login'
         return Promise.reject(new Error('Falha na renovação do token'))

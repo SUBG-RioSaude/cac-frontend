@@ -13,11 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth/auth-context'
 import { usePasswordChangeMutation } from '@/lib/auth/auth-queries'
-
-interface PasswordRequirement {
-  text: string
-  met: boolean
-}
+import {
+  validarRequisitosSenha,
+  senhaEValida,
+  calcularForcaSenha,
+} from '@/lib/validacoes-senha'
 
 const ResetPasswordForm = () => {
   const [novaSenha, setNovaSenha] = useState('')
@@ -41,21 +41,8 @@ const ResetPasswordForm = () => {
   } = passwordChangeMutation
   const erro = error?.message ?? null
 
-  const requisitosSenha: PasswordRequirement[] = [
-    { text: 'Pelo menos 8 caracteres', met: novaSenha.length >= 8 },
-    { text: 'Pelo menos uma letra', met: /[a-zA-Z]/.test(novaSenha) },
-    { text: 'Pelo menos um número', met: /[0-9]/.test(novaSenha) },
-    {
-      text: 'Pelo menos um caractere especial',
-      met: /[^a-zA-Z0-9]/.test(novaSenha),
-    },
-    {
-      text: 'Senhas coincidem',
-      met: novaSenha === confirmarSenha && novaSenha.length > 0,
-    },
-  ]
-
-  const senhaValida = requisitosSenha.every((req) => req.met)
+  const requisitosSenha = validarRequisitosSenha(novaSenha, confirmarSenha)
+  const senhaValida = senhaEValida(requisitosSenha)
 
   useEffect(() => {
     // Redireciona se já estiver autenticado
@@ -174,21 +161,7 @@ const ResetPasswordForm = () => {
     },
   }
 
-  const medidorForca = () => {
-    const requisitosAtendidos = requisitosSenha.filter((req) => req.met).length
-    const porcentagem = (requisitosAtendidos / requisitosSenha.length) * 100
-
-    let cor = '#ef4444' // vermelho
-    if (porcentagem >= 80)
-      cor = '#10b981' // verde
-    else if (porcentagem >= 60)
-      cor = '#f59e0b' // amarelo
-    else if (porcentagem >= 40) cor = '#f97316' // laranja
-
-    return { porcentagem, cor }
-  }
-
-  const { porcentagem, cor } = medidorForca()
+  const { porcentagem, cor } = calcularForcaSenha(requisitosSenha)
 
   return (
     <div className="flex min-h-screen">
@@ -460,6 +433,18 @@ const ResetPasswordForm = () => {
                           </motion.div>
                         ))}
                       </AnimatePresence>
+                    </motion.div>
+                    
+                    {/* Nota sobre histórico de senhas */}
+                    <motion.div
+                      className="mt-2 rounded-md bg-blue-50 p-2 dark:bg-blue-950"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <p className="text-xs text-blue-800 dark:text-blue-200">
+                        <strong>Nota:</strong> A senha não pode ser igual às suas últimas 5 senhas utilizadas.
+                      </p>
                     </motion.div>
                   </motion.div>
 

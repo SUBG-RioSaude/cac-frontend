@@ -15,7 +15,10 @@ interface ValidacaoState {
   lastChecked?: string
 }
 
-export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
+export function useValidarCpfUnico(
+  rawCpf: string,
+  disabled = false
+): ValidacaoState {
   const debounced = useDebounce(rawCpf.replace(/\D/g, ''), 600)
   const isWaiting = rawCpf.replace(/\D/g, '') !== debounced && rawCpf.length > 0
   const isValidFormat = debounced.length === 11
@@ -26,7 +29,7 @@ export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
       const resp = await getFuncionarioByCpf(debounced)
       return resp.encontrado
     },
-    enabled: isValidFormat,
+    enabled: isValidFormat && !disabled,
     staleTime: 30000,
     gcTime: 60000,
     retry: false,
@@ -82,7 +85,10 @@ export function useValidarCpfUnico(rawCpf: string): ValidacaoState {
   }
 }
 
-export function useValidarMatriculaUnica(rawMatricula: string): ValidacaoState {
+export function useValidarMatriculaUnica(
+  rawMatricula: string,
+  disabled = false
+): ValidacaoState {
   const debounced = useDebounce(rawMatricula.trim(), 600)
   const isWaiting = rawMatricula.trim() !== debounced && rawMatricula.length > 0
   const isValidFormat = /^[A-Za-z0-9]{3,20}$/.test(debounced)
@@ -93,7 +99,7 @@ export function useValidarMatriculaUnica(rawMatricula: string): ValidacaoState {
       const resp = await getFuncionarioByMatricula(debounced)
       return resp.encontrado
     },
-    enabled: isValidFormat,
+    enabled: isValidFormat && !disabled,
     staleTime: 30000,
     gcTime: 60000,
     retry: false,

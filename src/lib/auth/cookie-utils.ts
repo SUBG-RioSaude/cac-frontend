@@ -124,7 +124,9 @@ export const authCookieConfig = {
     path: '/',
     secure: false,
     sameSite: 'lax' as const,
-    maxAge: 15 * 60, // 15 minutos (JWT token)
+    // ⭐ REMOVIDO maxAge - cookie dura a sessão do navegador
+    // JWT tem sua própria expiração (15min) que é validada no servidor
+    // Isso evita que o navegador remova o cookie antes do JWT expirar
   },
   refreshToken: {
     path: '/',

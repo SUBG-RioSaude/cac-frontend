@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { create } from 'zustand'
 
 import { createServiceLogger } from '@/lib/logger'
@@ -12,6 +13,9 @@ export interface AuthState {
   estaAutenticado: boolean
   carregando: boolean
   erro: string | null
+  // TOKENS EM MEMÓRIA (fonte da verdade)
+  token: string | null
+  refreshToken: string | null
 
   // Ações
   login: (email: string, senha: string) => Promise<boolean>
@@ -27,6 +31,9 @@ export interface AuthState {
   renovarToken: () => Promise<boolean>
   verificarAutenticacao: () => Promise<void>
   limparErro: () => void
+  // Getters para tokens
+  getToken: () => string | null
+  getRefreshToken: () => string | null
 }
 
 // Função para validar formato de token JWT ou token criptografado
@@ -62,11 +69,29 @@ const sanitizeMensagem = (
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
-  // Estado inicial
-  usuario: null,
-  estaAutenticado: false,
-  carregando: false,
-  erro: null,
+      // Estado inicial
+      usuario: null,
+      estaAutenticado: false,
+      carregando: false,
+      erro: null,
+      // Tokens em MEMÓRIA (fonte da verdade principal)
+      token: null,
+      refreshToken: null,
+
+      // Getters para tokens (lê memória primeiro, cookies como fallback)
+      getToken: () => {
+        const state = get()
+        if (state.token) return state.token
+        // Fallback para cookies
+        return cookieUtils.getCookie('auth_token')
+      },
+
+      getRefreshToken: () => {
+        const state = get()
+        if (state.refreshToken) return state.refreshToken
+        // Fallback para cookies
+        return cookieUtils.getCookie('auth_refresh_token')
+      },
 
   // Login - Primeira etapa (envia código 2FA)
   login: async (email: string, senha: string) => {
@@ -135,30 +160,37 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         if (resultado.dados) {
           const { token, refreshToken, usuario } = resultado.dados
 
-          // Valida tokens antes de salvar
-          if (validarTokenJWT(token) && validarTokenJWT(refreshToken)) {
-            // Salva tokens nos cookies com configurações de segurança
-            cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-            cookieUtils.setCookie(
-              'auth_refresh_token',
-              refreshToken,
-              authCookieConfig.refreshToken,
-            )
+              // Valida token JWT (refresh token pode ser opaco, não precisa validar)
+              if (validarTokenJWT(token)) {
+                // PRIORIDADE 1: Salva tokens em MEMÓRIA (fonte da verdade)
+                set({
+                  usuario,
+                  estaAutenticado: true,
+                  carregando: false,
+                  erro: null,
+                  token, // ⭐ Token em memória
+                  refreshToken, // ⭐ Refresh token em memória
+                })
 
-            set({
-              usuario,
-              estaAutenticado: true,
-              carregando: false,
-              erro: null,
-            })
-          } else {
-            set({
-              carregando: false,
-              erro: 'Tokens inválidos recebidos do servidor',
-            })
-            return false
-          }
-        }
+                // PRIORIDADE 2: Salva tokens nos cookies (backup para persistência)
+                cookieUtils.setCookie(
+                  'auth_token',
+                  token,
+                  authCookieConfig.token,
+                )
+                cookieUtils.setCookie(
+                  'auth_refresh_token',
+                  refreshToken,
+                  authCookieConfig.refreshToken,
+                )
+              } else {
+                set({
+                  carregando: false,
+                  erro: 'Tokens inválidos recebidos do servidor',
+                })
+                return false
+              }
+            }
 
         // Limpa dados temporários
         sessionStorage.removeItem('auth_email')
@@ -200,25 +232,27 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       if (resultado.sucesso) {
         const { token, refreshToken, usuario } = resultado.dados
 
-        // Valida tokens antes de salvar
-        const tokenValido = validarTokenJWT(token)
-        const refreshTokenValido = validarTokenJWT(refreshToken)
+            // Valida token JWT (refresh token pode ser opaco, não precisa validar)
+            const tokenValido = validarTokenJWT(token)
 
-        if (tokenValido && refreshTokenValido) {
-          // Salva tokens nos cookies com configurações de segurança
-          cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-          cookieUtils.setCookie(
-            'auth_refresh_token',
-            refreshToken,
-            authCookieConfig.refreshToken,
-          )
+            if (tokenValido) {
+              // PRIORIDADE 1: Salva tokens em MEMÓRIA (fonte da verdade)
+              set({
+                usuario,
+                estaAutenticado: true,
+                carregando: false,
+                erro: null,
+                token, // ⭐ Token em memória
+                refreshToken, // ⭐ Refresh token em memória
+              })
 
-          set({
-            usuario,
-            estaAutenticado: true,
-            carregando: false,
-            erro: null,
-          })
+              // PRIORIDADE 2: Salva tokens nos cookies (backup para persistência)
+              cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
+              cookieUtils.setCookie(
+                'auth_refresh_token',
+                refreshToken,
+                authCookieConfig.refreshToken,
+              )
 
           // Limpa dados temporários
           sessionStorage.removeItem('auth_email')
@@ -286,62 +320,72 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
   },
 
-  // Logout
-  logout: () => {
-    const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      // Logout
+      logout: () => {
+        // ⭐ USA GETTER PARA LER DA MEMÓRIA PRIMEIRO, COOKIES COMO FALLBACK
+        const refreshToken = get().getRefreshToken()
 
-    // Invalida token no servidor (não bloqueia UI)
-    if (refreshToken && validarTokenJWT(refreshToken)) {
-      authService.logout(refreshToken).catch((erro) => {
-        authLogger.warn(
-          { action: 'logout', scope: 'single-session' },
-          erro instanceof Error
-            ? erro.message
-            : 'Erro desconhecido ao encerrar sessão',
+        // Invalida token no servidor (não bloqueia UI)
+        // Refresh token pode ser opaco (não JWT), apenas verifica existência
+        if (refreshToken) {
+          authService.logout(refreshToken).catch((erro) => {
+            authLogger.warn(
+              { action: 'logout', scope: 'single-session' },
+              erro instanceof Error
+                ? erro.message
+                : 'Erro desconhecido ao encerrar sessão',
+            )
+          })
+        }
+
+        // PRIORIDADE 1: Limpa tokens da MEMÓRIA
+        set({
+          usuario: null,
+          estaAutenticado: false,
+          carregando: false,
+          erro: null,
+          token: null, // ⭐ Limpa token da memória
+          refreshToken: null, // ⭐ Limpa refresh token da memória
+        })
+
+        // PRIORIDADE 2: Remove tokens dos cookies
+        cookieUtils.removeCookie('auth_token', authCookieConfig.token)
+        cookieUtils.removeCookie(
+          'auth_refresh_token',
+          authCookieConfig.refreshToken,
         )
-      })
-    }
-
-    // Remove tokens dos cookies
-    cookieUtils.removeCookie('auth_token', authCookieConfig.token)
-    cookieUtils.removeCookie(
-      'auth_refresh_token',
-      authCookieConfig.refreshToken,
-    )
-
-    set({
-      usuario: null,
-      estaAutenticado: false,
-      carregando: false,
-      erro: null,
-    })
 
     // Limpa dados da sessão
     sessionStorage.clear()
   },
 
-  // Logout de todas as sessões
-  logoutTodasSessoes: async () => {
-    try {
-      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      // Logout de todas as sessões
+      logoutTodasSessoes: async () => {
+        try {
+          // ⭐ USA GETTER PARA LER DA MEMÓRIA PRIMEIRO, COOKIES COMO FALLBACK
+          const refreshToken = get().getRefreshToken()
 
-      if (refreshToken && validarTokenJWT(refreshToken)) {
-        await authService.logoutTodasSessoes(refreshToken)
-      }
+          // Refresh token pode ser opaco (não JWT), apenas verifica existência
+          if (refreshToken) {
+            await authService.logoutTodasSessoes(refreshToken)
+          }
 
-      // Remove tokens dos cookies
-      cookieUtils.removeCookie('auth_token', authCookieConfig.token)
-      cookieUtils.removeCookie(
-        'auth_refresh_token',
-        authCookieConfig.refreshToken,
-      )
+          // PRIORIDADE 1: Limpa tokens da MEMÓRIA
+          set({
+            usuario: null,
+            estaAutenticado: false,
+            carregando: false,
+            erro: null,
+            token: null, // ⭐ Limpa token da memória
+            refreshToken: null, // ⭐ Limpa refresh token da memória
+          })
 
-      set({
-        usuario: null,
-        estaAutenticado: false,
-        carregando: false,
-        erro: null,
-      })
+          // PRIORIDADE 2: Remove tokens dos cookies
+          cookieUtils.removeCookie('auth_token', authCookieConfig.token)
+          cookieUtils.removeCookie(
+            'auth_refresh_token',
+            authCookieConfig.refreshToken,
+          )
 
       sessionStorage.clear()
     } catch (erro) {
@@ -354,23 +398,36 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
   },
 
-  // Renovação de token
-  renovarToken: async () => {
-    try {
-      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      // Renovação de token
+      renovarToken: async () => {
+        try {
+          // ⭐ USA GETTER PARA LER DA MEMÓRIA PRIMEIRO, COOKIES COMO FALLBACK
+          const refreshToken = get().getRefreshToken()
+          const currentToken = get().getToken()
 
-      if (!refreshToken || !validarTokenJWT(refreshToken)) {
-        authLogger.warn(
-          { action: 'renovar-token', status: 'invalid-refresh-token' },
-          'Refresh token ausente ou inválido',
-        )
-        return false
-      }
+          authLogger.info(
+            {
+              action: 'renovar-token',
+              status: 'checking',
+              hasRefreshToken: !!refreshToken,
+              hasCurrentToken: !!currentToken
+            },
+            '🔍 Verificando tokens antes de renovar',
+          )
 
-      authLogger.info(
-        { action: 'renovar-token', status: 'requesting' },
-        'Solicitando renovação de token',
-      )
+          // Refresh token pode ser opaco (não JWT), apenas verifica existência
+          if (!refreshToken) {
+            authLogger.warn(
+              { action: 'renovar-token', status: 'no-refresh-token' },
+              '❌ Refresh token ausente - renovação impossível',
+            )
+            return false
+          }
+
+          authLogger.info(
+            { action: 'renovar-token', status: 'requesting' },
+            '🔄 Solicitando renovação de token ao servidor...',
+          )
 
       const resultado = await authService.renovarToken(refreshToken)
 
@@ -381,76 +438,129 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           usuario,
         } = resultado.dados
 
-        // Valida novos tokens antes de salvar
-        if (validarTokenJWT(token) && validarTokenJWT(newRefreshToken)) {
-          // Atualiza tokens nos cookies
-          cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
-          cookieUtils.setCookie(
-            'auth_refresh_token',
-            newRefreshToken,
-            authCookieConfig.refreshToken,
-          )
+            // Valida token JWT (refresh token pode ser opaco, não precisa validar)
+            if (validarTokenJWT(token)) {
+              // PRIORIDADE 1: Salva tokens em MEMÓRIA (fonte da verdade)
+              set({
+                usuario,
+                estaAutenticado: true,
+                token, // ⭐ Token renovado em memória
+                refreshToken: newRefreshToken, // ⭐ Novo refresh token em memória
+              })
 
-          set({
-            usuario,
-            estaAutenticado: true,
-          })
+              // PRIORIDADE 2: Atualiza cookies (backup para persistência)
+              cookieUtils.setCookie('auth_token', token, authCookieConfig.token)
+              cookieUtils.setCookie(
+                'auth_refresh_token',
+                newRefreshToken,
+                authCookieConfig.refreshToken,
+              )
 
-          authLogger.info(
-            { action: 'renovar-token', status: 'success' },
-            'Token renovado com sucesso',
-          )
-          return true
-        } else {
+              authLogger.info(
+                { action: 'renovar-token', status: 'success' },
+                '✅ Token renovado com sucesso e salvo em memória + cookies',
+              )
+              return true
+            } else {
+              authLogger.error(
+                { action: 'renovar-token', status: 'invalid-tokens' },
+                'Tokens recebidos são inválidos',
+              )
+              return false
+            }
+          } else {
+            // Token inválido ou expirado
+            const mensagemErro = sanitizeMensagem(
+              resultado.mensagem,
+              'Falha na renovação do token',
+            )
+            authLogger.warn(
+              { action: 'renovar-token', status: 'failed', mensagem: mensagemErro },
+              mensagemErro,
+            )
+
+            // ⭐ DETECÇÃO ESPECÍFICA: Senha expirada
+            const senhaExpiradaMensagem = 'Sua senha expirou. Por favor, faça login novamente para redefini-la.'
+            if (
+              resultado.mensagem === senhaExpiradaMensagem ||
+              mensagemErro.includes('senha expirou') ||
+              mensagemErro.includes('Sua senha expirou')
+            ) {
+              authLogger.warn(
+                { action: 'renovar-token', status: 'password-expired-logout' },
+                'Senha expirada detectada, fazendo logout imediato',
+              )
+
+              // Mostra toast com a mensagem
+              toast.error(senhaExpiradaMensagem, {
+                duration: 5000,
+              })
+
+              // Faz logout imediato
+              get().logout()
+
+              // Redireciona para login
+              window.location.href = '/login'
+
+              return false
+            }
+
+            // Apenas faz logout se refresh token realmente expirou (erro 401)
+            // Evita logout em erros temporários de rede
+            if (mensagemErro.includes('expirado') || mensagemErro.includes('inválido')) {
+              authLogger.warn(
+                { action: 'renovar-token', status: 'logout-triggered' },
+                'Refresh token expirado, fazendo logout',
+              )
+              get().logout()
+            }
+            return false
+          }
+        } catch (erro) {
+          const erroMensagem = erro instanceof Error ? erro.message : 'Erro desconhecido'
           authLogger.error(
-            { action: 'renovar-token', status: 'invalid-tokens' },
-            'Tokens recebidos são inválidos',
+            { action: 'renovar-token', status: 'error', erro: erroMensagem },
+            `Erro na renovação: ${erroMensagem}`,
           )
+
+          // NÃO faz logout automático em erros de rede
+          // Apenas loga o erro e retorna false
+          // Deixa o interceptador ou próxima tentativa resolver
+          if (erroMensagem.includes('Network Error') || erroMensagem.includes('conexão')) {
+            authLogger.warn(
+              { action: 'renovar-token', status: 'network-error-no-logout' },
+              'Erro de rede na renovação, não fazendo logout',
+            )
+            return false
+          }
+
+          // Apenas faz logout em erros críticos (não relacionados a rede)
+          authLogger.warn(
+            { action: 'renovar-token', status: 'critical-error-logout' },
+            'Erro crítico na renovação, fazendo logout',
+          )
+          get().logout()
           return false
         }
-      } else {
-        // Token inválido, faz logout
-        const mensagemErro = sanitizeMensagem(
-          resultado.mensagem,
-          'Falha na renovação do token',
-        )
-        authLogger.warn(
-          { action: 'renovar-token', status: 'failed' },
-          mensagemErro,
-        )
-        get().logout()
-        return false
-      }
-    } catch (erro) {
-      authLogger.error(
-        { action: 'renovar-token', status: 'error' },
-        erro instanceof Error ? erro.message : 'Erro desconhecido na renovação',
-      )
-      get().logout()
-      return false
-    }
-  },
+      },
 
-  // Verificação inicial de autenticação
-  verificarAutenticacao: async () => {
-    try {
-      const token = cookieUtils.getCookie('auth_token')
-      const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+      // Verificação inicial de autenticação
+      verificarAutenticacao: async () => {
+        try {
+          // ⭐ USA GETTERS PARA LER DA MEMÓRIA PRIMEIRO, COOKIES COMO FALLBACK
+          const token = get().getToken()
+          const refreshToken = get().getRefreshToken()
 
-      // Se não há cookies, usuário não está autenticado
-      if (
-        !token ||
-        !refreshToken ||
-        !validarTokenJWT(token) ||
-        !validarTokenJWT(refreshToken)
-      ) {
-        authLogger.info(
-          { action: 'verificar-autenticacao', status: 'no-cookies' },
-          'Cookies de autenticação ausentes ou inválidos',
-        )
-        set({ carregando: false, estaAutenticado: false })
-        return
-      }
+          // Se não há tokens, usuário não está autenticado
+          // Valida apenas o auth_token como JWT (refresh_token pode ser opaco)
+          if (!token || !refreshToken || !validarTokenJWT(token)) {
+            authLogger.info(
+              { action: 'verificar-autenticacao', status: 'no-tokens' },
+              'Tokens de autenticação ausentes ou inválidos',
+            )
+            set({ carregando: false, estaAutenticado: false })
+            return
+          }
 
       // Verifica se token está próximo de expirar (menos de 5min)
       const { isTokenNearExpiry } = await import('./auth')

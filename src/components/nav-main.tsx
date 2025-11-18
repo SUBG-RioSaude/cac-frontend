@@ -71,14 +71,16 @@ export const NavMain = ({
 
   const handleItemClick = (item: (typeof items)[0]) => {
     if (item.items?.length) {
-      // Se tem subitens, alterna o estado de abertura
+      // Se tem subitens, implementa comportamento de accordion
+      // (apenas um submenu aberto por vez)
       setOpenItems((prev) => {
-        const newSet = new Set(prev)
-        if (newSet.has(item.title)) {
-          newSet.delete(item.title)
-        } else {
+        const newSet = new Set<string>()
+        // Se o item clicado já estava aberto, fecha (deixa o Set vazio)
+        // Se estava fechado, abre apenas ele (fecha todos os outros)
+        if (!prev.has(item.title)) {
           newSet.add(item.title)
         }
+        // Se já estava aberto, newSet fica vazio (fecha todos)
         return newSet
       })
     } else {

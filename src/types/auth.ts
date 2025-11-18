@@ -41,6 +41,7 @@ export interface LoginResponse {
 export interface ConfirmarCodigo2FARequest {
   email: string
   codigo: string
+  sistemaId?: string
 }
 
 export interface ConfirmarCodigo2FAResponse {
@@ -62,6 +63,7 @@ export interface TrocarSenhaRequest {
   email: string
   novaSenha: string
   tokenTrocaSenha?: string
+  sistemaId?: string
 }
 
 export interface TrocarSenhaResponse {
@@ -86,6 +88,7 @@ export interface EsqueciSenhaResponse {
 
 export interface RefreshTokenRequest {
   refreshToken: string
+  sistemaId?: string
 }
 
 export interface RefreshTokenResponse {
@@ -141,10 +144,78 @@ export interface SessoesAtivasResponse {
 export interface JWTPayload {
   sub: string // email
   usuarioId: string
-  tipoUsuario: string
   nomeCompleto: string
-  nomePermissao: string
+  cpf: string // CPF do usuário
+  sistemaId: string // ID do sistema atual
+  sistemaNome: string // Nome do sistema atual
+  permissao: string[] // IDs das permissões como string
+  permissaoNome: string[] // Array de nomes de permissões
   exp: number
   iss: string
   aud: string
+  // Legado (manter para compatibilidade)
+  tipoUsuario?: string
+}
+
+export interface RegisterRequest {
+  email: string
+  nomeCompleto: string
+  cpf: string
+  senhaExpiraEm: string // Formato: "YYYY-MM-DD"
+}
+
+export interface RegisterResponse {
+  sucesso: boolean
+  mensagem: string
+  dados: {
+    usuarioId?: string
+    // Campos adicionais para 409 Conflict (usuário já existe)
+    existe?: boolean
+    usuario?: {
+      id: string
+      email: string
+      nomeCompleto: string
+      ativo: boolean
+      emailConfirmado: boolean
+      criadoEm: string
+    }
+    permissoes?: Array<{
+      sistemaId: string
+      sistemaNome: string
+      permissoes: Array<{
+        id: number
+        nome: string
+      }>
+    }>
+    // Campo adicional para erro 400 "E-mail já cadastrado"
+    emailJaCadastrado?: boolean
+  }
+}
+
+/**
+ * Resposta do endpoint GET /Auth/verificar-usuario-por-cpf/{cpf}
+ * Novo endpoint da API v1.1 para verificar se usuário já existe
+ */
+export interface VerificarUsuarioCpfResponse {
+  sucesso: boolean
+  mensagem?: string
+  dados: {
+    existe: boolean
+    usuario?: {
+      id: string
+      email: string
+      nomeCompleto: string
+      ativo: boolean
+      emailConfirmado: boolean
+      criadoEm: string
+    }
+    permissoes?: Array<{
+      sistemaId: string
+      sistemaNome: string
+      permissoes: Array<{
+        id: number
+        nome: string
+      }>
+    }>
+  }
 }
