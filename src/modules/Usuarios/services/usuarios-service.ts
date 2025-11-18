@@ -99,10 +99,14 @@ export async function getUsuariosPorSistema(
         'usuarios' in dadosWrapper &&
         Array.isArray((dadosWrapper as { usuarios: unknown }).usuarios)
       ) {
-        usuarios = (dadosWrapper as { usuarios: unknown[] }).usuarios
-        totalRegistros =
-          (dadosWrapper as { quantidadeUsuarios?: number }).quantidadeUsuarios ??
-          usuarios.length
+        const { usuarios: usuariosWrapper } = dadosWrapper as {
+          usuarios: unknown[]
+        }
+        usuarios = usuariosWrapper
+        const { quantidadeUsuarios } = dadosWrapper as {
+          quantidadeUsuarios?: number
+        }
+        totalRegistros = quantidadeUsuarios ?? usuarios.length
       }
     }
 
@@ -114,10 +118,14 @@ export async function getUsuariosPorSistema(
       'usuarios' in responseData &&
       Array.isArray((responseData as { usuarios: unknown }).usuarios)
     ) {
-      usuarios = (responseData as { usuarios: unknown[] }).usuarios
-      totalRegistros =
-        (responseData as { quantidadeUsuarios?: number }).quantidadeUsuarios ??
-        usuarios.length
+      const { usuarios: usuariosRoot } = responseData as {
+        usuarios: unknown[]
+      }
+      usuarios = usuariosRoot
+      const { quantidadeUsuarios: quantidadeRoot } = responseData as {
+        quantidadeUsuarios?: number
+      }
+      totalRegistros = quantidadeRoot ?? usuarios.length
     }
 
     // Se encontrou usuários, aplicar filtros no frontend e monta a estrutura de paginação

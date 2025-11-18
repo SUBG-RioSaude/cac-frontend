@@ -1,7 +1,10 @@
 import { useMemo } from 'react'
 
-import { useValidarPermissaoQuery } from '@/lib/auth/permissoes-queries'
 import { getToken, getTokenInfo } from '@/lib/auth/auth'
+import {
+  useMinhasPermissoesQuery,
+  useValidarPermissaoQuery,
+} from '@/lib/auth/permissoes-queries'
 
 /**
  * Hook para verificar se o usuário tem uma permissão específica
@@ -132,28 +135,34 @@ export const useHasAnyPermission = (
     return permissoes.some((perm) => tokenInfo.permissaoNome.includes(perm))
   }, [permissoes])
 
-  // Para validação server, verifica todas as permissões em paralelo
-  const checks = permissoes.map((perm) =>
-    useValidarPermissaoQuery(
-      { sistemaId: sistemaIdFinal, permissaoNome: perm },
-      { enabled: validateServer && localCheck },
-    ),
-  )
+  // Para validação server, busca todas as permissões do usuário e valida localmente
+  const { data: minhasPermissoes, isLoading: isValidatingServer } =
+    useMinhasPermissoesQuery(sistemaIdFinal, {
+      enabled: validateServer && localCheck,
+    })
 
-  const isLoading = checks.some((check) => check.isLoading)
-  const hasAnyPermissionServer = checks.some((check) => check.data === true)
+  const hasAnyPermissionServer = useMemo(() => {
+    if (!minhasPermissoes?.permissoes) return false
+    return permissoes.some((perm) =>
+      minhasPermissoes.permissoes.includes(perm),
+    )
+  }, [minhasPermissoes, permissoes])
 
   const hasAnyPermission = useMemo(() => {
     if (!validateServer) return localCheck
-    if (isLoading) return null
+    if (isValidatingServer) return null
     return hasAnyPermissionServer
-  }, [validateServer, localCheck, isLoading, hasAnyPermissionServer])
+  }, [validateServer, localCheck, isValidatingServer, hasAnyPermissionServer])
 
   return {
     hasAnyPermission,
-    isLoading,
+    isLoading: isValidatingServer,
     localCheck,
-    serverChecks: checks.map((c) => c.data ?? null),
+    serverChecks: minhasPermissoes?.permissoes
+      ? permissoes.map((perm) =>
+          minhasPermissoes.permissoes.includes(perm) ? true : null,
+        )
+      : permissoes.map(() => null),
   }
 }
 
@@ -191,27 +200,33 @@ export const useHasAllPermissions = (
     return permissoes.every((perm) => tokenInfo.permissaoNome.includes(perm))
   }, [permissoes])
 
-  // Para validação server, verifica todas as permissões em paralelo
-  const checks = permissoes.map((perm) =>
-    useValidarPermissaoQuery(
-      { sistemaId: sistemaIdFinal, permissaoNome: perm },
-      { enabled: validateServer && localCheck },
-    ),
-  )
+  // Para validação server, busca todas as permissões do usuário e valida localmente
+  const { data: minhasPermissoes, isLoading: isValidatingServer } =
+    useMinhasPermissoesQuery(sistemaIdFinal, {
+      enabled: validateServer && localCheck,
+    })
 
-  const isLoading = checks.some((check) => check.isLoading)
-  const hasAllPermissionsServer = checks.every((check) => check.data === true)
+  const hasAllPermissionsServer = useMemo(() => {
+    if (!minhasPermissoes?.permissoes) return false
+    return permissoes.every((perm) =>
+      minhasPermissoes.permissoes.includes(perm),
+    )
+  }, [minhasPermissoes, permissoes])
 
   const hasAllPermissions = useMemo(() => {
     if (!validateServer) return localCheck
-    if (isLoading) return null
+    if (isValidatingServer) return null
     return hasAllPermissionsServer
-  }, [validateServer, localCheck, isLoading, hasAllPermissionsServer])
+  }, [validateServer, localCheck, isValidatingServer, hasAllPermissionsServer])
 
   return {
     hasAllPermissions,
-    isLoading,
+    isLoading: isValidatingServer,
     localCheck,
-    serverChecks: checks.map((c) => c.data ?? null),
+    serverChecks: minhasPermissoes?.permissoes
+      ? permissoes.map((perm) =>
+          minhasPermissoes.permissoes.includes(perm) ? true : null,
+        )
+      : permissoes.map(() => null),
   }
 }

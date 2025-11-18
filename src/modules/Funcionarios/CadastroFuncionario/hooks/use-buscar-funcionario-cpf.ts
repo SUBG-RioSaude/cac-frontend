@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 
+import { createServiceLogger } from '@/lib/logger'
 import { getFuncionarioByCpf } from '@/modules/Funcionarios/services/funcionarios-service'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
-import { createServiceLogger } from '@/lib/logger'
 
 const logger = createServiceLogger('buscar-funcionario-cpf')
 
@@ -50,7 +50,7 @@ export const useBuscarFuncionarioCpf = () => {
       cpf: string,
     ): Promise<{ encontrado: boolean; funcionario: FuncionarioApi | null }> => {
       logger.info(
-        { cpf: cpf.substring(0, 3) + '***' },
+        { cpf: `${cpf.substring(0, 3)  }***` },
         'Iniciando busca por CPF (service fará 3 retries HTTP)',
       )
 
@@ -67,7 +67,7 @@ export const useBuscarFuncionarioCpf = () => {
         if (response.encontrado && response.funcionario) {
           logger.info(
             {
-              cpf: cpf.substring(0, 3) + '***',
+              cpf: `${cpf.substring(0, 3)  }***`,
               funcionarioId: response.funcionario.id,
             },
             'Funcionário encontrado',
@@ -85,7 +85,7 @@ export const useBuscarFuncionarioCpf = () => {
         } else {
           logger.warn(
             {
-              cpf: cpf.substring(0, 3) + '***',
+              cpf: `${cpf.substring(0, 3)  }***`,
             },
             'Funcionário não encontrado após retries HTTP',
           )
@@ -107,7 +107,7 @@ export const useBuscarFuncionarioCpf = () => {
 
         logger.error(
           {
-            cpf: cpf.substring(0, 3) + '***',
+            cpf: `${cpf.substring(0, 3)  }***`,
             erro: errorMessage,
           },
           'Erro na busca de funcionário',

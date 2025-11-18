@@ -8,7 +8,6 @@
 import { describe, it, expect } from 'vitest'
 
 import type { DashboardFilters } from '../../types/dashboard'
-
 import { dashboardKeys } from '../query-keys'
 
 describe('dashboardKeys', () => {

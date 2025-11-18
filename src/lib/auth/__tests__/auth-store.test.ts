@@ -75,6 +75,12 @@ describe('AuthStore', () => {
 
     // Mock padr�o para cookies
     mockedCookieUtils.getCookie.mockReturnValue(null)
+
+    // Mock padrão para logout retornar Promise resolvida
+    mockedAuthService.logout.mockResolvedValue({
+      sucesso: true,
+      mensagem: 'Logout realizado com sucesso',
+    })
   })
 
   afterEach(() => {
@@ -659,7 +665,8 @@ describe('AuthStore', () => {
       mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         dados: {
-          token: 'token.muito.curto',
+          // Token com apenas 2 partes (inválido para JWT - precisa de 3 partes)
+          token: 'token.invalido',
           refreshToken: 'abc',
           usuario: { id: 1, email: 'test@email.com', nome: 'Test' },
         },

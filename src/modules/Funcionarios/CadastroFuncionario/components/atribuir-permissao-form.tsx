@@ -19,8 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createServiceLogger } from '@/lib/logger'
 import { SISTEMA_FRONTEND_ID } from '@/config/sistemas'
+import { createServiceLogger } from '@/lib/logger'
 
 import { useAtualizarPermissoes } from '../hooks/use-atribuir-permissao'
 import { usePermissoesSistema } from '../hooks/use-permissoes-sistema'
@@ -31,14 +31,14 @@ interface AtribuirPermissaoFormProps {
   usuarioId: string
   funcionarioId: string
   onSuccess: () => void
-  permissoesExistentes?: Array<{
+  permissoesExistentes?: {
     sistemaId: string
     sistemaNome: string
-    permissoes: Array<{
+    permissoes: {
       id: number
       nome: string
-    }>
-  }>
+    }[]
+  }[]
 }
 
 export const AtribuirPermissaoForm = ({
@@ -74,7 +74,7 @@ export const AtribuirPermissaoForm = ({
       permissaoNoSistemaAtual.permissoes.length > 0
     ) {
       // Pega a primeira permissão (assumindo que usuário tem apenas uma)
-      const permissaoAtual = permissaoNoSistemaAtual.permissoes[0]
+      const [permissaoAtual] = permissaoNoSistemaAtual.permissoes
       setPermissaoSelecionada(permissaoAtual.id.toString())
     }
   }, [temPermissao, permissaoNoSistemaAtual])
@@ -196,7 +196,7 @@ export const AtribuirPermissaoForm = ({
   const isPending = atualizarPermissoes.isPending ?? false
   const hasNoSelection = !permissaoSelecionada
   const isLoading = isLoadingPermissoes ?? false
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+   
   const isButtonDisabled = hasNoSelection || isPending || isLoading
 
   return (

@@ -8,14 +8,14 @@ export function mapearUsuarioApi(usuarioApi: UsuarioApi): Usuario {
   // A API retorna um array de permissões: [{id: 2, nome: "Analista I"}]
   let permissaoAtribuida: string | undefined
 
-  if (usuarioApi.permissoes && usuarioApi.permissoes.length > 0) {
+  const { permissoes, permissaoAtribuida: permissaoAtribuidaFallback } =
+    usuarioApi
+  if (permissoes && permissoes.length > 0) {
     // Pegar o nome da primeira permissão ou concatenar todas
-    permissaoAtribuida = usuarioApi.permissoes
-      .map((p) => p.nome)
-      .join(', ')
-  } else if (usuarioApi.permissaoAtribuida) {
+    permissaoAtribuida = permissoes.map((p) => p.nome).join(', ')
+  } else if (permissaoAtribuidaFallback) {
     // Fallback para compatibilidade
-    permissaoAtribuida = usuarioApi.permissaoAtribuida
+    permissaoAtribuida = permissaoAtribuidaFallback
   }
 
   return {

@@ -3,11 +3,11 @@ import { useState, useEffect, useMemo } from 'react'
 
 import { createServiceLogger } from '@/lib/logger'
 
-import { useUsuarios } from '../hooks/use-usuarios'
-import { mapearUsuarioApi } from '../utils/usuario-utils'
-import type { FiltrosUsuariosApi } from '../types/usuario-api'
 import { SearchAndFiltersUsuarios } from '../components/search-and-filters-usuarios'
 import { TabelaUsuarios } from '../components/tabela-usuarios'
+import { useUsuarios } from '../hooks/use-usuarios'
+import type { FiltrosUsuariosApi } from '../types/usuario-api'
+import { mapearUsuarioApi } from '../utils/usuario-utils'
 
 const logger = createServiceLogger('gerenciar-usuarios-page')
 

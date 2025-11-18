@@ -223,9 +223,9 @@ describe('cookieUtils', () => {
   describe('authCookieConfig', () => {
     it('deve ter configurações corretas para token', () => {
       expect(authCookieConfig.token).toMatchObject({
-        maxAge: 15 * 60, // 15 minutos
         path: '/',
         sameSite: 'lax',
+        // maxAge foi removido - cookie dura a sessão do navegador
       })
     })
 

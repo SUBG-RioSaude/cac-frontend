@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
 import { Check, Info } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -10,7 +11,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { usePermissoesQuery } from '@/lib/auth/permissoes-queries'
 import { cn } from '@/lib/utils'
 

@@ -116,10 +116,10 @@ export interface UsuarioPermissaoSistemaResponse {
  * Novo endpoint da API v1.1: PUT /api/usuarios/{usuarioId}/permissoes
  */
 export interface AtualizarPermissoesRequest {
-  permissoes: Array<{
+  permissoes: {
     sistemaId: string
     permissaoId: number
-  }>
+  }[]
 }
 
 /**
@@ -132,13 +132,13 @@ export interface AtualizarPermissoesResponse {
   dados: {
     usuarioId: string
     quantidadePermissoes: number
-    permissoes: Array<{
+    permissoes: {
       sistemaId: string
       sistemaNome: string
-      permissoes: Array<{
+      permissoes: {
         id: number
         nome: string
-      }>
-    }>
+      }[]
+    }[]
   }
 }

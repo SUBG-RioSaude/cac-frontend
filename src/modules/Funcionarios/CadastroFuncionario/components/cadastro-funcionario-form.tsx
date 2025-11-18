@@ -322,9 +322,14 @@ export const CadastroFuncionarioForm = ({
 
           // Buscar usuário por CPF
           const cpfLimpo = values.cpf.replace(/\D/g, '')
-          const verificacaoResponse = await authService.verificarUsuarioPorCpf(cpfLimpo)
+          const verificacaoResponse =
+            await authService.verificarUsuarioPorCpf(cpfLimpo)
 
-          if (!verificacaoResponse.sucesso || !verificacaoResponse.dados.existe || !verificacaoResponse.dados.usuario) {
+          if (
+            !verificacaoResponse.sucesso ||
+            !verificacaoResponse.dados.existe ||
+            !verificacaoResponse.dados.usuario
+          ) {
             toast.error('Erro ao buscar usuário existente', {
               description: 'Não foi possível verificar o usuário pelo CPF',
             })
@@ -332,11 +337,12 @@ export const CadastroFuncionarioForm = ({
           }
 
           const usuarioExistente = verificacaoResponse.dados.usuario
-          const permissoesExistentes = verificacaoResponse.dados.permissoes ?? []
+          const permissoesExistentes =
+            verificacaoResponse.dados.permissoes ?? []
 
           // Verificar se usuário já tem permissão no sistema atual
           const permissaoNoSistema = permissoesExistentes.find(
-            p => p.sistemaId === SISTEMA_FRONTEND_ID
+            (p) => p.sistemaId === SISTEMA_FRONTEND_ID,
           )
 
           logger.info(
@@ -353,7 +359,7 @@ export const CadastroFuncionarioForm = ({
 
           if (permissaoNoSistema && permissaoNoSistema.permissoes.length > 0) {
             toast.info('Usuário já possui permissão neste sistema', {
-              description: `Permissões: ${permissaoNoSistema.permissoes.map(p => p.nome).join(', ')}`,
+              description: `Permissões: ${permissaoNoSistema.permissoes.map((p) => p.nome).join(', ')}`,
             })
           } else {
             toast.info('Usuário já cadastrado', {
@@ -363,7 +369,11 @@ export const CadastroFuncionarioForm = ({
 
           // Redirecionar para Step 2 (atribuir permissão)
           if (onUsuarioCriado) {
-            onUsuarioCriado(funcionarioEncontrado.id, usuarioExistente.id, permissoesExistentes)
+            onUsuarioCriado(
+              funcionarioEncontrado.id,
+              usuarioExistente.id,
+              permissoesExistentes,
+            )
           }
 
           return
@@ -386,7 +396,11 @@ export const CadastroFuncionarioForm = ({
           })
 
           if (onUsuarioCriado) {
-            onUsuarioCriado(funcionarioEncontrado.id, registerResponse.dados.usuario.id, registerResponse.dados.permissoes)
+            onUsuarioCriado(
+              funcionarioEncontrado.id,
+              registerResponse.dados.usuario.id,
+              registerResponse.dados.permissoes,
+            )
           }
 
           return
@@ -482,9 +496,14 @@ export const CadastroFuncionarioForm = ({
 
           // Buscar usuário por CPF
           const cpfLimpo = values.cpf.replace(/\D/g, '')
-          const verificacaoResponse = await authService.verificarUsuarioPorCpf(cpfLimpo)
+          const verificacaoResponse =
+            await authService.verificarUsuarioPorCpf(cpfLimpo)
 
-          if (!verificacaoResponse.sucesso || !verificacaoResponse.dados.existe || !verificacaoResponse.dados.usuario) {
+          if (
+            !verificacaoResponse.sucesso ||
+            !verificacaoResponse.dados.existe ||
+            !verificacaoResponse.dados.usuario
+          ) {
             toast.error('Erro ao buscar usuário existente', {
               description: 'Não foi possível verificar o usuário pelo CPF',
             })
@@ -494,11 +513,12 @@ export const CadastroFuncionarioForm = ({
           }
 
           const usuarioExistente = verificacaoResponse.dados.usuario
-          const permissoesExistentes = verificacaoResponse.dados.permissoes ?? []
+          const permissoesExistentes =
+            verificacaoResponse.dados.permissoes ?? []
 
           // Verificar se usuário já tem permissão no sistema atual
           const permissaoNoSistema = permissoesExistentes.find(
-            p => p.sistemaId === SISTEMA_FRONTEND_ID
+            (p) => p.sistemaId === SISTEMA_FRONTEND_ID,
           )
 
           logger.info(
@@ -515,7 +535,7 @@ export const CadastroFuncionarioForm = ({
 
           if (permissaoNoSistema && permissaoNoSistema.permissoes.length > 0) {
             toast.info('Usuário já possui permissão neste sistema', {
-              description: `Permissões: ${permissaoNoSistema.permissoes.map(p => p.nome).join(', ')}`,
+              description: `Permissões: ${permissaoNoSistema.permissoes.map((p) => p.nome).join(', ')}`,
             })
           } else {
             toast.info('Usuário já cadastrado', {
@@ -525,7 +545,11 @@ export const CadastroFuncionarioForm = ({
 
           // Redirecionar para Step 2 (atribuir permissão)
           if (onUsuarioCriado) {
-            onUsuarioCriado(funcionarioCriado.id, usuarioExistente.id, permissoesExistentes)
+            onUsuarioCriado(
+              funcionarioCriado.id,
+              usuarioExistente.id,
+              permissoesExistentes,
+            )
           } else if (onSuccess) {
             onSuccess(funcionarioCriado)
           } else {
@@ -554,7 +578,11 @@ export const CadastroFuncionarioForm = ({
           })
 
           if (onUsuarioCriado) {
-            onUsuarioCriado(funcionarioCriado.id, registerResponse.dados.usuario.id, registerResponse.dados.permissoes)
+            onUsuarioCriado(
+              funcionarioCriado.id,
+              registerResponse.dados.usuario.id,
+              registerResponse.dados.permissoes,
+            )
           } else if (onSuccess) {
             onSuccess(funcionarioCriado)
           } else {
@@ -677,7 +705,7 @@ export const CadastroFuncionarioForm = ({
   const handleModalConfirm = () => {
     setShowSuccessModal(false)
     setCreatedFuncionario(null)
-    navigate('/')
+    void navigate('/')
   }
 
   // Helpers de máscara/normalização durante digitação
@@ -764,14 +792,19 @@ export const CadastroFuncionarioForm = ({
                         disabled={isModoFuncionarioEncontrado || isSubmitting}
                         {...field}
                         className={cn(
-                          validCpf.isAvailable === true &&
+                          !desabilitarValidacaoRemota &&
+                            validCpf.isAvailable === true &&
                             'border-green-500 bg-green-50 pr-10',
-                          validCpf.isAvailable === false &&
+                          !desabilitarValidacaoRemota &&
+                            validCpf.isAvailable === false &&
                             'border-red-500 bg-red-50 pr-10',
-                          (validCpf.isWaiting || validCpf.isChecking) && 'pr-10',
+                          !desabilitarValidacaoRemota &&
+                            (validCpf.isWaiting || validCpf.isChecking) &&
+                            'pr-10',
                         )}
                         onBlur={(e) => {
                           field.onBlur()
+                          if (desabilitarValidacaoRemota) return
                           const raw = e.target.value
                           if (!raw || !validarCpfCompleto(raw)) return
                           if (validCpf.isAvailable === false) {
@@ -851,16 +884,20 @@ export const CadastroFuncionarioForm = ({
                         disabled={isModoFuncionarioEncontrado || isSubmitting}
                         {...field}
                         className={cn(
-                          validMatricula.isAvailable === true &&
+                          !desabilitarValidacaoRemota &&
+                            validMatricula.isAvailable === true &&
                             'border-green-500 bg-green-50 pr-10',
-                          validMatricula.isAvailable === false &&
+                          !desabilitarValidacaoRemota &&
+                            validMatricula.isAvailable === false &&
                             'border-red-500 bg-red-50 pr-10',
-                          (validMatricula.isWaiting ||
-                            validMatricula.isChecking) &&
+                          !desabilitarValidacaoRemota &&
+                            (validMatricula.isWaiting ||
+                              validMatricula.isChecking) &&
                             'pr-10',
                         )}
                         onBlur={(e) => {
                           field.onBlur()
+                          if (desabilitarValidacaoRemota) return
                           const value = e.target.value.trim()
                           if (!value || !/^[A-Za-z0-9]{3,20}$/.test(value)) return
                           if (validMatricula.isAvailable === false) {

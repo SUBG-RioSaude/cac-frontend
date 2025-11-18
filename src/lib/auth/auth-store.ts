@@ -586,7 +586,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       // Verifica se o token ainda é válido no backend
       const resultado = await authService.verificarAcesso()
 
-      if (resultado.sucesso && resultado.dados?.temAcesso) {
+      if (resultado.sucesso && resultado.dados.temAcesso) {
         authLogger.info(
           { action: 'verificar-autenticacao', status: 'valid' },
           'Token de acesso válido',

@@ -242,7 +242,7 @@ describe('authCookieConfig', () => {
       path: '/',
       secure: expect.any(Boolean), // Pode variar baseado no ambiente
       sameSite: 'lax',
-      maxAge: 15 * 60, // 15 minutos
+      // maxAge foi removido - cookie dura a sessão do navegador
     })
   })
 

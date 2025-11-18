@@ -5,13 +5,13 @@
  * Testes para o card de contratos a vencer
  */
 
-import { getContratosVencendo } from '@/modules/Contratos/services/contratos-service'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import type { DashboardFilters } from '../../../types/dashboard'
+import { getContratosVencendo } from '@/modules/Contratos/services/contratos-service'
 
+import type { DashboardFilters } from '../../../types/dashboard'
 import { ExpiringContractsCard } from '../expiring-contracts-card'
 
 // Mock do serviço

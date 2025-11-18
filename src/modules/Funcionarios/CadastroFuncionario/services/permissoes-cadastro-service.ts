@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+import { createServiceLogger } from '@/lib/logger'
 import type {
   ListarPermissoesResponse,
   SistemaResponse,
@@ -9,7 +10,6 @@ import type {
   AtualizarPermissoesResponse,
 } from '@/types/permissoes'
 
-import { createServiceLogger } from '@/lib/logger'
 
 const logger = createServiceLogger('permissoes-cadastro-service')
 
@@ -132,10 +132,10 @@ export const permissoesCadastroService = {
         dados: {
           id: response.data.id,
           nome: response.data.nome,
-          descricao: response.data.descricao || null,
+          descricao: response.data.descricao ?? null,
           ativo: response.data.ativo ?? true,
           dataCadastro: response.data.atualizadoEm,
-          dataAtualizacao: response.data.atualizadoEm || null,
+          dataAtualizacao: response.data.atualizadoEm ?? null,
         },
         mensagem: 'Sistema obtido com sucesso',
       }

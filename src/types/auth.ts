@@ -179,14 +179,14 @@ export interface RegisterResponse {
       emailConfirmado: boolean
       criadoEm: string
     }
-    permissoes?: Array<{
+    permissoes?: {
       sistemaId: string
       sistemaNome: string
-      permissoes: Array<{
+      permissoes: {
         id: number
         nome: string
-      }>
-    }>
+      }[]
+    }[]
     // Campo adicional para erro 400 "E-mail já cadastrado"
     emailJaCadastrado?: boolean
   }
@@ -209,13 +209,13 @@ export interface VerificarUsuarioCpfResponse {
       emailConfirmado: boolean
       criadoEm: string
     }
-    permissoes?: Array<{
+    permissoes?: {
       sistemaId: string
       sistemaNome: string
-      permissoes: Array<{
+      permissoes: {
         id: number
         nome: string
-      }>
-    }>
+      }[]
+    }[]
   }
 }

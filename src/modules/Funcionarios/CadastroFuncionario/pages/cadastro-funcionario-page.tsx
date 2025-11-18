@@ -1,14 +1,14 @@
-import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Stepper, useStepper, type Step } from '@/components/ui/stepper'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
 
+import { AtribuirPermissaoForm } from '../components/atribuir-permissao-form'
 import { BuscaCpfForm } from '../components/busca-cpf-form'
 import { CadastroFuncionarioForm } from '../components/cadastro-funcionario-form'
-import { AtribuirPermissaoForm } from '../components/atribuir-permissao-form'
 import { ModalSucessoCadastro } from '../components/modal-sucesso-cadastro'
 
 type WizardStep = 'busca-cpf' | 'cadastro-funcionario'
@@ -27,14 +27,14 @@ const CadastroFuncionarioPage = () => {
   const [usuarioId, setUsuarioId] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [permissoesExistentes, setPermissoesExistentes] = useState<
-    Array<{
+    {
       sistemaId: string
       sistemaNome: string
-      permissoes: Array<{
+      permissoes: {
         id: number
         nome: string
-      }>
-    }>
+      }[]
+    }[]
   >([])
 
   // Determina qual substep mostrar no Step 1
@@ -78,14 +78,14 @@ const CadastroFuncionarioPage = () => {
   const handleUsuarioCriado = (
     funcId: string,
     userId: string,
-    permissoes?: Array<{
+    permissoes?: {
       sistemaId: string
       sistemaNome: string
-      permissoes: Array<{
+      permissoes: {
         id: number
         nome: string
-      }>
-    }>
+      }[]
+    }[]
   ) => {
     setFuncionarioId(funcId)
     setUsuarioId(userId)
@@ -200,8 +200,8 @@ const CadastroFuncionarioPage = () => {
           onConfirm={handleCloseModal}
           usuarioId={usuarioId}
           funcionario={{
-            nomeCompleto: funcionarioEncontrado?.nomeCompleto || 'Funcionário',
-            matricula: funcionarioEncontrado?.matricula || 'N/A',
+            nomeCompleto: funcionarioEncontrado?.nomeCompleto ?? 'Funcionário',
+            matricula: funcionarioEncontrado?.matricula ?? 'N/A',
           }}
         />
       )}

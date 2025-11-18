@@ -1,12 +1,12 @@
-import { useState } from 'react'
 import { Search, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cpfUtils } from '@/lib/utils'
 import type { FuncionarioApi } from '@/modules/Funcionarios/types/funcionario-api'
 
@@ -34,7 +34,7 @@ export const BuscaCpfForm = ({
   } = useBuscarFuncionarioCpf()
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
+    const {value} = e.target
     const masked = cpfUtils.mask(value)
     setCpfInput(masked)
   }

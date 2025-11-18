@@ -49,7 +49,7 @@ const ResetPasswordForm = () => {
     if (estaAutenticado) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath, { replace: true })
+      void navigate(redirectPath, { replace: true })
       return
     }
 
@@ -65,7 +65,7 @@ const ResetPasswordForm = () => {
       contextoArmazenado !== 'password_recovery' &&
       contextoArmazenado !== 'password_expired'
     ) {
-      navigate('/login')
+      void navigate('/login')
       return
     }
 
@@ -83,7 +83,7 @@ const ResetPasswordForm = () => {
       setEmail(emailArmazenado)
     } else {
       // Se não houver email, redirecionar para login
-      navigate('/login')
+      void navigate('/login')
     }
   }, [navigate, estaAutenticado, sucesso])
 
@@ -495,7 +495,9 @@ const ResetPasswordForm = () => {
                   >
                     <Button
                       variant="ghost"
-                      onClick={() => navigate('/login')}
+                      onClick={() => {
+                        void navigate('/login')
+                      }}
                       className="w-full transition-all duration-200 hover:bg-gray-100"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />

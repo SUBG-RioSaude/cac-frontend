@@ -15,6 +15,7 @@ import Forbidden from './modules/http-codes/403'
 import NotFound from './modules/http-codes/404'
 import ServerError from './modules/http-codes/500'
 import ServiceUnavailable from './modules/http-codes/503'
+import GerenciarUsuariosPage from './modules/Usuarios/pages/gerenciar-usuarios-page'
 import ForgotPasswordForm from './pages/auth/forgot-password-form'
 import LoginForm from './pages/auth/login'
 import ResetPasswordForm from './pages/auth/reset-password-form'
@@ -22,7 +23,6 @@ import VerifyForm from './pages/auth/verify-form'
 import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
-import GerenciarUsuariosPage from './modules/Usuarios/pages/gerenciar-usuarios-page'
 
 const App = () => {
   return (

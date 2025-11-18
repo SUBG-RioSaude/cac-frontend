@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,8 +8,6 @@ import {
   ArrowDown,
   MoreVertical,
 } from 'lucide-react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
