@@ -23,17 +23,9 @@ const validarTokenJWT = (token: string): boolean => {
   return partes.length === 3 && partes.every((part) => part.length > 0)
 }
 
-// Função para obter o token JWT atual dos cookies
+// Função para obter o token JWT atual (MEMÓRIA primeiro, cookies como fallback)
 export function getToken(): string | null {
-  const token = cookieUtils.getCookie('auth_token')
-
-  // LOG TEMPORÁRIO PARA DEBUG
-  console.log('🔐 getToken() - Debug:', {
-    tokenExiste: !!token,
-    tokenLength: token?.length,
-    tokenValido: token ? validarTokenJWT(token) : false,
-    primeiros50: token?.substring(0, 50),
-  })
+  const token = useAuthStore.getState().getToken()
 
   if (token && validarTokenJWT(token)) {
     return token
@@ -41,13 +33,10 @@ export function getToken(): string | null {
   return null
 }
 
-// Função para obter o refresh token dos cookies
+// Função para obter o refresh token (MEMÓRIA primeiro, cookies como fallback)
+// Nota: Refresh token pode ser um token opaco (não JWT), então não validamos formato
 export function getRefreshToken(): string | null {
-  const refreshToken = cookieUtils.getCookie('auth_refresh_token')
-  if (refreshToken && validarTokenJWT(refreshToken)) {
-    return refreshToken
-  }
-  return null
+  return useAuthStore.getState().getRefreshToken()
 }
 
 // Função para verificar se o usuário está autenticado
@@ -70,18 +59,21 @@ export async function renovarToken(): Promise<boolean> {
   return await useAuthStore.getState().renovarToken()
 }
 
-// Função para verificar se os cookies de autenticação existem e são válidos
+// Função para verificar se há tokens de autenticação válidos (memória OU cookies)
 export function hasAuthCookies(): boolean {
-  const token = cookieUtils.getCookie('auth_token')
-  const refreshToken = cookieUtils.getCookie('auth_refresh_token')
+  // Verifica memória primeiro
+  const state = useAuthStore.getState()
+  if (state.token && state.refreshToken && validarTokenJWT(state.token)) {
+    return true
+  }
 
-  // Valida apenas o auth_token como JWT
+  // Fallback: verifica cookies
+  const token = state.getToken()
+  const refreshToken = state.getRefreshToken()
+
+  // Valida apenas o auth_token como JWT (formato obrigatório)
   // O refresh_token pode ser um token opaco (não JWT), então só verificamos a existência
-  return !!(
-    token &&
-    refreshToken &&
-    validarTokenJWT(token)
-  )
+  return !!(token && refreshToken && validarTokenJWT(token))
 }
 
 // Função para limpar todos os cookies de autenticação
@@ -91,7 +83,10 @@ export function clearAuthCookies(): void {
 }
 
 // Função para validar se um token está próximo de expirar
-export function isTokenNearExpiry(token: string): boolean {
+export function isTokenNearExpiry(
+  token: string,
+  minutesThreshold = 5,
+): boolean {
   try {
     const [, base64Payload] = token.split('.')
     const payloadString = decodeBase64UTF8(base64Payload)
@@ -100,8 +95,8 @@ export function isTokenNearExpiry(token: string): boolean {
     const now = Date.now()
     const timeUntilExpiry = exp - now
 
-    // Retorna true se faltar menos de 5 minutos para expirar
-    return timeUntilExpiry < 5 * 60 * 1000
+    // Retorna true se faltar menos de X minutos para expirar (padrão: 5min)
+    return timeUntilExpiry < minutesThreshold * 60 * 1000
   } catch {
     return true // Se não conseguir decodificar, considera como próximo de expirar
   }
@@ -120,7 +115,11 @@ export function getTokenInfo(token: string) {
       usuarioId: payload.usuarioId,
       tipoUsuario: payload.tipoUsuario,
       nomeCompleto: payload.nomeCompleto,
-      nomePermissao: payload.nomePermissao,
+      permissaoNome: Array.isArray(payload.permissaoNome)
+        ? payload.permissaoNome
+        : payload.nomePermissao
+          ? [payload.nomePermissao]
+          : [],
       exp: new Date(payload.exp * 1000),
       iss: payload.iss,
       aud: payload.aud,

@@ -2,20 +2,33 @@ import { renderHook } from '@testing-library/react'
 import { CheckCircle, AlertTriangle, Clock, XCircle, Pause } from 'lucide-react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { useStatusConfig } from '../use-status-config'
+import { useStatusConfig, useContratoStatus } from '../use-status-config'
 
 describe('useStatusConfig', () => {
   describe('getStatusConfig', () => {
     describe('Dom�nio contrato', () => {
-      it('deve retornar configura��o para status ativo', () => {
+      it('deve retornar configura��o para status vigente', () => {
+        const { result } = renderHook(() => useStatusConfig())
+        const config = result.current.getStatusConfig('vigente', 'contrato')
+
+        expect(config).toEqual({
+          variant: 'default',
+          label: 'Vigente',
+          className:
+            'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200',
+          icon: CheckCircle,
+        })
+      })
+
+      it('deve mapear ativo para vigente (retrocompatibilidade)', () => {
         const { result } = renderHook(() => useStatusConfig())
         const config = result.current.getStatusConfig('ativo', 'contrato')
 
         expect(config).toEqual({
           variant: 'default',
-          label: 'Ativo',
+          label: 'Vigente',
           className:
-            'bg-green-100 text-green-800 hover:bg-green-200 border-green-200',
+            'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200',
           icon: CheckCircle,
         })
       })
@@ -205,7 +218,7 @@ describe('useStatusConfig', () => {
         const { result } = renderHook(() => useStatusConfig())
         const config = result.current.getStatusConfig('ATIVO', 'contrato')
 
-        expect(config.label).toBe('Ativo')
+        expect(config.label).toBe('Vigente')
       })
 
       it('deve tratar status em mixed case corretamente', () => {
@@ -284,7 +297,7 @@ describe('useStatusConfig', () => {
     })
 
     describe('L�gica de vig�ncia', () => {
-      it('deve retornar ativo quando n�o h� vig�ncia final', () => {
+      it('deve retornar vigente quando n�o h� vig�ncia final', () => {
         const { result } = renderHook(() => useStatusConfig())
         const status = result.current.getContratoStatusFromVigencia(
           '2024-01-01',
@@ -292,10 +305,10 @@ describe('useStatusConfig', () => {
           null,
         )
 
-        expect(status).toBe('ativo')
+        expect(status).toBe('vigente')
       })
 
-      it('deve retornar ativo quando n�o h� vig�ncia final (undefined)', () => {
+      it('deve retornar vigente quando n�o h� vig�ncia final (undefined)', () => {
         const { result } = renderHook(() => useStatusConfig())
         const status = result.current.getContratoStatusFromVigencia(
           '2024-01-01',
@@ -303,7 +316,7 @@ describe('useStatusConfig', () => {
           null,
         )
 
-        expect(status).toBe('ativo')
+        expect(status).toBe('vigente')
       })
 
       it('deve retornar vencido quando data final j� passou', () => {
@@ -339,7 +352,7 @@ describe('useStatusConfig', () => {
         expect(status).toBe('vencendo')
       })
 
-      it('deve retornar ativo quando data final � mais de 30 dias', () => {
+      it('deve retornar vigente quando data final � mais de 30 dias', () => {
         const { result } = renderHook(() => useStatusConfig())
         const status = result.current.getContratoStatusFromVigencia(
           '2023-01-01',
@@ -347,7 +360,7 @@ describe('useStatusConfig', () => {
           null,
         )
 
-        expect(status).toBe('ativo')
+        expect(status).toBe('vigente')
       })
 
       it('deve retornar vencendo quando data final � hoje + 1 dia', () => {
@@ -384,7 +397,7 @@ describe('useStatusConfig', () => {
 
         // Data inv�lida deve resultar em Invalid Date, que compara��es falham
         // Comportamento pode variar, mas deve ser est�vel
-        expect(['vencido', 'vencendo', 'ativo']).toContain(status)
+        expect(['vencido', 'vencendo', 'vigente']).toContain(status)
       })
     })
 
@@ -415,11 +428,11 @@ describe('useStatusConfig', () => {
         const { result } = renderHook(() => useStatusConfig())
         const status = result.current.getContratoStatusFromVigencia(
           '2023-01-01',
-          '2025-01-01', // Ativo por vig�ncia
+          '2025-01-01', // Vigente por vig�ncia
           'status-desconhecido',
         )
 
-        expect(status).toBe('ativo')
+        expect(status).toBe('vigente')
       })
     })
   })
@@ -434,6 +447,7 @@ describe('useStatusConfig', () => {
       expect(configMap).toHaveProperty('unidade')
 
       // Verificar estrutura do contrato
+      expect(configMap.contrato).toHaveProperty('vigente')
       expect(configMap.contrato).toHaveProperty('ativo')
       expect(configMap.contrato).toHaveProperty('vencendo')
       expect(configMap.contrato).toHaveProperty('vencido')
@@ -486,5 +500,131 @@ describe('useStatusConfig', () => {
         secondFunctions.getContratoStatusFromVigencia,
       )
     })
+  })
+})
+
+describe('useContratoStatus', () => {
+  let mockDate: Date
+
+  beforeEach(() => {
+    mockDate = new Date('2024-01-15T10:00:00Z')
+    vi.setSystemTime(mockDate)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('deve retornar status vigente para contrato com vig�ncia futura', () => {
+    const { result } = renderHook(() =>
+      useContratoStatus('2024-01-01', '2025-01-01', null),
+    )
+
+    expect(result.current).toBe('vigente')
+  })
+
+  it('deve retornar status vencendo para contrato vencendo em 30 dias', () => {
+    const { result } = renderHook(() =>
+      useContratoStatus('2024-01-01', '2024-02-14', null),
+    )
+
+    expect(result.current).toBe('vencendo')
+  })
+
+  it('deve retornar status vencido para contrato j� vencido', () => {
+    const { result } = renderHook(() =>
+      useContratoStatus('2023-01-01', '2024-01-10', null),
+    )
+
+    expect(result.current).toBe('vencido')
+  })
+
+  it('deve retornar suspenso quando statusAtual � suspenso', () => {
+    const { result } = renderHook(() =>
+      useContratoStatus('2024-01-01', '2025-01-01', 'suspenso'),
+    )
+
+    expect(result.current).toBe('suspenso')
+  })
+
+  it('deve retornar encerrado quando statusAtual � encerrado', () => {
+    const { result } = renderHook(() =>
+      useContratoStatus('2024-01-01', '2025-01-01', 'encerrado'),
+    )
+
+    expect(result.current).toBe('encerrado')
+  })
+
+  it('deve memoizar corretamente quando props n�o mudam', () => {
+    const { result, rerender } = renderHook(
+      ({ vigenciaInicial, vigenciaFinal, statusAtual }) =>
+        useContratoStatus(vigenciaInicial, vigenciaFinal, statusAtual),
+      {
+        initialProps: {
+          vigenciaInicial: '2024-01-01',
+          vigenciaFinal: '2025-01-01',
+          statusAtual: null,
+        },
+      },
+    )
+
+    const firstStatus = result.current
+
+    rerender({
+      vigenciaInicial: '2024-01-01',
+      vigenciaFinal: '2025-01-01',
+      statusAtual: null,
+    })
+
+    expect(result.current).toBe(firstStatus)
+    expect(result.current).toBe('vigente')
+  })
+
+  it('deve recalcular quando vigenciaFinal muda', () => {
+    const { result, rerender } = renderHook(
+      ({ vigenciaInicial, vigenciaFinal, statusAtual }) =>
+        useContratoStatus(vigenciaInicial, vigenciaFinal, statusAtual),
+      {
+        initialProps: {
+          vigenciaInicial: '2024-01-01',
+          vigenciaFinal: '2025-01-01',
+          statusAtual: null,
+        },
+      },
+    )
+
+    expect(result.current).toBe('vigente')
+
+    rerender({
+      vigenciaInicial: '2024-01-01',
+      vigenciaFinal: '2024-01-10',
+      statusAtual: null,
+    })
+
+    expect(result.current).toBe('vencido')
+  })
+
+  it('deve recalcular quando statusAtual muda', () => {
+    const { result, rerender } = renderHook(
+      ({ vigenciaInicial, vigenciaFinal, statusAtual }) =>
+        useContratoStatus(vigenciaInicial, vigenciaFinal, statusAtual),
+      {
+        initialProps: {
+          vigenciaInicial: '2024-01-01',
+          vigenciaFinal: '2025-01-01',
+          statusAtual: null,
+        },
+      },
+    )
+
+    expect(result.current).toBe('vigente')
+
+    rerender({
+      vigenciaInicial: '2024-01-01',
+      vigenciaFinal: '2025-01-01',
+      statusAtual: 'suspenso',
+    })
+
+    expect(result.current).toBe('suspenso')
   })
 })

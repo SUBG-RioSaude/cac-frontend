@@ -89,7 +89,7 @@ export const cookieUtils = {
     return this.getCookie(name) !== null
   },
 
-  // Obtém todos os cookies como objeto
+  // Obtém todos os cookies como objeto de forma segura
   getAllCookies(): Record<string, string> {
     const cookies: Record<string, string> = {}
     const cookieArray = document.cookie.split(';')
@@ -124,12 +124,14 @@ export const authCookieConfig = {
     path: '/',
     secure: false,
     sameSite: 'lax' as const,
-    maxAge: 2 * 60 * 60, // 2 horas (JWT token)
+    // ⭐ REMOVIDO maxAge - cookie dura a sessão do navegador
+    // JWT tem sua própria expiração (15min) que é validada no servidor
+    // Isso evita que o navegador remova o cookie antes do JWT expirar
   },
   refreshToken: {
     path: '/',
     secure: false,
     sameSite: 'lax' as const,
-    maxAge: 7 * 24 * 60 * 60, // 7 dias (Refresh token)
+    maxAge: 30 * 24 * 60 * 60, // 30 dias (Refresh token)
   },
 }

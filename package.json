@@ -17,6 +17,7 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@fontsource/plus-jakarta-sans": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@microsoft/signalr": "^9.0.6",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -108,5 +109,5 @@
     "vite": "^7.1.8",
     "vitest": "^3.2.4"
   },
-  "packageManager": "pnpm@10.15.1"
+  "packageManager": "pnpm@10.19.0"
 }

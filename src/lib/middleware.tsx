@@ -43,7 +43,11 @@ export const ProtectedRoute = ({
   // Função memorizada para realizar logout (evita recriação a cada render)
   const realizarLogoutPorInconsistencia = React.useCallback(() => {
     // Previne múltiplas chamadas se já houver logout em andamento (local ou global)
-    if (logoutEmAndamentoRef.current || logoutMutation.isPending || logoutEmAndamento) {
+    if (
+      logoutEmAndamentoRef.current ||
+      logoutMutation.isPending ||
+      logoutEmAndamento
+    ) {
       middlewareLogger.debug(
         { action: 'protected-route', status: 'logout-already-pending' },
         'Logout já está em andamento, ignorando nova tentativa',

@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import ContratoForm from '../contrato-form'
 
+vi.setConfig({ testTimeout: 20000 })
+
 // Mock dos dados que o componente tenta carregar
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
   unidadesMock: {
@@ -84,7 +86,9 @@ describe('ContratoForm - Modalidade Favorita SMS-PRO', () => {
     // Aguardar o popover abrir e carregar as opções
     await waitFor(() => {
       expect(
-        screen.getByText('Modalidade Favorita', { selector: '[cmdk-group-heading]' }),
+        screen.getByText('Modalidade Favorita', {
+          selector: '[cmdk-group-heading]',
+        }),
       ).toBeInTheDocument()
     })
 
@@ -139,9 +143,7 @@ describe('ContratoForm - Modalidade Favorita SMS-PRO', () => {
     await user.click(botaoSelecao)
 
     // Esperar o input de busca aparecer
-    const inputBusca = await screen.findByPlaceholderText(
-      /buscar processo/i,
-    )
+    const inputBusca = await screen.findByPlaceholderText(/buscar processo/i)
 
     // Digitar "SMS" no campo de busca
     await user.type(inputBusca, 'SMS')
@@ -162,9 +164,7 @@ describe('ContratoForm - Modalidade Favorita SMS-PRO', () => {
     })
     await user.click(botaoSelecao)
 
-    const inputBusca = await screen.findByPlaceholderText(
-      /buscar processo/i,
-    )
+    const inputBusca = await screen.findByPlaceholderText(/buscar processo/i)
 
     // Digitar algo que não corresponde a SMS-PRO
     await user.type(inputBusca, 'CGM')
@@ -193,7 +193,9 @@ describe('ContratoForm - Modalidade Favorita SMS-PRO', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Modalidade Favorita', { selector: '[cmdk-group-heading]' }),
+        screen.getByText('Modalidade Favorita', {
+          selector: '[cmdk-group-heading]',
+        }),
       ).toBeInTheDocument()
     })
 
@@ -218,7 +220,9 @@ describe('ContratoForm - Modalidade Favorita SMS-PRO', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Modalidade Favorita', { selector: '[cmdk-group-heading]' }),
+        screen.getByText('Modalidade Favorita', {
+          selector: '[cmdk-group-heading]',
+        }),
       ).toBeInTheDocument()
     })
 

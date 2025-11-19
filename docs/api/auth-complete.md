@@ -1,0 +1,1258 @@
+# 📚 Documentação Completa - API de Autenticação
+
+## 📋 Índice
+
+1. [Visão Geral](#visão-geral)
+2. [Arquitetura](#arquitetura)
+3. [Fluxo de Autenticação Multi-Sistema](#fluxo-de-autenticação-multi-sistema)
+4. [Endpoints](#endpoints)
+5. [Modelos de Dados (DTOs)](#modelos-de-dados-dtos)
+6. [Estrutura do Banco de Dados](#estrutura-do-banco-de-dados)
+7. [Segurança](#segurança)
+8. [Exemplos Práticos](#exemplos-práticos)
+9. [Configuração](#configuração)
+
+---
+
+## 🎯 Visão Geral
+
+API de autenticação centralizada desenvolvida em **.NET 9.0** para gerenciar autenticação e autorização de múltiplos sistemas (microsserviços).
+
+### Características Principais
+
+- ✅ **Autenticação Multi-Sistema**: Um usuário pode ter permissões diferentes em sistemas diferentes
+- ✅ **Autenticação 2FA (Two-Factor Authentication)**: Código de 6 dígitos enviado por e-mail
+- ✅ **JWT (JSON Web Tokens)**: Tokens com 15 minutos de validade
+- ✅ **Refresh Tokens**: Tokens de renovação com 30 dias de validade
+- ✅ **RBAC (Role-Based Access Control)**: Controle de permissões granular por sistema
+- ✅ **Integração com Microserviço de Funcionários**: Validação de CPF e status ativo
+- ✅ **Criptografia de Dados Sensíveis**: CPF criptografado com AES-256
+- ✅ **Gerenciamento de Sessões**: Logout individual ou de todas as sessões
+
+### Tecnologias
+
+- **.NET 9.0**
+- **ASP.NET Core Web API**
+- **Entity Framework Core** (ORM)
+- **PostgreSQL** (Banco de dados)
+- **JWT Bearer Authentication**
+- **BCrypt** (Hash de senhas)
+- **AES-256** (Criptografia de CPF)
+
+---
+
+## 🏗️ Arquitetura
+
+### Estrutura do Projeto
+
+```
+auth-api/
+├── Controllers/          # Endpoints da API
+│   └── AuthController.cs
+├── Services/            # Lógica de negócio
+│   ├── Auth/
+│   │   ├── AuthService.cs
+│   │   ├── TokenService.cs
+│   │   └── ITokenService.cs
+│   ├── FuncionarioService.cs
+│   └── EmailService.cs
+├── Repositories/        # Acesso a dados (Repository Pattern)
+│   ├── UsuarioRepository.cs
+│   ├── RefreshTokenRepository.cs
+│   └── UnitOfWork.cs
+├── Models/             # Entidades do banco de dados
+│   ├── Usuario.cs
+│   ├── Sistema.cs
+│   ├── Permissao.cs
+│   └── UsuarioPermissaoSistema.cs
+├── Dtos/              # Data Transfer Objects
+│   ├── Cadastro/
+│   ├── Usuario/
+│   └── Sistema/
+├── Helpers/           # Funções auxiliares
+│   ├── JwtHelper.cs
+│   ├── CryptoHelper.cs
+│   ├── HashHelper.cs
+│   └── ValidationHelper.cs
+├── Data/             # Contexto EF Core
+│   └── AppDbContext.cs
+└── Utils/            # Utilitários
+    └── Result.cs
+```
+
+### Padrões de Projeto
+
+- **Repository Pattern**: Abstração do acesso a dados
+- **Unit of Work**: Gerenciamento de transações
+- **Dependency Injection**: Inversão de controle
+- **Service Layer**: Separação da lógica de negócio
+- **DTO Pattern**: Transferência de dados entre camadas
+
+---
+
+## 🔄 Fluxo de Autenticação Multi-Sistema
+
+### Conceito de Multi-Sistema
+
+A API gerencia autenticação para **múltiplos sistemas/microsserviços**. Cada usuário pode ter:
+- Acesso a um ou mais sistemas
+- Permissões diferentes em cada sistema
+- Tokens JWT específicos para cada sistema
+
+### Fluxo Completo
+
+```
+┌─────────────┐
+│   Cliente   │
+│  (Frontend) │
+└──────┬──────┘
+       │
+       │ 1. POST /api/auth/login
+       │    { email, senha, sistemaId }
+       │
+       ▼
+┌─────────────────────────────────────────────────┐
+│              API de Autenticação                │
+│                                                 │
+│  2. Valida credenciais                         │
+│  3. Valida se usuário tem acesso ao sistema    │
+│  4. Consulta API de Funcionários (CPF ativo?)  │
+│  5. Gera código 2FA (6 dígitos)                │
+│  6. Envia código por e-mail                    │
+└──────┬──────────────────────────────────────────┘
+       │
+       │ 7. Retorna: "Código enviado por e-mail"
+       │
+       ▼
+┌─────────────┐
+│   Cliente   │
+│  (Frontend) │
+└──────┬──────┘
+       │
+       │ 8. POST /api/auth/confirmar-codigo-2fa
+       │    { email, codigo, sistemaId }
+       │
+       ▼
+┌─────────────────────────────────────────────────┐
+│              API de Autenticação                │
+│                                                 │
+│  9. Valida código 2FA                          │
+│  10. Gera JWT com permissões do sistema        │
+│      - Filtra APENAS permissões do sistemaId   │
+│      - Token válido por 15 minutos             │
+│  11. Gera Refresh Token (30 dias)              │
+└──────┬──────────────────────────────────────────┘
+       │
+       │ 12. Retorna: { token, refreshToken, usuario }
+       │
+       ▼
+┌─────────────┐
+│   Cliente   │
+│  usa token  │
+│  JWT para   │
+│  requisições│
+└─────────────┘
+```
+
+### Estrutura do Token JWT
+
+O token contém **apenas** as permissões do sistema específico:
+
+```json
+{
+  "sub": "usuario@exemplo.com",
+  "usuarioId": "uuid-do-usuario",
+  "nomeCompleto": "Nome do Usuário",
+  "cpf": "12345678901",
+  "sistemaId": "uuid-do-sistema",
+  "sistemaNome": "Sistema RH",
+  "permissao": ["1", "2", "3"],
+  "permissaoNome": ["Visualizar", "Criar", "Editar"],
+  "exp": 1234567890
+}
+```
+
+---
+
+## 🔌 Endpoints
+
+### Base URL
+
+```
+http://localhost:5000/api/auth
+```
+
+---
+
+### 1. **POST** `/register`
+
+Registra um novo usuário no sistema.
+
+#### 📥 Request Body
+
+```json
+{
+  "email": "usuario@exemplo.com",
+  "nomeCompleto": "João Silva",
+  "cpf": "12345678901",
+  "senhaExpiraEm": "2025-12-31"
+}
+```
+
+#### Validações
+
+- ✅ E-mail deve ser válido
+- ✅ CPF deve existir na base de funcionários
+- ✅ Funcionário deve estar ativo
+- ✅ CPF e e-mail devem ser únicos
+- ✅ Nome completo: 3-100 caracteres
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Usuário cadastrado com sucesso. Senha provisória enviada por e-mail.",
+  "dados": {
+    "usuarioId": "uuid-gerado"
+  }
+}
+```
+
+#### 📤 Response (400 Bad Request)
+
+```json
+{
+  "sucesso": false,
+  "mensagem": "CPF não encontrado na base de funcionários. Apenas funcionários cadastrados podem ter acesso ao sistema.",
+  "dados": null
+}
+```
+
+#### 📧 E-mail Enviado
+
+O sistema gera uma **senha forte aleatória** e envia por e-mail. O usuário deverá trocar a senha no primeiro login.
+
+---
+
+### 2. **POST** `/login`
+
+Realiza login e envia código 2FA por e-mail.
+
+#### 📥 Request Body
+
+```json
+{
+  "email": "usuario@exemplo.com",
+  "senha": "SenhaForte123!",
+  "sistemaId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+#### ⚠️ Campo Obrigatório: `sistemaId`
+
+O `sistemaId` identifica qual sistema o usuário está tentando acessar. **Obrigatório** para:
+- Validar se usuário tem permissão no sistema
+- Filtrar permissões no JWT gerado
+
+#### Validações Realizadas
+
+1. ✅ Credenciais (e-mail e senha)
+2. ✅ Usuário ativo
+3. ✅ Funcionário ainda ativo (consulta API externa)
+4. ✅ Perfil completo (nome, CPF preenchidos)
+5. ✅ Usuário tem acesso ao sistema especificado
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Código de autenticação enviado para o e-mail. Informe o código para prosseguir com o login.",
+  "dados": null
+}
+```
+
+#### 📤 Response (401 Unauthorized)
+
+```json
+{
+  "sucesso": false,
+  "mensagem": "Você não tem permissão para acessar este sistema. Entre em contato com o administrador.",
+  "dados": null
+}
+```
+
+#### 📧 Código 2FA
+
+- Código de **6 dígitos** numéricos
+- Válido por **5 minutos**
+- Hash armazenado no banco (SHA-256)
+
+---
+
+### 3. **POST** `/confirmar-codigo-2fa`
+
+Confirma código 2FA e retorna tokens de autenticação.
+
+#### 📥 Request Body
+
+```json
+{
+  "email": "usuario@exemplo.com",
+  "codigo": "123456",
+  "sistemaId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+#### ⚠️ Importante
+
+O `sistemaId` deve ser o **mesmo** enviado no `/login`.
+
+#### 📤 Response (200 OK) - Login Normal
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Login realizado com sucesso.",
+  "dados": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "base64-encoded-refresh-token",
+    "usuario": {
+      "id": "uuid-do-usuario",
+      "email": "usuario@exemplo.com",
+      "nomeCompleto": "João Silva",
+      "precisaTrocarSenha": false,
+      "sistemaId": "uuid-do-sistema"
+    }
+  }
+}
+```
+
+#### 📤 Response (200 OK) - Senha Expirada
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Senha expirada detectada. Confirmação de código realizada. Prossiga com a redefinição da senha.",
+  "dados": {
+    "senhaExpirada": true,
+    "tokenTrocaSenha": "token-temporario-10min",
+    "usuario": {
+      "id": "uuid-do-usuario",
+      "email": "usuario@exemplo.com",
+      "nomeCompleto": "João Silva"
+    }
+  }
+}
+```
+
+#### 📤 Response (200 OK) - Precisa Trocar Senha
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Troca de senha obrigatória. Informe a nova senha para prosseguir.",
+  "dados": {
+    "precisaTrocarSenha": true,
+    "tokenTrocaSenha": "token-temporario-10min"
+  }
+}
+```
+
+#### 📤 Response (400 Bad Request)
+
+```json
+{
+  "sucesso": false,
+  "mensagem": "Código inválido ou já utilizado.",
+  "dados": null
+}
+```
+
+---
+
+### 4. **POST** `/trocar-senha`
+
+Altera a senha do usuário.
+
+#### 📥 Request Body (Com Token)
+
+```json
+{
+  "email": "usuario@exemplo.com",
+  "novaSenha": "NovaSenhaForte123!",
+  "tokenTrocaSenha": "token-temporario-recebido"
+}
+```
+
+#### Validações
+
+- ✅ Nova senha: mínimo 8 caracteres
+- ✅ Nova senha diferente da anterior
+- ✅ Token de troca válido (10 minutos)
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Senha alterada com sucesso. Você já pode acessar o sistema.",
+  "dados": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "base64-encoded-refresh-token",
+    "usuario": {
+      "id": "uuid-do-usuario",
+      "email": "usuario@exemplo.com",
+      "nomeCompleto": "",
+      "precisaTrocarSenha": false
+    }
+  }
+}
+```
+
+---
+
+### 5. **POST** `/esqueci-senha`
+
+Inicia processo de recuperação de senha.
+
+#### 📥 Request Body
+
+```json
+{
+  "email": "usuario@exemplo.com"
+}
+```
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Se o e-mail informado estiver cadastrado, um código de autenticação foi enviado para ele.",
+  "dados": null
+}
+```
+
+#### Comportamento
+
+1. Verifica se e-mail existe (sem revelar ao cliente)
+2. Gera código 2FA de 6 dígitos
+3. Marca `precisaTrocarSenha = true`
+4. Envia código por e-mail
+5. **Sempre** retorna mensagem de sucesso (segurança)
+
+#### Fluxo Completo
+
+```
+1. POST /esqueci-senha → Código enviado
+2. POST /confirmar-codigo-2fa → Retorna tokenTrocaSenha
+3. POST /trocar-senha → Altera senha e retorna JWT
+```
+
+---
+
+### 6. **POST** `/refresh-token`
+
+Renova o access token usando refresh token.
+
+#### 📥 Request Body
+
+```json
+{
+  "refreshToken": "base64-encoded-refresh-token"
+}
+```
+
+#### Validações
+
+- ✅ Refresh token válido
+- ✅ Refresh token não expirado (30 dias)
+- ✅ Refresh token não utilizado
+- ✅ 2FA foi confirmado
+- ✅ Usuário ativo
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Token renovado com sucesso.",
+  "dados": {
+    "token": "novo-jwt-token",
+    "refreshToken": "novo-refresh-token",
+    "expiresIn": 7200,
+    "refreshTokenExpiresIn": 2678400,
+    "usuario": {
+      "id": "uuid-do-usuario",
+      "email": "usuario@exemplo.com",
+      "nomeCompleto": "João Silva",
+      "emailConfirmado": true,
+      "ativo": true
+    }
+  }
+}
+```
+
+#### ⚠️ Observação
+
+O refresh token **antigo é invalidado** ao gerar um novo. Isso previne reutilização.
+
+---
+
+### 7. **POST** `/logout`
+
+Realiza logout invalidando o refresh token atual.
+
+#### 📥 Request Body
+
+```json
+{
+  "refreshToken": "base64-encoded-refresh-token"
+}
+```
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Logout realizado com sucesso.",
+  "dados": null
+}
+```
+
+---
+
+### 8. **POST** `/logout-all-sessions`
+
+Realiza logout de **todas as sessões ativas** do usuário.
+
+#### 📥 Request Body
+
+```json
+{
+  "refreshToken": "base64-encoded-refresh-token"
+}
+```
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Logout de todas as sessões realizado com sucesso.",
+  "dados": null
+}
+```
+
+#### Comportamento
+
+Invalida todos os refresh tokens do usuário, forçando re-login em todos os dispositivos.
+
+---
+
+### 9. **POST** `/sessoes-ativas`
+
+Obtém todas as sessões ativas do usuário.
+
+#### 📥 Request Body
+
+```json
+{
+  "refreshToken": "base64-encoded-refresh-token"
+}
+```
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Sessões ativas obtidas com sucesso.",
+  "dados": {
+    "quantidadeSessoes": 3,
+    "sessoes": [
+      {
+        "id": "uuid-sessao-1",
+        "criadoEm": "2025-11-12T10:00:00Z",
+        "expiracao": "2025-12-12T10:00:00Z",
+        "doisFatoresConfirmado": true,
+        "ehSessaoAtual": true
+      },
+      {
+        "id": "uuid-sessao-2",
+        "criadoEm": "2025-11-10T15:30:00Z",
+        "expiracao": "2025-12-10T15:30:00Z",
+        "doisFatoresConfirmado": true,
+        "ehSessaoAtual": false
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 10. **GET** `/validar-permissao`
+
+Valida se o usuário autenticado tem uma permissão específica em um sistema.
+
+#### 🔐 Autenticação
+
+**Requer JWT no header:**
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### 📥 Query Parameters
+
+```
+GET /api/auth/validar-permissao?sistemaId=uuid-sistema&permissaoNome=Criar
+```
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| sistemaId | Guid | ID do sistema |
+| permissaoNome | string | Nome da permissão (ex: "Visualizar", "Criar", "Editar") |
+
+#### 📤 Response (200 OK) - Tem Permissão
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Usuário tem a permissão.",
+  "dados": true
+}
+```
+
+#### 📤 Response (200 OK) - Não Tem Permissão
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Usuário não tem a permissão.",
+  "dados": false
+}
+```
+
+#### 📤 Response (403 Forbidden)
+
+Retornado quando o token JWT é de um sistema diferente do solicitado.
+
+#### 💡 Uso pelos Microsserviços
+
+```csharp
+// Microsserviço validando permissão do usuário
+var client = new HttpClient();
+client.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue("Bearer", tokenDoUsuario);
+
+var response = await client.GetAsync(
+    $"http://auth-api/api/auth/validar-permissao?sistemaId={sistemaId}&permissaoNome=Criar"
+);
+
+var resultado = await response.Content.ReadFromJsonAsync<Result<bool>>();
+if (resultado.Dados)
+{
+    // Usuário tem permissão
+}
+```
+
+---
+
+### 11. **GET** `/minhas-permissoes`
+
+Retorna todas as permissões do usuário autenticado em um sistema específico.
+
+#### 🔐 Autenticação
+
+**Requer JWT no header:**
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### 📥 Query Parameters
+
+```
+GET /api/auth/minhas-permissoes?sistemaId=uuid-sistema
+```
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": null,
+  "dados": {
+    "sistemaId": "uuid-do-sistema",
+    "sistemaNome": "Sistema RH",
+    "permissoes": [
+      "Visualizar",
+      "Criar",
+      "Editar",
+      "Deletar"
+    ],
+    "permissoesIds": [1, 2, 3, 4]
+  }
+}
+```
+
+---
+
+### 12. **POST** `/sincronizar-funcionario`
+
+Sincroniza dados do funcionário com o sistema de autenticação (busca na API externa).
+
+#### 📥 Request Body
+
+```json
+"12345678901"
+```
+
+*Nota: Envia CPF como string direta (sem JSON)*
+
+#### 📤 Response (200 OK)
+
+```json
+{
+  "sucesso": true,
+  "mensagem": "Dados do funcionário sincronizados com sucesso.",
+  "dados": null
+}
+```
+
+---
+
+## 📦 Modelos de Dados (DTOs)
+
+### DtoUsuarioRegister
+
+```csharp
+{
+  "email": "string (obrigatório, max 100)",
+  "nomeCompleto": "string (obrigatório, 3-100 caracteres)",
+  "cpf": "string (obrigatório, 11-14 caracteres)",
+  "senhaExpiraEm": "DateOnly (obrigatório)"
+}
+```
+
+### LoginDto
+
+```csharp
+{
+  "email": "string (obrigatório, email válido)",
+  "senha": "string (obrigatório)",
+  "sistemaId": "Guid (obrigatório)"
+}
+```
+
+### DtoConfirmarEmail
+
+```csharp
+{
+  "email": "string (obrigatório, email válido)",
+  "codigo": "string (obrigatório, 6 dígitos)",
+  "sistemaId": "Guid (obrigatório)"
+}
+```
+
+### DtoTrocarSenha
+
+```csharp
+{
+  "email": "string (obrigatório, email válido)",
+  "novaSenha": "string (obrigatório, min 8 caracteres)",
+  "tokenTrocaSenha": "string (opcional)"
+}
+```
+
+### DtoEsqueciSenha
+
+```csharp
+{
+  "email": "string (obrigatório, email válido)"
+}
+```
+
+### DtoRefreshTokenRequest
+
+```csharp
+{
+  "refreshToken": "string (obrigatório)"
+}
+```
+
+### DtoRefreshTokenResponse
+
+```csharp
+{
+  "token": "string",
+  "refreshToken": "string",
+  "expiresIn": "int (segundos)",
+  "refreshTokenExpiresIn": "int (segundos)",
+  "usuario": {
+    "id": "Guid",
+    "email": "string",
+    "nomeCompleto": "string",
+    "emailConfirmado": "bool",
+    "ativo": "bool"
+  }
+}
+```
+
+### DtoLogoutRequest
+
+```csharp
+{
+  "refreshToken": "string (obrigatório)"
+}
+```
+
+---
+
+## 🗄️ Estrutura do Banco de Dados
+
+### Tabela: `usuarios`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | uuid | PK |
+| email | varchar(100) | Único |
+| senha_hash | varchar | Hash BCrypt |
+| ativo | boolean | Status do usuário |
+| email_confirmado | boolean | E-mail verificado |
+| tentativas_login | int | Contador de falhas |
+| bloqueado_ate | timestamp | Bloqueio temporário |
+| ultimo_login | timestamp | Último acesso |
+| criado_em | timestamp | Data de criação |
+| atualizado_em | timestamp | Última atualização |
+| deleted_at | timestamp | Soft delete |
+| precisa_trocar_senha | boolean | Obriga troca de senha |
+| senha_expira_em | timestamp | Expiração da senha |
+
+### Tabela: `usuarios_info`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | uuid | PK |
+| usuario_id | uuid | FK → usuarios |
+| nome_completo | varchar(100) | Nome do usuário |
+| cpf | varchar | CPF criptografado (AES-256) |
+| atualizado_em | timestamp | Última atualização |
+
+### Tabela: `sistemas`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | uuid | PK |
+| nome | varchar | Nome do sistema |
+| descricao | varchar | Descrição opcional |
+| atualizado_em | timestamp | Última atualização |
+
+### Tabela: `permissoes`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | int | PK (enum) |
+| nome | varchar | Nome da permissão |
+| descricao | varchar | Descrição opcional |
+| atualizado_em | timestamp | Última atualização |
+
+### Tabela: `usuario_permissao_sistemas`
+
+Tabela de junção entre usuários, sistemas e permissões.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | uuid | PK |
+| usuario_id | uuid | FK → usuarios |
+| sistema_id | uuid | FK → sistemas |
+| permissao_id | int | FK → permissoes |
+| atribuido_em | timestamp | Data de atribuição |
+| atualizado_em | timestamp | Última atualização |
+
+### Tabela: `refresh_tokens`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | uuid | PK |
+| usuario_id | uuid | FK → usuarios |
+| token | varchar | Token base64 |
+| expiracao | timestamp | Validade (30 dias) |
+| criado_em | timestamp | Data de criação |
+| utilizado | boolean | Se já foi usado |
+| dois_fatores_confirmado | boolean | 2FA validado |
+
+### Tabela: `codigos_autenticacao`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| id | uuid | PK |
+| usuario_id | uuid | FK → usuarios |
+| codigo | varchar | Hash SHA-256 do código |
+| expiracao | timestamp | Validade (5 minutos) |
+| criado_em | timestamp | Data de criação |
+| utilizado | boolean | Se já foi usado |
+
+---
+
+## 🔒 Segurança
+
+### Autenticação e Autorização
+
+1. **JWT (JSON Web Tokens)**
+   - Algoritmo: HMAC SHA-256
+   - Validade: 15 minutos
+   - Claims customizadas com permissões
+
+2. **Refresh Tokens**
+   - Armazenados no banco de dados
+   - Validade: 30 dias
+   - Invalidados após uso (rotation)
+
+3. **Two-Factor Authentication (2FA)**
+   - Código de 6 dígitos
+   - Hash SHA-256 armazenado
+   - Validade: 5 minutos
+   - Um código por usuário (sobrescreve anteriores)
+
+### Proteção de Dados
+
+1. **Hash de Senhas**
+   - BCrypt com salt automático
+   - Custo de trabalho configurável
+   - Resistente a rainbow tables
+
+2. **Criptografia de CPF**
+   - AES-256 com IV dinâmico
+   - Chave armazenada em variável de ambiente
+   - Suporte a método legado (AES-128)
+
+3. **Prevenção de Ataques**
+   - Rate limiting (configurável)
+   - Proteção contra timing attacks
+   - Validação de entrada rigorosa
+   - Soft delete (GDPR compliance)
+
+### Validações de Segurança
+
+1. **Durante Registro**
+   - CPF deve existir na base de funcionários
+   - Funcionário deve estar ativo
+   - E-mail e CPF únicos
+
+2. **Durante Login**
+   - Validação de credenciais
+   - Verificação de status ativo (usuário e funcionário)
+   - Validação de acesso ao sistema
+   - Perfil deve estar completo
+
+3. **Durante Troca de Senha**
+   - Nova senha diferente da anterior
+   - Mínimo 8 caracteres
+   - Token de troca válido
+
+---
+
+## 💡 Exemplos Práticos
+
+### Exemplo 1: Fluxo de Login Completo (Multi-Sistema)
+
+Usuário **Maria** tem acesso a dois sistemas:
+- **Sistema RH** (permissões: Visualizar, Criar)
+- **Sistema Financeiro** (permissões: Visualizar, Aprovar)
+
+#### Passo 1: Login no Sistema RH
+
+```bash
+POST /api/auth/login
+{
+  "email": "maria@empresa.com",
+  "senha": "SenhaForte123!",
+  "sistemaId": "rh-uuid-123"
+}
+```
+
+**Resposta:**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Código de autenticação enviado para o e-mail."
+}
+```
+
+#### Passo 2: Confirmar Código 2FA
+
+```bash
+POST /api/auth/confirmar-codigo-2fa
+{
+  "email": "maria@empresa.com",
+  "codigo": "485621",
+  "sistemaId": "rh-uuid-123"
+}
+```
+
+**Resposta:**
+```json
+{
+  "sucesso": true,
+  "mensagem": "Login realizado com sucesso.",
+  "dados": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "abc123...",
+    "usuario": {
+      "id": "maria-uuid",
+      "email": "maria@empresa.com",
+      "nomeCompleto": "Maria Silva",
+      "precisaTrocarSenha": false,
+      "sistemaId": "rh-uuid-123"
+    }
+  }
+}
+```
+
+**JWT Decodificado:**
+```json
+{
+  "sub": "maria@empresa.com",
+  "usuarioId": "maria-uuid",
+  "sistemaId": "rh-uuid-123",
+  "sistemaNome": "Sistema RH",
+  "permissaoNome": ["Visualizar", "Criar"]
+}
+```
+
+#### Passo 3: Maria Tenta Acessar Sistema Financeiro
+
+Maria precisa fazer **novo login** para o Sistema Financeiro:
+
+```bash
+POST /api/auth/login
+{
+  "email": "maria@empresa.com",
+  "senha": "SenhaForte123!",
+  "sistemaId": "financeiro-uuid-456"
+}
+```
+
+Após confirmar o código 2FA, receberá um **novo JWT** com permissões diferentes:
+
+```json
+{
+  "sub": "maria@empresa.com",
+  "usuarioId": "maria-uuid",
+  "sistemaId": "financeiro-uuid-456",
+  "sistemaNome": "Sistema Financeiro",
+  "permissaoNome": ["Visualizar", "Aprovar"]
+}
+```
+
+---
+
+### Exemplo 2: Microsserviço Validando Permissão
+
+**Cenário:** Microsserviço de RH precisa validar se usuário pode criar funcionários.
+
+```csharp
+// No microsserviço de RH
+[HttpPost("criar-funcionario")]
+public async Task<IActionResult> CriarFuncionario([FromBody] FuncionarioDto dto)
+{
+    // Obter sistemaId do token JWT atual
+    var sistemaId = User.FindFirst("sistemaId")?.Value;
+    var permissoes = User.FindAll("permissaoNome").Select(c => c.Value).ToList();
+
+    // Validação local (mais rápida)
+    if (!permissoes.Contains("Criar"))
+        return Forbid();
+
+    // OU validação via API (mais segura)
+    var client = new HttpClient();
+    client.DefaultRequestHeaders.Authorization =
+        new AuthenticationHeaderValue("Bearer", HttpContext.Request.Headers["Authorization"]);
+
+    var response = await client.GetAsync(
+        $"http://auth-api/api/auth/validar-permissao?sistemaId={sistemaId}&permissaoNome=Criar"
+    );
+
+    var resultado = await response.Content.ReadFromJsonAsync<Result<bool>>();
+    if (!resultado.Dados)
+        return Forbid();
+
+    // Prosseguir com criação do funcionário
+    // ...
+}
+```
+
+---
+
+### Exemplo 3: Recuperação de Senha
+
+```bash
+# 1. Solicitar recuperação
+POST /api/auth/esqueci-senha
+{
+  "email": "usuario@empresa.com"
+}
+
+# 2. Confirmar código recebido por e-mail
+POST /api/auth/confirmar-codigo-2fa
+{
+  "email": "usuario@empresa.com",
+  "codigo": "938471",
+  "sistemaId": "qualquer-sistema-uuid"
+}
+
+# Resposta: { precisaTrocarSenha: true, tokenTrocaSenha: "token-temp" }
+
+# 3. Definir nova senha
+POST /api/auth/trocar-senha
+{
+  "email": "usuario@empresa.com",
+  "novaSenha": "NovaSenhaSegura456!",
+  "tokenTrocaSenha": "token-temp-recebido"
+}
+
+# Resposta: { token, refreshToken, usuario }
+```
+
+---
+
+## ⚙️ Configuração
+
+### Variáveis de Ambiente (`.env`)
+
+```env
+# Database
+DATABASE_URL=Host=localhost;Port=5432;Database=auth_db;Username=postgres;Password=senha
+
+# JWT
+JWT_KEY=sua-chave-secreta-super-segura-min-32-caracteres
+JWT_ISSUER=MicroAuth
+JWT_AUDIENCE=MicroAuthUsers
+
+# Crypto (Criptografia de CPF)
+CRYPTO_KEY=chave-aes-128-legada
+CRYPTO_IV=iv-aes-128-legado
+CRYPTO_NEWKEY=chave-aes-256-nova-com-32-caracteres
+
+# Email
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USERNAME=seu-email@gmail.com
+EMAIL_PASSWORD=sua-senha-app
+EMAIL_FROM=noreply@empresa.com
+
+# API Externa - Funcionários
+FUNCIONARIO_API_BASE_URL=http://localhost:7000
+```
+
+### appsettings.json
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=auth_db;Username=postgres;Password=senha"
+  },
+  "Jwt": {
+    "Key": "sua-chave-secreta-super-segura-min-32-caracteres",
+    "Issuer": "MicroAuth",
+    "Audience": "MicroAuthUsers"
+  },
+  "Crypto": {
+    "Key": "chave-legada",
+    "IV": "iv-legado",
+    "NewKey": "chave-nova-32-caracteres"
+  },
+  "Email": {
+    "Host": "smtp.gmail.com",
+    "Port": 587,
+    "Username": "seu-email@gmail.com",
+    "Password": "senha-app",
+    "From": "noreply@empresa.com"
+  },
+  "FuncionarioApi": {
+    "BaseUrl": "http://localhost:7000"
+  }
+}
+```
+
+### Executando o Projeto
+
+```bash
+# Restaurar dependências
+dotnet restore
+
+# Aplicar migrações do banco
+dotnet ef database update
+
+# Executar
+dotnet run
+
+# Acessar
+# http://localhost:5000/api/auth
+```
+
+### Docker
+
+```bash
+# Build
+docker build -t auth-api .
+
+# Run
+docker run -p 5000:8080 \
+  -e DATABASE_URL="..." \
+  -e JWT_KEY="..." \
+  auth-api
+```
+
+---
+
+## 📝 Observações Importantes
+
+### Diferença entre Sistemas
+
+- Cada **sistema** é um microsserviço/aplicação diferente
+- Usuários podem ter permissões diferentes em cada sistema
+- Tokens JWT são específicos para um sistema
+- Para acessar outro sistema, é necessário novo login (gera novo token)
+
+### Validação de Funcionário
+
+- Durante **registro**: CPF deve existir e estar ativo
+- Durante **login**: Status do funcionário é verificado em tempo real
+- Se funcionário for inativado, usuário é automaticamente inativado
+
+### Sessões Múltiplas
+
+- Um usuário pode ter várias sessões ativas (diferentes dispositivos)
+- Cada sessão tem seu próprio refresh token
+- Logout individual: invalida apenas a sessão atual
+- Logout global: invalida todas as sessões
+
+### Expiração de Tokens
+
+- **Access Token (JWT)**: 15 minutos
+- **Refresh Token**: 30 dias
+- **Código 2FA**: 5 minutos
+- **Token de Troca de Senha**: 10 minutos
+
+---
+
+## 📞 Suporte
+
+Para dúvidas ou problemas, entre em contato com a equipe de desenvolvimento.
+
+**Versão da API:** 1.0
+**Última Atualização:** 12/11/2025

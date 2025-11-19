@@ -18,19 +18,20 @@ const isValidGuid = (value: string): boolean => {
   if (!value || value.trim().length === 0) {
     return false
   }
-  const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const guidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   return guidRegex.test(value)
 }
 
 const validateGuidParams = (sistemaId: string, contratoId: string) => {
   if (!isValidGuid(sistemaId)) {
     throw new Error(
-      `sistemaId inválido: "${sistemaId}". Deve ser um GUID válido (ex: 550e8400-e29b-41d4-a716-446655440000)`
+      `sistemaId inválido: "${sistemaId}". Deve ser um GUID válido (ex: 550e8400-e29b-41d4-a716-446655440000)`,
     )
   }
   if (!isValidGuid(contratoId)) {
     throw new Error(
-      `contratoId inválido: "${contratoId}". Deve ser um GUID válido (ex: 550e8400-e29b-41d4-a716-446655440000)`
+      `contratoId inválido: "${contratoId}". Deve ser um GUID válido (ex: 550e8400-e29b-41d4-a716-446655440000)`,
     )
   }
 }
@@ -118,8 +119,8 @@ class SignalRChatManager {
       handlers.forEach((handler) => handler(event))
     })
 
-    const handlePresence = (tipo: PresenceEvent['tipo']) =>
-      (event: PresenceEvent) => {
+    const handlePresence =
+      (tipo: PresenceEvent['tipo']) => (event: PresenceEvent) => {
         const payload: PresenceEvent = { ...event, tipo }
         this.presenceHandlers.forEach((handler) => handler(payload))
       }
@@ -172,7 +173,9 @@ class SignalRChatManager {
 
           if (isExpired) {
             logger.error('❌ Token EXPIRADO! Não pode conectar ao SignalR')
-            throw new Error('Token de autenticação expirado. Faça login novamente.')
+            throw new Error(
+              'Token de autenticação expirado. Faça login novamente.',
+            )
           }
         } catch (error) {
           logger.error('Erro ao validar token:', error as string)
@@ -221,7 +224,7 @@ class SignalRChatManager {
             logger.debug('SignalR accessTokenFactory - Token disponível:', {
               temToken: !!currentToken,
               tamanho: tokenWithBearer.length,
-              inicio: `${tokenWithBearer.substring(0, 40)  }...`,
+              inicio: `${tokenWithBearer.substring(0, 40)}...`,
             })
 
             console.log('🔵 Token com Bearer:', {
@@ -243,7 +246,10 @@ class SignalRChatManager {
               headerCompleto: authHeader.substring(0, 60),
             })
 
-            console.warn('⚠️ HEADER AUTHORIZATION QUE SERÁ ENVIADO:', authHeader)
+            console.warn(
+              '⚠️ HEADER AUTHORIZATION QUE SERÁ ENVIADO:',
+              authHeader,
+            )
 
             return {
               // Adicionar Bearer token explicitamente no header para /negotiate
@@ -299,7 +305,7 @@ class SignalRChatManager {
     // Validar GUIDs antes de tentar desconectar
     validateGuidParams(sistemaId, contratoId)
 
-    const {connection} = this
+    const { connection } = this
     const roomKey = createRoomKey(sistemaId, contratoId)
 
     if (!connection || !this.activeRooms.has(roomKey)) {
@@ -343,13 +349,10 @@ class SignalRChatManager {
     return await this.initialize()
   }
 
-  onMessage(
-    sistemaId: string,
-    contratoId: string,
-    handler: MessageHandler,
-  ) {
+  onMessage(sistemaId: string, contratoId: string, handler: MessageHandler) {
     const roomKey = createRoomKey(sistemaId, contratoId)
-    const handlers = this.messageHandlers.get(roomKey) ?? new Set<MessageHandler>()
+    const handlers =
+      this.messageHandlers.get(roomKey) ?? new Set<MessageHandler>()
     handlers.add(handler)
     this.messageHandlers.set(roomKey, handlers)
 
@@ -362,13 +365,10 @@ class SignalRChatManager {
     }
   }
 
-  onTyping(
-    sistemaId: string,
-    contratoId: string,
-    handler: TypingHandler,
-  ) {
+  onTyping(sistemaId: string, contratoId: string, handler: TypingHandler) {
     const roomKey = createRoomKey(sistemaId, contratoId)
-    const handlers = this.typingHandlers.get(roomKey) ?? new Set<TypingHandler>()
+    const handlers =
+      this.typingHandlers.get(roomKey) ?? new Set<TypingHandler>()
     handlers.add(handler)
     this.typingHandlers.set(roomKey, handlers)
 
@@ -398,7 +398,8 @@ class SignalRChatManager {
     // Validar token antes de enviar
     const token = getToken()
     if (!token) {
-      const errorMsg = 'Token de autenticação não encontrado. Faça login novamente.'
+      const errorMsg =
+        'Token de autenticação não encontrado. Faça login novamente.'
       logger.error('sendMessage - Sem token', {
         autorId: params.autorId,
         contratoId: params.contratoId,

@@ -5,7 +5,7 @@ import { authService } from '../auth-service'
 import { useAuthStore } from '../auth-store'
 import { cookieUtils } from '../cookie-utils'
 
-// Mocks
+// Mocks datas
 vi.mock('../auth-service', () => ({
   authService: {
     login: vi.fn(),
@@ -75,6 +75,12 @@ describe('AuthStore', () => {
 
     // Mock padr�o para cookies
     mockedCookieUtils.getCookie.mockReturnValue(null)
+
+    // Mock padrão para logout retornar Promise resolvida
+    mockedAuthService.logout.mockResolvedValue({
+      sucesso: true,
+      mensagem: 'Logout realizado com sucesso',
+    })
   })
 
   afterEach(() => {
@@ -250,7 +256,8 @@ describe('AuthStore', () => {
           usuario: mockUsuario,
           senhaExpirada: true,
           tokenTrocaSenha: 'token_senha_expirada_456',
-          mensagem: 'Senha expirada detectada. Confirmação de código realizada. Prossiga com a redefinição da senha.',
+          mensagem:
+            'Senha expirada detectada. Confirmação de código realizada. Prossiga com a redefinição da senha.',
         },
       })
 
@@ -544,6 +551,9 @@ describe('AuthStore', () => {
 
       mockedAuthService.verificarAcesso.mockResolvedValue({
         sucesso: true,
+        dados: {
+          temAcesso: true,
+        },
       })
 
       await act(async () => {
@@ -655,7 +665,8 @@ describe('AuthStore', () => {
       mockedAuthService.confirmarCodigo2FA.mockResolvedValue({
         sucesso: true,
         dados: {
-          token: 'token.muito.curto',
+          // Token com apenas 2 partes (inválido para JWT - precisa de 3 partes)
+          token: 'token.invalido',
           refreshToken: 'abc',
           usuario: { id: 1, email: 'test@email.com', nome: 'Test' },
         },

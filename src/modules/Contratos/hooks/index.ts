@@ -43,7 +43,7 @@ export {
 } from './use-documentos-mutations'
 
 // Hooks de Toast
-export { useToast } from './useToast'
+export { useToast } from './use-toast'
 
 // Query keys para invalidação manual quando necessário
 export { contratoKeys } from '../lib/query-keys'

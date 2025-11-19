@@ -9,6 +9,7 @@
 // ========== TIPOS BASE ==========
 
 export type ContratoStatus =
+  | 'vigente'
   | 'ativo'
   | 'vencendo'
   | 'vencido'
@@ -464,6 +465,7 @@ export interface ContratoLista {
 }
 
 export interface FiltrosContrato {
+  termoPesquisa?: string
   status?: string[]
   dataInicialDe?: string
   dataInicialAte?: string

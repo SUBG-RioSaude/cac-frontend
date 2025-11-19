@@ -21,6 +21,11 @@ vi.mock('sonner', () => ({
   },
 }))
 
+// Mock do react-router-dom
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+}))
+
 // Mock dos services
 const mockSaveDocumentosMultiplos = vi.fn()
 const mockSaveDocumentoStatus = vi.fn()
@@ -36,7 +41,7 @@ vi.mock('@/modules/Contratos/services/documentos-service', () => ({
 }))
 
 // Mock do useToast
-vi.mock('@/modules/Contratos/hooks/useToast', () => ({
+vi.mock('@/modules/Contratos/hooks/use-toast', () => ({
   useToast: () => ({
     mutation: {
       loading: vi.fn(() => 'loading-toast-id'),

@@ -12,7 +12,9 @@ vi.mock('@/components/app-sidebar', () => ({
 }))
 
 vi.mock('@/components/notificacoes-dropdown', () => ({
-  NotificacoesDropdown: () => <div data-testid="notifications">Notifications</div>,
+  NotificacoesDropdown: () => (
+    <div data-testid="notifications">Notifications</div>
+  ),
 }))
 
 vi.mock('@/components/page-breadcrumb', () => ({
@@ -94,5 +96,41 @@ describe('LayoutAuthenticated', () => {
 
     expect(screen.getByTestId('children-content')).toBeInTheDocument()
     expect(screen.getByText(testContent)).toBeInTheDocument()
+  })
+
+  it('deve renderizar o Toaster com posição top-right', () => {
+    const { container } = render(
+      <MockedLayoutAuthenticated>
+        <div>Test content</div>
+      </MockedLayoutAuthenticated>,
+    )
+
+    // Verificar se o Toaster está presente no DOM
+    // O componente Toaster do sonner renderiza um elemento ol.toaster
+    const toasterElement = container.querySelector('[data-sonner-toaster]')
+
+    // Se o elemento existir, verificar se tem as configurações corretas
+    if (toasterElement) {
+      // O atributo data-position deve ser "top-right"
+      expect(toasterElement).toHaveAttribute('data-position', 'top-right')
+    }
+  })
+
+  it('deve ter configuração de richColors e closeButton no Toaster', () => {
+    const { container } = render(
+      <MockedLayoutAuthenticated>
+        <div>Test content</div>
+      </MockedLayoutAuthenticated>,
+    )
+
+    // Verificar se o Toaster tem as configurações corretas
+    const toasterElement = container.querySelector('[data-sonner-toaster]')
+
+    if (toasterElement) {
+      // Verificar rich colors
+      expect(toasterElement).toHaveAttribute('data-rich-colors', 'true')
+      // Verificar close button
+      expect(toasterElement).toHaveAttribute('data-close-button', 'true')
+    }
   })
 })

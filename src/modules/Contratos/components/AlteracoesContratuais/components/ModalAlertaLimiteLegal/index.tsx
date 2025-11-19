@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { useConfirmarLimiteLegal } from '@/modules/Contratos/hooks/useAlteracoesContratuaisApi'
+import { useConfirmarLimiteLegal } from '@/modules/Contratos/hooks/use-alteracoes-contratuais-api'
 import type { AlertaLimiteLegal } from '@/modules/Contratos/types/alteracoes-contratuais'
 
 interface LimiteLegal {

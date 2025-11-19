@@ -6,6 +6,9 @@
  * para facilitar importação em outros módulos
  */
 
+// Sub-módulo CadastroFuncionario
+export * from './CadastroFuncionario'
+
 // Tipos e interfaces
 export type {
   FuncionarioApi,

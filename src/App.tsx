@@ -4,22 +4,23 @@ import { LayoutAuthenticated } from '@/components/layout-authenticated'
 import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
 
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
-import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/ContratosListPage'
-import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/VisualizarContrato'
-import { DashboardPage } from './modules/Dashboard/pages/DashboardPage'
-import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/VisualizacaoFornecedorPage'
-import CadastroFuncionarioPage from './modules/Funcionarios/pages/CadastroFuncionarioPage'
+import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
+import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/visualizar-contrato'
+import { DashboardPage } from './modules/Dashboard/pages/dashboard-page'
+import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/visualizacao-fornecedor-page'
+import CadastroFuncionarioPage from './modules/Funcionarios/CadastroFuncionario/pages/cadastro-funcionario-page'
 import BadRequest from './modules/http-codes/400'
 import Unauthorized from './modules/http-codes/401'
 import Forbidden from './modules/http-codes/403'
 import NotFound from './modules/http-codes/404'
 import ServerError from './modules/http-codes/500'
 import ServiceUnavailable from './modules/http-codes/503'
+import GerenciarUsuariosPage from './modules/Usuarios/pages/gerenciar-usuarios-page'
 import ForgotPasswordForm from './pages/auth/forgot-password-form'
 import LoginForm from './pages/auth/login'
 import ResetPasswordForm from './pages/auth/reset-password-form'
 import VerifyForm from './pages/auth/verify-form'
-import FornecedoresPage from './pages/fornecedores/FornecedoresPage'
+import FornecedoresPage from './pages/fornecedores/fornecedores-page'
 import UnidadeDetailPage from './pages/unidades/UnidadeDetailPage'
 import UnidadesPage from './pages/unidades/UnidadesPage'
 
@@ -65,7 +66,7 @@ const App = () => {
         path="/"
         element={(
           <ProtectedRoute requireAuth>
-            <LayoutAuthenticated>
+            <LayoutAuthenticated fullscreen>
               <DashboardPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
@@ -149,6 +150,18 @@ const App = () => {
           </ProtectedRoute>
         )}
       />
+      
+      
+      {/*<Route
+        path="/alteracoes"
+        element={(
+          <ProtectedRoute requireAuth>
+            <LayoutAuthenticated>
+              <CadastroFornecedorPage />
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        )}
+      />*/}
 
       {/* Rotas de Unidades */}
       <Route
@@ -194,6 +207,18 @@ const App = () => {
                 <h1 className="text-2xl font-bold">Configurações</h1>
                 <p>Configure suas preferências do sistema.</p>
               </div>
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        )}
+      />
+
+      {/* Rotas de Gestão de Usuários */}
+      <Route
+        path="/gestao-usuarios/gerenciar"
+        element={(
+          <ProtectedRoute requireAuth>
+            <LayoutAuthenticated>
+              <GerenciarUsuariosPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
         )}

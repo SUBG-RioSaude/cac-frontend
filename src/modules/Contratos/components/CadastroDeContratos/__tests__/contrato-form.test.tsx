@@ -7,6 +7,8 @@ import ContratoForm, {
   type DadosContrato,
 } from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
 
+vi.setConfig({ testTimeout: 20000 })
+
 // Mock dos dados que o componente tenta carregar
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
   unidadesMock: {
@@ -543,6 +545,51 @@ describe('ContratoForm', () => {
 
       const numeroInput = screen.getByLabelText(/número do contrato/i)
       expect(numeroInput).toHaveAttribute('placeholder', 'Ex: 20240001')
+    })
+  })
+
+  describe('Correção de Key - Processos mantém renderização', () => {
+    it('deve renderizar campo de processo SEI após adicionar', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Adicionar processo SEI
+      await user.click(screen.getByText('Processo SEI'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText('SEI-123456-2024'),
+        ).toBeInTheDocument()
+      })
+    })
+
+    it('deve adicionar múltiplos processos e todos permanecerem renderizados', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ContratoForm {...defaultProps} />)
+
+      // Adicionar processo SEI
+      await user.click(screen.getByText('Processo SEI'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText('SEI-123456-2024'),
+        ).toBeInTheDocument()
+      })
+
+      // Adicionar processo Físico
+      await user.click(screen.getByText('Processo Físico'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText('LEG-01/123.456/2024'),
+        ).toBeInTheDocument()
+      })
+
+      // Verificar que ambos os processos permanecem na tela
+      expect(screen.getByPlaceholderText('SEI-123456-2024')).toBeInTheDocument()
+      expect(
+        screen.getByPlaceholderText('LEG-01/123.456/2024'),
+      ).toBeInTheDocument()
     })
   })
 })

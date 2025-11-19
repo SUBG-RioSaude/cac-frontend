@@ -14,7 +14,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { hasAuthCookies } from '@/lib/auth/auth'
 import { useAuth } from '@/lib/auth/auth-context'
-import { useConfirm2FAMutation, useLoginMutation } from '@/lib/auth/auth-queries'
+import {
+  useConfirm2FAMutation,
+  useLoginMutation,
+} from '@/lib/auth/auth-queries'
 import { cookieUtils } from '@/lib/auth/cookie-utils'
 import { createServiceLogger } from '@/lib/logger'
 
@@ -27,9 +30,9 @@ const VerifyForm = () => {
   const [podeReenviar, setPodeReenviar] = useState(false)
   const [codigoExpirado, setCodigoExpirado] = useState(false)
   const [indiceFocado, setIndiceFocado] = useState<number | null>(null)
-  const [contexto, setContexto] = useState<'login' | 'password_recovery' | 'password_expired'>(
-    'login',
-  )
+  const [contexto, setContexto] = useState<
+    'login' | 'password_recovery' | 'password_expired'
+  >('login')
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const navigate = useNavigate()
@@ -44,7 +47,9 @@ const VerifyForm = () => {
     const emailArmazenado = sessionStorage.getItem('auth_email')
     const contextoAuthRaw = sessionStorage.getItem('auth_context')
     const contextoAuth =
-      contextoAuthRaw === 'login' || contextoAuthRaw === 'password_recovery' || contextoAuthRaw === 'password_expired'
+      contextoAuthRaw === 'login' ||
+      contextoAuthRaw === 'password_recovery' ||
+      contextoAuthRaw === 'password_expired'
         ? contextoAuthRaw
         : 'login'
 
@@ -111,35 +116,28 @@ const VerifyForm = () => {
     }
   }
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    // Funcionalidade Ctrl+V para colar código automaticamente
-    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-      e.preventDefault()
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
 
-      navigator.clipboard
-        .readText()
-        .then((text) => {
-          // Remove espaços e caracteres especiais, mantém apenas números
-          const cleanText = text.replace(/\D/g, '')
+    // Obtém o texto colado do clipboard
+    const pastedText = e.clipboardData.getData('text')
 
-          // Verifica se o texto tem exatamente 6 dígitos
-          if (cleanText.length === 6) {
-            const novoCodigo = cleanText.split('')
-            setCodigo(novoCodigo)
+    // Remove espaços e caracteres especiais, mantém apenas números
+    const cleanText = pastedText.replace(/\D/g, '')
 
-            // Foca no último campo após colar
-            setTimeout(() => {
-              inputRefs.current[5]?.focus()
-            }, 0)
-          }
-        })
-        .catch(() => {
-          // Ignora erros silenciosamente (caso não tenha permissão para clipboard)
-        })
+    // Verifica se o texto tem exatamente 6 dígitos
+    if (cleanText.length === 6) {
+      const novoCodigo = cleanText.split('')
+      setCodigo(novoCodigo)
 
-      return
+      // Foca no último campo após colar
+      setTimeout(() => {
+        inputRefs.current[5]?.focus()
+      }, 0)
     }
+  }
 
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === 'Backspace' && !codigo[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
@@ -161,20 +159,26 @@ const VerifyForm = () => {
         'Submetendo código 2FA',
       )
 
-      const resultado = await confirm2FAMutation.mutateAsync({ email, codigo: codigoString })
+      const resultado = await confirm2FAMutation.mutateAsync({
+        email,
+        codigo: codigoString,
+      })
 
       verifyLogger.debug(
         {
           action: 'confirm-2fa',
           status: 'success',
           sucesso: resultado.sucesso,
-          requiresPasswordChange: 'requiresPasswordChange' in resultado ? resultado.requiresPasswordChange : false,
+          requiresPasswordChange:
+            'requiresPasswordChange' in resultado
+              ? resultado.requiresPasswordChange
+              : false,
         },
         'Código 2FA confirmado',
       )
 
       // Aguarda 500ms para garantir que cookies foram salvos
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       // Verifica se cookies foram salvos corretamente
       const cookiesExistem = hasAuthCookies()
@@ -214,7 +218,7 @@ const VerifyForm = () => {
             status: 'password-expired',
             tokenPresente: !!token,
             tokenLength: token.length,
-            mensagem: resultado.dados.mensagem
+            mensagem: resultado.dados.mensagem,
           },
           'Senha expirada detectada - redirecionando para redefinição',
         )
@@ -225,7 +229,10 @@ const VerifyForm = () => {
       }
 
       // Verifica se precisa trocar senha (requiresPasswordChange: true)
-      if ('requiresPasswordChange' in resultado && resultado.requiresPasswordChange) {
+      if (
+        'requiresPasswordChange' in resultado &&
+        resultado.requiresPasswordChange
+      ) {
         // Token está em dados.tokenTrocaSenha
         const token = resultado.dados?.tokenTrocaSenha ?? ''
 
@@ -234,7 +241,7 @@ const VerifyForm = () => {
             action: 'confirm-2fa',
             status: 'password-change-required',
             tokenPresente: !!token,
-            tokenLength: token.length
+            tokenLength: token.length,
           },
           'Redirecionando para troca de senha',
         )
@@ -253,7 +260,7 @@ const VerifyForm = () => {
             action: 'confirm-2fa',
             status: 'password-recovery',
             tokenPresente: !!token,
-            tokenLength: token.length
+            tokenLength: token.length,
           },
           'Contexto de recuperação de senha - armazenando token',
         )
@@ -419,15 +426,15 @@ const VerifyForm = () => {
                   {contexto === 'password_recovery'
                     ? 'Verificar Código de Recuperação'
                     : contexto === 'password_expired'
-                    ? 'Senha Expirada - Verificar Identidade'
-                    : 'Verificação de Segurança'}
+                      ? 'Senha Expirada - Verificar Identidade'
+                      : 'Verificação de Segurança'}
                 </motion.h1>
                 <motion.p className="text-sm text-gray-600">
                   {contexto === 'password_recovery'
                     ? 'Digite o código de recuperação enviado para'
                     : contexto === 'password_expired'
-                    ? 'Sua senha expirou. Digite o código enviado para'
-                    : 'Enviamos um código de 6 dígitos para'}
+                      ? 'Sua senha expirou. Digite o código enviado para'
+                      : 'Enviamos um código de 6 dígitos para'}
                   <br />
                   <span className="font-medium">{email}</span>
                 </motion.p>
@@ -435,13 +442,14 @@ const VerifyForm = () => {
                 {/* Alerta informativo sobre senha expirada */}
                 {contexto === 'password_expired' && (
                   <motion.div
-                    className="mt-4 rounded-lg bg-orange-50 border border-orange-200 p-3"
+                    className="mt-4 rounded-lg border border-orange-200 bg-orange-50 p-3"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
                     <p className="text-sm text-orange-800">
-                      ℹ️ Após verificar o código, você será direcionado para redefinir sua senha.
+                      ℹ️ Após verificar o código, você será direcionado para
+                      redefinir sua senha.
                     </p>
                   </motion.div>
                 )}
@@ -515,6 +523,7 @@ const VerifyForm = () => {
                                   handleCodeChange(index, e.target.value)
                                 }
                                 onKeyDown={(e) => handleKeyDown(index, e)}
+                                onPaste={handlePaste}
                                 onFocus={() => setIndiceFocado(index)}
                                 onBlur={() => setIndiceFocado(null)}
                                 disabled={codigoExpirado}

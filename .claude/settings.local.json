@@ -7,7 +7,11 @@
       "Bash(pnpm build:*)",
       "Bash(timeout 10 pnpm dev)",
       "Bash(pnpm lint:*)",
-      "Bash(timeout 30 pnpm dev)"
+      "Bash(timeout 30 pnpm dev)",
+      "Read(//c/Users/Joao/Desktop/FarmaciaPopularFront/**)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm view:*)",
+      "Read(//c/Users/Joao/Desktop/Farmacia-Popular/**)"
     ],
     "deny": [],
     "ask": [],

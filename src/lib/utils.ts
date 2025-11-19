@@ -152,6 +152,96 @@ export const cnpjUtils = {
 }
 
 /**
+ * Utilitários para validação e formatação de CPF
+ */
+export const cpfUtils = {
+  /**
+   * Remove todos os caracteres não numéricos do CPF
+   * @param cpf - CPF com ou sem formatação
+   * @returns CPF apenas com números
+   */
+  clean: (cpf: string): string => {
+    return cpf.replace(/\D/g, '')
+  },
+
+  /**
+   * Aplica máscara de CPF durante a digitação
+   * @param value - Valor atual do input
+   * @returns Valor com máscara aplicada (XXX.XXX.XXX-XX)
+   */
+  mask: (value: string): string => {
+    const cpfLimpo = cpfUtils.clean(value)
+    const cpfLimitado = cpfLimpo.slice(0, 11)
+
+    if (cpfLimitado.length <= 3) {
+      return cpfLimitado
+    } else if (cpfLimitado.length <= 6) {
+      return cpfLimitado.replace(/(\d{3})(\d+)/, '$1.$2')
+    } else if (cpfLimitado.length <= 9) {
+      return cpfLimitado.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3')
+    } else {
+      return cpfLimitado.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4')
+    }
+  },
+
+  /**
+   * Valida se um CPF é válido
+   * @param cpf - CPF com ou sem formatação
+   * @returns true se o CPF for válido, false caso contrário
+   */
+  validate: (cpf: string): boolean => {
+    const cpfLimpo = cpfUtils.clean(cpf)
+
+    // Verifica se tem 11 dígitos
+    if (cpfLimpo.length !== 11) {
+      return false
+    }
+
+    // Verifica se todos os dígitos são iguais
+    if (/^(\d)\1+$/.test(cpfLimpo)) {
+      return false
+    }
+
+    // Validação do primeiro dígito verificador
+    let soma = 0
+    for (let i = 0; i < 9; i++) {
+      soma += parseInt(cpfLimpo[i]) * (10 - i)
+    }
+    let resto = soma % 11
+    const digito1 = resto < 2 ? 0 : 11 - resto
+
+    if (parseInt(cpfLimpo[9]) !== digito1) {
+      return false
+    }
+
+    // Validação do segundo dígito verificador
+    soma = 0
+    for (let i = 0; i < 10; i++) {
+      soma += parseInt(cpfLimpo[i]) * (11 - i)
+    }
+    resto = soma % 11
+    const digito2 = resto < 2 ? 0 : 11 - resto
+
+    return parseInt(cpfLimpo[10]) === digito2
+  },
+
+  /**
+   * Formata um CPF para o padrão XXX.XXX.XXX-XX
+   * @param cpf - CPF com ou sem formatação
+   * @returns CPF formatado ou string vazia se inválido
+   */
+  format: (cpf: string): string => {
+    const cpfLimpo = cpfUtils.clean(cpf)
+
+    if (cpfLimpo.length !== 11) {
+      return cpfLimpo
+    }
+
+    return cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  },
+}
+
+/**
  * Utilitários para validação e formatação de Inscrição Estadual
  */
 interface IEUtils {

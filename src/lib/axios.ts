@@ -14,7 +14,7 @@ export const apiGateway = axios.create({
   responseType: 'json',
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
 
@@ -56,17 +56,15 @@ apiGateway.interceptors.response.use(utf8ResponseInterceptor)
  * Função simplificada para requisições via Gateway centralizado
  * Substitui o antigo sistema de fallback (executeWithFallback)
  */
-export async function executeWithFallback<T>(
-  requestConfig: {
-    method: 'get' | 'post' | 'put' | 'delete' | 'patch'
-    url: string
-    data?: unknown
-    params?: Record<string, unknown>
-    headers?: Record<string, string>
-    baseURL?: string // Mantido para compatibilidade, mas ignorado
-    timeout?: number
-  },
-): Promise<AxiosResponse<T>> {
+export async function executeWithFallback<T>(requestConfig: {
+  method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+  url: string
+  data?: unknown
+  params?: Record<string, unknown>
+  headers?: Record<string, string>
+  baseURL?: string // Mantido para compatibilidade, mas ignorado
+  timeout?: number
+}): Promise<AxiosResponse<T>> {
   const { method, url, data, params, headers, timeout } = requestConfig
 
   console.log(`[API Gateway] ${method.toUpperCase()} ${url}`)
@@ -91,26 +89,58 @@ const createTokenRenewalInterceptor = () => {
 
     // Se o erro for 401 (não autorizado), tenta renovar o token
     if (response?.status === 401) {
+      console.log('🔴 [Axios Interceptor] Erro 401 detectado')
+      console.log('🔍 [Axios Interceptor] URL:', config?.url)
+
       try {
+        // ⭐ VERIFICA SE HÁ REFRESH TOKEN ANTES DE TENTAR RENOVAR
+        const { getRefreshToken } = await import('./auth/auth')
+        const refreshToken = getRefreshToken()
+
+        if (!refreshToken) {
+          console.warn('⚠️ [Axios Interceptor] Sem refresh token, não tenta renovar')
+          // Não faz logout - pode ser primeira requisição ou já deslogado
+          return Promise.reject(erro)
+        }
+
+        console.log('🔄 [Axios Interceptor] Tentando renovar token...')
         const renovado = await renovarToken()
+
         if (renovado && config) {
+          console.log('✅ [Axios Interceptor] Token renovado com sucesso')
+
           // Reexecuta a requisição original com o novo token
           const token = getToken()
           if (token && token.split('.').length === 3) {
             config.headers.Authorization = `Bearer ${token}`
+            console.log('🔄 [Axios Interceptor] Reexecutando requisição original')
             // Usa o cliente axios que originou a requisição
             return axios.request(config)
           }
+
+          // Se renovou mas token inválido, faz logout
+          console.error('❌ [Axios Interceptor] Token renovado é inválido')
+          logout()
+          window.location.href = '/login'
+          return Promise.reject(new Error('Token renovado inválido'))
+        } else {
+          // Renovação falhou, faz logout
+          console.error('❌ [Axios Interceptor] Falha na renovação do token')
+          logout()
+          window.location.href = '/login'
+          return Promise.reject(new Error('Falha na renovação do token'))
         }
-      } catch {
-        // Se não conseguir renovar, faz logout
+      } catch (erroRenovacao) {
+        // Log mais detalhado do erro
+        console.error('❌ [Axios Interceptor] Erro ao renovar token:', erroRenovacao)
         logout()
         window.location.href = '/login'
         return Promise.reject(new Error('Falha na renovação do token'))
       }
     }
 
-    return Promise.reject(new Error(erro.message || 'Erro na requisição'))
+    // Para outros erros, apenas rejeita sem fazer logout
+    return Promise.reject(erro)
   }
 }
 
@@ -127,9 +157,15 @@ export const authApi = axios.create({
   responseType: 'json',
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
+
+// Aplica interceptor de autenticação ao authApi (MAS SEM renovação automática)
+authApi.interceptors.request.use(authInterceptor)
+
+// Aplica interceptor UTF-8 ao authApi
+authApi.interceptors.response.use(utf8ResponseInterceptor)
 
 // Validação da variável de ambiente para Chat API
 const CHAT_API_BASE_URL = import.meta.env.VITE_API_CHAT_SOCKET_URL as string
@@ -148,7 +184,7 @@ export const chatApi = axios.create({
   responseType: 'json',
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 })
 

@@ -194,7 +194,6 @@ describe('ContractChat', () => {
     })
   })
 
-
   describe('Envio de nova observação', () => {
     it('deve permitir digitar nova observação', async () => {
       render(<ContractChat {...mockProps} />)

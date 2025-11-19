@@ -417,7 +417,7 @@ export const SearchAndFiltersFornecedores = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-11 w-full cursor-pointer bg-transparent px-4 shadow-sm transition-all duration-200 hover:bg-slate-600 lg:w-auto"
+              className="hover:border-primary h-11 w-full cursor-pointer border-2 px-4 shadow-sm transition-all duration-200 lg:w-auto"
             >
               <Filter className="mr-2 h-4 w-4" />
               Filtros
@@ -596,7 +596,7 @@ export const SearchAndFiltersFornecedores = ({
 
               <Separator />
 
-              {/* Contratos Ativos - Colapsível */}
+              {/* Contratos Vigentes - Colapsível */}
               <Collapsible
                 open={contratosExpanded}
                 onOpenChange={setContratosExpanded}
@@ -609,7 +609,7 @@ export const SearchAndFiltersFornecedores = ({
                     <div className="flex items-center gap-2">
                       <Hash className="text-muted-foreground h-4 w-4" />
                       <Label className="cursor-pointer text-sm font-medium">
-                        Quantidade de Contratos Ativos
+                        Quantidade de Contratos Vigentes
                       </Label>
                     </div>
                     {contratosExpanded ? (

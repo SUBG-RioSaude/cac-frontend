@@ -476,7 +476,7 @@
         }
       }
     },
-    "/api/permissoes": {
+    "/permissoes": {
       "get": {
         "tags": [
           "Permissoes"
@@ -560,7 +560,7 @@
         }
       }
     },
-    "/api/permissoes/{id}": {
+    "/permissoes/{id}": {
       "get": {
         "tags": [
           "Permissoes"

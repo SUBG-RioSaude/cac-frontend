@@ -220,7 +220,7 @@ export const TabelaUnidades = ({
                     <div className="mb-3 space-y-2">
                       <div>
                         <p className="text-muted-foreground text-xs">
-                          Contratos Ativos
+                          Contratos Vigentes
                         </p>
                         <p className="text-sm font-medium">
                           {unidade.contratosAtivos ?? 0}

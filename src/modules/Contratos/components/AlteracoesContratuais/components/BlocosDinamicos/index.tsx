@@ -38,11 +38,11 @@ import {
   getBlocosOpcionais,
 } from '../../../../types/alteracoes-contratuais'
 
-import { BlocoClausulas } from './BlocoClausulas'
-import { BlocoFornecedores } from './BlocoFornecedores'
-import { BlocoUnidades } from './BlocoUnidades'
-import { BlocoValor } from './BlocoValor'
-import { BlocoVigencia } from './BlocoVigencia'
+import { BlocoClausulas } from './bloco-clausulas'
+import { BlocoFornecedores } from './bloco-fornecedores'
+import { BlocoUnidades } from './bloco-unidades'
+import { BlocoValor } from './bloco-valor'
+import { BlocoVigencia } from './bloco-vigencia'
 
 interface TransformedUnidade {
   id: string

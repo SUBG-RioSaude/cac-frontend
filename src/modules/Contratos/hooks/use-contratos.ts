@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { useErrorHandler } from '@/hooks/use-error-handler'
 import { createServiceLogger } from '@/lib/logger'
-import { useToast } from '@/modules/Contratos/hooks/useToast'
+import { useToast } from '@/modules/Contratos/hooks/use-toast'
 import { contratoKeys } from '@/modules/Contratos/lib/query-keys'
 import {
   getContratos,
@@ -230,9 +230,10 @@ export function useContratoDetalhado(
         if ('code' in error && error.code === 'ECONNABORTED') {
           return failureCount < 3 // 3 tentativas para timeouts
         }
-        
+
         if ('response' in error) {
-          const status = (error as { response: { status: number } }).response?.status
+          const status = (error as { response: { status: number } }).response
+            ?.status
           // Não retry para erros de cliente (4xx)
           if (status >= 400 && status < 500) {
             return false

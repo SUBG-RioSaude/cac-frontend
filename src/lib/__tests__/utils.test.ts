@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { cn, cnpjUtils } from '../utils'
+import { cn, cnpjUtils, normalizeText } from '../utils'
 
 describe('cn', () => {
   it('deve combinar classes TailwindCSS corretamente', () => {
@@ -145,5 +145,34 @@ describe('cnpjUtils', () => {
     it('deve retornar string vazia para entrada vazia', () => {
       expect(cnpjUtils.aplicarMascara('')).toBe('')
     })
+  })
+})
+
+describe('normalizeText', () => {
+  it('deve remover acentos e converter para lowercase', () => {
+    expect(normalizeText('São Paulo')).toBe('sao paulo')
+    expect(normalizeText('José')).toBe('jose')
+    expect(normalizeText('AÇÃO')).toBe('acao')
+  })
+
+  it('deve remover espaços extras e fazer trim', () => {
+    expect(normalizeText('  Texto com espaços  ')).toBe('texto com espacos')
+    expect(normalizeText('\n\tTexto\n\t')).toBe('texto')
+  })
+
+  it('deve retornar string vazia para entrada vazia', () => {
+    expect(normalizeText('')).toBe('')
+    expect(normalizeText('   ')).toBe('')
+  })
+
+  it('deve normalizar texto com múltiplos acentos', () => {
+    expect(normalizeText('Açúcar')).toBe('acucar')
+    expect(normalizeText('Coração')).toBe('coracao')
+    expect(normalizeText('Música')).toBe('musica')
+  })
+
+  it('deve preservar números e caracteres especiais básicos', () => {
+    expect(normalizeText('Item 123')).toBe('item 123')
+    expect(normalizeText('Test-123')).toBe('test-123')
   })
 })

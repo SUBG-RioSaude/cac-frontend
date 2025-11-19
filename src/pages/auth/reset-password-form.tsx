@@ -13,11 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth/auth-context'
 import { usePasswordChangeMutation } from '@/lib/auth/auth-queries'
-
-interface PasswordRequirement {
-  text: string
-  met: boolean
-}
+import {
+  validarRequisitosSenha,
+  senhaEValida,
+  calcularForcaSenha,
+} from '@/lib/validacoes-senha'
 
 const ResetPasswordForm = () => {
   const [novaSenha, setNovaSenha] = useState('')
@@ -27,36 +27,29 @@ const ResetPasswordForm = () => {
   const [sucesso, setSucesso] = useState('')
   const [email, setEmail] = useState('')
   const [campoFocado, setCampoFocado] = useState<string | null>(null)
-  const [contexto, setContexto] = useState<'password_reset' | 'password_recovery' | 'password_expired'>('password_reset')
+  const [contexto, setContexto] = useState<
+    'password_reset' | 'password_recovery' | 'password_expired'
+  >('password_reset')
   const navigate = useNavigate()
 
   const { estaAutenticado } = useAuth()
   const passwordChangeMutation = usePasswordChangeMutation()
-  const { isPending: carregando, error, reset: limparErro } = passwordChangeMutation
+  const {
+    isPending: carregando,
+    error,
+    reset: limparErro,
+  } = passwordChangeMutation
   const erro = error?.message ?? null
 
-  const requisitosSenha: PasswordRequirement[] = [
-    { text: 'Pelo menos 8 caracteres', met: novaSenha.length >= 8 },
-    { text: 'Pelo menos uma letra', met: /[a-zA-Z]/.test(novaSenha) },
-    { text: 'Pelo menos um número', met: /[0-9]/.test(novaSenha) },
-    {
-      text: 'Pelo menos um caractere especial',
-      met: /[^a-zA-Z0-9]/.test(novaSenha),
-    },
-    {
-      text: 'Senhas coincidem',
-      met: novaSenha === confirmarSenha && novaSenha.length > 0,
-    },
-  ]
-
-  const senhaValida = requisitosSenha.every((req) => req.met)
+  const requisitosSenha = validarRequisitosSenha(novaSenha, confirmarSenha)
+  const senhaValida = senhaEValida(requisitosSenha)
 
   useEffect(() => {
     // Redireciona se já estiver autenticado
     if (estaAutenticado) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath, { replace: true })
+      void navigate(redirectPath, { replace: true })
       return
     }
 
@@ -67,13 +60,20 @@ const ResetPasswordForm = () => {
 
     // Verifica se veio do fluxo de recuperação ou senha expirada
     const contextoArmazenado = sessionStorage.getItem('auth_context')
-    if (contextoArmazenado !== 'password_reset' && contextoArmazenado !== 'password_recovery' && contextoArmazenado !== 'password_expired') {
-      navigate('/login')
+    if (
+      contextoArmazenado !== 'password_reset' &&
+      contextoArmazenado !== 'password_recovery' &&
+      contextoArmazenado !== 'password_expired'
+    ) {
+      void navigate('/login')
       return
     }
 
     // Define o contexto no estado
-    if (contextoArmazenado === 'password_expired' || contextoArmazenado === 'password_recovery') {
+    if (
+      contextoArmazenado === 'password_expired' ||
+      contextoArmazenado === 'password_recovery'
+    ) {
       setContexto(contextoArmazenado)
     }
 
@@ -83,7 +83,7 @@ const ResetPasswordForm = () => {
       setEmail(emailArmazenado)
     } else {
       // Se não houver email, redirecionar para login
-      navigate('/login')
+      void navigate('/login')
     }
   }, [navigate, estaAutenticado, sucesso])
 
@@ -161,21 +161,7 @@ const ResetPasswordForm = () => {
     },
   }
 
-  const medidorForca = () => {
-    const requisitosAtendidos = requisitosSenha.filter((req) => req.met).length
-    const porcentagem = (requisitosAtendidos / requisitosSenha.length) * 100
-
-    let cor = '#ef4444' // vermelho
-    if (porcentagem >= 80)
-      cor = '#10b981' // verde
-    else if (porcentagem >= 60)
-      cor = '#f59e0b' // amarelo
-    else if (porcentagem >= 40) cor = '#f97316' // laranja
-
-    return { porcentagem, cor }
-  }
-
-  const { porcentagem, cor } = medidorForca()
+  const { porcentagem, cor } = calcularForcaSenha(requisitosSenha)
 
   return (
     <div className="flex min-h-screen">
@@ -239,7 +225,9 @@ const ResetPasswordForm = () => {
                   <Lock className="h-8 w-8 text-teal-600" />
                 </motion.div>
                 <motion.h1 className="text-2xl font-bold text-gray-900">
-                  {contexto === 'password_expired' ? 'Senha Expirada' : 'Redefinir Senha'}
+                  {contexto === 'password_expired'
+                    ? 'Senha Expirada'
+                    : 'Redefinir Senha'}
                 </motion.h1>
                 <motion.p className="text-sm text-gray-600">
                   {contexto === 'password_expired'
@@ -254,13 +242,14 @@ const ResetPasswordForm = () => {
                 {/* Alerta informativo sobre senha expirada */}
                 {contexto === 'password_expired' && (
                   <motion.div
-                    className="rounded-lg bg-orange-50 border border-orange-200 p-3"
+                    className="rounded-lg border border-orange-200 bg-orange-50 p-3"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
                     <p className="text-sm text-orange-800">
-                      Sua senha expirou por motivos de segurança. Por favor, defina uma nova senha para continuar acessando o sistema.
+                      Sua senha expirou por motivos de segurança. Por favor,
+                      defina uma nova senha para continuar acessando o sistema.
                     </p>
                   </motion.div>
                 )}
@@ -445,6 +434,18 @@ const ResetPasswordForm = () => {
                         ))}
                       </AnimatePresence>
                     </motion.div>
+                    
+                    {/* Nota sobre histórico de senhas */}
+                    <motion.div
+                      className="mt-2 rounded-md bg-blue-50 p-2 dark:bg-blue-950"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <p className="text-xs text-blue-800 dark:text-blue-200">
+                        <strong>Nota:</strong> A senha não pode ser igual às suas últimas 5 senhas utilizadas.
+                      </p>
+                    </motion.div>
                   </motion.div>
 
                   <motion.div>
@@ -494,7 +495,9 @@ const ResetPasswordForm = () => {
                   >
                     <Button
                       variant="ghost"
-                      onClick={() => navigate('/login')}
+                      onClick={() => {
+                        void navigate('/login')
+                      }}
                       className="w-full transition-all duration-200 hover:bg-gray-100"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />

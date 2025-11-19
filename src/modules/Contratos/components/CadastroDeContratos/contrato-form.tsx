@@ -63,7 +63,7 @@ import { useValidarNumeroContrato } from '@/modules/Contratos/hooks/use-validar-
 import { validateUnidadesResponsaveis } from '@/modules/Contratos/types/contrato'
 import type { CriarUnidadeResponsavelPayload } from '@/modules/Contratos/types/contrato'
 
-import { UnidadeResponsavelManager } from './UnidadeResponsavelManager'
+import { UnidadeResponsavelManager } from './unidade-responsavel-manager'
 
 // Funções de validação
 const validarNumeroContrato = (numero: string) => {
@@ -1209,7 +1209,7 @@ const ContratoForm = ({
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {processosSelecionados.map((processo, index) => (
                   <div
-                    key={`${processo.tipo}-${processo.valor}-${index}`}
+                    key={`${processo.tipo}-${index}`}
                     className="space-y-3 rounded-lg border p-4"
                   >
                     <div className="flex items-center justify-between">
