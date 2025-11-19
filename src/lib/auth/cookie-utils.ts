@@ -89,7 +89,7 @@ export const cookieUtils = {
     return this.getCookie(name) !== null
   },
 
-  // Obtém todos os cookies como objeto
+  // Obtém todos os cookies como objeto de forma segura
   getAllCookies(): Record<string, string> {
     const cookies: Record<string, string> = {}
     const cookieArray = document.cookie.split(';')
