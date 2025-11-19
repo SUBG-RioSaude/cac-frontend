@@ -1,15 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-type ApiMetricsInstance = typeof import('@/lib/api-metrics')['apiMetrics']
-
-const importarApiMetrics = async (
-  modoDev: 'true' | 'false' = 'false',
-): Promise<ApiMetricsInstance> => {
+const importarApiMetrics = async (modoDev: 'true' | 'false' = 'false') => {
   vi.resetModules()
   vi.stubEnv('DEV', modoDev)
   const modulo = await import('@/lib/api-metrics')
   return modulo.apiMetrics
 }
+
+type ApiMetricsInstance = Awaited<ReturnType<typeof importarApiMetrics>>
 
 afterEach(() => {
   vi.unstubAllEnvs()
