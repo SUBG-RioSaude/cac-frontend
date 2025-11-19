@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
 
 import {
   AlertDialog,
@@ -67,6 +68,40 @@ describe('AlertDialog UI', () => {
     expect(
       document.querySelector('[data-slot="alert-dialog-header"]'),
     ).toHaveClass('cabecalho-personalizado')
+  })
+
+  it('deve renderizar título e descrição corretamente', () => {
+    renderDialogAberto()
+
+    expect(screen.getByText('Tem certeza?')).toBeInTheDocument()
+    expect(
+      screen.getByText('Esta ação não poderá ser desfeita.'),
+    ).toBeInTheDocument()
+  })
+
+  it('deve renderizar componente AlertDialog quando aberto', () => {
+    const handleOpenChange = vi.fn()
+    render(
+      <AlertDialog open onOpenChange={handleOpenChange}>
+        <AlertDialogTrigger>Trigger</AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogTitle>Teste</AlertDialogTitle>
+        </AlertDialogContent>
+      </AlertDialog>,
+    )
+
+    expect(screen.getByText('Teste')).toBeInTheDocument()
+    expect(
+      document.querySelector('[data-slot="alert-dialog-content"]'),
+    ).toBeInTheDocument()
+  })
+
+  it('deve renderizar AlertDialogOverlay quando aberto', () => {
+    renderDialogAberto()
+
+    expect(
+      document.querySelector('[data-slot="alert-dialog-overlay"]'),
+    ).toBeInTheDocument()
   })
 })
 
