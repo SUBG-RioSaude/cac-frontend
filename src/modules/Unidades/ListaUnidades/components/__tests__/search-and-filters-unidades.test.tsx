@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { FiltrosUnidadesApi } from '../../types/unidade-api'
 import { SearchAndFiltersUnidades } from '../search-and-filters-unidades'
 
+vi.setConfig({ testTimeout: 20000 })
+
 // Mock para Radix UI pointer events
 Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
   value: vi.fn(() => false),

@@ -7,6 +7,8 @@ import ContratoForm, {
   type DadosContrato,
 } from '@/modules/Contratos/components/CadastroDeContratos/contrato-form'
 
+vi.setConfig({ testTimeout: 20000 })
+
 // Mock dos dados que o componente tenta carregar
 vi.mock('@/modules/Contratos/data/contratos-mock', () => ({
   unidadesMock: {

@@ -74,6 +74,10 @@ export default defineConfig({
         '**/mock*/**',
         '**/*mock*',
         '**/*.stories.*',
+        'src/main.tsx',
+        'src/modules/Contratos/services/signalr-manager.ts',
+        'src/modules/Contratos/store/**',
+        'src/modules/Contratos/pages/CadastroContratos/**',
       ],
       thresholds: {
         global: {

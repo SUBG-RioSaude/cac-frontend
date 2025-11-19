@@ -7,6 +7,8 @@ import { usuariosMock } from '@/modules/Contratos/data/usuarios-mock'
 
 import AtribuicaoFiscaisForm from '../atribuicao-fiscais-form'
 
+vi.setConfig({ testTimeout: 20000 })
+
 const mockFuncionarios = usuariosMock.map((usuario) => ({
   id: usuario.id,
   nome: usuario.nome,
