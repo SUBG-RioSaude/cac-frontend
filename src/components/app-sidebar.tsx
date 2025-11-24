@@ -18,76 +18,88 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { useAuth } from '@/lib/auth/auth-context'
+import { getToken, getTokenInfo } from '@/lib/auth/auth'
+import { PERMISSOES_GESTAO_USUARIOS } from '@/lib/auth/permissoes-constants'
 
 import { Separator } from './ui/separator'
 
-const data = {
-  user: {
-    name: 'João Silva',
-    email: 'joao.silva@prefeitura.gov.br',
-    avatar: '/logos-cac/4.png',
+const NAV_ITEMS = [
+  {
+    title: 'Início',
+    url: '/',
+    icon: Home,
   },
-  navMain: [
-    {
-      title: 'Início',
-      url: '/',
-      icon: Home,
-    },
-    {
-      title: 'Contratos',
-      url: '/contratos',
-      icon: PenBoxIcon,
-      items: [
-        {
-          title: 'Cadastrar Contrato',
-          url: '/contratos/cadastrar',
-        },
-        {
-          title: 'Lista de Contratos',
-          url: '/contratos',
-        },
-      ],
-    },
-    {
-      title: 'Fornecedores',
-      url: '/fornecedores',
-      icon: Truck,
-    },
-    {
-      title: 'Unidades',
-      url: '/unidades',
-      icon: Building2,
-    },
-    {
-      title: 'Gestão de Usuários',
-      url: '/gestao-usuarios',
-      icon: ShieldUser,
-      items: [
-        {
-          title: 'Cadastro de Funcionários',
-          url: '/funcionarios/cadastrar',
-        },
-        {
-          title: 'Gerenciar Usuários',
-          url: '/gestao-usuarios/gerenciar',
-        },
-        {
-          title: 'Registro de Alterações',
-          url: '/alteracoes',
-        },
-      ],
-    },
-    {
-      title: 'Configurações',
-      url: '/configuracoes',
-      icon: Settings2,
-    },
-  ],
-}
+  {
+    title: 'Contratos',
+    url: '/contratos',
+    icon: PenBoxIcon,
+    items: [
+      {
+        title: 'Cadastrar Contrato',
+        url: '/contratos/cadastrar',
+      },
+      {
+        title: 'Lista de Contratos',
+        url: '/contratos',
+      },
+    ],
+  },
+  {
+    title: 'Fornecedores',
+    url: '/fornecedores',
+    icon: Truck,
+  },
+  {
+    title: 'Unidades',
+    url: '/unidades',
+    icon: Building2,
+  },
+  {
+    title: 'Gestão de Usuários',
+    url: '/gestao-usuarios',
+    icon: ShieldUser,
+    items: [
+      {
+        title: 'Cadastro de Funcionários',
+        url: '/funcionarios/cadastrar',
+      },
+      {
+        title: 'Gerenciar Usuários',
+        url: '/gestao-usuarios/gerenciar',
+      },
+      {
+        title: 'Registro de Alterações',
+        url: '/alteracoes',
+      },
+    ],
+    permissoesObrigatorias: PERMISSOES_GESTAO_USUARIOS,
+  },
+  {
+    title: 'Configurações',
+    url: '/configuracoes',
+    icon: Settings2,
+  },
+]
 
 export const AppSidebar = ({
   ...props
 }: React.ComponentProps<typeof Sidebar>) => {
+  const { estaAutenticado } = useAuth()
+  const token = estaAutenticado ? getToken() : null
+  const tokenInfo = token ? getTokenInfo(token) : null
+  const permissoesUsuario = tokenInfo?.permissaoIds ?? []
+
+  const itensPermitidos = NAV_ITEMS.filter((item) => {
+    if (!item.permissoesObrigatorias) {
+      return true
+    }
+    // Verifica se o usuário tem pelo menos uma das permissões obrigatórias
+    return item.permissoesObrigatorias.some((permissaoId) =>
+      permissoesUsuario.includes(permissaoId),
+    )
+  })
+
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="h-svh" {...props}>
       <SidebarHeader>
@@ -146,7 +158,7 @@ export const AppSidebar = ({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={itensPermitidos} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarFooterCustom />

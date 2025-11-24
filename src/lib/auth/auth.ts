@@ -23,6 +23,36 @@ const validarTokenJWT = (token: string): boolean => {
   return partes.length === 3 && partes.every((part) => part.length > 0)
 }
 
+// Normaliza valores vindos do payload do JWT para um array de strings
+const normalizarValorParaArrayStrings = (valor: unknown): string[] => {
+  if (valor === null || valor === undefined) {
+    return []
+  }
+
+  if (Array.isArray(valor)) {
+    return valor
+      .map((item) => {
+        if (typeof item === 'number') return item.toString()
+        if (typeof item === 'string') return item.trim()
+        return String(item)
+      })
+      .filter((item) => item.length > 0)
+  }
+
+  if (typeof valor === 'string') {
+    return valor
+      .split(',')
+      .map((parte) => parte.trim())
+      .filter((parte) => parte.length > 0)
+  }
+
+  if (typeof valor === 'number') {
+    return [valor.toString()]
+  }
+
+  return []
+}
+
 // Função para obter o token JWT atual (MEMÓRIA primeiro, cookies como fallback)
 export function getToken(): string | null {
   const token = useAuthStore.getState().getToken()
@@ -110,16 +140,20 @@ export function getTokenInfo(token: string) {
     const payloadString = decodeBase64UTF8(base64Payload)
     const payload = JSON.parse(payloadString)
 
+    const permissaoNome = normalizarValorParaArrayStrings(
+      payload.permissaoNome ?? payload.nomePermissao,
+    )
+    const permissaoIds = normalizarValorParaArrayStrings(
+      payload.permissao ?? payload.permissaoId ?? payload.permissaoIds,
+    )
+
     return {
       sub: payload.sub,
       usuarioId: payload.usuarioId,
       tipoUsuario: payload.tipoUsuario,
       nomeCompleto: payload.nomeCompleto,
-      permissaoNome: Array.isArray(payload.permissaoNome)
-        ? payload.permissaoNome
-        : payload.nomePermissao
-          ? [payload.nomePermissao]
-          : [],
+      permissaoNome,
+      permissaoIds,
       exp: new Date(payload.exp * 1000),
       iss: payload.iss,
       aud: payload.aud,

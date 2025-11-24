@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-import { hasAuthCookies } from '@/lib/auth/auth'
+import { getToken, getTokenInfo, hasAuthCookies } from '@/lib/auth/auth'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useLogoutMutation } from '@/lib/auth/auth-queries'
 import { createServiceLogger } from '@/lib/logger'
@@ -21,6 +21,7 @@ interface ProtectedRouteProps {
   requireGuest?: boolean
   requirePasswordChange?: boolean
   require2FA?: boolean
+  permissoesObrigatorias?: (string | number)[]
   children?: React.ReactNode
 }
 
@@ -30,6 +31,7 @@ export const ProtectedRoute = ({
   requireGuest = false,
   requirePasswordChange = false,
   require2FA = false,
+  permissoesObrigatorias,
   children,
 }: ProtectedRouteProps) => {
   const { usuario, estaAutenticado, carregando } = useAuth()
@@ -138,6 +140,27 @@ export const ProtectedRoute = ({
   // Verifica se o usuário precisa trocar a senha (redirecionamento automático)
   if (requireAuth && estaAutenticado && usuario?.precisaTrocarSenha) {
     return <Navigate to="/trocar-senha" replace />
+  }
+
+  if (
+    requireAuth &&
+    permissoesObrigatorias?.length &&
+    estaAutenticado
+  ) {
+    const token = getToken()
+    const tokenInfo = token ? getTokenInfo(token) : null
+    const permissoesUsuario = tokenInfo?.permissaoIds ?? []
+    const permissoesNormalizadas = permissoesObrigatorias.map((permissao) =>
+      permissao.toString(),
+    )
+    const possuiPermissaoObrigatoria = permissoesNormalizadas.some(
+      (permissaoNecessaria) =>
+        permissoesUsuario.includes(permissaoNecessaria),
+    )
+
+    if (!possuiPermissaoObrigatoria) {
+      return <Navigate to="/403" replace />
+    }
   }
 
   // Se tem children, renderiza os children, senão usa Outlet

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 
 import { LayoutAuthenticated } from '@/components/layout-authenticated'
 import { ProtectedRoute, AuthFlowGuard } from '@/lib/middleware'
+import { PERMISSOES_GESTAO_USUARIOS } from '@/lib/auth/permissoes-constants'
 
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
@@ -91,7 +92,10 @@ const App = () => {
       <Route
         path="/funcionarios/cadastrar"
         element={(
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute
+            requireAuth
+            permissoesObrigatorias={PERMISSOES_GESTAO_USUARIOS}
+          >
             <LayoutAuthenticated>
               <CadastroFuncionarioPage />
             </LayoutAuthenticated>
@@ -216,7 +220,10 @@ const App = () => {
       <Route
         path="/gestao-usuarios/gerenciar"
         element={(
-          <ProtectedRoute requireAuth>
+          <ProtectedRoute
+            requireAuth
+            permissoesObrigatorias={PERMISSOES_GESTAO_USUARIOS}
+          >
             <LayoutAuthenticated>
               <GerenciarUsuariosPage />
             </LayoutAuthenticated>
