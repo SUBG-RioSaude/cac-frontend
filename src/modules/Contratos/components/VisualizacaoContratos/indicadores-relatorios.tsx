@@ -6,6 +6,7 @@ import {
   DollarSign,
   Target,
   Building,
+  AlertCircle,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -98,18 +99,39 @@ export const IndicadoresRelatorios = ({
   const dataInicio = new Date(contrato.dataInicio)
   const dataTermino = new Date(contrato.dataTermino)
 
-  const diasVigentes = Math.max(
-    0,
-    Math.floor((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24)),
-  )
+  // Verificar se o contrato está vencido
+  const contratoVencido = hoje > dataTermino
+
+  // Calcular total de dias do contrato
   const diasTotais = Math.floor(
     (dataTermino.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24),
   )
+
+  // Calcular dias vigentes (limitado ao período do contrato)
+  const diasVigentesBruto = Math.floor(
+    (hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24),
+  )
+  // Sempre limitar diasVigentes a diasTotais para evitar valores negativos de dias restantes
+  const diasVigentes = Math.min(Math.max(0, diasVigentesBruto), diasTotais)
+
+  // Calcular dias restantes (sempre >= 0)
+  // Se vencido, restam 0 dias; caso contrário, calcular normalmente
+  const diasRestantes = contratoVencido ? 0 : Math.max(0, diasTotais - diasVigentes)
+
+  // Calcular quantos dias o contrato está vencido (se aplicável)
+  const diasVencidos = contratoVencido
+    ? Math.floor(
+        (hoje.getTime() - dataTermino.getTime()) / (1000 * 60 * 60 * 24),
+      )
+    : 0
+
+  // Calcular progresso temporal (sempre entre 0-100%)
   const progressoTemporal =
     diasTotais > 0 ? Math.min((diasVigentes / diasTotais) * 100, 100) : 0
 
-  // Calcular gasto médio por dia
-  const gastoMedioPorDia = diasVigentes > 0 ? valorExecutado / diasVigentes : 0
+  // Calcular gasto médio por dia (usar diasVigentesBruto para cálculo correto mesmo após vencimento)
+  const diasParaCalculo = Math.max(diasVigentesBruto, 1)
+  const gastoMedioPorDia = valorExecutado / diasParaCalculo
 
   // Gerar dados de evolução baseados na duração real do contrato
   const dadosEvolucao = (() => {
@@ -261,25 +283,58 @@ export const IndicadoresRelatorios = ({
             </div>
 
             {/* Progresso Temporal */}
-            <div className="rounded-lg bg-blue-50 p-3 text-center sm:p-4">
-              <p className="text-muted-foreground text-xs sm:text-sm">
-                Progresso Temporal
-              </p>
-              <p className="text-base font-bold text-blue-600 sm:text-xl">
+            <div
+              className={`rounded-lg p-3 text-center sm:p-4 ${
+                contratoVencido
+                  ? 'bg-red-50'
+                  : 'bg-blue-50'
+              }`}
+            >
+              <div className="mb-2 flex items-center justify-center gap-2">
+                <p className="text-muted-foreground text-xs sm:text-sm">
+                  Progresso Temporal
+                </p>
+                {contratoVencido && (
+                  <Badge
+                    className="bg-red-100 text-red-800 hover:bg-red-200"
+                    data-testid="contrato-vencido-badge"
+                  >
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                    Vencido
+                  </Badge>
+                )}
+              </div>
+              <p
+                className={`text-base font-bold sm:text-xl ${
+                  contratoVencido ? 'text-red-600' : 'text-blue-600'
+                }`}
+              >
                 {diasVigentes} dias vigentes de {diasTotais} dias
               </p>
               <div className="mt-3">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-blue-600">
+                  <span
+                    className={`text-xs font-medium ${
+                      contratoVencido ? 'text-red-600' : 'text-blue-600'
+                    }`}
+                  >
                     {progressoTemporal.toFixed(1)}%
                   </span>
                   <span className="text-muted-foreground text-xs">
-                    {diasTotais - diasVigentes} dias restantes
+                    {contratoVencido
+                      ? `Vencido há ${diasVencidos} dia${diasVencidos !== 1 ? 's' : ''}`
+                      : `${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''} restante${diasRestantes !== 1 ? 's' : ''}`}
                   </span>
                 </div>
-                <div className="h-2.5 w-full rounded-full bg-blue-200">
+                <div
+                  className={`h-2.5 w-full rounded-full ${
+                    contratoVencido ? 'bg-red-200' : 'bg-blue-200'
+                  }`}
+                >
                   <div
-                    className="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      contratoVencido ? 'bg-red-600' : 'bg-blue-600'
+                    }`}
                     style={{ width: `${Math.min(progressoTemporal, 100)}%` }}
                   />
                 </div>
