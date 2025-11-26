@@ -263,7 +263,7 @@ export const ContractChat = ({
   return (
     <Card className={cn('flex flex-col', className ?? 'h-full min-h-[700px]')}>
       {/* Header do Chat */}
-      <CardHeader className="bg-muted/30 border-b">
+      <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
@@ -314,11 +314,11 @@ export const ContractChat = ({
       </CardHeader>
 
       {/* Mensagens */}
-      <div className="to-muted/10 flex-1 overflow-hidden bg-gradient-to-b from-white">
+      <div className="flex-1 overflow-hidden">
         <ScrollArea ref={scrollAreaRef} className="h-full">
           <div className="space-y-6 p-6">
             {isError && (
-              <div className="border-destructive/40 bg-destructive/10 text-destructive rounded-lg border p-4 text-sm">
+              <div className="border-destructive/40 text-destructive rounded-lg border p-4 text-sm">
                 <p className="font-medium">Erro ao carregar o chat</p>
                 <p className="mt-1 opacity-80">
                   {error instanceof Error
@@ -358,7 +358,7 @@ export const ContractChat = ({
             )}
 
             {realtime.connectionState === 'error' && realtime.error && (
-              <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+              <div className="rounded-lg border border-amber-300 p-4 text-sm text-amber-800">
                 <p className="font-medium">
                   ⚠️ Conexão em tempo real indisponível
                 </p>
@@ -373,7 +373,7 @@ export const ContractChat = ({
             )}
 
             {!shouldConnectRealtime && (
-              <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+              <div className="rounded-lg border border-red-300 p-4 text-sm text-red-800">
                 <p className="font-medium">🔒 Chat em modo somente leitura</p>
                 <p className="mt-1 text-xs">
                   Não foi possível autenticar o usuário. Faça login novamente
@@ -389,10 +389,10 @@ export const ContractChat = ({
                     key={`chat-skeleton-${index}`}
                     className="flex items-start gap-3"
                   >
-                    <div className="bg-muted h-10 w-10 rounded-full" />
+                    <div className="h-10 w-10 rounded-full" />
                     <div className="flex-1 space-y-2">
-                      <div className="bg-muted h-4 w-1/3 rounded" />
-                      <div className="bg-muted h-14 w-full rounded" />
+                      <div className="h-4 w-1/3 rounded" />
+                      <div className="h-14 w-full rounded" />
                     </div>
                   </div>
                 ))}
@@ -424,7 +424,7 @@ export const ContractChat = ({
                     )}
                   >
                     {mensagem.tipo === 'sistema' ? (
-                      <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-center">
+                      <div className="rounded-lg border border-blue-200 px-4 py-3 text-center">
                         <p className="flex items-center justify-center gap-2 text-sm font-medium whitespace-pre-wrap text-blue-700">
                           <CheckCircle2 className="h-4 w-4" />
                           {mensagem.conteudo}
@@ -479,7 +479,7 @@ export const ContractChat = ({
                                 'rounded-lg border px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm',
                                 isOwn
                                   ? 'border-blue-500 bg-blue-500 text-white'
-                                  : 'border-border bg-white transition-shadow hover:shadow-md',
+                                  : 'border-border transition-shadow hover:shadow-md',
                               )}
                             >
                               {mensagem.conteudo}

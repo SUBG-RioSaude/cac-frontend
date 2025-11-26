@@ -5,7 +5,8 @@ import {
   Eye,
   FileWarning,
 } from 'lucide-react'
-import { memo, useState } from 'react'
+import { useTheme } from 'next-themes'
+import { memo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
@@ -21,32 +22,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import type { DashboardRisks, RiskLevel } from '../../types/dashboard'
 
-const riskConfig = {
+const getRiskConfig = (isDarkMode: boolean) => ({
   alto: {
     label: 'Alto Risco',
     description: 'Contratos vencidos ou com pendências críticas',
     icon: AlertTriangle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
+    color: isDarkMode ? 'text-red-400 dark:text-red-400' : 'text-red-600',
+    bgColor: isDarkMode ? 'bg-red-950/30 dark:bg-red-950/30' : 'bg-red-50',
+    borderColor: isDarkMode ? 'border-red-800/50 dark:border-red-800/50' : 'border-red-200',
   },
   medio: {
     label: 'Médio Risco',
     description: 'Vencendo em 30 dias ou com atenção necessária',
     icon: AlertCircle,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
+    color: isDarkMode ? 'text-orange-400 dark:text-orange-400' : 'text-orange-600',
+    bgColor: isDarkMode ? 'bg-orange-950/30 dark:bg-orange-950/30' : 'bg-orange-50',
+    borderColor: isDarkMode ? 'border-orange-800/50 dark:border-orange-800/50' : 'border-orange-200',
   },
   baixo: {
     label: 'Baixo Risco',
     description: 'Contratos ativos em conformidade',
     icon: CheckCircle2,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
+    color: isDarkMode ? 'text-green-400 dark:text-green-400' : 'text-green-600',
+    bgColor: isDarkMode ? 'bg-green-950/30 dark:bg-green-950/30' : 'bg-green-50',
+    borderColor: isDarkMode ? 'border-green-800/50 dark:border-green-800/50' : 'border-green-200',
   },
-}
+})
 
 interface RiskAnalysisProps {
   data?: DashboardRisks | null
@@ -60,7 +61,20 @@ const RiskAnalysisComponent = ({
   detailed = false,
 }: RiskAnalysisProps) => {
   const navigate = useNavigate()
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<RiskLevel>('alto')
+
+  // Espera o componente montar para evitar problemas de hidratação
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Determina se está em dark mode
+  const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark')
+  
+  // Obtém as configurações de risco baseadas no tema
+  const riskConfig = getRiskConfig(isDarkMode)
 
   // Loading state
   if (isLoading) {
@@ -136,7 +150,7 @@ const RiskAnalysisComponent = ({
                   <div className={`text-3xl font-bold ${config.color}`}>
                     {riskData.count}
                   </div>
-                  <p className="text-muted-foreground mt-1 text-xs">
+                  <p className="text-muted-foreground mt-1 text-xs break-words leading-tight">
                     {config.description}
                   </p>
                 </CardContent>
@@ -165,7 +179,7 @@ const RiskAnalysisComponent = ({
                       </CardTitle>
                       <Badge variant="secondary">{riskData.count}</Badge>
                     </div>
-                    <CardDescription>{config.description}</CardDescription>
+                    <CardDescription className="break-words leading-tight">{config.description}</CardDescription>
                   </div>
                   <Button
                     variant="ghost"
@@ -307,7 +321,7 @@ const RiskAnalysisComponent = ({
                 <div
                   className={`rounded-lg border p-2.5 mb-3 ${config.borderColor} ${config.bgColor}`}
                 >
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-xs break-words leading-tight">
                     {config.description}
                   </p>
                 </div>

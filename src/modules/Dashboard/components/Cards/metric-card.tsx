@@ -35,7 +35,7 @@ const MetricCardTitle = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-muted-foreground text-[13px] font-medium', className)}
+    className={cn('text-foreground text-[13px] font-medium', className)}
     {...props}
   >
     {children}

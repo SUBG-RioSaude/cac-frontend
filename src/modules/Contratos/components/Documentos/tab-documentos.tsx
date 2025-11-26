@@ -8,7 +8,8 @@ import {
   Loader2,
   RotateCcw,
 } from 'lucide-react'
-import { useState, useMemo, useCallback } from 'react'
+import { useTheme } from 'next-themes'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +30,7 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import { useDocumentos, useUpdateDocumentosMultiplos } from '../../hooks'
 import type { DocumentoMultiplo } from '../../types/contrato'
@@ -86,12 +88,22 @@ interface DocumentoLocal {
 }
 
 export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const {
     data: documentosApi = [],
     isLoading,
     error,
   } = useDocumentos(contratoId)
   const updateMutation = useUpdateDocumentosMultiplos()
+
+  // Espera o componente montar para evitar problemas de hidratação
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Determina se está em dark mode
+  const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark')
 
   // Estados para confirmações
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
@@ -251,7 +263,7 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={cn(isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-card')}>
         <CardHeader>
           <Skeleton className="h-6 w-3/4" />
         </CardHeader>
@@ -275,10 +287,15 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
   }
 
   return (
-    <Card>
+    <Card className={cn(isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-card')}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle
+            className={cn(
+              'flex items-center gap-2',
+              isDarkMode ? 'text-gray-100' : 'text-foreground',
+            )}
+          >
             <FileText className="h-5 w-5" />
             Checklist de Documentos
           </CardTitle>
@@ -292,11 +309,23 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
         {/* Progresso */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-1">
+            <span
+              className={cn(
+                'flex items-center gap-1',
+                isDarkMode ? 'text-gray-300' : 'text-foreground',
+              )}
+            >
               <BarChart3 className="h-4 w-4" />
               Progresso
             </span>
-            <span className="font-medium">{progressData.percentual}%</span>
+            <span
+              className={cn(
+                'font-medium',
+                isDarkMode ? 'text-gray-300' : 'text-foreground',
+              )}
+            >
+              {progressData.percentual}%
+            </span>
           </div>
           <Progress value={progressData.percentual} className="h-2" />
         </div>
@@ -306,11 +335,16 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
           {documentosLocais.map((documento) => (
             <div
               key={documento.key}
-              className={`rounded-lg border p-3 transition-colors ${
+              className={cn(
+                'rounded-lg border p-3 transition-colors',
                 documento.selecionado
-                  ? 'border-green-200 bg-green-50'
-                  : 'border-gray-200 bg-white'
-              }`}
+                  ? isDarkMode
+                    ? 'border-green-700/50 bg-green-950/40'
+                    : 'border-green-200 bg-green-50'
+                  : isDarkMode
+                    ? 'border-gray-700 bg-gray-800'
+                    : 'border-gray-200 bg-white',
+              )}
             >
               {/* Header do documento */}
               <div className="mb-3 flex items-start gap-2">
@@ -329,12 +363,20 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
                 <div className="min-w-0 flex-1">
                   <Label
                     htmlFor={documento.key}
-                    className="block text-xs leading-4 font-medium"
+                    className={cn(
+                      'block text-xs leading-4 font-medium',
+                      isDarkMode ? 'text-gray-200' : 'text-foreground',
+                    )}
                   >
                     {documento.nome}
                   </Label>
                   {documento.selecionado && documento.dataEntrega && (
-                    <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
+                    <div
+                      className={cn(
+                        'mt-1 flex items-center gap-1 text-xs',
+                        isDarkMode ? 'text-green-400' : 'text-green-600',
+                      )}
+                    >
                       <Calendar className="h-3 w-3 shrink-0" />
                       <span className="truncate">
                         <DateDisplay
@@ -356,7 +398,10 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
                 <div>
                   <Label
                     htmlFor={`url-${documento.key}`}
-                    className="mb-1 block text-xs text-gray-600"
+                    className={cn(
+                      'mb-1 block text-xs',
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600',
+                    )}
                   >
                     URL (opcional)
                   </Label>
@@ -396,7 +441,10 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
                 <div>
                   <Label
                     htmlFor={`obs-${documento.key}`}
-                    className="mb-1 block text-xs text-gray-600"
+                    className={cn(
+                      'mb-1 block text-xs',
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600',
+                    )}
                   >
                     Observações (opcional)
                   </Label>
@@ -420,10 +468,20 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
         </div>
 
         {/* Botões de ação */}
-        <div className="flex items-center justify-between border-t pt-4">
+        <div
+          className={cn(
+            'flex items-center justify-between border-t pt-4',
+            isDarkMode ? 'border-gray-700' : 'border-gray-200',
+          )}
+        >
           <div className="flex items-center">
             {hasUnsavedChanges && (
-              <span className="flex items-center gap-1 text-sm text-orange-600">
+              <span
+                className={cn(
+                  'flex items-center gap-1 text-sm',
+                  isDarkMode ? 'text-orange-400' : 'text-orange-600',
+                )}
+              >
                 <AlertCircle className="h-3 w-3" />
                 Há alterações não salvas
               </span>
@@ -437,7 +495,12 @@ export const TabDocumentos = ({ contratoId }: TabDocumentosProps) => {
                 onClick={handleResetarAlteracoes}
                 disabled={updateMutation.isPending}
                 variant="outline"
-                className="flex items-center gap-2 border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                className={cn(
+                  'flex items-center gap-2',
+                  isDarkMode
+                    ? 'border-red-800 text-red-400 hover:border-red-700 hover:bg-red-950/30 hover:text-red-300'
+                    : 'border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700',
+                )}
               >
                 <RotateCcw className="h-4 w-4" />
                 Cancelar Alterações

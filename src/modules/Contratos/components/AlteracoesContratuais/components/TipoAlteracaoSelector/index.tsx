@@ -17,7 +17,8 @@ import {
   Check,
   Info,
 } from 'lucide-react'
-import { useState, useCallback, useMemo } from 'react'
+import { useTheme } from 'next-themes'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -59,17 +60,33 @@ const ICONES_MAP = {
   Clock,
 }
 
-// Cores para os badges
-const CORES_MAP = {
-  blue: 'bg-blue-100 text-blue-700 border-blue-200',
-  green: 'bg-green-100 text-green-700 border-green-200',
-  purple: 'bg-purple-100 text-purple-700 border-purple-200',
-  gray: 'bg-gray-100 text-gray-700 border-gray-200',
-  yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  orange: 'bg-orange-100 text-orange-700 border-orange-200',
-  red: 'bg-red-100 text-red-700 border-red-200',
-  indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-}
+// Função para obter cores adaptadas ao dark mode
+const getCoresMap = (isDarkMode: boolean) => ({
+  blue: isDarkMode
+    ? 'bg-blue-950/30 text-blue-400 border-blue-800/50'
+    : 'bg-blue-100 text-blue-700 border-blue-200',
+  green: isDarkMode
+    ? 'bg-green-950/30 text-green-400 border-green-800/50'
+    : 'bg-green-100 text-green-700 border-green-200',
+  purple: isDarkMode
+    ? 'bg-purple-950/30 text-purple-400 border-purple-800/50'
+    : 'bg-purple-100 text-purple-700 border-purple-200',
+  gray: isDarkMode
+    ? 'bg-gray-800/30 text-gray-400 border-gray-700/50'
+    : 'bg-gray-100 text-gray-700 border-gray-200',
+  yellow: isDarkMode
+    ? 'bg-yellow-950/30 text-yellow-400 border-yellow-800/50'
+    : 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  orange: isDarkMode
+    ? 'bg-orange-950/30 text-orange-400 border-orange-800/50'
+    : 'bg-orange-100 text-orange-700 border-orange-200',
+  red: isDarkMode
+    ? 'bg-red-950/30 text-red-400 border-red-800/50'
+    : 'bg-red-100 text-red-700 border-red-200',
+  indigo: isDarkMode
+    ? 'bg-indigo-950/30 text-indigo-400 border-indigo-800/50'
+    : 'bg-indigo-100 text-indigo-700 border-indigo-200',
+})
 
 export const TipoAlteracaoSelector = ({
   tiposSelecionados = [],
@@ -77,7 +94,20 @@ export const TipoAlteracaoSelector = ({
   disabled = false,
   error,
 }: TipoAlteracaoSelectorProps) => {
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false)
+
+  // Espera o componente montar para evitar problemas de hidratação
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Determina se está em dark mode
+  const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark')
+
+  // Obtém as cores baseadas no tema
+  const CORES_MAP = getCoresMap(isDarkMode)
 
   // Tipos habilitados - apenas os 3 solicitados pelo usuário
   const tiposHabilitados = useMemo(() => new Set([1, 3, 4]), []) // AditivoPrazo, AditivoQualitativo, AditivoQuantidade
@@ -180,7 +210,14 @@ export const TipoAlteracaoSelector = ({
           </CardTitle>
 
           {error && (
-            <div className="flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div
+              className={cn(
+                'flex items-center gap-2 rounded-md px-3 py-2 text-sm',
+                isDarkMode
+                  ? 'bg-red-950/30 text-red-400 dark:bg-red-950/30 dark:text-red-400'
+                  : 'bg-red-50 text-red-600',
+              )}
+            >
               <AlertTriangle className="h-4 w-4" />
               {error}
             </div>
@@ -206,10 +243,16 @@ export const TipoAlteracaoSelector = ({
                   className={cn(
                     'group relative rounded-lg border-2 p-3 text-left transition-all',
                     isSelected
-                      ? 'border-blue-500 bg-blue-50'
+                      ? isDarkMode
+                        ? 'border-blue-500 bg-blue-950/20 dark:bg-blue-950/20'
+                        : 'border-blue-500 bg-blue-50'
                       : isEnabled
-                        ? 'border-gray-200 bg-white hover:border-gray-300'
-                        : 'border-gray-200 bg-gray-50',
+                        ? isDarkMode
+                          ? 'border-gray-700 dark:border-gray-700'
+                          : 'border-gray-200'
+                        : isDarkMode
+                          ? 'border-gray-700 dark:border-gray-700'
+                          : 'border-gray-200',
                     (disabled || !isEnabled) && 'cursor-not-allowed opacity-75',
                     'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none',
                   )}
@@ -219,7 +262,12 @@ export const TipoAlteracaoSelector = ({
                     <div className="absolute top-2 right-2">
                       <Badge
                         variant="secondary"
-                        className="bg-gray-200 text-xs text-gray-600"
+                        className={cn(
+                          'text-xs',
+                          isDarkMode
+                            ? 'bg-gray-800 text-gray-400 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-gray-200 text-gray-600',
+                        )}
                       >
                         Em Breve
                       </Badge>
@@ -233,8 +281,10 @@ export const TipoAlteracaoSelector = ({
                         className={cn(
                           'flex h-5 w-5 items-center justify-center rounded border-2',
                           isSelected
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-gray-300 group-hover:border-gray-400',
+                            ? 'border-blue-500 bg-blue-500 dark:border-blue-500 dark:bg-blue-500'
+                            : isDarkMode
+                              ? 'border-gray-600 group-hover:border-gray-500 dark:border-gray-600 dark:group-hover:border-gray-500'
+                              : 'border-gray-300 group-hover:border-gray-400',
                         )}
                       >
                         {isSelected && <Check className="h-3 w-3 text-white" />}
@@ -246,7 +296,11 @@ export const TipoAlteracaoSelector = ({
                     <div
                       className={cn(
                         'rounded-md p-2',
-                        isEnabled ? corClasse : 'bg-gray-200 text-gray-500',
+                        isEnabled
+                          ? corClasse
+                          : isDarkMode
+                            ? 'bg-gray-800 text-gray-500 dark:bg-gray-800 dark:text-gray-500'
+                            : 'bg-gray-200 text-gray-500',
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -256,7 +310,13 @@ export const TipoAlteracaoSelector = ({
                       <h3
                         className={cn(
                           'mb-1 text-sm font-medium',
-                          isEnabled ? 'text-gray-900' : 'text-gray-500',
+                          isEnabled
+                            ? isDarkMode
+                              ? 'text-gray-100 dark:text-gray-100'
+                              : 'text-gray-900'
+                            : isDarkMode
+                              ? 'text-gray-500 dark:text-gray-500'
+                              : 'text-gray-500',
                         )}
                       >
                         {config.label}
@@ -264,7 +324,13 @@ export const TipoAlteracaoSelector = ({
                       <p
                         className={cn(
                           'text-xs leading-relaxed',
-                          isEnabled ? 'text-gray-600' : 'text-gray-400',
+                          isEnabled
+                            ? isDarkMode
+                              ? 'text-gray-400 dark:text-gray-400'
+                              : 'text-gray-600'
+                            : isDarkMode
+                              ? 'text-gray-600 dark:text-gray-600'
+                              : 'text-gray-400',
                         )}
                       >
                         {config.descricao}
@@ -295,8 +361,22 @@ export const TipoAlteracaoSelector = ({
                 <Separator />
 
                 {tiposSelecionados.length > 0 && (
-                  <div className="space-y-3 rounded-lg bg-blue-50 p-4">
-                    <h4 className="flex items-center gap-2 font-medium text-blue-900">
+                  <div
+                    className={cn(
+                      'space-y-3 rounded-lg p-4',
+                      isDarkMode
+                        ? 'bg-blue-950/20 dark:bg-blue-950/20'
+                        : 'bg-blue-50',
+                    )}
+                  >
+                    <h4
+                      className={cn(
+                        'flex items-center gap-2 font-medium',
+                        isDarkMode
+                          ? 'text-blue-300 dark:text-blue-300'
+                          : 'text-blue-900',
+                      )}
+                    >
                       <Info className="h-4 w-4" />
                       Impacto da Seleção Atual
                     </h4>
@@ -305,7 +385,14 @@ export const TipoAlteracaoSelector = ({
                       {/* Blocos obrigatórios */}
                       {infoSelecao.blocosObrigatorios.size > 0 && (
                         <div>
-                          <span className="font-medium text-gray-700">
+                          <span
+                            className={cn(
+                              'font-medium',
+                              isDarkMode
+                                ? 'text-gray-300 dark:text-gray-300'
+                                : 'text-gray-700',
+                            )}
+                          >
                             Blocos obrigatórios:
                           </span>
                           <div className="mt-1 flex flex-wrap gap-1">
@@ -328,7 +415,14 @@ export const TipoAlteracaoSelector = ({
                       {/* Blocos opcionais */}
                       {infoSelecao.blocosOpcionais.size > 0 && (
                         <div>
-                          <span className="font-medium text-gray-700">
+                          <span
+                            className={cn(
+                              'font-medium',
+                              isDarkMode
+                                ? 'text-gray-300 dark:text-gray-300'
+                                : 'text-gray-700',
+                            )}
+                          >
                             Blocos opcionais:
                           </span>
                           <div className="mt-1 flex flex-wrap gap-1">
@@ -352,18 +446,43 @@ export const TipoAlteracaoSelector = ({
                       {infoSelecao.limiteLegal > 0 && (
                         <div className="md:col-span-2">
                           <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-amber-500" />
-                            <span className="font-medium text-gray-700">
+                            <AlertTriangle
+                              className={cn(
+                                'h-4 w-4',
+                                isDarkMode
+                                  ? 'text-amber-400 dark:text-amber-400'
+                                  : 'text-amber-500',
+                              )}
+                            />
+                            <span
+                              className={cn(
+                                'font-medium',
+                                isDarkMode
+                                  ? 'text-gray-300 dark:text-gray-300'
+                                  : 'text-gray-700',
+                              )}
+                            >
                               Limite legal aplicável:
                             </span>
                             <Badge
                               variant="outline"
-                              className="border-amber-300 text-amber-700"
+                              className={cn(
+                                isDarkMode
+                                  ? 'border-amber-600 text-amber-400 dark:border-amber-600 dark:text-amber-400'
+                                  : 'border-amber-300 text-amber-700',
+                              )}
                             >
                               {infoSelecao.limiteLegal}%
                             </Badge>
                           </div>
-                          <p className="mt-1 text-xs text-amber-700">
+                          <p
+                            className={cn(
+                              'mt-1 text-xs',
+                              isDarkMode
+                                ? 'text-amber-400 dark:text-amber-400'
+                                : 'text-amber-700',
+                            )}
+                          >
                             Alterações quantitativas estão sujeitas a limites
                             legais. O sistema alertará se o limite for excedido.
                           </p>
@@ -376,7 +495,14 @@ export const TipoAlteracaoSelector = ({
                 {/* Detalhes expandidos */}
                 {mostrarDetalhes && (
                   <div className="space-y-3">
-                    <h4 className="font-medium text-gray-700">
+                    <h4
+                      className={cn(
+                        'font-medium',
+                        isDarkMode
+                          ? 'text-gray-300 dark:text-gray-300'
+                          : 'text-gray-700',
+                      )}
+                    >
                       Exemplos de cada tipo:
                     </h4>
                     <div className="grid grid-cols-1 gap-2 text-sm">
@@ -389,12 +515,31 @@ export const TipoAlteracaoSelector = ({
                         .map((config: TipoAlteracaoConfig) => (
                           <div
                             key={config.tipo}
-                            className="rounded-md bg-gray-50 p-3"
+                            className={cn(
+                              'rounded-md p-3',
+                              isDarkMode
+                                ? 'bg-gray-800/50 dark:bg-gray-800/50'
+                                : 'bg-gray-50',
+                            )}
                           >
-                            <span className="font-medium text-gray-700">
+                            <span
+                              className={cn(
+                                'font-medium',
+                                isDarkMode
+                                  ? 'text-gray-300 dark:text-gray-300'
+                                  : 'text-gray-700',
+                              )}
+                            >
                               {config.label}:
                             </span>
-                            <ul className="mt-1 ml-2 list-inside list-disc text-gray-600">
+                            <ul
+                              className={cn(
+                                'mt-1 ml-2 list-inside list-disc',
+                                isDarkMode
+                                  ? 'text-gray-400 dark:text-gray-400'
+                                  : 'text-gray-600',
+                              )}
+                            >
                               {config.exemplos.map((exemplo: string) => (
                                 <li key={exemplo} className="text-xs">
                                   {exemplo}

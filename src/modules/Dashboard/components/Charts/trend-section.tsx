@@ -237,7 +237,7 @@ const TrendSectionComponent = ({
 
         {/* Resumo detalhado com melhor aproveitamento de espaço */}
         {data && data.length > 0 && (
-          <div className="bg-muted/30 mt-4 grid grid-cols-3 gap-3 rounded-lg p-3">
+          <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg p-3">
             <div className="space-y-1 text-center">
               <div className="flex items-center justify-center gap-1.5">
                 <div

@@ -7,13 +7,14 @@ import {
   Target,
   Building,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useTheme } from 'next-themes'
+import { useState, useEffect } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyDisplay, DateDisplay } from '@/components/ui/formatters'
 import { Progress } from '@/components/ui/progress'
-import { currencyUtils } from '@/lib/utils'
+import { cn, currencyUtils } from '@/lib/utils'
 import type {
   PeriodoVigencia,
   UnidadeVinculada,
@@ -43,8 +44,18 @@ export const IndicadoresRelatorios = ({
   vtmTotalContrato,
   contrato,
 }: IndicadoresRelatoriosProps) => {
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [mesHover, setMesHover] = useState<number | null>(null)
   const [unidadeHover, setUnidadeHover] = useState<number | null>(null)
+
+  // Espera o componente montar para evitar problemas de hidratação
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Determina se está em dark mode
+  const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark')
 
   // Buscar nomes das unidades
   const unidadesIds = (contrato.unidadesVinculadas ?? [])
@@ -69,17 +80,23 @@ export const IndicadoresRelatorios = ({
     const statusConfig = {
       concluido: {
         label: 'Concluído',
-        className: 'bg-green-100 text-green-800',
+        className: isDarkMode
+          ? 'bg-green-950/30 text-green-400 dark:bg-green-950/30 dark:text-green-400'
+          : 'bg-green-100 text-green-800',
         color: '#22c55e',
       },
       em_andamento: {
         label: 'Em Andamento',
-        className: 'bg-blue-100 text-blue-800',
+        className: isDarkMode
+          ? 'bg-blue-950/30 text-blue-400 dark:bg-blue-950/30 dark:text-blue-400'
+          : 'bg-blue-100 text-blue-800',
         color: '#3b82f6',
       },
       pendente: {
         label: 'Pendente',
-        className: 'bg-gray-100 text-gray-800',
+        className: isDarkMode
+          ? 'bg-gray-800/30 text-gray-400 dark:bg-gray-800/30 dark:text-gray-400'
+          : 'bg-gray-100 text-gray-800',
         color: '#6b7280',
       },
     }
@@ -220,19 +237,43 @@ export const IndicadoresRelatorios = ({
           <CardContent className="space-y-4 sm:space-y-6">
             {/* Valores Principais - Grid responsivo */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              <div className="rounded-lg bg-blue-50 p-3 text-center sm:p-4">
+              <div
+                className={cn(
+                  'rounded-lg p-3 text-center sm:p-4',
+                  isDarkMode ? 'bg-blue-950/20 dark:bg-blue-950/20' : 'bg-blue-50',
+                )}
+              >
                 <p className="text-muted-foreground text-xs sm:text-sm">
                   Valor Total
                 </p>
-                <p className="text-base font-bold break-all text-blue-600 sm:text-xl">
+                <p
+                  className={cn(
+                    'text-base font-bold break-all sm:text-xl',
+                    isDarkMode ? 'text-blue-400 dark:text-blue-400' : 'text-blue-600',
+                  )}
+                >
                   <CurrencyDisplay value={valorTotal} />
                 </p>
               </div>
-              <div className="rounded-lg bg-green-50 p-3 text-center sm:p-4">
+              <div
+                className={cn(
+                  'rounded-lg p-3 text-center sm:p-4',
+                  isDarkMode
+                    ? 'bg-green-950/20 dark:bg-green-950/20'
+                    : 'bg-green-50',
+                )}
+              >
                 <p className="text-muted-foreground text-xs sm:text-sm">
                   Valor Executado
                 </p>
-                <p className="text-base font-bold break-all text-green-600 sm:text-xl">
+                <p
+                  className={cn(
+                    'text-base font-bold break-all sm:text-xl',
+                    isDarkMode
+                      ? 'text-green-400 dark:text-green-400'
+                      : 'text-green-600',
+                  )}
+                >
                   <CurrencyDisplay value={valorExecutado} />
                 </p>
               </div>
@@ -240,46 +281,101 @@ export const IndicadoresRelatorios = ({
 
             {/* VTM e Saldo */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              <div className="rounded-lg bg-purple-50 p-3 text-center sm:p-4">
+              <div
+                className={cn(
+                  'rounded-lg p-3 text-center sm:p-4',
+                  isDarkMode
+                    ? 'bg-purple-950/20 dark:bg-purple-950/20'
+                    : 'bg-purple-50',
+                )}
+              >
                 <p className="text-muted-foreground text-xs sm:text-sm">
                   VTM do Contrato
                 </p>
-                <p className="text-base font-bold break-all text-purple-600 sm:text-xl">
+                <p
+                  className={cn(
+                    'text-base font-bold break-all sm:text-xl',
+                    isDarkMode
+                      ? 'text-purple-400 dark:text-purple-400'
+                      : 'text-purple-600',
+                  )}
+                >
                   <span className="font-mono">
                     {currencyUtils.formatar(vtmTotalContrato)}/mês
                   </span>
                 </p>
               </div>
-              <div className="rounded-lg bg-orange-50 p-3 text-center sm:p-4">
+              <div
+                className={cn(
+                  'rounded-lg p-3 text-center sm:p-4',
+                  isDarkMode
+                    ? 'bg-orange-950/20 dark:bg-orange-950/20'
+                    : 'bg-orange-50',
+                )}
+              >
                 <p className="text-muted-foreground text-xs sm:text-sm">
                   Saldo Atual
                 </p>
-                <p className="text-base font-bold break-all text-orange-600 sm:text-xl">
+                <p
+                  className={cn(
+                    'text-base font-bold break-all sm:text-xl',
+                    isDarkMode
+                      ? 'text-orange-400 dark:text-orange-400'
+                      : 'text-orange-600',
+                  )}
+                >
                   <CurrencyDisplay value={indicadores.saldoAtual} />
                 </p>
               </div>
             </div>
 
             {/* Progresso Temporal */}
-            <div className="rounded-lg bg-blue-50 p-3 text-center sm:p-4">
+            <div
+              className={cn(
+                'rounded-lg p-3 text-center sm:p-4',
+                isDarkMode ? 'bg-blue-950/20 dark:bg-blue-950/20' : 'bg-blue-50',
+              )}
+            >
               <p className="text-muted-foreground text-xs sm:text-sm">
                 Progresso Temporal
               </p>
-              <p className="text-base font-bold text-blue-600 sm:text-xl">
+              <p
+                className={cn(
+                  'text-base font-bold sm:text-xl',
+                  isDarkMode
+                    ? 'text-blue-400 dark:text-blue-400'
+                    : 'text-blue-600',
+                )}
+              >
                 {diasVigentes} dias vigentes de {diasTotais} dias
               </p>
               <div className="mt-3">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-blue-600">
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      isDarkMode
+                        ? 'text-blue-400 dark:text-blue-400'
+                        : 'text-blue-600',
+                    )}
+                  >
                     {progressoTemporal.toFixed(1)}%
                   </span>
                   <span className="text-muted-foreground text-xs">
                     {diasTotais - diasVigentes} dias restantes
                   </span>
                 </div>
-                <div className="h-2.5 w-full rounded-full bg-blue-200">
+                <div
+                  className={cn(
+                    'h-2.5 w-full rounded-full',
+                    isDarkMode ? 'bg-blue-900/50' : 'bg-blue-200',
+                  )}
+                >
                   <div
-                    className="h-2.5 rounded-full bg-blue-600 transition-all duration-300"
+                    className={cn(
+                      'h-2.5 rounded-full transition-all duration-300',
+                      isDarkMode ? 'bg-blue-500' : 'bg-blue-600',
+                    )}
                     style={{ width: `${Math.min(progressoTemporal, 100)}%` }}
                   />
                 </div>
@@ -298,7 +394,13 @@ export const IndicadoresRelatorios = ({
                 <span className="text-xs font-medium sm:text-sm">
                   Percentual Executado
                 </span>
-                <span className="text-xs font-bold text-blue-600 sm:text-sm">
+                <span
+                  className={`text-xs font-bold sm:text-sm ${
+                    isDarkMode
+                      ? 'text-blue-400 dark:text-blue-400'
+                      : 'text-blue-600'
+                  }`}
+                >
                   {indicadores.percentualExecutado}%
                 </span>
               </div>
@@ -389,7 +491,9 @@ export const IndicadoresRelatorios = ({
                     <span
                       className={`text-xs transition-colors duration-200 ${
                         mesHover === index
-                          ? 'font-semibold text-blue-600'
+                          ? isDarkMode
+                            ? 'font-semibold text-blue-400 dark:text-blue-400'
+                            : 'font-semibold text-blue-600'
                           : 'text-muted-foreground'
                       }`}
                     >
@@ -432,13 +536,25 @@ export const IndicadoresRelatorios = ({
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
           {/* Informações gerais do contrato */}
-          <div className="mb-6 rounded-lg bg-blue-50 p-4">
+          <div
+            className={`mb-6 rounded-lg p-4 ${
+              isDarkMode
+                ? 'bg-blue-950/20 dark:bg-blue-950/20'
+                : 'bg-blue-50'
+            }`}
+          >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="text-center">
                 <p className="text-muted-foreground text-xs">
                   Início do Contrato
                 </p>
-                <p className="font-semibold text-blue-600">
+                <p
+                  className={`font-semibold ${
+                    isDarkMode
+                      ? 'text-blue-400 dark:text-blue-400'
+                      : 'text-blue-600'
+                  }`}
+                >
                   <DateDisplay value={contrato.dataInicio} />
                 </p>
               </div>
@@ -446,13 +562,25 @@ export const IndicadoresRelatorios = ({
                 <p className="text-muted-foreground text-xs">
                   Término Previsto
                 </p>
-                <p className="font-semibold text-blue-600">
+                <p
+                  className={`font-semibold ${
+                    isDarkMode
+                      ? 'text-blue-400 dark:text-blue-400'
+                      : 'text-blue-600'
+                  }`}
+                >
                   <DateDisplay value={contrato.dataTermino} />
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-muted-foreground text-xs">Duração Total</p>
-                <p className="font-semibold text-blue-600">
+                <p
+                  className={`font-semibold ${
+                    isDarkMode
+                      ? 'text-blue-400 dark:text-blue-400'
+                      : 'text-blue-600'
+                  }`}
+                >
                   {contrato.prazoInicialMeses} meses
                 </p>
               </div>
@@ -548,7 +676,13 @@ export const IndicadoresRelatorios = ({
                           <DateDisplay value={periodo.inicio} /> -{' '}
                           <DateDisplay value={periodo.fim} />
                         </p>
-                        <p className="text-xs text-blue-600">
+                        <p
+                          className={`text-xs ${
+                            isDarkMode
+                              ? 'text-blue-400 dark:text-blue-400'
+                              : 'text-blue-600'
+                          }`}
+                        >
                           Esperado: {periodo.percentualEsperado}% (
                           <CurrencyDisplay value={periodo.valorEsperado} />)
                         </p>
@@ -769,9 +903,21 @@ export const IndicadoresRelatorios = ({
 
                     {/* Centro do gráfico */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-center shadow-lg sm:h-20 sm:w-20">
+                      <div
+                        className={`flex h-16 w-16 items-center justify-center rounded-full text-center shadow-lg sm:h-20 sm:w-20 ${
+                          isDarkMode
+                            ? 'bg-gray-800 dark:bg-gray-800'
+                            : 'bg-white'
+                        }`}
+                      >
                         <div>
-                          <p className="text-lg font-bold text-blue-600 sm:text-2xl">
+                          <p
+                            className={`text-lg font-bold sm:text-2xl ${
+                              isDarkMode
+                                ? 'text-blue-400 dark:text-blue-400'
+                                : 'text-blue-600'
+                            }`}
+                          >
                             {unidadesComputadas.length}
                           </p>
                           <p className="text-muted-foreground text-xs">
@@ -797,8 +943,12 @@ export const IndicadoresRelatorios = ({
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                         className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all duration-300 sm:gap-4 sm:p-4 ${
                           unidadeHover === index
-                            ? 'scale-105 transform border-blue-300 bg-blue-50 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            ? isDarkMode
+                              ? 'scale-105 transform border-blue-600 bg-blue-950/30 shadow-md dark:border-blue-600 dark:bg-blue-950/30'
+                              : 'scale-105 transform border-blue-300 bg-blue-50 shadow-md'
+                            : isDarkMode
+                              ? 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800/50'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                         style={{
                           filter:
@@ -812,7 +962,9 @@ export const IndicadoresRelatorios = ({
                           <div
                             className={`h-4 w-4 flex-shrink-0 rounded-full shadow-sm sm:h-6 sm:w-6 ${
                               unidadeHover === index
-                                ? 'ring-2 ring-blue-300'
+                                ? isDarkMode
+                                  ? 'ring-2 ring-blue-500 dark:ring-blue-500'
+                                  : 'ring-2 ring-blue-300'
                                 : ''
                             }`}
                             style={{
@@ -864,7 +1016,13 @@ export const IndicadoresRelatorios = ({
           })()}
 
           {/* Resumo Financeiro - Responsivo */}
-          <div className="mt-6 rounded-xl border bg-gradient-to-r from-blue-50 to-purple-50 p-4 sm:mt-8 sm:p-6">
+          <div
+            className={`mt-6 rounded-xl border p-4 sm:mt-8 sm:p-6 ${
+              isDarkMode
+                ? 'bg-gradient-to-r from-blue-950/20 to-purple-950/20 dark:from-blue-950/20 dark:to-purple-950/20'
+                : 'bg-gradient-to-r from-blue-50 to-purple-50'
+            }`}
+          >
             <h4 className="mb-3 text-center text-base font-semibold sm:mb-4 sm:text-lg">
               Resumo Financeiro
             </h4>
@@ -883,49 +1041,137 @@ export const IndicadoresRelatorios = ({
 
               return (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 sm:gap-6">
-                  <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 sm:h-12 sm:w-12">
-                      <DollarSign className="h-5 w-5 text-blue-600 sm:h-6 sm:w-6" />
+                  <div
+                    className={`rounded-lg p-3 text-center shadow-sm sm:p-4 ${
+                      isDarkMode ? 'bg-gray-800/50' : 'bg-white'
+                    }`}
+                  >
+                    <div
+                      className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
+                        isDarkMode
+                          ? 'bg-blue-950/30 dark:bg-blue-950/30'
+                          : 'bg-blue-100'
+                      }`}
+                    >
+                      <DollarSign
+                        className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                          isDarkMode
+                            ? 'text-blue-400 dark:text-blue-400'
+                            : 'text-blue-600'
+                        }`}
+                      />
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm">
                       VTM do Contrato
                     </p>
-                    <p className="text-base font-bold break-all text-blue-600 sm:text-xl">
+                    <p
+                      className={`text-base font-bold break-all sm:text-xl ${
+                        isDarkMode
+                          ? 'text-blue-400 dark:text-blue-400'
+                          : 'text-blue-600'
+                      }`}
+                    >
                       <CurrencyDisplay value={vtmTotalContrato} />
                       /mês
                     </p>
                   </div>
-                  <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 sm:h-12 sm:w-12">
-                      <TrendingUp className="h-5 w-5 text-green-600 sm:h-6 sm:w-6" />
+                  <div
+                    className={`rounded-lg p-3 text-center shadow-sm sm:p-4 ${
+                      isDarkMode ? 'bg-gray-800/50' : 'bg-white'
+                    }`}
+                  >
+                    <div
+                      className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
+                        isDarkMode
+                          ? 'bg-green-950/30 dark:bg-green-950/30'
+                          : 'bg-green-100'
+                      }`}
+                    >
+                      <TrendingUp
+                        className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                          isDarkMode
+                            ? 'text-green-400 dark:text-green-400'
+                            : 'text-green-600'
+                        }`}
+                      />
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm">
                       Gasto Médio por Dia
                     </p>
-                    <p className="text-base font-bold break-all text-green-600 sm:text-xl">
+                    <p
+                      className={`text-base font-bold break-all sm:text-xl ${
+                        isDarkMode
+                          ? 'text-green-400 dark:text-green-400'
+                          : 'text-green-600'
+                      }`}
+                    >
                       <CurrencyDisplay value={gastoMedioPorDia} />
                       /dia
                     </p>
                   </div>
-                  <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 sm:h-12 sm:w-12">
-                      <Target className="h-5 w-5 text-yellow-600 sm:h-6 sm:w-6" />
+                  <div
+                    className={`rounded-lg p-3 text-center shadow-sm sm:p-4 ${
+                      isDarkMode ? 'bg-gray-800/50' : 'bg-white'
+                    }`}
+                  >
+                    <div
+                      className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
+                        isDarkMode
+                          ? 'bg-yellow-950/30 dark:bg-yellow-950/30'
+                          : 'bg-yellow-100'
+                      }`}
+                    >
+                      <Target
+                        className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                          isDarkMode
+                            ? 'text-yellow-400 dark:text-yellow-400'
+                            : 'text-yellow-600'
+                        }`}
+                      />
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm">
                       Maior Participação
                     </p>
-                    <p className="text-base font-bold text-yellow-600 sm:text-xl">
+                    <p
+                      className={`text-base font-bold sm:text-xl ${
+                        isDarkMode
+                          ? 'text-yellow-400 dark:text-yellow-400'
+                          : 'text-yellow-600'
+                      }`}
+                    >
                       {maiorParticipacao.toFixed(1)}%
                     </p>
                   </div>
-                  <div className="rounded-lg bg-white p-3 text-center shadow-sm sm:p-4">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 sm:h-12 sm:w-12">
-                      <Building className="h-5 w-5 text-purple-600 sm:h-6 sm:w-6" />
+                  <div
+                    className={`rounded-lg p-3 text-center shadow-sm sm:p-4 ${
+                      isDarkMode ? 'bg-gray-800/50' : 'bg-white'
+                    }`}
+                  >
+                    <div
+                      className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
+                        isDarkMode
+                          ? 'bg-purple-950/30 dark:bg-purple-950/30'
+                          : 'bg-purple-100'
+                      }`}
+                    >
+                      <Building
+                        className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                          isDarkMode
+                            ? 'text-purple-400 dark:text-purple-400'
+                            : 'text-purple-600'
+                        }`}
+                      />
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm">
                       Progresso Temporal
                     </p>
-                    <p className="text-base font-bold text-purple-600 sm:text-xl">
+                    <p
+                      className={`text-base font-bold sm:text-xl ${
+                        isDarkMode
+                          ? 'text-purple-400 dark:text-purple-400'
+                          : 'text-purple-600'
+                      }`}
+                    >
                       {progressoTemporal.toFixed(1)}%
                     </p>
                     <p className="text-muted-foreground mt-1 text-xs">

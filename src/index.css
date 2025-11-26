@@ -127,40 +127,57 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  /* Fundo cinza escuro confortável e texto branco puro */
+  --background: oklch(0.23 0 0); /* Cinza muito escuro - mais confortável */
+  --foreground: oklch(1 0 0); /* Branco puro */
+
+  /* Cards com fundo levemente mais claro que o fundo */
+  --card: oklch(0.180 0 0); /* Cinza muito escuro para contraste */
+  --card-foreground: oklch(1 0 0); /* Branco puro */
+
+  /* Popovers */
+  --popover: oklch(0.15 0 0);
+  --popover-foreground: oklch(1 0 0);
+
+  /* Primary colors */
   --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.05 0 0);
+
+  /* Secondary colors */
+  --secondary: oklch(0.2 0 0);
+  --secondary-foreground: oklch(1 0 0);
+
+  /* Muted elements */
+  --muted: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.85 0 0); /* Cinza claro para texto muted */
+
+  /* Accent */
+  --accent: oklch(0.2 0 0);
+  --accent-foreground: oklch(1 0 0);
+
+  /* Destructive */
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+
+  /* Borders e inputs */
+  --border: oklch(1 0 0 / 15%); /* Borda branca com transparência */
+  --input: oklch(1 0 0 / 20%); /* Input com borda mais visível */
+  --ring: oklch(0.7 0 0);
+
+  /* Charts */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.404 0.017 264.376); /* bg-neutral-500 mantido no dark */
+
+  /* Sidebar - mesma cor em light e dark mode */
+  --sidebar: oklch(0.25 0.017 264.376); /* Cinza escuro mantido */
   --sidebar-foreground: oklch(1 0 0); /* texto branco */
   --sidebar-primary: oklch(0.709 0.142 213.68); /* #43B9EB para item ativo */
   --sidebar-primary-foreground: oklch(1 0 0); /* texto branco */
-  --sidebar-accent: oklch(
-    1 0 0 / 0.1
-  ); /* efeito glass transparente para hover */
-  --sidebar-accent-foreground: oklch(
-    0.709 0.142 213.68
-  ); /* #43B9EB para texto ativo */
-  --sidebar-border: oklch(0.5 0 0); /* borda mais escura */
+  --sidebar-accent: oklch(1 0 0 / 0.1); /* efeito glass transparente para hover */
+  --sidebar-accent-foreground: oklch(0.709 0.142 213.68); /* #43B9EB para texto ativo */
+  --sidebar-border: oklch(1 0 0 / 15%); /* borda branca com transparência */
   --sidebar-ring: oklch(0.709 0.142 213.68); /* anel de foco #43B9EB */
 }
 

@@ -378,7 +378,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditarCampo('dados-basicos')}
-                          className={`h-8 w-8 p-0 ${isGroupEditing('dados-basicos') ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' : ''}`}
+                          className={`h-8 w-8 p-0 ${isGroupEditing('dados-basicos') ? 'text-blue-600' : ''}`}
                         >
                           {isGroupEditing('dados-basicos') ? (
                             <X className="h-4 w-4" />
@@ -405,7 +405,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                               />
                             ) : (
                               <div
-                                className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold"
                                 onClick={() => startEditing('numeroContrato')}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
@@ -439,7 +439,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                                 />
                               ) : (
                                 <div
-                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold"
                                   onClick={() => startEditing('processoRio')}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -472,7 +472,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                                 />
                               ) : (
                                 <div
-                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold"
                                   onClick={() => startEditing('processoSei')}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -507,7 +507,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                                 />
                               ) : (
                                 <div
-                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold hover:bg-gray-50"
+                                  className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-semibold"
                                   onClick={() => startEditing('processoLegado')}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -541,7 +541,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                             />
                           ) : (
                             <div
-                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
+                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium"
                               onClick={() => startEditing('categoriaObjeto')}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
@@ -572,7 +572,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                             />
                           ) : (
                             <div
-                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium hover:bg-gray-50"
+                              className="-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium"
                               onClick={() => startEditing('objeto')}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
@@ -807,7 +807,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleAbrirModalAdicionar(2)}
-                        className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                        className="h-8 w-8 p-0"
                         title="Adicionar Fiscal"
                       >
                         <Plus className="h-4 w-4" />
@@ -869,7 +869,7 @@ export const DetalhesContrato = ({ contrato }: DetalhesContratoProps) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleAbrirModalAdicionar(1)}
-                        className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+                        className="h-8 w-8 p-0"
                         title="Adicionar Gestor"
                       >
                         <Plus className="h-4 w-4" />

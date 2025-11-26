@@ -7,6 +7,7 @@ import { PERMISSOES_GESTAO_USUARIOS } from '@/lib/auth/permissoes-constants'
 import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadastrar-contrato'
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
 import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/visualizar-contrato'
+import ConfiguracoesPage from './modules/Configuracoes/pages/configuracoes-page'
 import { DashboardPage } from './modules/Dashboard/pages/dashboard-page'
 import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/visualizacao-fornecedor-page'
 import CadastroFuncionarioPage from './modules/Funcionarios/CadastroFuncionario/pages/cadastro-funcionario-page'
@@ -207,10 +208,7 @@ const App = () => {
         element={(
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
-              <div className="p-8">
-                <h1 className="text-2xl font-bold">Configurações</h1>
-                <p>Configure suas preferências do sistema.</p>
-              </div>
+              <ConfiguracoesPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
         )}

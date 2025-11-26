@@ -27,13 +27,11 @@ const variantStyles = {
     border: 'hover:border-blue-300',
     iconColor: 'text-blue-600',
     badgeBg: 'bg-blue-100 text-blue-800',
-    headerBg: 'hover:bg-blue-50/50',
   },
   gestor: {
     border: 'hover:border-green-300',
     iconColor: 'text-green-600',
     badgeBg: 'bg-green-100 text-green-800',
-    headerBg: 'hover:bg-green-50/50',
   },
   default: {
     border: 'hover:border-gray-300',
@@ -72,7 +70,6 @@ export const CollapsibleCard = ({
           <CardHeader
             className={cn(
               'flex cursor-pointer flex-row items-center justify-between transition-colors duration-150',
-              styles.headerBg,
             )}
           >
             <div className="flex items-center gap-3">

@@ -9,7 +9,7 @@ import { createServiceLogger } from '@/lib/logger'
 const middlewareLogger = createServiceLogger('middleware')
 
 // Flag global para indicar que logout está em andamento
-// Previne múltiplas chamadas de logout simultâneas
+// Previne múltiplas chamadas de logout simultân
 let logoutEmAndamento = false
 
 export const setLogoutEmAndamento = (valor: boolean) => {

@@ -1,5 +1,6 @@
 import { Calendar, Filter, Globe } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useTheme } from 'next-themes'
+import { useState, useMemo, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -38,9 +39,19 @@ export const FiltersBar = ({
   onFiltersChange,
   onReset,
 }: FiltersBarProps) => {
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedUnits, setSelectedUnits] = useState<string[]>([])
+
+  // Espera o componente montar para evitar problemas de hidratação
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Determina se está em dark mode
+  const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark')
 
   // Gerar opções dinâmicas dos últimos 12 meses
   const monthOptions = useMemo(() => {
@@ -174,7 +185,7 @@ export const FiltersBar = ({
   }
 
   return (
-    <div className="flex items-center justify-between gap-6 border-t border-gray-100 pt-3">
+    <div className="flex items-center justify-between gap-6 border-t pt-3">
       {/* ESQUERDA: Toggle Visualização Global */}
       <div className="flex items-center gap-3">
         <Globe
@@ -192,18 +203,22 @@ export const FiltersBar = ({
           />
           <Label
             htmlFor="visualizacao-global"
-            className={cn(
-              'cursor-pointer text-sm font-medium leading-none transition-colors',
-              isGlobalView ? 'text-brand-primary' : 'text-gray-600',
-            )}
+            className="cursor-pointer text-sm font-medium leading-none transition-colors"
+            style={{
+              color: isGlobalView
+                ? isDarkMode
+                  ? '#42b9eb'
+                  : '#2a688f'
+                : isDarkMode
+                  ? '#9ca3af'
+                  : '#4b5563',
+            }}
           >
             Visualização Global
           </Label>
         </div>
       </div>
 
-      {/* Separador visual */}
-      <div className="h-6 w-px bg-gray-200" />
 
       {/* DIREITA: Date Picker + Filtros */}
       <div className="flex items-center gap-4">

@@ -235,7 +235,7 @@ export const VisualizarContrato = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-xl border bg-white/90 p-4 shadow-sm backdrop-blur-sm sm:p-6"
+          className="rounded-xl border  p-4 shadow-sm backdrop-blur-sm sm:p-6"
         >
           <div className="mb-4 flex flex-col gap-4 sm:mb-6">
             {/* Linha superior - Navegação e ações */}
@@ -366,13 +366,13 @@ export const VisualizarContrato = () => {
             </CardContent>
           </Card>
 
-          <div className="rounded-lg border bg-white shadow-sm">
+          <div className="rounded-lg border shadow-sm">
             <Tabs
               value={abaAtiva}
               onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList className="scrollbar-hide flex h-auto w-full gap-1 overflow-x-auto rounded-lg bg-gray-50 p-1 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+              <TabsList className="scrollbar-hide flex h-auto w-full gap-1 overflow-x-auto rounded-lg p-1 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 {getActiveTabs().map((tab) => (
                   <TabsTrigger
                     key={tab.id}

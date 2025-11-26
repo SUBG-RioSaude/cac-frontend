@@ -16,6 +16,7 @@
  */
 
 // ========== COMPONENTES DISPONÍVEIS ==========
+import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
 import type { CarouselApi } from '@/components/ui/carousel'
@@ -55,10 +56,17 @@ import { useFilters } from '../hooks/useFilters'
 export const DashboardPage = () => {
   const { filters, updateFilter, resetFilters } = useFilters()
   const { data, isLoading } = useDashboardData(filters)
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
   // Estado para controlar o carousel
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
+
+  // Espera o componente montar para evitar problemas de hidratação
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Sincroniza o estado com o carousel
   useEffect(() => {
@@ -73,6 +81,9 @@ export const DashboardPage = () => {
     })
   }, [carouselApi])
 
+  // Determina se está em dark mode
+  const isDarkMode = mounted && (theme === 'dark' || resolvedTheme === 'dark')
+
   return (
     <div className="mx-auto flex h-full w-full max-w-[1920px] flex-col overflow-visible px-6 pt-2">
       {/* ========================================
@@ -83,12 +94,12 @@ export const DashboardPage = () => {
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <img
-                src="/logo.png"
+                src={isDarkMode ? '/logo%20certa.png' : '/logo.png'}
                 alt="Logo Dashboard Contratos"
                 className="h-8 w-auto object-contain"
               />
               <div>
-                <h1 className="text-lg font-bold" style={{ color: '#2a688f' }}>
+                <h1 className="text-lg font-bold" style={{ color: isDarkMode ? '#42b9eb' : '#2a688f' }}>
                   Dashboard de Contratos
                 </h1>
                 <p className="text-muted-foreground text-xs">
