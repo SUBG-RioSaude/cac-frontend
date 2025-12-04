@@ -901,7 +901,7 @@ export const TabEmpenhos = ({
                       </SelectTrigger>
                       <SelectContent className="z-[10000]">
                         {unidadesVinculadas.length === 0 ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="nenhuma-unidade-disponivel" disabled>
                             Nenhuma unidade disponível
                           </SelectItem>
                         ) : (

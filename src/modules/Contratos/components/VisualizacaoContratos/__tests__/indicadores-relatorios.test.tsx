@@ -461,4 +461,207 @@ describe('IndicadoresRelatorios', () => {
     expect(screen.getByText('Cronograma de Vigência')).toBeInTheDocument()
     expect(screen.getByText('Distribuição por Unidade')).toBeInTheDocument()
   })
+
+  describe('Contratos vencidos', () => {
+    it('deve exibir badge "Vencido" quando contrato está vencido', () => {
+      // Criar um contrato com data de término no passado
+      const contratoVencido = {
+        ...contratoMock,
+        dataTermino: '2020-05-11T23:59:59Z',
+        vigenciaFinal: '2020-05-11T23:59:59Z',
+      }
+
+      render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoVencido}
+        />,
+      )
+
+      // Verificar se o badge "Vencido" está presente
+      expect(screen.getByTestId('contrato-vencido-badge')).toBeInTheDocument()
+      expect(screen.getByText('Vencido')).toBeInTheDocument()
+    })
+
+    it('deve exibir "Vencido há X dias" ao invés de dias restantes quando contrato está vencido', () => {
+      // Criar um contrato vencido há 10 dias
+      const hoje = new Date()
+      const dataVencimento = new Date(hoje)
+      dataVencimento.setDate(dataVencimento.getDate() - 10)
+
+      const contratoVencido = {
+        ...contratoMock,
+        dataTermino: dataVencimento.toISOString(),
+        vigenciaFinal: dataVencimento.toISOString(),
+      }
+
+      render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoVencido}
+        />,
+      )
+
+      // Verificar se exibe "Vencido há X dias"
+      expect(screen.getByText(/Vencido há \d+ dias?/)).toBeInTheDocument()
+    })
+
+    it('deve aplicar estilo vermelho (bg-red-50) quando contrato está vencido', () => {
+      const contratoVencido = {
+        ...contratoMock,
+        dataTermino: '2020-05-11T23:59:59Z',
+        vigenciaFinal: '2020-05-11T23:59:59Z',
+      }
+
+      const { container } = render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoVencido}
+        />,
+      )
+
+      // Verificar se o elemento tem a classe bg-red-50
+      const progressoTemporalBox = container.querySelector('.bg-red-50')
+      expect(progressoTemporalBox).toBeInTheDocument()
+    })
+
+    it('deve manter 100% de progresso para contratos vencidos', () => {
+      // Criar um contrato que venceu recentemente (para garantir dataInicio antes de dataTermino)
+      const dataInicio = new Date()
+      dataInicio.setFullYear(dataInicio.getFullYear() - 1)
+      dataInicio.setMonth(0) // Janeiro
+
+      const dataVencimento = new Date()
+      dataVencimento.setDate(dataVencimento.getDate() - 10) // Venceu há 10 dias
+
+      const contratoVencido = {
+        ...contratoMock,
+        dataInicio: dataInicio.toISOString(),
+        dataTermino: dataVencimento.toISOString(),
+        vigenciaInicial: dataInicio.toISOString(),
+        vigenciaFinal: dataVencimento.toISOString(),
+      }
+
+      render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoVencido}
+        />,
+      )
+
+      // Verificar se o progresso é exibido como 100.0% (usar getAllByText e verificar que existe)
+      const progressos = screen.getAllByText('100.0%')
+      expect(progressos.length).toBeGreaterThan(0)
+    })
+
+    it('NÃO deve exibir badge "Vencido" quando contrato está ativo', () => {
+      // Criar um contrato com data de término no futuro
+      const dataFutura = new Date()
+      dataFutura.setFullYear(dataFutura.getFullYear() + 1)
+
+      const contratoAtivo = {
+        ...contratoMock,
+        dataTermino: dataFutura.toISOString(),
+        vigenciaFinal: dataFutura.toISOString(),
+      }
+
+      render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoAtivo}
+        />,
+      )
+
+      // Verificar que o badge NÃO está presente
+      expect(
+        screen.queryByTestId('contrato-vencido-badge'),
+      ).not.toBeInTheDocument()
+    })
+
+    it('deve exibir "dias restantes" quando contrato está ativo', () => {
+      const dataFutura = new Date()
+      dataFutura.setFullYear(dataFutura.getFullYear() + 1)
+
+      const contratoAtivo = {
+        ...contratoMock,
+        dataTermino: dataFutura.toISOString(),
+        vigenciaFinal: dataFutura.toISOString(),
+      }
+
+      render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoAtivo}
+        />,
+      )
+
+      // Verificar se exibe "dias restantes"
+      expect(screen.getByText(/\d+ dias? restantes?/)).toBeInTheDocument()
+    })
+
+    it('deve aplicar estilo azul (bg-blue-50) quando contrato está ativo', () => {
+      const dataFutura = new Date()
+      dataFutura.setFullYear(dataFutura.getFullYear() + 1)
+
+      const contratoAtivo = {
+        ...contratoMock,
+        dataTermino: dataFutura.toISOString(),
+        vigenciaFinal: dataFutura.toISOString(),
+      }
+
+      const { container } = render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoAtivo}
+        />,
+      )
+
+      // Verificar se o elemento tem a classe bg-blue-50
+      const progressoTemporalBox = container.querySelector('.bg-blue-50')
+      expect(progressoTemporalBox).toBeInTheDocument()
+    })
+
+    it('deve nunca exibir valores negativos de dias restantes', () => {
+      // Criar vários contratos vencidos com diferentes períodos
+      const contratoVencido1 = {
+        ...contratoMock,
+        dataTermino: '2020-05-11T23:59:59Z',
+      }
+
+      const { container: container1 } = render(
+        <IndicadoresRelatorios
+          indicadores={indicadoresMock}
+          unidades={unidadesMock}
+          valorTotal={valorTotalMock}
+          vtmTotalContrato={vtmTotalContratoMock}
+          contrato={contratoVencido1}
+        />,
+      )
+
+      // Verificar que não há texto com "-" seguido de "dias restantes"
+      const textContent = container1.textContent || ''
+      expect(textContent).not.toMatch(/-\d+ dias restantes/)
+    })
+  })
 })
