@@ -1,6 +1,9 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+import '@testing-library/jest-dom'
 
 import { patchNotesService } from '@/services/patch-notes-service'
 import { PatchNoteTipo, PatchNoteImportancia } from '@/types/patch-notes'
