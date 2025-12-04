@@ -25,11 +25,11 @@ const LayoutPagina = ({
       {(titulo ?? descricao) && (
         <div className="space-y-2">
           {titulo && (
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
               {titulo}
             </h1>
           )}
-          {descricao && <p className="text-sm text-gray-600">{descricao}</p>}
+          {descricao && <p className="text-sm text-gray-600 dark:text-gray-300">{descricao}</p>}
         </div>
       )}
 

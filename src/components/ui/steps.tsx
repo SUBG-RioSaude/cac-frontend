@@ -72,7 +72,7 @@ export function Steps({
       {/* Indicador visual dos steps */}
       <div className="relative">
         {/* Background decorativo neutro */}
-        <div className="absolute inset-0 -mx-2 rounded-xl bg-gradient-to-r from-gray-50 via-gray-100/50 to-gray-50 py-4" />
+        <div className="absolute inset-0 -mx-2 rounded-xl bg-gradient-to-r from-gray-50 via-gray-100/50 to-gray-50 py-4 dark:from-black dark:to-black dark:via-black" />
 
         <div className="relative flex items-center justify-center gap-3 px-3 py-5 sm:gap-6 lg:gap-10">
           {steps.map((step, index) => {
@@ -110,7 +110,7 @@ export function Steps({
                           ? 'font-semibold text-blue-700'
                           : status === 'completed'
                             ? 'font-medium text-emerald-600'
-                            : 'text-gray-500',
+                            : 'text-gray-500 dark:text-gray-100',
                       )}
                     >
                       {step.title}

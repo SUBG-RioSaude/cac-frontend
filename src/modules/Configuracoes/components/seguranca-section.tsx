@@ -25,6 +25,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { authService } from '@/lib/auth/auth-service'
 import { useAuthStore } from '@/lib/auth/auth-store'
+import { cookieUtils } from '@/lib/auth/cookie-utils'
+import type {
+  AlterarSenhaRequest,
+  AlterarSenhaResponse,
+} from '@/types/auth'
 
 const alterarSenhaSchema = z
   .object({
@@ -73,34 +78,45 @@ export const SegurancaSection = () => {
     setIsLoading(true)
 
     try {
-      // Primeiro, valida a senha atual fazendo login
-      const loginResponse = await authService.login(
-        usuario.email,
-        data.senhaAtual,
-      )
+      // Buscar o token dos cookies (fonte primária)
+      let token = cookieUtils.getCookie('token')
 
-      if (!loginResponse.sucesso) {
-        toast.error('Senha atual incorreta', {
-          description: 'Verifique sua senha atual e tente novamente',
+      // Fallback: buscar do store Zustand se não estiver nos cookies
+      if (!token) {
+        const { getToken } = useAuthStore.getState()
+        token = getToken()
+      }
+
+      if (!token) {
+        toast.error('Erro ao alterar senha', {
+          description: 'Token de autenticação não encontrado',
         })
         return
       }
 
-      // Se a senha atual está correta, altera para a nova senha
-      const response = await authService.trocarSenha(
-        usuario.email,
-        data.novaSenha,
-        undefined,
-      )
+      // Chamar o novo endpoint de alterar senha
+      const payload: AlterarSenhaRequest = {
+        senhaAtual: data.senhaAtual,
+        novaSenha: data.novaSenha,
+        confirmarNovaSenha: data.confirmarSenha,
+      }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+      const resultado = await authService.alterarSenha(payload, token)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const response: AlterarSenhaResponse = resultado as AlterarSenhaResponse
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (response.sucesso) {
         toast.success('Senha alterada com sucesso!', {
           description: 'Sua senha foi atualizada',
         })
         form.reset()
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const mensagem: string = (response.mensagem ?? 'Tente novamente mais tarde') as string
         toast.error('Erro ao alterar senha', {
-          description: response.mensagem || 'Tente novamente mais tarde',
+          description: mensagem,
         })
       }
     } catch (erro) {
@@ -135,7 +151,10 @@ export const SegurancaSection = () => {
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleAlterarSenha)}
+            onSubmit={(e) => {
+              e.preventDefault()
+              void form.handleSubmit(handleAlterarSenha)(e)
+            }}
             className="space-y-4"
           >
             {/* Senha Atual */}

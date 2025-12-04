@@ -138,7 +138,7 @@ const PageBreadcrumb = () => {
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link to={crumb.href}>{crumb.label}</Link>
+                      <Link to={crumb.href} className='dark:text-white'>{crumb.label}</Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>

@@ -126,7 +126,7 @@ const ConfirmarAvancoModal = ({
               'px-6 py-3 text-base font-medium',
               isFinalizacao
                 ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-slate-700 hover:bg-slate-600',
+                : 'bg-slate-700 hover:bg-slate-600 dark:text-white',
             )}
           >
             {textoConfirmar}

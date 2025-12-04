@@ -34,7 +34,7 @@ const ForgotPasswordForm = () => {
     if (estaAutenticado) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath, { replace: true })
+      void navigate(redirectPath, { replace: true })
     }
   }, [estaAutenticado, navigate])
 
@@ -73,7 +73,7 @@ const ForgotPasswordForm = () => {
       sessionStorage.setItem('auth_email', email)
 
       // Redirecionar imediatamente para a tela de verificação
-      navigate('/auth/verificar-codigo', { replace: true })
+      void navigate('/auth/verificar-codigo', { replace: true })
     } catch {
       // Erro já tratado pelo store
     }
@@ -177,7 +177,7 @@ const ForgotPasswordForm = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
           >
-            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-white">
               <CardHeader className="pb-4 text-center">
                 <motion.div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100"
@@ -316,7 +316,9 @@ const ForgotPasswordForm = () => {
                   >
                     <Button
                       variant="ghost"
-                      onClick={() => navigate('/login')}
+                      onClick={() => {
+                        void navigate('/login')
+                      }}
                       className="w-full transition-all duration-200 hover:bg-gray-100"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />

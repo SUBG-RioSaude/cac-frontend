@@ -198,7 +198,7 @@ const BuscaUnidadeInteligente = ({
       {/* Campo de busca ou unidade selecionada */}
       {!unidadeSelecionada ? (
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700 dark:text-white">
             Buscar Unidade Hospitalar
           </Label>
           <div className="relative">
@@ -231,7 +231,7 @@ const BuscaUnidadeInteligente = ({
       ) : (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700 dark:text-white">
               Unidade Selecionada
             </Label>
             <Button

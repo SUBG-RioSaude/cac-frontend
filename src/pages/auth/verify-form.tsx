@@ -54,7 +54,7 @@ const VerifyForm = () => {
         : 'login'
 
     if (!emailArmazenado) {
-      navigate('/login')
+      void navigate('/login')
       return
     }
     setEmail(emailArmazenado)
@@ -64,7 +64,7 @@ const VerifyForm = () => {
     if (estaAutenticado) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath, { replace: true })
+      void navigate(redirectPath, { replace: true })
       return
     }
 
@@ -224,7 +224,7 @@ const VerifyForm = () => {
         )
         sessionStorage.setItem('auth_context', 'password_expired')
         sessionStorage.setItem('tokenTrocaSenha', token)
-        navigate('/auth/trocar-senha', { replace: true })
+        void navigate('/auth/trocar-senha', { replace: true })
         return
       }
 
@@ -247,7 +247,7 @@ const VerifyForm = () => {
         )
         sessionStorage.setItem('auth_context', 'password_reset')
         sessionStorage.setItem('tokenTrocaSenha', token)
-        navigate('/auth/trocar-senha', { replace: true })
+        void navigate('/auth/trocar-senha', { replace: true })
         return
       }
 
@@ -267,7 +267,7 @@ const VerifyForm = () => {
         // Código válido, navegar para redefinir senha
         sessionStorage.setItem('auth_context', 'password_reset')
         sessionStorage.setItem('tokenTrocaSenha', token)
-        navigate('/auth/trocar-senha', { replace: true })
+        void navigate('/auth/trocar-senha', { replace: true })
       } else {
         // Login bem-sucedido, redireciona para a página principal
         const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
@@ -285,7 +285,7 @@ const VerifyForm = () => {
 
         sessionStorage.removeItem('redirectAfterLogin')
         sessionStorage.removeItem('auth_email')
-        navigate(redirectPath, { replace: true })
+        void navigate(redirectPath, { replace: true })
       }
     } catch (err) {
       verifyLogger.error(
@@ -414,7 +414,7 @@ const VerifyForm = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
           >
-            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-white">
               <CardHeader className="pb-4 text-center">
                 <motion.div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100"
@@ -429,7 +429,7 @@ const VerifyForm = () => {
                       ? 'Senha Expirada - Verificar Identidade'
                       : 'Verificação de Segurança'}
                 </motion.h1>
-                <motion.p className="text-sm text-gray-600">
+                <motion.p className="text-sm text-gray-600 dark:text-gray-600">
                   {contexto === 'password_recovery'
                     ? 'Digite o código de recuperação enviado para'
                     : contexto === 'password_expired'
@@ -478,11 +478,11 @@ const VerifyForm = () => {
 
                 <motion.form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="block text-center">
+                    <Label className="block text-center dark:text-gray-900">
                       Digite o código de verificação
                     </Label>
                     <motion.div
-                      className="flex justify-center space-x-2"
+                      className="flex justify-center space-x-2 dark:text-gray-800"
                       variants={containerVariants}
                     >
                       {codigo.map((digito, index) => {
@@ -527,7 +527,7 @@ const VerifyForm = () => {
                                 onFocus={() => setIndiceFocado(index)}
                                 onBlur={() => setIndiceFocado(null)}
                                 disabled={codigoExpirado}
-                                className={`h-12 w-12 border-2 text-center text-lg font-bold transition-all duration-200 ${
+                                className={`h-12 w-12 border-2 text-center text-lg font-bold transition-all duration-200 dark:border-gray-200 dark:bg-gray-100 ${
                                   codigoExpirado
                                     ? 'cursor-not-allowed opacity-50'
                                     : ''
@@ -601,7 +601,7 @@ const VerifyForm = () => {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
-                              className="flex items-center"
+                              className="flex items-center dark:text-white"
                             >
                               <Check className="mr-2 h-4 w-4" />
                               Verificar Código
@@ -621,9 +621,9 @@ const VerifyForm = () => {
                   >
                     <Button
                       variant="outline"
-                      onClick={handleResendCode}
+                      onClick={handleResendCode}  
                       disabled={!podeReenviar || carregando}
-                      className="w-full bg-transparent transition-all duration-200 hover:bg-gray-50"
+                      className="w-full bg-transparent transition-all duration-200 hover:bg-gray-50 dark:bg-transparent dark:transition-all dark:duration-200 dark:hover:bg-gray-50 dark:text-gray-800"
                     >
                       {carregando ? (
                         <>
@@ -643,8 +643,10 @@ const VerifyForm = () => {
                     >
                       <Button
                         variant="ghost"
-                        onClick={() => navigate('/login')}
-                        className="w-full transition-all duration-200 hover:bg-gray-100"
+                        onClick={() => {
+                          void navigate('/login')
+                        }}
+                        className="w-full transition-all duration-200 hover:bg-gray-100 dark:text-gray-800 dark:hover:bg-gray-50"
                       >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Voltar ao Login

@@ -30,7 +30,7 @@ const LoginForm = () => {
     if (estaAutenticado) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') ?? '/'
       sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath, { replace: true })
+      void navigate(redirectPath, { replace: true })
     }
   }, [estaAutenticado, navigate])
 
@@ -79,7 +79,7 @@ const LoginForm = () => {
       sessionStorage.setItem('auth_email', email)
 
       // Redireciona para verificação 2FA
-      navigate('/auth/verificar-codigo', { replace: true })
+      void navigate('/auth/verificar-codigo', { replace: true })
     } catch {
       // Erro já capturado pelo mutation
     }
@@ -181,7 +181,7 @@ const LoginForm = () => {
           </motion.div>
 
           <motion.div>
-            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+            <Card className="dark:bg-white border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl">
               <CardHeader className="pb-4 text-center">
                 <motion.h1 className="text-2xl font-bold text-gray-900">
                   Bem-Vindo(a)!
@@ -214,7 +214,7 @@ const LoginForm = () => {
 
                 <motion.form onSubmit={handleSubmit} className="space-y-4">
                   <motion.div className="space-y-2">
-                    <Label htmlFor="email">E-mail</Label>
+                    <Label htmlFor="email" className='dark:text-gray-900'>E-mail</Label>
                     <motion.div
                       variants={inputVariants}
                       animate={
@@ -230,18 +230,20 @@ const LoginForm = () => {
                         onFocus={() => setCampoFocado('email')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
+                        className="h-12 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:bg-white dark:text-gray-800 dark:border-gray-200"
                       />
                     </motion.div>
                   </motion.div>
 
                   <motion.div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="senha">Senha</Label>
+                      <Label htmlFor="senha" className='dark:text-gray-900'>Senha</Label>
                       <motion.button
                         type="button"
                         className="cursor-pointer text-sm text-blue-600 transition-colors duration-200 hover:underline"
-                        onClick={() => navigate('/auth/esqueci-senha')}
+                        onClick={() => {
+                          void navigate('/auth/esqueci-senha')
+                        }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -264,7 +266,7 @@ const LoginForm = () => {
                         onFocus={() => setCampoFocado('senha')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
+                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:border-gray-200 dark:text-gray-800"
                       />
                       <motion.button
                         type="button"
@@ -307,7 +309,7 @@ const LoginForm = () => {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
-                              className="flex items-center"
+                              className="flex items-center dark:text-white"
                             >
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Entrando...
@@ -318,6 +320,7 @@ const LoginForm = () => {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
+                              className='dark:text-white'
                             >
                               Entrar
                             </motion.span>

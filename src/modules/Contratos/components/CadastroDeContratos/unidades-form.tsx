@@ -386,18 +386,18 @@ const UnidadesFormMelhorado = ({
 
       {/* Resumo financeiro */}
       {valorTotalContrato > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 dark:bg-slate-800 dark:border-none p-6">
           <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-3">
             <div className="text-center">
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-slate-700 dark:text-white">
                 Valor Total do Contrato
               </span>
-              <p className="mt-1 text-lg font-semibold text-slate-900">
+              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-400">
                 {currencyUtils.formatar(valorTotalContrato)}
               </p>
             </div>
             <div className="text-center">
-              <span className="font-medium text-slate-700">Total Alocado</span>
+              <span className="font-medium text-slate-700 dark:text-white">Total Alocado</span>
               <p
                 className={`mt-1 text-lg font-semibold ${validarValorTotal() ? 'text-green-600' : 'text-red-600'}`}
               >
@@ -413,7 +413,7 @@ const UnidadesFormMelhorado = ({
               )}
             </div>
             <div className="text-center">
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-slate-700 dark:text-white">
                 Percentual Total
               </span>
               <p
@@ -433,7 +433,7 @@ const UnidadesFormMelhorado = ({
       )}
 
       {/* Seção de busca e adição de unidade */}
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+      <div className="rounded-lg border border-gray-200 bg-gray-50 dark:bg-slate-800 dark:border-none p-6">
         <h4 className="mb-4 flex items-center gap-2 font-medium">
           <Plus className="h-4 w-4" />
           Adicionar Nova Unidade

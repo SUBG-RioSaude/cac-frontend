@@ -450,7 +450,7 @@ const CadastrarContrato = () => {
               // Se já for número, retornar como está
               if (typeof valor === 'number') {
                 return valor
-              }
+              } 
 
               return 0
             })()}
@@ -476,17 +476,17 @@ const CadastrarContrato = () => {
     const currentStepInfo = getStepInfo(currentStep)
 
     return (
-      <Card className="border border-slate-200 bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl">
-        <CardHeader className="border-b border-slate-200 bg-gradient-to-r from-slate-100 to-white px-6 py-4">
+      <Card className="border shadow-lg transition-shadow duration-300 hover:shadow-xl">
+        <CardHeader className="border-b px-6 py-4">
           <div className="flex items-center space-x-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-lg shadow-sm">
               <span className="text-slate-600">{currentStepInfo.icone}</span>
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
                 {currentStepInfo.titulo}
               </CardTitle>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 {currentStepInfo.descricao}
               </p>
             </div>

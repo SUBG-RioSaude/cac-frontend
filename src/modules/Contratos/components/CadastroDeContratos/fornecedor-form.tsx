@@ -819,7 +819,7 @@ const FornecedorForm = ({
                   aria-hidden="true"
                 />
               </div>
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-200">
                 Informações Básicas
               </h3>
             </div>
@@ -1095,7 +1095,7 @@ const FornecedorForm = ({
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
               <MapPin className="h-4 w-4 text-slate-600" aria-hidden="true" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">Endereço</h3>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-200">Endereço</h3>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1342,7 +1342,7 @@ const FornecedorForm = ({
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
                 <Phone className="h-4 w-4 text-slate-600" aria-hidden="true" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-200">
                 Contatos
               </h3>
             </div>
@@ -1546,7 +1546,7 @@ const FornecedorForm = ({
           control={form.control}
           name="ativo"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+            <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-lg border border-slate-400 bg-slate-500/50 p-4">
               <FormControl>
                 <Checkbox
                   checked={field.value}
@@ -1558,10 +1558,10 @@ const FornecedorForm = ({
                 />
               </FormControl>
               <div className="space-y-1">
-                <FormLabel className="font-medium text-slate-700">
+                <FormLabel className="font-medium text-slate-700 dark:text-slate-300">
                   Fornecedor ativo
                 </FormLabel>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   Marque esta opção para manter o fornecedor ativo no sistema
                 </p>
               </div>

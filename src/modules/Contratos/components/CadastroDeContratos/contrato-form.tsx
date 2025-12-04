@@ -105,6 +105,7 @@ export interface EtapaPagamento {
 
 // Interfaces para processos
 export interface ProcessoSelecionado {
+  id: string
   tipo: 'sei' | 'rio' | 'fisico'
   valor: string
 }
@@ -150,6 +151,7 @@ const createSchemaContrato = (isNumeroUnique: boolean | null) =>
       processos: z
         .array(
           z.object({
+            id: z.string().optional(),
             tipo: z.enum(['sei', 'rio', 'fisico']),
             valor: z.string().min(1, 'Valor do processo é obrigatório'),
           }),
@@ -440,9 +442,13 @@ const ContratoForm = ({
   // Resetar formulário quando dadosIniciais mudarem (para suporte ao debug)
   useEffect(() => {
     if (Object.keys(dadosIniciais).length > 0) {
+      const processosComId = (dadosIniciais.processos ?? []).map((p) => ({
+        ...p,
+        id: 'id' in p && p.id ? p.id : crypto.randomUUID(),
+      }))
       form.reset({
         numeroContrato: dadosIniciais.numeroContrato ?? '',
-        processos: dadosIniciais.processos ?? [],
+        processos: processosComId,
         categoriaObjeto: dadosIniciais.categoriaObjeto ?? '',
         descricaoObjeto: dadosIniciais.descricaoObjeto ?? '',
         tipoContratacao: dadosIniciais.tipoContratacao,
@@ -507,9 +513,13 @@ const ContratoForm = ({
           principal: unidade.principal ?? false,
         }))
 
+      const processosComId = todosOsValores.processos.map((p) => ({
+        ...p,
+        id: p.id ?? crypto.randomUUID(),
+      }))
       const dados = {
         numeroContrato: todosOsValores.numeroContrato,
-        processos: todosOsValores.processos,
+        processos: processosComId,
         categoriaObjeto: todosOsValores.categoriaObjeto,
         descricaoObjeto: todosOsValores.descricaoObjeto,
         tipoContratacao: todosOsValores.tipoContratacao,
@@ -555,9 +565,16 @@ const ContratoForm = ({
       return
     }
 
+    // Garantir que todos os processos tenham ID
+    const processosComId = dados.processos.map((p) => ({
+      ...p,
+      id: p.id ?? crypto.randomUUID(),
+    }))
+
     // Criar objeto DadosContrato diretamente dos dados do formulário
     const dadosContrato: DadosContrato = {
       ...dados,
+      processos: processosComId,
       unidadesResponsaveis: unidadesComPrincipalDefinido,
     }
 
@@ -834,7 +851,11 @@ const ContratoForm = ({
       return
     }
 
-    const novoProcesso: ProcessoSelecionado = { tipo, valor: '' }
+    const novoProcesso: ProcessoSelecionado = {
+      id: crypto.randomUUID(),
+      tipo,
+      valor: '',
+    }
     const novosProcessos = [...processosSelecionados, novoProcesso]
     setProcessosSelecionados(novosProcessos)
     form.setValue('processos', novosProcessos)
@@ -987,7 +1008,7 @@ const ContratoForm = ({
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100">
               <FileText className="h-4 w-4 text-slate-600" aria-hidden="true" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-300">
               Informações Básicas
             </h3>
           </div>
@@ -1209,7 +1230,7 @@ const ContratoForm = ({
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {processosSelecionados.map((processo, index) => (
                   <div
-                    key={`${processo.tipo}-${index}`}
+                    key={processo.id}
                     className="space-y-3 rounded-lg border p-4"
                   >
                     <div className="flex items-center justify-between">
@@ -1846,7 +1867,7 @@ const ContratoForm = ({
                               className="h-10 pr-8 text-center"
                               placeholder="0"
                             />
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center rounded-s-sm bg-gray-100 pr-3 pl-3">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center rounded-s-sm bg-gray-100 dark:bg-slate-800 pr-3 pl-3">
                               <span className="text-muted-foreground text-xs font-medium">
                                 Meses
                               </span>
@@ -1935,7 +1956,7 @@ const ContratoForm = ({
                               placeholder="0"
                               data-testid="prazo-dias-input"
                             />
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center rounded-s-sm bg-gray-100 pr-3 pl-3">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center rounded-s-sm bg-gray-100 dark:bg-slate-800 pr-3 pl-3">
                               <span className="text-muted-foreground text-xs font-medium">
                                 Dias
                               </span>
@@ -2576,7 +2597,7 @@ const ContratoForm = ({
                   : 'Avançar para próximo passo'
               }
               className={cn(
-                'flex items-center gap-2 bg-slate-700 px-8 py-2.5 shadow-lg shadow-slate-700/20 transition-all duration-200 hover:bg-slate-600',
+                'flex items-center gap-2 bg-slate-700 px-8 py-2.5 shadow-lg shadow-slate-700/20 transition-all duration-200 hover:bg-slate-600 dark:text-white',
                 isSubmitting && 'cursor-not-allowed opacity-50',
               )}
             >
@@ -2588,7 +2609,7 @@ const ContratoForm = ({
               ) : (
                 <>
                   Próximo
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 dark:text-white" />
                 </>
               )}
             </Button>

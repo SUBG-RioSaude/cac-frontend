@@ -1,6 +1,15 @@
-import { FileText, Sparkles } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { FileText, Sparkles, Plus, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -8,153 +17,272 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { cookieUtils } from '@/lib/auth/cookie-utils'
+import { patchNotesService } from '@/services/patch-notes-service'
+import { PatchNoteTipo } from '@/types/patch-notes'
 
-interface PatchNote {
-  version: string
-  date: string
-  type: 'feature' | 'fix' | 'improvement' | 'breaking'
-  changes: string[]
-}
-
-const PATCH_NOTES: PatchNote[] = [
-  {
-    version: 'v1.0.8-dev',
-    date: '25/11/2025',
-    type: 'feature',
-    changes: [
-      'Adicionada página de Configurações completa',
-      'Implementado suporte a Dark Mode e Light Mode',
-      'Adicionado controle de volume de notificações',
-      'Criada seção de Patch Notes para acompanhar atualizações',
-      'Implementado formulário de alteração de senha',
-    ],
-  },
-  {
-    version: 'v1.0.7-dev',
-    date: '24/11/2025',
-    type: 'feature',
-    changes: [
-      'Implementado cadastro de funcionários com validação de CPF',
-      'Adicionada atribuição de permissões em 2 etapas',
-      'Criado fluxo de detecção de usuário duplicado (erro 400)',
-      'Adicionada pré-seleção de permissão existente',
-      'Implementado endpoint de atualização em lote de permissões (API v1.1)',
-    ],
-  },
-  {
-    version: 'v1.0.6-dev',
-    date: '20/11/2025',
-    type: 'improvement',
-    changes: [
-      'Migração para API v1.1',
-      'Adicionado sistemaId em endpoints de autenticação',
-      'Melhorias na estrutura de resposta de permissões',
-      'Otimização de queries com TanStack Query',
-    ],
-  },
-  {
-    version: 'v1.0.5-dev',
-    date: '15/11/2025',
-    type: 'fix',
-    changes: [
-      'Correção de bug no sistema de notificações SignalR',
-      'Melhorias na performance do Dashboard',
-      'Correção de erros de validação em formulários',
-      'Ajustes de responsividade em telas pequenas',
-    ],
-  },
-]
+import { CriarPatchNoteModal } from './criar-patch-note-modal'
 
 const getBadgeVariant = (
-  type: PatchNote['type'],
+  titulo: string,
 ): 'default' | 'destructive' | 'outline' | 'secondary' => {
-  switch (type) {
-    case 'feature':
+  switch (titulo) {
+    case 'Novidade':
       return 'default'
-    case 'fix':
+    case 'Correção':
       return 'destructive'
-    case 'improvement':
+    case 'Melhoria':
       return 'secondary'
-    case 'breaking':
-      return 'destructive'
     default:
       return 'outline'
   }
 }
 
-const getBadgeLabel = (type: PatchNote['type']): string => {
-  switch (type) {
-    case 'feature':
-      return 'Novidade'
-    case 'fix':
-      return 'Correção'
-    case 'improvement':
-      return 'Melhoria'
-    case 'breaking':
-      return 'Breaking Change'
-    default:
-      return 'Outros'
-  }
-}
-
 export const PatchNotesSection = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="size-5" />
-          Notas de Atualização
-        </CardTitle>
-        <CardDescription>
-          Acompanhe as novidades e melhorias do sistema
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="single" collapsible className="w-full">
-          {PATCH_NOTES.map((note) => (
-            <AccordionItem key={note.version} value={note.version}>
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex flex-1 items-center justify-between pr-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="size-4 text-gray-500" />
-                    <span className="font-semibold">{note.version}</span>
-                    <Badge variant={getBadgeVariant(note.type)}>
-                      {getBadgeLabel(note.type)}
-                    </Badge>
-                  </div>
-                  <span className="text-sm text-gray-500">{note.date}</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="ml-7 space-y-2 text-sm">
-                  {note.changes.map((change, changeIndex) => (
-                    <li
-                      key={changeIndex}
-                      className="flex items-start gap-2 text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="mt-1.5 size-1.5 flex-shrink-0 rounded-full bg-blue-500" />
-                      <span>{change}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
 
-        <div className="mt-6 rounded-lg border border-blue-500 bg-blue-50 p-4 dark:bg-blue-950">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Versão atual:</strong> {PATCH_NOTES[0].version} (
-            {PATCH_NOTES[0].date})
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+  // Verificar se usuário tem permissão ID = 5
+  useEffect(() => {
+    // Tentar ambos os nomes de cookie: 'token' e 'auth_token'
+    let token = cookieUtils.getCookie('token')
+    token ??= cookieUtils.getCookie('auth_token')
+
+    if (!token) {
+      return
+    }
+
+    try {
+      // Decodificar JWT manualmente (payload está na segunda parte)
+      const parts = token.split('.')
+
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1])) as Record<string, unknown>
+
+        // Permissão pode ser string única ou array
+        let hasPermission = false
+
+        if (typeof payload.permissao === 'string') {
+          // Caso seja string única
+          hasPermission = payload.permissao === '5'
+        } else if (Array.isArray(payload.permissao)) {
+          // Caso seja array
+          hasPermission = payload.permissao.some(
+            (p) => String(p) === '5'
+          )
+        }
+
+        setIsAdmin(hasPermission)
+      }
+    } catch (erro) {
+      // Erro silencioso ao decodificar token
+      if (erro instanceof Error) {
+        // Log apenas em desenvolvimento se necessário
+      }
+    }
+  }, [])
+
+  // Buscar patch notes da API
+  const {
+    data: patchNotesResponse,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ['patch-notes'],
+    queryFn: () => patchNotesService.listar({ pageSize: 50 }),
+    retry: 1,
+  })
+
+  const formatarData = (dataISO: string): string => {
+    const data = new Date(dataISO)
+    return data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
+
+  const handleSuccess = () => {
+    void refetch()
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="size-5" />
+            Notas de Atualização
+          </CardTitle>
+          <CardDescription>
+            Acompanhe as novidades e melhorias do sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="size-8 animate-spin text-blue-600" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const patchNotes = patchNotesResponse?.items ?? []
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="size-5" />
+                Notas de Atualização
+              </CardTitle>
+              <CardDescription>
+                Acompanhe as novidades e melhorias do sistema
+              </CardDescription>
+            </div>
+            {(() => {
+              return isAdmin ? (
+                <Button
+                  onClick={() => setModalOpen(true)}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 dark:text-white"
+                >
+                  <Plus className="size-4" />
+                  Novo Update
+                </Button>
+              ) : null
+            })()}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {patchNotes.length === 0 ? (
+            <div className="text-muted-foreground py-8 text-center">
+              <FileText className="mx-auto mb-2 size-12 opacity-50" />
+              <p className="text-sm">Nenhuma atualização disponível</p>
+            </div>
+          ) : (
+            <>
+              <Accordion type="single" collapsible className="w-full">
+                {patchNotes.map((note) => (
+                  <AccordionItem key={note.id} value={note.id}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex flex-1 items-center justify-between pr-4">
+                        <div className="flex items-center gap-3">
+                          <FileText className="size-4 text-gray-500" />
+                          <span className="font-semibold">{note.versao}</span>
+                          <Badge variant={getBadgeVariant(note.titulo)}>
+                            {note.titulo}
+                          </Badge>
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          {formatarData(note.dataPublicacao)}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-6 px-4">
+                        {/* Agrupar items por tipo */}
+                        {(() => {
+                          const novidades = note.items.filter(
+                            (item) => item.tipo === PatchNoteTipo.Feature
+                          )
+                          const correcoes = note.items.filter(
+                            (item) => item.tipo === PatchNoteTipo.Fix
+                          )
+                          const melhorias = note.items.filter(
+                            (item) => item.tipo === PatchNoteTipo.Improvement
+                          )
+
+                          return (
+                            <>
+                              {/* Novidades */}
+                              {novidades.length > 0 && (
+                                <div>
+                                  <h3 className="mb-3 text-lg font-bold text-foreground">
+                                    Novidades
+                                  </h3>
+                                  <ul className="space-y-2">
+                                    {novidades.map((item) => (
+                                      <li
+                                        key={item.id}
+                                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                                      >
+                                        <span className="mt-1.5 size-2 flex-shrink-0 rotate-45 bg-blue-500" />
+                                        <span>{item.mensagem}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Correções */}
+                              {correcoes.length > 0 && (
+                                <div>
+                                  <h3 className="mb-3 text-lg font-bold text-foreground">
+                                    Correções
+                                  </h3>
+                                  <ul className="space-y-2">
+                                    {correcoes.map((item) => (
+                                      <li
+                                        key={item.id}
+                                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                                      >
+                                        <span className="mt-1.5 size-2 flex-shrink-0 rotate-45 bg-blue-500" />
+                                        <span>{item.mensagem}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Melhorias */}
+                              {melhorias.length > 0 && (
+                                <div>
+                                  <h3 className="mb-3 text-lg font-bold text-foreground">
+                                    Melhorias
+                                  </h3>
+                                  <ul className="space-y-2">
+                                    {melhorias.map((item) => (
+                                      <li
+                                        key={item.id}
+                                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                                      >
+                                        <span className="mt-1.5 size-2 flex-shrink-0 rotate-45 bg-blue-500" />
+                                        <span>{item.mensagem}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </>
+                          )
+                        })()}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+
+              {patchNotes.length > 0 && (
+                <div className="mt-6 rounded-lg border border-blue-500 bg-blue-50 p-4 dark:bg-blue-950">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Versão atual:</strong> {patchNotes[0].versao} (
+                    {formatarData(patchNotes[0].dataPublicacao)})
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <CriarPatchNoteModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSuccess={handleSuccess}
+      />
+    </>
   )
 }

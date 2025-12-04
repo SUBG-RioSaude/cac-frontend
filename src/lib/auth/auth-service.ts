@@ -18,6 +18,8 @@ import type {
   RegisterRequest,
   RegisterResponse,
   VerificarUsuarioCpfResponse,
+  AlterarSenhaRequest,
+  AlterarSenhaResponse,
 } from '@/types/auth'
 
 const API_URL = import.meta.env.VITE_API_URL_AUTH as string
@@ -276,6 +278,43 @@ export const authService = {
       if (apiError.response?.data) {
         return apiError.response.data as unknown as RegisterResponse
       }
+      throw new Error('Erro de conexão com o servidor')
+    }
+  },
+
+  /**
+   * Altera a senha do usuário autenticado
+   * Endpoint: POST /api/auth/alterar-senha
+   * IMPORTANTE: Requer Bearer Token no header Authorization
+   *
+   * @param data - Dados com senha atual, nova senha e confirmação
+   * @param token - JWT token do usuário autenticado
+   * @returns Resposta indicando sucesso ou falha
+   */
+  async alterarSenha(
+    data: AlterarSenhaRequest,
+    token: string,
+  ): Promise<AlterarSenhaResponse> {
+    try {
+      const response = await authApi.post<AlterarSenhaResponse>(
+        '/Auth/alterar-senha',
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response.data
+    } catch (erro: unknown) {
+      const apiError = erro as ApiError
+
+      // Tratamento de erros específicos
+      if (apiError.response?.data) {
+        return apiError.response.data as unknown as AlterarSenhaResponse
+      }
+
+      // Erro de conexão
       throw new Error('Erro de conexão com o servidor')
     }
   },

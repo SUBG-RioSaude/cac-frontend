@@ -219,3 +219,25 @@ export interface VerificarUsuarioCpfResponse {
     }[]
   }
 }
+
+/**
+ * Request para alterar senha do usuário autenticado
+ * Endpoint: POST /api/auth/alterar-senha
+ * Requer autenticação: Bearer Token no header
+ */
+export interface AlterarSenhaRequest {
+  senhaAtual: string
+  novaSenha: string
+  confirmarNovaSenha: string
+}
+
+/**
+ * Response do endpoint de alterar senha
+ */
+export interface AlterarSenhaResponse {
+  sucesso: boolean
+  mensagem: string
+  dados?: {
+    mensagem?: string
+  }
+}

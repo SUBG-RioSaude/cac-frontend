@@ -26,8 +26,7 @@ export const NotificacoesSection = () => {
   }, [])
 
   // Salvar volume no localStorage quando alterar
-  const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0]
+  const handleVolumeChange = ([newVolume]: number[]) => {
     setVolume(newVolume)
     localStorage.setItem(NOTIFICATION_VOLUME_KEY, newVolume.toString())
   }
@@ -36,11 +35,9 @@ export const NotificacoesSection = () => {
   const handleTestarSom = () => {
     const audio = new Audio('/notification.mp3')
     audio.volume = volume / 100
-    audio
-      .play()
-      .catch((erro) =>
-        console.error('Erro ao reproduzir som de notificação:', erro),
-      )
+    void audio.play().catch(() => {
+      // Erro silencioso ao reproduzir som
+    })
   }
 
   const isMuted = volume === 0

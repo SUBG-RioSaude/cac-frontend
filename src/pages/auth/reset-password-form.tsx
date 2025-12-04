@@ -208,7 +208,7 @@ const ResetPasswordForm = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
           >
-            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl">
+            <Card className="border-0 shadow-lg transition-shadow duration-300 hover:shadow-xl dark:bg-white">
               <CardHeader className="pb-4 text-center">
                 <motion.div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100"
@@ -297,7 +297,7 @@ const ResetPasswordForm = () => {
 
                 <motion.form onSubmit={handleSubmit} className="space-y-4">
                   <motion.div className="space-y-2">
-                    <Label htmlFor="novaSenha">Nova Senha</Label>
+                    <Label htmlFor="novaSenha" className='dark:text-gray-800'>Nova Senha</Label>
                     <motion.div
                       className="relative"
                       variants={inputVariants}
@@ -314,7 +314,7 @@ const ResetPasswordForm = () => {
                         onFocus={() => setCampoFocado('novaSenha')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
+                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:text-gray-800 dark:border-gray-200"
                       />
                       <motion.button
                         type="button"
@@ -351,7 +351,7 @@ const ResetPasswordForm = () => {
                   </motion.div>
 
                   <motion.div className="space-y-2">
-                    <Label htmlFor="confirmarSenha">Confirmar Nova Senha</Label>
+                    <Label htmlFor="confirmarSenha" className='dark:text-gray-800'>Confirmar Nova Senha</Label>
                     <motion.div
                       className="relative"
                       variants={inputVariants}
@@ -370,7 +370,7 @@ const ResetPasswordForm = () => {
                         onFocus={() => setCampoFocado('confirmarSenha')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
+                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:text-gray-800 dark:border-gray-200"
                       />
                       <motion.button
                         type="button"
@@ -392,7 +392,7 @@ const ResetPasswordForm = () => {
 
                   {/* Password Requirements */}
                   <motion.div className="space-y-2">
-                    <Label className="text-sm font-medium">
+                    <Label className="text-sm font-medium dark:text-gray-800">
                       Requisitos da senha:
                     </Label>
                     <motion.div className="space-y-1">
@@ -476,9 +476,9 @@ const ResetPasswordForm = () => {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
-                              className="flex items-center"
+                              className="flex items-center dark:text-white"
                             >
-                              <Lock className="mr-2 h-4 w-4" />
+                              <Lock className="mr-2 h-4 w-4 dark:text-white" />
                               Alterar Senha
                             </motion.div>
                           )}
@@ -498,9 +498,9 @@ const ResetPasswordForm = () => {
                       onClick={() => {
                         void navigate('/login')
                       }}
-                      className="w-full transition-all duration-200 hover:bg-gray-100"
+                      className="w-full transition-all duration-200 hover:bg-gray-100 dark:text-gray-800 dark:hover:bg-gray-50"
                     >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      <ArrowLeft className="mr-2 h-4 w-4 dark:text-gray-800" />
                       Voltar ao Login
                     </Button>
                   </motion.div>
