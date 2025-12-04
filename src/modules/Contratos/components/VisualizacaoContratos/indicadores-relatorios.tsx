@@ -115,18 +115,39 @@ export const IndicadoresRelatorios = ({
   const dataInicio = new Date(contrato.dataInicio)
   const dataTermino = new Date(contrato.dataTermino)
 
-  const diasVigentes = Math.max(
-    0,
-    Math.floor((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24)),
-  )
+  // Verificar se o contrato está vencido
+  const contratoVencido = hoje > dataTermino
+
+  // Calcular total de dias do contrato
   const diasTotais = Math.floor(
     (dataTermino.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24),
   )
+
+  // Calcular dias vigentes (limitado ao período do contrato)
+  const diasVigentesBruto = Math.floor(
+    (hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24),
+  )
+  // Sempre limitar diasVigentes a diasTotais para evitar valores negativos de dias restantes
+  const diasVigentes = Math.min(Math.max(0, diasVigentesBruto), diasTotais)
+
+  // Calcular dias restantes (sempre >= 0)
+  // Se vencido, restam 0 dias; caso contrário, calcular normalmente
+  const diasRestantes = contratoVencido ? 0 : Math.max(0, diasTotais - diasVigentes)
+
+  // Calcular quantos dias o contrato está vencido (se aplicável)
+  const diasVencidos = contratoVencido
+    ? Math.floor(
+        (hoje.getTime() - dataTermino.getTime()) / (1000 * 60 * 60 * 24),
+      )
+    : 0
+
+  // Calcular progresso temporal (sempre entre 0-100%)
   const progressoTemporal =
     diasTotais > 0 ? Math.min((diasVigentes / diasTotais) * 100, 100) : 0
 
-  // Calcular gasto médio por dia
-  const gastoMedioPorDia = diasVigentes > 0 ? valorExecutado / diasVigentes : 0
+  // Calcular gasto médio por dia (usar diasVigentesBruto para cálculo correto mesmo após vencimento)
+  const diasParaCalculo = Math.max(diasVigentesBruto, 1)
+  const gastoMedioPorDia = valorExecutado / diasParaCalculo
 
   // Gerar dados de evolução baseados na duração real do contrato
   const dadosEvolucao = (() => {
@@ -333,18 +354,39 @@ export const IndicadoresRelatorios = ({
             <div
               className={cn(
                 'rounded-lg p-3 text-center sm:p-4',
-                isDarkMode ? 'bg-blue-950/20 dark:bg-blue-950/20' : 'bg-blue-50',
+                contratoVencido
+                  ? isDarkMode
+                    ? 'bg-red-950/20 dark:bg-red-950/20'
+                    : 'bg-red-50'
+                  : isDarkMode
+                    ? 'bg-blue-950/20 dark:bg-blue-950/20'
+                    : 'bg-blue-50',
               )}
             >
-              <p className="text-muted-foreground text-xs sm:text-sm">
-                Progresso Temporal
-              </p>
+              <div className="mb-2 flex items-center justify-center gap-2">
+                <p className="text-muted-foreground text-xs sm:text-sm">
+                  Progresso Temporal
+                </p>
+                {contratoVencido && (
+                  <Badge
+                    variant="destructive"
+                    className="text-xs"
+                    data-testid="contrato-vencido-badge"
+                  >
+                    Vencido
+                  </Badge>
+                )}
+              </div>
               <p
                 className={cn(
                   'text-base font-bold sm:text-xl',
-                  isDarkMode
-                    ? 'text-blue-400 dark:text-blue-400'
-                    : 'text-blue-600',
+                  contratoVencido
+                    ? isDarkMode
+                      ? 'text-red-400 dark:text-red-400'
+                      : 'text-red-600'
+                    : isDarkMode
+                      ? 'text-blue-400 dark:text-blue-400'
+                      : 'text-blue-600',
                 )}
               >
                 {diasVigentes} dias vigentes de {diasTotais} dias
@@ -354,27 +396,45 @@ export const IndicadoresRelatorios = ({
                   <span
                     className={cn(
                       'text-xs font-medium',
-                      isDarkMode
-                        ? 'text-blue-400 dark:text-blue-400'
-                        : 'text-blue-600',
+                      contratoVencido
+                        ? isDarkMode
+                          ? 'text-red-400 dark:text-red-400'
+                          : 'text-red-600'
+                        : isDarkMode
+                          ? 'text-blue-400 dark:text-blue-400'
+                          : 'text-blue-600',
                     )}
                   >
                     {progressoTemporal.toFixed(1)}%
                   </span>
                   <span className="text-muted-foreground text-xs">
-                    {diasTotais - diasVigentes} dias restantes
+                    {contratoVencido
+                      ? `Vencido há ${diasVencidos} dia${diasVencidos !== 1 ? 's' : ''}`
+                      : `${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''} restante${diasRestantes !== 1 ? 's' : ''}`}
                   </span>
                 </div>
                 <div
                   className={cn(
                     'h-2.5 w-full rounded-full',
-                    isDarkMode ? 'bg-blue-900/50' : 'bg-blue-200',
+                    contratoVencido
+                      ? isDarkMode
+                        ? 'bg-red-900/50'
+                        : 'bg-red-200'
+                      : isDarkMode
+                        ? 'bg-blue-900/50'
+                        : 'bg-blue-200',
                   )}
                 >
                   <div
                     className={cn(
                       'h-2.5 rounded-full transition-all duration-300',
-                      isDarkMode ? 'bg-blue-500' : 'bg-blue-600',
+                      contratoVencido
+                        ? isDarkMode
+                          ? 'bg-red-500'
+                          : 'bg-red-600'
+                        : isDarkMode
+                          ? 'bg-blue-500'
+                          : 'bg-blue-600',
                     )}
                     style={{ width: `${Math.min(progressoTemporal, 100)}%` }}
                   />

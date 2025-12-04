@@ -11,7 +11,10 @@
       "Read(//c/Users/Joao/Desktop/FarmaciaPopularFront/**)",
       "WebFetch(domain:www.npmjs.com)",
       "Bash(npm view:*)",
-      "Read(//c/Users/Joao/Desktop/Farmacia-Popular/**)"
+      "Read(//c/Users/Joao/Desktop/Farmacia-Popular/**)",
+      "Bash(pnpm test:coverage:*)",
+      "Bash(git checkout:*)",
+      "Bash(pnpm test:run:*)"
     ],
     "deny": [],
     "ask": [],

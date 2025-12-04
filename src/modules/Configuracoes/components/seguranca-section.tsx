@@ -101,20 +101,20 @@ export const SegurancaSection = () => {
         confirmarNovaSenha: data.confirmarSenha,
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+       
       const resultado = await authService.alterarSenha(payload, token)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const response: AlterarSenhaResponse = resultado as AlterarSenhaResponse
+       
+      const response: AlterarSenhaResponse = resultado
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+       
       if (response.sucesso) {
         toast.success('Senha alterada com sucesso!', {
           description: 'Sua senha foi atualizada',
         })
         form.reset()
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const mensagem: string = (response.mensagem ?? 'Tente novamente mais tarde') as string
+         
+        const mensagem: string = (response.mensagem ?? 'Tente novamente mais tarde')
         toast.error('Erro ao alterar senha', {
           description: mensagem,
         })

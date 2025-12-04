@@ -18,8 +18,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/lib/auth/auth-context'
 import { getToken, getTokenInfo } from '@/lib/auth/auth'
+import { useAuth } from '@/lib/auth/auth-context'
 import { PERMISSOES_GESTAO_USUARIOS } from '@/lib/auth/permissoes-constants'
 
 import { Separator } from './ui/separator'

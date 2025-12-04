@@ -52,9 +52,11 @@ export const ContractChat = ({
   const token = getToken()
   const tokenInfo = token ? getTokenInfo(token) : null
 
-  const currentUserId = tokenInfo?.usuarioId ?? 'usuario-anonimo'
-  const currentUserNome = tokenInfo?.nomeCompleto ?? 'Você'
-  const currentUserEmail = tokenInfo?.sub ?? ''
+  const currentUserId: string =
+    (tokenInfo?.usuarioId as string | undefined) ?? 'usuario-anonimo'
+  const currentUserNome: string =
+    (tokenInfo?.nomeCompleto as string | undefined) ?? 'Você'
+  const currentUserEmail: string = (tokenInfo?.sub as string | undefined) ?? ''
   const pageSize = CHAT_PAGE_SIZE_DEFAULT
 
   // Debug: Log do ID do usuário atual
@@ -114,7 +116,7 @@ export const ContractChat = ({
 
   // Função para normalizar IDs antes de comparar
   const normalizarId = useCallback((id: string): string => {
-    return id?.trim().toLowerCase() ?? ''
+    return id.trim().toLowerCase()
   }, [])
 
   // Função para verificar se mensagem é do usuário atual
@@ -148,7 +150,8 @@ export const ContractChat = ({
 
     mensagens.forEach((mensagem) => {
       const { id, nome, tipo, avatar } = mensagem.remetente
-      const nomeNormalizado = nome ?? 'Usuário'
+      const nomeNormalizado = nome || 'Usuário'
+      const tipoNormalizado = tipo === 'sistema' ? 'usuario' : tipo
 
       if (!map.has(id)) {
         map.set(id, {
@@ -156,7 +159,7 @@ export const ContractChat = ({
           nome: nomeNormalizado,
           email: '',
           avatar,
-          tipo: tipo === 'sistema' ? 'usuario' : (tipo ?? 'usuario'),
+          tipo: tipoNormalizado,
           status: 'online',
           ultimoAcesso: mensagem.dataEnvio,
         })
@@ -384,9 +387,9 @@ export const ContractChat = ({
 
             {isLoading && mensagensOrdenadas.length === 0 && (
               <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, index) => (
+                {Array.from({ length: 3 }, (_, index) => (
                   <div
-                    key={`chat-skeleton-${index}`}
+                    key={`chat-skeleton-${index}-${Date.now()}`}
                     className="flex items-start gap-3"
                   >
                     <div className="h-10 w-10 rounded-full" />
@@ -407,8 +410,8 @@ export const ContractChat = ({
 
             <AnimatePresence>
               {mensagensOrdenadas.map((mensagem) => {
-                const remetenteTipo = mensagem.remetente.tipo ?? 'usuario'
-                const remetenteNome = mensagem.remetente.nome ?? 'Usuário'
+                const remetenteTipo = mensagem.remetente.tipo
+                const remetenteNome = mensagem.remetente.nome || 'Usuário'
                 const isOwn = isMensagemPropria(mensagem.remetente.id)
 
                 return (
@@ -424,7 +427,7 @@ export const ContractChat = ({
                     )}
                   >
                     {mensagem.tipo === 'sistema' ? (
-                      <div className="rounded-lg border border-blue-200 px-4 py-3 text-center">
+                      <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-center">
                         <p className="flex items-center justify-center gap-2 text-sm font-medium whitespace-pre-wrap text-blue-700">
                           <CheckCircle2 className="h-4 w-4" />
                           {mensagem.conteudo}
@@ -518,10 +521,12 @@ export const ContractChat = ({
               <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-700">
                 {(
                   currentUserParticipant?.nome
-                    ?.split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .substring(0, 2) ?? 'VC'
+                    ? currentUserParticipant.nome
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .substring(0, 2)
+                    : 'VC'
                 ).toUpperCase()}
               </AvatarFallback>
             </Avatar>

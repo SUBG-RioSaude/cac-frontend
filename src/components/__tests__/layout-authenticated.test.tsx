@@ -65,8 +65,8 @@ describe('LayoutAuthenticated', () => {
     expect(header).toHaveClass(
       'flex-shrink-0',
       'border-b',
-      'border-gray-100',
-      'bg-white',
+      'border-border',
+      'bg-background',
       'shadow-sm',
     )
     expect(screen.getByTestId('breadcrumb')).toBeInTheDocument()

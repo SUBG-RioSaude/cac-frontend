@@ -14,6 +14,19 @@ vi.mock('@/components/sidebar-footer', () => ({
   default: () => <div data-testid="sidebar-footer">Sidebar Footer</div>,
 }))
 
+vi.mock('@/lib/auth/auth-context', () => ({
+  useAuth: () => ({
+    usuario: null,
+    estaAutenticado: false,
+    carregando: false,
+  }),
+}))
+
+vi.mock('@/lib/auth/auth', () => ({
+  getToken: vi.fn(() => null),
+  getTokenInfo: vi.fn(() => null),
+}))
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
