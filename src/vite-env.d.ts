@@ -6,3 +6,8 @@ declare const __COMMIT_SHA__: string
 declare const __BUILD_NUMBER__: string
 declare const __BUILD_TIMESTAMP__: string
 declare const __APP_ENVIRONMENT__: string
+
+// Polyfill do Buffer para @react-pdf/renderer
+interface Window {
+  Buffer: typeof import('buffer').Buffer
+}

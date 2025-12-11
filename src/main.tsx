@@ -1,3 +1,7 @@
+// Polyfill para Buffer (necessário para @react-pdf/renderer no navegador)
+import { Buffer } from 'buffer'
+window.Buffer = Buffer
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { StrictMode } from 'react'

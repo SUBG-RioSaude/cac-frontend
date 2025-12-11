@@ -5,6 +5,7 @@ import {
   Settings2,
   Truck,
   ShieldUser,
+  FileBarChart,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -57,6 +58,21 @@ const data = {
       title: 'Unidades',
       url: '/unidades',
       icon: Building2,
+    },
+    {
+      title: 'Relatórios',
+      url: '/relatorios',
+      icon: FileBarChart,
+      items: [
+        {
+          title: 'Gerar Relatório',
+          url: '/relatorios',
+        },
+        {
+          title: 'Histórico',
+          url: '/relatorios?tab=historico',
+        },
+      ],
     },
     {
       title: 'Gestão de Usuários',

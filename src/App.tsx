@@ -7,6 +7,7 @@ import CadastrarContrato from './modules/Contratos/pages/CadastroContratos/cadas
 import { ContratosPage } from './modules/Contratos/pages/VisualizacaoContratos/contratos-list-page'
 import { VisualizarContrato } from './modules/Contratos/pages/VisualizacaoContratos/visualizar-contrato'
 import { DashboardPage } from './modules/Dashboard/pages/dashboard-page'
+import { RelatoriosPage } from './modules/Relatorios/pages/relatorios-page'
 import VisualizacaoFornecedorPage from './modules/Fornecedores/VisualizacaoFornecedor/pages/visualizacao-fornecedor-page'
 import CadastroFuncionarioPage from './modules/Funcionarios/CadastroFuncionario/pages/cadastro-funcionario-page'
 import BadRequest from './modules/http-codes/400'
@@ -180,6 +181,18 @@ const App = () => {
           <ProtectedRoute requireAuth>
             <LayoutAuthenticated>
               <UnidadeDetailPage />
+            </LayoutAuthenticated>
+          </ProtectedRoute>
+        )}
+      />
+
+      {/* Rotas de Relatórios */}
+      <Route
+        path="/relatorios"
+        element={(
+          <ProtectedRoute requireAuth>
+            <LayoutAuthenticated>
+              <RelatoriosPage />
             </LayoutAuthenticated>
           </ProtectedRoute>
         )}

@@ -56,9 +56,26 @@ export async function getContratos(
   if ('dados' in response.data && Array.isArray(response.data.dados)) {
     const { dados } = response.data
 
+    // Transformar contratos para garantir que contratada esteja populada
+    const dadosTransformados = dados.map((contrato) => {
+      // Se contratada já existe, retornar como está
+      if (contrato.contratada?.razaoSocial) {
+        return contrato
+      }
+
+      // Caso contrário, popular contratada a partir de empresaRazaoSocial e empresaCnpj
+      return {
+        ...contrato,
+        contratada: {
+          razaoSocial: contrato.empresaRazaoSocial || 'Não informado',
+          cnpj: contrato.empresaCnpj || '',
+        },
+      }
+    })
+
     // Usar metadados de paginação se existirem, senão criar defaults
     const paginatedResponse: PaginacaoResponse<Contrato> = {
-      dados,
+      dados: dadosTransformados,
       paginaAtual:
         'paginaAtual' in response.data
           ? response.data.paginaAtual
@@ -66,11 +83,11 @@ export async function getContratos(
       tamanhoPagina:
         'tamanhoPagina' in response.data
           ? response.data.tamanhoPagina
-          : (filtros.tamanhoPagina ?? dados.length),
+          : (filtros.tamanhoPagina ?? dadosTransformados.length),
       totalRegistros:
         'totalRegistros' in response.data
           ? response.data.totalRegistros
-          : dados.length,
+          : dadosTransformados.length,
       totalPaginas:
         'totalPaginas' in response.data ? response.data.totalPaginas : 1,
       temProximaPagina:
@@ -86,18 +103,47 @@ export async function getContratos(
     return paginatedResponse
   }
 
-  // Se já está no formato esperado, retornar como está
+  // Se já está no formato esperado, transformar e retornar
   if ('dados' in response.data && 'totalRegistros' in response.data) {
-    return response.data
+    const dadosTransformados = response.data.dados.map((contrato: Contrato) => {
+      if (contrato.contratada?.razaoSocial) {
+        return contrato
+      }
+      return {
+        ...contrato,
+        contratada: {
+          razaoSocial: contrato.empresaRazaoSocial || 'Não informado',
+          cnpj: contrato.empresaCnpj || '',
+        },
+      }
+    })
+
+    return {
+      ...response.data,
+      dados: dadosTransformados,
+    }
   }
 
   // Fallback para array direto (caso a API mude no futuro)
   if (Array.isArray(response.data)) {
+    const dadosTransformados = (response.data as Contrato[]).map((contrato) => {
+      if (contrato.contratada?.razaoSocial) {
+        return contrato
+      }
+      return {
+        ...contrato,
+        contratada: {
+          razaoSocial: contrato.empresaRazaoSocial || 'Não informado',
+          cnpj: contrato.empresaCnpj || '',
+        },
+      }
+    })
+
     return {
-      dados: response.data as Contrato[],
+      dados: dadosTransformados,
       paginaAtual: 1,
-      tamanhoPagina: response.data.length,
-      totalRegistros: response.data.length,
+      tamanhoPagina: dadosTransformados.length,
+      totalRegistros: dadosTransformados.length,
       totalPaginas: 1,
       temProximaPagina: false,
       temPaginaAnterior: false,
@@ -191,8 +237,14 @@ export async function getContratoDetalhado(
       gestores: [],
     },
     fornecedor: {
-      razaoSocial: response.data.contratada?.razaoSocial ?? 'Não informado',
-      cnpj: response.data.contratada?.cnpj ?? '',
+      razaoSocial:
+        response.data.contratada?.razaoSocial ??
+        response.data.empresaRazaoSocial ??
+        'Não informado',
+      cnpj:
+        response.data.contratada?.cnpj ??
+        response.data.empresaCnpj ??
+        '',
       contatos: [],
       endereco: {
         logradouro: '',
