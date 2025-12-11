@@ -77,7 +77,7 @@ export const listarMinhasNotificacoes = async (
   const { page = 1, pageSize = 20 } = filtros
 
   const response: AxiosResponse<NotificacoesPaginadas> =
-    await apiNotificacoes.get('/api/notificacoes/minhas', {
+    await apiNotificacoes.get('/api/Notificacoes/minhas', {
       params: { page, pageSize },
     })
 
@@ -230,7 +230,7 @@ export const deletarNotificacao = async (id: string): Promise<void> => {
  */
 export const obterPreferencias = async (): Promise<Preferencia[]> => {
   const response: AxiosResponse<Preferencia[]> = await apiNotificacoes.get(
-    '/api/preferencias/minhas',
+    '/api/Preferencias/minhas',
   )
 
   return response.data

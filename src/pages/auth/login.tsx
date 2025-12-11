@@ -230,7 +230,7 @@ const LoginForm = () => {
                         onFocus={() => setCampoFocado('email')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:bg-white dark:text-gray-800 dark:border-gray-200"
+                        className="h-12 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:bg-white dark:text-gray-800 dark:border-gray-200 dark:placeholder:text-gray-400"
                       />
                     </motion.div>
                   </motion.div>
@@ -266,7 +266,7 @@ const LoginForm = () => {
                         onFocus={() => setCampoFocado('senha')}
                         onBlur={() => setCampoFocado(null)}
                         required
-                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:border-gray-200 dark:text-gray-800"
+                        className="h-12 pr-10 transition-all duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500 dark:border-gray-200 dark:text-gray-800 dark:placeholder:text-gray-400"
                       />
                       <motion.button
                         type="button"
